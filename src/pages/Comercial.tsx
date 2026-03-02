@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
 import { StatusComercial, STATUS_COMERCIAL_ORDER, STATUS_COMERCIAL_LABELS } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,22 @@ export default function Comercial() {
     toast({ title: `Status: ${STATUS_COMERCIAL_LABELS[novoStatus]}` });
   };
 
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
+
+  const handleDrop = (e: React.DragEvent, status: StatusComercial) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain") || dragId;
+    if (id) {
+      const tarefa = comerciais.find(t => t.id === id);
+      if (tarefa && tarefa.statusComercial !== status) {
+        handleStatusChange(id, status);
+      }
+    }
+    setDragId(null);
+    setDragOver(null);
+  };
+
   const handleConverter = (tarefaId: string) => {
     const tarefa = tarefas.find(t => t.id === tarefaId);
     if (!tarefa) return;
@@ -90,16 +106,28 @@ export default function Comercial() {
         {STATUS_COMERCIAL_ORDER.map(status => {
           const columnTasks = comerciais.filter(t => t.statusComercial === status);
           return (
-            <div key={status} className="flex-shrink-0 w-[280px]">
+            <div
+              key={status}
+              className={`flex-shrink-0 w-[280px] rounded-lg p-2 transition-colors ${dragOver === status ? "bg-accent/50 ring-2 ring-primary/30" : ""}`}
+              onDragOver={e => { e.preventDefault(); setDragOver(status); }}
+              onDragLeave={() => setDragOver(null)}
+              onDrop={e => handleDrop(e, status)}
+            >
               <div className="flex items-center gap-2 mb-3">
                 <Badge className={`text-xs ${statusColors[status]}`}>{STATUS_COMERCIAL_LABELS[status]}</Badge>
                 <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
               </div>
               <div className="space-y-2 min-h-[100px]">
                 {columnTasks.map(t => (
-                  <Card key={t.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                  <Card
+                    key={t.id}
+                    draggable
+                    onDragStart={e => { setDragId(t.id); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", t.id); }}
+                    onDragEnd={() => { setDragId(null); setDragOver(null); }}
+                    className={`cursor-grab active:cursor-grabbing hover:shadow-md transition-all ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
+                  >
                     <CardContent className="p-3 space-y-2">
-                      <p className="text-sm font-medium leading-tight" onClick={() => navigate(`/tarefas/${t.id}`)}>{t.titulo}</p>
+                      <p className="text-sm font-medium leading-tight cursor-pointer hover:underline" onClick={() => navigate(`/tarefas/${t.id}`)}>{t.titulo}</p>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {t.sistemaRelacionado && <Badge variant="outline" className="text-[9px]">{t.sistemaRelacionado.toUpperCase()}</Badge>}
                         {t.tipoPlano && <Badge variant="outline" className="text-[9px]">{t.tipoPlano}</Badge>}
