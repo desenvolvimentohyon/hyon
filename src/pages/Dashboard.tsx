@@ -117,7 +117,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-2">
               {minhasTarefas.map(t => {
-                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional];
+                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || TIPO_OPERACIONAL_CONFIG.interno;
                 return (
                   <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/tarefas/${t.id}`)}>
                     <Badge className={`text-[10px] shrink-0 ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
