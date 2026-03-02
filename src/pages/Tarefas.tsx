@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Tarefa, StatusTarefa, Prioridade, STATUS_ORDER } from "@/types";
+import { Tarefa, StatusTarefa, Prioridade, STATUS_ORDER, TipoOperacional } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LayoutGrid, List, Plus, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 
 export default function Tarefas() {
   const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
@@ -25,9 +26,11 @@ export default function Tarefas() {
   const [filtroPrioridade, setFiltroPrioridade] = useState<string>("todos");
   const [filtroTecnico, setFiltroTecnico] = useState<string>("todos");
   const [filtroCliente, setFiltroCliente] = useState<string>("todos");
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos");
+  const [filtroSistema, setFiltroSistema] = useState<string>("todos");
   const [showNova, setShowNova] = useState(false);
 
-  // Form state for new task
+  // Form state
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novoDesc, setNovoDesc] = useState("");
   const [novoCliente, setNovoCliente] = useState<string>("null");
@@ -35,6 +38,7 @@ export default function Tarefas() {
   const [novoPrioridade, setNovoPrioridade] = useState<Prioridade>("media");
   const [novoPrazo, setNovoPrazo] = useState("");
   const [novoTags, setNovoTags] = useState("");
+  const [novoTipo, setNovoTipo] = useState<TipoOperacional>("interno");
 
   useEffect(() => {
     if (searchParams.get("nova") === "1") {
@@ -51,7 +55,6 @@ export default function Tarefas() {
   }, [searchParams, setSearchParams]);
 
   const now = new Date();
-
   const isAtrasada = (t: Tarefa) => {
     if (!t.prazoDataHora || t.status === "concluida" || t.status === "cancelada") return false;
     return new Date(t.prazoDataHora) < now;
@@ -69,27 +72,22 @@ export default function Tarefas() {
       if (filtroTecnico !== "todos" && t.responsavelId !== filtroTecnico) return false;
       if (filtroCliente === "avulsas" && t.clienteId !== null) return false;
       else if (filtroCliente !== "todos" && filtroCliente !== "avulsas" && t.clienteId !== filtroCliente) return false;
+      if (filtroTipo !== "todos" && t.tipoOperacional !== filtroTipo) return false;
+      if (filtroSistema !== "todos" && t.sistemaRelacionado !== filtroSistema) return false;
       return true;
     }).sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
-  }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente]);
+  }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
 
   const handleCriar = () => {
-    if (!novoTitulo.trim()) {
-      toast({ title: "Título obrigatório", variant: "destructive" });
-      return;
-    }
+    if (!novoTitulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
     addTarefa({
-      titulo: novoTitulo.trim(),
-      descricao: novoDesc,
+      titulo: novoTitulo.trim(), descricao: novoDesc,
       clienteId: novoCliente === "null" ? null : novoCliente,
-      responsavelId: novoResponsavel,
-      prioridade: novoPrioridade,
-      status: "a_fazer",
+      responsavelId: novoResponsavel, prioridade: novoPrioridade, status: "a_fazer",
       prazoDataHora: novoPrazo || undefined,
       tags: novoTags.split(",").map(t => t.trim()).filter(Boolean),
-      checklist: [],
-      anexosFake: [],
-      comentarios: [],
+      checklist: [], anexosFake: [], comentarios: [],
+      tipoOperacional: novoTipo,
     });
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
@@ -115,11 +113,6 @@ export default function Tarefas() {
     }
   };
 
-  const handleStatusChange = (tarefaId: string, novoStatus: StatusTarefa) => {
-    updateTarefa(tarefaId, { status: novoStatus }, `Status alterado para ${getStatusLabel(novoStatus)}`);
-    toast({ title: `Status atualizado: ${getStatusLabel(novoStatus)}` });
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -143,6 +136,23 @@ export default function Tarefas() {
             <SelectItem value="todos">Todos Status</SelectItem>
             <SelectItem value="atrasadas">Atrasadas</SelectItem>
             {STATUS_ORDER.map(s => <SelectItem key={s} value={s}>{getStatusLabel(s)}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+          <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Tipo</SelectItem>
+            {(Object.keys(TIPO_OPERACIONAL_CONFIG) as TipoOperacional[]).map(t => (
+              <SelectItem key={t} value={t}>{TIPO_OPERACIONAL_CONFIG[t].label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filtroSistema} onValueChange={setFiltroSistema}>
+          <SelectTrigger className="w-[130px] h-9"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Sistema</SelectItem>
+            <SelectItem value="hyon">Hyon</SelectItem>
+            <SelectItem value="linkpro">LinkPro</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>
@@ -177,6 +187,7 @@ export default function Tarefas() {
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead className="hidden md:table-cell">Cliente</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Prioridade</TableHead>
@@ -185,31 +196,34 @@ export default function Tarefas() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTarefas.map(t => (
-                <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/tarefas/${t.id}`)}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{t.titulo}</span>
-                      {isAtrasada(t) && <Badge variant="destructive" className="text-[10px]">Atrasada</Badge>}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : "Avulsa"}</TableCell>
-                  <TableCell><Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge></TableCell>
-                  <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
-                  <TableCell className="hidden lg:table-cell text-sm">{getTecnico(t.responsavelId)?.nome}</TableCell>
-                  <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
-                    {t.prazoDataHora ? new Date(t.prazoDataHora).toLocaleDateString("pt-BR") : "—"}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {filteredTarefas.map(t => {
+                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional];
+                return (
+                  <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/tarefas/${t.id}`)}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{t.titulo}</span>
+                        {isAtrasada(t) && <Badge variant="destructive" className="text-[10px]">Atrasada</Badge>}
+                      </div>
+                    </TableCell>
+                    <TableCell><Badge className={`text-[10px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge></TableCell>
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : "Avulsa"}</TableCell>
+                    <TableCell><Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge></TableCell>
+                    <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
+                    <TableCell className="hidden lg:table-cell text-sm">{getTecnico(t.responsavelId)?.nome}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                      {t.prazoDataHora ? new Date(t.prazoDataHora).toLocaleDateString("pt-BR") : "—"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {filteredTarefas.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">Nenhuma tarefa encontrada</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa encontrada</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
         </div>
       ) : (
-        /* Kanban */
         <div className="flex gap-4 overflow-x-auto pb-4">
           {STATUS_ORDER.map(status => {
             const columnTasks = filteredTarefas.filter(t => t.status === status);
@@ -220,34 +234,27 @@ export default function Tarefas() {
                   <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
                 </div>
                 <div className="space-y-2 min-h-[100px]">
-                  {columnTasks.map(t => (
-                    <Card key={t.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/tarefas/${t.id}`)}>
-                      <CardContent className="p-3 space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-sm font-medium leading-tight">{t.titulo}</p>
-                          {isAtrasada(t) && <Badge variant="destructive" className="text-[9px] shrink-0">Atrasada</Badge>}
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
-                          {t.tags.slice(0, 2).map(tag => (
-                            <Badge key={tag} variant="outline" className="text-[9px]">{tag}</Badge>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : "Avulsa"}</span>
-                          <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
-                        </div>
-                        {t.checklist.length > 0 && (
-                          <div className="flex items-center gap-1.5">
-                            <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
-                              <div className="h-full bg-success rounded-full transition-all" style={{ width: `${(t.checklist.filter(c => c.concluido).length / t.checklist.length) * 100}%` }} />
-                            </div>
-                            <span className="text-[10px] text-muted-foreground">{t.checklist.filter(c => c.concluido).length}/{t.checklist.length}</span>
+                  {columnTasks.map(t => {
+                    const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional];
+                    return (
+                      <Card key={t.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/tarefas/${t.id}`)}>
+                        <CardContent className="p-3 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium leading-tight">{t.titulo}</p>
+                            {isAtrasada(t) && <Badge variant="destructive" className="text-[9px] shrink-0">Atrasada</Badge>}
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Badge className={`text-[9px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge>
+                            <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : "Avulsa"}</span>
+                            <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -264,6 +271,17 @@ export default function Tarefas() {
             <div><Label>Descrição</Label><Textarea value={novoDesc} onChange={e => setNovoDesc(e.target.value)} rows={3} /></div>
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <Label>Tipo Operacional</Label>
+                <Select value={novoTipo} onValueChange={v => setNovoTipo(v as TipoOperacional)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(TIPO_OPERACIONAL_CONFIG) as TipoOperacional[]).map(t => (
+                      <SelectItem key={t} value={t}>{TIPO_OPERACIONAL_CONFIG[t].label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Cliente</Label>
                 <Select value={novoCliente} onValueChange={setNovoCliente}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -273,17 +291,15 @@ export default function Tarefas() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Responsável</Label>
                 <Select value={novoResponsavel} onValueChange={setNovoResponsavel}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {tecnicos.filter(t => t.ativo).map(t => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
-                  </SelectContent>
+                  <SelectContent>{tecnicos.filter(t => t.ativo).map(t => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Prioridade</Label>
                 <Select value={novoPrioridade} onValueChange={v => setNovoPrioridade(v as Prioridade)}>
@@ -293,9 +309,11 @@ export default function Tarefas() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Prazo</Label><Input type="datetime-local" value={novoPrazo} onChange={e => setNovoPrazo(e.target.value)} /></div>
             </div>
-            <div><Label>Tags (separadas por vírgula)</Label><Input value={novoTags} onChange={e => setNovoTags(e.target.value)} placeholder="rede, hardware" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Prazo</Label><Input type="datetime-local" value={novoPrazo} onChange={e => setNovoPrazo(e.target.value)} /></div>
+              <div><Label>Tags (vírgula)</Label><Input value={novoTags} onChange={e => setNovoTags(e.target.value)} placeholder="rede, hardware" /></div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNova(false)}>Cancelar</Button>

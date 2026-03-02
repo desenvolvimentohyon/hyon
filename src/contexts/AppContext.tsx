@@ -17,7 +17,7 @@ interface AppState {
 
 interface AppContextType extends AppState {
   // Tarefas
-  addTarefa: (t: Omit<Tarefa, "id" | "criadoEm" | "atualizadoEm" | "historico" | "tempoTotalSegundos" | "timerRodando">) => void;
+  addTarefa: (t: Omit<Tarefa, "id" | "criadoEm" | "atualizadoEm" | "historico" | "tempoTotalSegundos" | "timerRodando"> & { tipoOperacional?: Tarefa["tipoOperacional"] }) => void;
   updateTarefa: (id: string, changes: Partial<Tarefa>, acao?: string) => void;
   deleteTarefa: (id: string) => void;
   // Timer
@@ -121,12 +121,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     id: uid(), acao, detalhes, criadoEm: new Date().toISOString(),
   });
 
-  const addTarefa = useCallback((t: Omit<Tarefa, "id" | "criadoEm" | "atualizadoEm" | "historico" | "tempoTotalSegundos" | "timerRodando">) => {
+  const addTarefa = useCallback((t: Omit<Tarefa, "id" | "criadoEm" | "atualizadoEm" | "historico" | "tempoTotalSegundos" | "timerRodando"> & { tipoOperacional?: Tarefa["tipoOperacional"] }) => {
     const now = new Date().toISOString();
     const nova: Tarefa = {
       ...t, id: uid(), criadoEm: now, atualizadoEm: now,
       historico: [addHistorico("Criação", "Tarefa criada")],
       tempoTotalSegundos: 0, timerRodando: false,
+      tipoOperacional: t.tipoOperacional || "interno",
     };
     setTarefas(prev => [...prev, nova]);
   }, []);
