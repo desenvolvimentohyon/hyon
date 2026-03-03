@@ -33,6 +33,7 @@ import UsuariosConfig from "./pages/UsuariosConfig";
 import Parametros from "./pages/Parametros";
 import AcessoNegado from "./pages/AcessoNegado";
 import NotFound from "./pages/NotFound";
+import PortalCliente from "./pages/PortalCliente";
 // Financeiro
 import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
 import ContasReceber from "./pages/financeiro/ContasReceber";
@@ -127,6 +128,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/aceite/:numero" element={<AceiteProposta />} />
+            <Route path="/portal/:token" element={<PortalCliente />} />
             <Route path="*" element={<AuthGate />} />
           </Routes>
         </AuthProvider>
