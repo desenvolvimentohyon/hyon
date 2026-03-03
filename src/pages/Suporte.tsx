@@ -6,15 +6,27 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench, Filter } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 
 export default function Suporte() {
   const { tarefas, clientes, getCliente, getTecnico, getStatusLabel } = useApp();
   const navigate = useNavigate();
+  const [periodo, setPeriodo] = useState<string>("todos");
 
-  const chamados = useMemo(() => tarefas.filter(t => t.tipoOperacional === "suporte"), [tarefas]);
   const now = new Date();
+  const periodoFilter = useMemo(() => {
+    if (periodo === "todos") return null;
+    const dias = parseInt(periodo);
+    return new Date(now.getTime() - dias * 86400000);
+  }, [periodo]);
+
+  const chamadosTodos = useMemo(() => tarefas.filter(t => t.tipoOperacional === "suporte"), [tarefas]);
+  const chamados = useMemo(() => {
+    if (!periodoFilter) return chamadosTodos;
+    return chamadosTodos.filter(t => new Date(t.criadoEm) >= periodoFilter);
+  }, [chamadosTodos, periodoFilter]);
 
   const abertos = chamados.filter(t => t.status !== "concluida" && t.status !== "cancelada");
   const slaVencido = abertos.filter(t => {
@@ -190,9 +202,27 @@ export default function Suporte() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Headphones className="h-6 w-6 text-orange-600" />
-        <h1 className="text-2xl font-bold tracking-tight">Suporte Técnico</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <Headphones className="h-6 w-6 text-orange-600" />
+          <h1 className="text-2xl font-bold tracking-tight">Suporte Técnico</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={periodo} onValueChange={setPeriodo}>
+            <SelectTrigger className="w-[160px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+              <SelectItem value="180">Últimos 6 meses</SelectItem>
+              <SelectItem value="365">Último ano</SelectItem>
+              <SelectItem value="todos">Todos</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* KPIs */}
