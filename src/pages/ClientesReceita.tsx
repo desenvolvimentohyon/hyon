@@ -17,7 +17,7 @@ import { toast } from "@/hooks/use-toast";
 import { ClienteReceita, SistemaPrincipal, StatusCliente, RECEITA_COLORS } from "@/types/receita";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
-import { validateCNPJ, cleanCNPJ, formatCNPJ, type CnpjLookupResult } from "@/lib/cnpjUtils";
+import { validateCNPJ, cleanCNPJ, formatCNPJ, maskDocument, type CnpjLookupResult } from "@/lib/cnpjUtils";
 
 function PortalLinkButton({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(false);
@@ -98,8 +98,9 @@ export default function Clientes() {
 
   // Auto-lookup CNPJ when document field changes
   const handleDocumentoChange = useCallback(async (value: string) => {
-    setForm(f => ({ ...f, documento: value }));
-    const cleaned = cleanCNPJ(value);
+    const masked = maskDocument(value);
+    setForm(f => ({ ...f, documento: masked }));
+    const cleaned = cleanCNPJ(masked);
     if (cleaned.length === 14 && validateCNPJ(cleaned) && cleaned !== cnpjLookupRef.current) {
       cnpjLookupRef.current = cleaned;
       setCnpjLoading(true);

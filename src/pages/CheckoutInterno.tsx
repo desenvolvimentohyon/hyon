@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { ArrowRight, ArrowLeft, CheckCircle, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { maskDocument } from "@/lib/cnpjUtils";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -245,7 +246,7 @@ export default function CheckoutInterno() {
               <Label className="text-lg font-semibold">Dados do Cliente</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label>Nome *</Label><Input value={clientName} onChange={e => setClientName(e.target.value)} /></div>
-                <div><Label>Documento (CPF/CNPJ)</Label><Input value={clientDoc} onChange={e => setClientDoc(e.target.value)} /></div>
+                <div><Label>Documento (CPF/CNPJ)</Label><Input value={clientDoc} onChange={e => setClientDoc(maskDocument(e.target.value))} placeholder="000.000.000-00" /></div>
                 <div><Label>Email</Label><Input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} /></div>
                 <div><Label>Telefone</Label><Input value={clientPhone} onChange={e => setClientPhone(e.target.value)} /></div>
                 <div><Label>Cidade</Label><Input value={clientCity} onChange={e => setClientCity(e.target.value)} /></div>

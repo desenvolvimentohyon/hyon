@@ -15,7 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { PerfilCliente, SistemaRelacionado, StatusFinanceiro } from "@/types";
-import { validateCNPJ, cleanCNPJ, CnpjLookupResult } from "@/lib/cnpjUtils";
+import { validateCNPJ, cleanCNPJ, maskDocument, CnpjLookupResult } from "@/lib/cnpjUtils";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function Clientes() {
@@ -66,8 +66,9 @@ export default function Clientes() {
   }, []);
 
   const handleDocumentoChange = useCallback(async (value: string) => {
-    setDocumento(value);
-    const cleaned = cleanCNPJ(value);
+    const masked = maskDocument(value);
+    setDocumento(masked);
+    const cleaned = cleanCNPJ(masked);
     if (cleaned.length !== 14 || !validateCNPJ(cleaned)) return;
 
     setCnpjLoading(true);
