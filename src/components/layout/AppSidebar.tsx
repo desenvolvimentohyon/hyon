@@ -1,4 +1,5 @@
 import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign, Landmark, Receipt, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2, SlidersHorizontal, Shield, Settings2 } from "lucide-react";
+import logoHyon from "@/assets/logo-hyon.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUsers } from "@/contexts/UsersContext";
@@ -77,12 +78,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 pb-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 text-sidebar-primary-foreground font-bold text-sm shadow-md">
-            GT
-          </div>
+          <img src={logoHyon} alt="Hyon Tech" className={`${collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"} transition-all`} />
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-sidebar-foreground tracking-tight">GestãoTask</span>
               <span className="text-[10px] text-sidebar-foreground/40 font-medium">Revenda ERP</span>
             </div>
           )}
