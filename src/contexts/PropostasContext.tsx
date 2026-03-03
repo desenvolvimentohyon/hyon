@@ -24,12 +24,19 @@ function dbToProposta(r: any): Proposta {
     linkAceite: r.acceptance_link || "", pdfGeradoEm: r.pdf_generated_at,
     observacoesInternas: r.notes_internal || "",
     informacoesAdicionais: r.additional_info || "",
-    itens: items, historico: [], // historico not stored in proposals table
+    itens: items, historico: [],
     criadoEm: r.created_at, atualizadoEm: r.updated_at,
     partnerId: r.partner_id || null,
     partnerCommissionPercent: r.partner_commission_percent != null ? Number(r.partner_commission_percent) : null,
     partnerCommissionValue: r.partner_commission_value != null ? Number(r.partner_commission_value) : null,
     commissionGenerated: r.commission_generated || false,
+    // Advanced fields
+    partnerCommissionImplantPercent: r.partner_commission_implant_percent != null ? Number(r.partner_commission_implant_percent) : null,
+    partnerCommissionImplantValue: r.partner_commission_implant_value != null ? Number(r.partner_commission_implant_value) : null,
+    partnerCommissionRecurPercent: r.partner_commission_recur_percent != null ? Number(r.partner_commission_recur_percent) : null,
+    partnerCommissionRecurMonths: r.partner_commission_recur_months != null ? Number(r.partner_commission_recur_months) : null,
+    partnerCommissionRecurApplyOn: r.partner_commission_recur_apply_on || null,
+    commissionImplantGenerated: r.commission_implant_generated || false,
   };
 }
 
@@ -105,7 +112,6 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       ...p, id: "", numeroProposta: numero, linkAceite: `/aceite/${numero}`,
       historico: [], criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
     };
-    // Fire and forget insert
     (async () => {
       const { data, error } = await supabase.from("proposals").insert({
         org_id: orgId, proposal_number: numero, client_id: p.clienteId || null,
@@ -122,9 +128,13 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         partner_id: p.partnerId || null,
         partner_commission_percent: p.partnerCommissionPercent || null,
         partner_commission_value: p.partnerCommissionValue || null,
-      }).select().single();
+        partner_commission_implant_percent: p.partnerCommissionImplantPercent || null,
+        partner_commission_implant_value: p.partnerCommissionImplantValue || null,
+        partner_commission_recur_percent: p.partnerCommissionRecurPercent || null,
+        partner_commission_recur_months: p.partnerCommissionRecurMonths || null,
+        partner_commission_recur_apply_on: p.partnerCommissionRecurApplyOn || null,
+      } as any).select().single();
       if (error) { toast.error("Erro ao criar proposta: " + error.message); return; }
-      // Insert items
       if (p.itens?.length && data) {
         await supabase.from("proposal_items").insert(
           p.itens.map((i: any) => ({
@@ -161,6 +171,13 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
     if (changes.partnerCommissionPercent !== undefined) upd.partner_commission_percent = changes.partnerCommissionPercent;
     if (changes.partnerCommissionValue !== undefined) upd.partner_commission_value = changes.partnerCommissionValue;
     if (changes.commissionGenerated !== undefined) upd.commission_generated = changes.commissionGenerated;
+    // Advanced fields
+    if (changes.partnerCommissionImplantPercent !== undefined) upd.partner_commission_implant_percent = changes.partnerCommissionImplantPercent;
+    if (changes.partnerCommissionImplantValue !== undefined) upd.partner_commission_implant_value = changes.partnerCommissionImplantValue;
+    if (changes.partnerCommissionRecurPercent !== undefined) upd.partner_commission_recur_percent = changes.partnerCommissionRecurPercent;
+    if (changes.partnerCommissionRecurMonths !== undefined) upd.partner_commission_recur_months = changes.partnerCommissionRecurMonths;
+    if (changes.partnerCommissionRecurApplyOn !== undefined) upd.partner_commission_recur_apply_on = changes.partnerCommissionRecurApplyOn;
+    if (changes.commissionImplantGenerated !== undefined) upd.commission_implant_generated = changes.commissionImplantGenerated;
 
     if (Object.keys(upd).length > 0) {
       const { error } = await supabase.from("proposals").update(upd).eq("id", id);
@@ -179,35 +196,61 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // === Auto-comissão: gerar título financeiro quando aceite ===
+    // === Auto-comissão implantação: gerar título financeiro quando aceite ===
     if (changes.statusAceite === "aceitou") {
       const current = propostas.find(p => p.id === id);
       const mergedPartnerId = changes.partnerId !== undefined ? changes.partnerId : current?.partnerId;
       const mergedImplantacao = changes.valorImplantacao !== undefined ? changes.valorImplantacao : current?.valorImplantacao;
-      const mergedCommissionValue = changes.partnerCommissionValue !== undefined ? changes.partnerCommissionValue : current?.partnerCommissionValue;
-      const mergedCommissionGenerated = changes.commissionGenerated !== undefined ? changes.commissionGenerated : current?.commissionGenerated;
+      const mergedCommissionImplantValue = changes.partnerCommissionImplantValue !== undefined ? changes.partnerCommissionImplantValue : (current?.partnerCommissionImplantValue || current?.partnerCommissionValue);
+      const mergedCommissionImplantGenerated = changes.commissionImplantGenerated !== undefined ? changes.commissionImplantGenerated : (current?.commissionImplantGenerated || current?.commissionGenerated);
       const mergedNumero = current?.numeroProposta || "";
       const mergedClienteId = changes.clienteId !== undefined ? changes.clienteId : current?.clienteId;
+      const mergedRecurPercent = changes.partnerCommissionRecurPercent !== undefined ? changes.partnerCommissionRecurPercent : current?.partnerCommissionRecurPercent;
+      const mergedRecurMonths = changes.partnerCommissionRecurMonths !== undefined ? changes.partnerCommissionRecurMonths : current?.partnerCommissionRecurMonths;
+      const mergedRecurApplyOn = changes.partnerCommissionRecurApplyOn !== undefined ? changes.partnerCommissionRecurApplyOn : current?.partnerCommissionRecurApplyOn;
 
-      if (mergedPartnerId && mergedImplantacao && mergedImplantacao > 0 && mergedCommissionValue && mergedCommissionValue > 0 && !mergedCommissionGenerated && orgId) {
+      // Generate implantation commission
+      if (mergedPartnerId && mergedImplantacao && mergedImplantacao > 0 && mergedCommissionImplantValue && mergedCommissionImplantValue > 0 && !mergedCommissionImplantGenerated && orgId) {
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + 7);
+        const competency = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, "0")}`;
         const { error: ftError } = await supabase.from("financial_titles").insert({
           org_id: orgId,
           type: "pagar",
           origin: "comissao_parceiro",
-          description: `Comissão referente à proposta ${mergedNumero}`,
+          commission_type: "implantacao",
+          description: `Comissão de implantação - Proposta ${mergedNumero}`,
           client_id: mergedClienteId || null,
-          value_original: mergedCommissionValue,
-          value_final: mergedCommissionValue,
+          value_original: mergedCommissionImplantValue,
+          value_final: mergedCommissionImplantValue,
           due_at: dueDate.toISOString().split("T")[0],
           status: "aberto",
           partner_id: mergedPartnerId,
           reference_proposal_id: id,
-        });
+          competency,
+        } as any);
         if (!ftError) {
-          await supabase.from("proposals").update({ commission_generated: true }).eq("id", id);
-          toast.success(`Comissão de R$ ${mergedCommissionValue.toFixed(2)} gerada automaticamente!`);
+          await supabase.from("proposals").update({
+            commission_generated: true,
+            commission_implant_generated: true,
+          } as any).eq("id", id);
+          toast.success(`Comissão de implantação R$ ${mergedCommissionImplantValue.toFixed(2)} gerada!`);
+        }
+      }
+
+      // Bind partner to client (ref_partner_*)
+      if (mergedPartnerId && mergedClienteId && orgId) {
+        const { data: clientData } = await supabase.from("clients").select("ref_partner_id").eq("id", mergedClienteId).single();
+        if (clientData && !clientData.ref_partner_id) {
+          await supabase.from("clients").update({
+            ref_partner_id: mergedPartnerId,
+            ref_partner_start_at: new Date().toISOString().split("T")[0],
+            ref_partner_recur_percent: mergedRecurPercent || null,
+            ref_partner_recur_months: mergedRecurMonths || null,
+            ref_partner_recur_apply_on: mergedRecurApplyOn || null,
+          } as any).eq("id", mergedClienteId);
+        } else if (clientData?.ref_partner_id && clientData.ref_partner_id !== mergedPartnerId) {
+          toast.info("Cliente já possui parceiro vinculado. Mantido o parceiro original.");
         }
       }
     }
@@ -229,6 +272,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       ...original, id: "", numeroProposta: numero, linkAceite: `/aceite/${numero}`,
       statusCRM: "Rascunho", statusVisualizacao: "nao_enviado", statusAceite: "pendente",
       dataEnvio: null, dataValidade: null, pdfGeradoEm: null,
+      commissionGenerated: false, commissionImplantGenerated: false,
       historico: [], criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
     };
     (async () => {
@@ -272,7 +316,6 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       additional_info_default: newConfig.informacoesAdicionaisPadrao,
       pdf_footer: newConfig.rodapePDF,
     }, { onConflict: "org_id" });
-    // Update CRM statuses if changed
     if (changes.statusKanban) {
       await supabase.from("crm_statuses").delete().eq("org_id", orgId);
       await supabase.from("crm_statuses").insert(

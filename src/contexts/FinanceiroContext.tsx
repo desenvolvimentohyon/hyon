@@ -250,6 +250,52 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
       type: titulo.tipo === "receber" ? "credito" : "debito",
       reconciled: true, linked_title_id: id,
     });
+
+    // === Auto recurring commission on_invoice_paid ===
+    if (titulo.tipo === "receber" && !isParcial && titulo.clienteId) {
+      try {
+        // Get the raw title to access competency and client ref_partner data
+        const { data: rawTitle } = await supabase.from("financial_titles").select("competency, client_id").eq("id", id).single();
+        if (rawTitle?.client_id && rawTitle?.competency) {
+          const { data: client } = await supabase.from("clients").select("ref_partner_id, ref_partner_start_at, ref_partner_recur_percent, ref_partner_recur_months, ref_partner_recur_apply_on, status").eq("id", rawTitle.client_id).single();
+          if (client?.ref_partner_id && client.ref_partner_recur_apply_on === "on_invoice_paid" && client.ref_partner_recur_percent && client.ref_partner_recur_percent > 0 && client.status !== "cancelado") {
+            // Check period eligibility
+            let eligible = true;
+            if (client.ref_partner_recur_months && client.ref_partner_recur_months > 0 && client.ref_partner_start_at) {
+              const startDate = new Date(client.ref_partner_start_at);
+              const [compYear, compMonth] = rawTitle.competency.split("-").map(Number);
+              const monthsDiff = (compYear - startDate.getFullYear()) * 12 + (compMonth - (startDate.getMonth() + 1));
+              if (monthsDiff >= client.ref_partner_recur_months) eligible = false;
+            }
+            if (eligible) {
+              const commissionValue = Math.round(valorFinal * client.ref_partner_recur_percent / 100 * 100) / 100;
+              if (commissionValue > 0) {
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 7);
+                await supabase.from("financial_titles").insert({
+                  org_id: orgId,
+                  type: "pagar",
+                  origin: "comissao_parceiro",
+                  commission_type: "recorrente",
+                  partner_id: client.ref_partner_id,
+                  reference_title_id: id,
+                  client_id: rawTitle.client_id,
+                  competency: rawTitle.competency,
+                  description: `Comissão recorrente ${rawTitle.competency}`,
+                  value_original: commissionValue,
+                  value_final: commissionValue,
+                  due_at: dueDate.toISOString().split("T")[0],
+                  status: "aberto",
+                } as any);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error generating recurring commission:", err);
+      }
+    }
+
     fetchAll();
   }, [orgId, titulos, fetchAll]);
 

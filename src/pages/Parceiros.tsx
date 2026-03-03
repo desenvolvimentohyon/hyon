@@ -25,6 +25,10 @@ interface Partner {
   active: boolean;
   commission_percent: number;
   commission_type: string;
+  commission_implant_percent: number;
+  commission_recur_percent: number;
+  commission_recur_months: number;
+  commission_recur_apply_on: string;
   notes: string | null;
   created_at: string;
 }
@@ -34,6 +38,28 @@ interface PartnerWithTotals extends Partner {
   total_pago: number;
 }
 
+interface PartnerForm {
+  name: string;
+  document: string;
+  phone: string;
+  email: string;
+  commission_implant_percent: string;
+  commission_type: string;
+  commission_recur_percent: string;
+  commission_recur_months: string;
+  commission_recur_apply_on: string;
+  notes: string;
+  active: boolean;
+}
+
+const defaultForm: PartnerForm = {
+  name: "", document: "", phone: "", email: "",
+  commission_implant_percent: "10", commission_type: "apenas_implantacao",
+  commission_recur_percent: "5", commission_recur_months: "12",
+  commission_recur_apply_on: "on_invoice_paid",
+  notes: "", active: true,
+};
+
 export default function Parceiros() {
   const [partners, setPartners] = useState<PartnerWithTotals[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,15 +67,13 @@ export default function Parceiros() {
   const [filtroAtivo, setFiltroAtivo] = useState<string>("todos");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Partner | null>(null);
-
-  const [form, setForm] = useState({ name: "", document: "", phone: "", email: "", commission_percent: "10", commission_type: "apenas_implantacao", notes: "", active: true });
+  const [form, setForm] = useState<PartnerForm>({ ...defaultForm });
 
   const fetchPartners = useCallback(async () => {
     setLoading(true);
     const { data: pData } = await supabase.from("partners").select("*").order("name");
     if (!pData) { setLoading(false); return; }
 
-    // Fetch commission totals from financial_titles
     const partnerIds = pData.map(p => p.id);
     let commissionMap = new Map<string, { total: number; pago: number }>();
 
@@ -71,8 +95,12 @@ export default function Parceiros() {
       }
     }
 
-    setPartners(pData.map(p => ({
+    setPartners(pData.map((p: any) => ({
       ...p,
+      commission_implant_percent: p.commission_implant_percent ?? p.commission_percent ?? 0,
+      commission_recur_percent: p.commission_recur_percent ?? 0,
+      commission_recur_months: p.commission_recur_months ?? 0,
+      commission_recur_apply_on: p.commission_recur_apply_on ?? "on_invoice_paid",
       total_comissoes: commissionMap.get(p.id)?.total || 0,
       total_pago: commissionMap.get(p.id)?.pago || 0,
     })));
@@ -91,25 +119,38 @@ export default function Parceiros() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: "", document: "", phone: "", email: "", commission_percent: "10", commission_type: "apenas_implantacao", notes: "", active: true });
+    setForm({ ...defaultForm });
     setModalOpen(true);
   };
 
   const openEdit = (p: Partner) => {
     setEditing(p);
-    setForm({ name: p.name, document: p.document || "", phone: p.phone || "", email: p.email || "", commission_percent: String(p.commission_percent), commission_type: p.commission_type, notes: p.notes || "", active: p.active });
+    setForm({
+      name: p.name, document: p.document || "", phone: p.phone || "", email: p.email || "",
+      commission_implant_percent: String(p.commission_implant_percent),
+      commission_type: p.commission_type,
+      commission_recur_percent: String(p.commission_recur_percent),
+      commission_recur_months: String(p.commission_recur_months),
+      commission_recur_apply_on: p.commission_recur_apply_on,
+      notes: p.notes || "", active: p.active,
+    });
     setModalOpen(true);
   };
 
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error("Nome é obrigatório"); return; }
-    const payload = {
+    const implantPct = parseFloat(form.commission_implant_percent) || 0;
+    const payload: any = {
       name: form.name.trim(),
       document: form.document || null,
       phone: form.phone || null,
       email: form.email || null,
-      commission_percent: parseFloat(form.commission_percent) || 0,
+      commission_percent: implantPct, // backward compat
+      commission_implant_percent: implantPct,
       commission_type: form.commission_type,
+      commission_recur_percent: form.commission_type === "implantacao_e_mensalidade" ? (parseFloat(form.commission_recur_percent) || 0) : 0,
+      commission_recur_months: form.commission_type === "implantacao_e_mensalidade" ? (parseInt(form.commission_recur_months) || 0) : 0,
+      commission_recur_apply_on: form.commission_type === "implantacao_e_mensalidade" ? form.commission_recur_apply_on : "on_invoice_paid",
       notes: form.notes || null,
       active: form.active,
     };
@@ -160,7 +201,8 @@ export default function Parceiros() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Documento</TableHead>
-                <TableHead>Comissão %</TableHead>
+                <TableHead>Comissão</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Total Comissões</TableHead>
                 <TableHead>Total Pago</TableHead>
@@ -169,13 +211,25 @@ export default function Parceiros() {
             </TableHeader>
             <TableBody>
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum parceiro encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum parceiro encontrado</TableCell></TableRow>
               )}
               {filtered.map(p => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{p.document || "—"}</TableCell>
-                  <TableCell><Badge variant="outline">{p.commission_percent}%</Badge></TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <Badge variant="outline" className="text-xs">Impl: {p.commission_implant_percent}%</Badge>
+                      {p.commission_type === "implantacao_e_mensalidade" && (
+                        <Badge variant="outline" className="text-xs">Recor: {p.commission_recur_percent}%{p.commission_recur_months > 0 ? ` (${p.commission_recur_months}m)` : " (∞)"}</Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="text-[10px]">
+                      {p.commission_type === "implantacao_e_mensalidade" ? "Impl + Recor" : "Implantação"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={p.active ? "default" : "secondary"} className={p.active ? "bg-success/10 text-success border-success/20" : ""}>
                       {p.active ? "Ativo" : "Inativo"}
@@ -196,7 +250,7 @@ export default function Parceiros() {
       </Card>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{editing ? "Editar Parceiro" : "Novo Parceiro"}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
@@ -206,7 +260,7 @@ export default function Parceiros() {
               <div><Label>E-mail</Label><Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Comissão (%)</Label><Input type="number" value={form.commission_percent} onChange={e => setForm(f => ({ ...f, commission_percent: e.target.value }))} /></div>
+              <div><Label>% Comissão Implantação</Label><Input type="number" value={form.commission_implant_percent} onChange={e => setForm(f => ({ ...f, commission_implant_percent: e.target.value }))} /></div>
               <div><Label>Tipo Comissão</Label>
                 <Select value={form.commission_type} onValueChange={v => setForm(f => ({ ...f, commission_type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -217,6 +271,25 @@ export default function Parceiros() {
                 </Select>
               </div>
             </div>
+            {form.commission_type === "implantacao_e_mensalidade" && (
+              <div className="space-y-3 rounded-md border p-3 bg-muted/30">
+                <p className="text-xs font-medium text-muted-foreground">Comissão Recorrente (Mensalidade)</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>% Comissão Mensalidade</Label><Input type="number" value={form.commission_recur_percent} onChange={e => setForm(f => ({ ...f, commission_recur_percent: e.target.value }))} /></div>
+                  <div><Label>Duração (meses, 0=ilimitado)</Label><Input type="number" value={form.commission_recur_months} onChange={e => setForm(f => ({ ...f, commission_recur_months: e.target.value }))} /></div>
+                </div>
+                <div>
+                  <Label>Aplicar comissão recorrente em</Label>
+                  <Select value={form.commission_recur_apply_on} onValueChange={v => setForm(f => ({ ...f, commission_recur_apply_on: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="on_invoice_paid">Ao pagar mensalidade</SelectItem>
+                      <SelectItem value="on_invoice_created">Ao gerar mensalidade</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
             <div><Label>Observações</Label><Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} /></div>
             <div className="flex items-center gap-2">
               <Switch checked={form.active} onCheckedChange={v => setForm(f => ({ ...f, active: v }))} />
