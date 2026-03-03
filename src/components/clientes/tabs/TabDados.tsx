@@ -1,0 +1,295 @@
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Search, Loader2, Plus, Pencil, Trash2, Star } from "lucide-react";
+import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
+import { maskDocument } from "@/lib/cnpjUtils";
+import { toast } from "@/hooks/use-toast";
+
+const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+
+const ROLE_OPTIONS = [
+  { value: "financeiro", label: "Financeiro" },
+  { value: "fiscal", label: "Fiscal" },
+  { value: "compras", label: "Compras" },
+  { value: "operacao_pdv", label: "Operação/PDV" },
+  { value: "ti", label: "TI" },
+  { value: "comercial", label: "Comercial" },
+  { value: "contador", label: "Contador" },
+  { value: "outro", label: "Outro" },
+];
+
+interface Props {
+  cliente: ClienteFull;
+  formData: Partial<ClienteFull>;
+  onChange: (changes: Partial<ClienteFull>) => void;
+  contacts: ClienteContact[];
+  onAddContact: (c: Omit<ClienteContact, "id" | "org_id" | "client_id" | "created_at" | "updated_at">) => Promise<void>;
+  onUpdateContact: (id: string, changes: Partial<ClienteContact>) => Promise<void>;
+  onDeleteContact: (id: string) => Promise<void>;
+}
+
+export default function TabDados({ cliente, formData, onChange, contacts, onAddContact, onUpdateContact, onDeleteContact }: Props) {
+  const [cepLoading, setCepLoading] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
+  const [contactForm, setContactForm] = useState({ name: "", phone: "", email: "", roles: [] as string[], is_billing_preferred: false, is_support_preferred: false });
+
+  const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
+  const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
+
+  const buscarCep = async () => {
+    const cep = v("address_cep").replace(/\D/g, "");
+    if (cep.length !== 8) { toast({ title: "CEP inválido", variant: "destructive" }); return; }
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+      if (data.erro) { toast({ title: "CEP não encontrado", variant: "destructive" }); return; }
+      onChange({
+        address_street: data.logradouro || v("address_street"),
+        address_neighborhood: data.bairro || v("address_neighborhood"),
+        city: data.localidade || v("city"),
+        address_uf: data.uf || v("address_uf"),
+      } as any);
+    } catch {
+      toast({ title: "Erro ao buscar CEP", variant: "destructive" });
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  const openNewContact = () => {
+    setContactForm({ name: "", phone: "", email: "", roles: [], is_billing_preferred: false, is_support_preferred: false });
+    setEditingContactId(null);
+    setShowContactForm(true);
+  };
+
+  const openEditContact = (c: ClienteContact) => {
+    setContactForm({ name: c.name, phone: c.phone || "", email: c.email || "", roles: c.roles || [], is_billing_preferred: c.is_billing_preferred, is_support_preferred: c.is_support_preferred });
+    setEditingContactId(c.id);
+    setShowContactForm(true);
+  };
+
+  const toggleRole = (role: string) => {
+    setContactForm(p => ({ ...p, roles: p.roles.includes(role) ? p.roles.filter(r => r !== role) : [...p.roles, role] }));
+  };
+
+  const handleSaveContact = async () => {
+    if (!contactForm.name.trim()) { toast({ title: "Nome obrigatório", variant: "destructive" }); return; }
+    if (editingContactId) {
+      await onUpdateContact(editingContactId, { name: contactForm.name, phone: contactForm.phone || null, email: contactForm.email || null, roles: contactForm.roles, is_billing_preferred: contactForm.is_billing_preferred, is_support_preferred: contactForm.is_support_preferred } as any);
+    } else {
+      await onAddContact({ name: contactForm.name, phone: contactForm.phone || null, email: contactForm.email || null, roles: contactForm.roles, is_billing_preferred: contactForm.is_billing_preferred, is_support_preferred: contactForm.is_support_preferred });
+    }
+    setShowContactForm(false);
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Identificação */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Identificação</h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div><Label>Nome do Cliente *</Label><Input value={v("name")} onChange={e => set("name", e.target.value)} placeholder="Nome do cliente" /></div>
+          <div><Label>Nome Fantasia</Label><Input value={v("trade_name")} onChange={e => set("trade_name", e.target.value)} placeholder="Nome fantasia" /></div>
+          <div><Label>Razão Social</Label><Input value={v("legal_name")} onChange={e => set("legal_name", e.target.value)} placeholder="Razão social" /></div>
+          <div><Label>CNPJ/CPF</Label><Input value={v("document")} onChange={e => set("document", maskDocument(e.target.value))} placeholder="00.000.000/0000-00" /></div>
+          <div><Label>Inscrição Estadual</Label><Input value={v("state_registration")} onChange={e => set("state_registration", e.target.value)} placeholder="Inscrição estadual" /></div>
+          <div>
+            <Label>Vínculo Empresarial</Label>
+            <Select value={v("company_branch_type") || "matriz"} onValueChange={val => set("company_branch_type", val)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="matriz">Matriz</SelectItem>
+                <SelectItem value="filial">Filial</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>Email</Label><Input value={v("email")} onChange={e => set("email", e.target.value)} placeholder="email@empresa.com" /></div>
+          <div><Label>Telefone</Label><Input value={v("phone")} onChange={e => set("phone", e.target.value)} placeholder="(00) 00000-0000" /></div>
+          <div>
+            <Label>Status</Label>
+            <Select value={v("status") || "ativo"} onValueChange={val => set("status", val)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="atraso">Atraso</SelectItem>
+                <SelectItem value="suspenso">Suspenso</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>Sistema</Label><Input value={v("system_name")} onChange={e => set("system_name", e.target.value)} placeholder="Ex: PDV+, Hyon" /></div>
+        </div>
+      </section>
+
+      {/* Endereço */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Endereço</h3>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <Label>CEP</Label>
+              <Input value={v("address_cep")} onChange={e => set("address_cep", e.target.value)} placeholder="00000-000" />
+            </div>
+            <Button size="icon" variant="outline" onClick={buscarCep} disabled={cepLoading} className="shrink-0">
+              {cepLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            </Button>
+          </div>
+          <div className="md:col-span-2"><Label>Logradouro</Label><Input value={v("address_street")} onChange={e => set("address_street", e.target.value)} placeholder="Rua, Avenida..." /></div>
+          <div><Label>Número</Label><Input value={v("address_number")} onChange={e => set("address_number", e.target.value)} placeholder="Nº" /></div>
+          <div><Label>Complemento</Label><Input value={v("address_complement")} onChange={e => set("address_complement", e.target.value)} placeholder="Sala, Bloco..." /></div>
+          <div><Label>Bairro</Label><Input value={v("address_neighborhood")} onChange={e => set("address_neighborhood", e.target.value)} placeholder="Bairro" /></div>
+          <div><Label>Cidade</Label><Input value={v("city")} onChange={e => set("city", e.target.value)} placeholder="Cidade" /></div>
+          <div>
+            <Label>UF</Label>
+            <Select value={v("address_uf")} onValueChange={val => set("address_uf", val)}>
+              <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+              <SelectContent>{UFS.map(uf => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div><Label>Referência</Label><Input value={v("address_reference")} onChange={e => set("address_reference", e.target.value)} placeholder="Ponto de referência" /></div>
+        </div>
+      </section>
+
+      {/* Responsável Principal */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Responsável Principal</h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div><Label>Nome</Label><Input value={v("primary_contact_name")} onChange={e => set("primary_contact_name", e.target.value)} placeholder="Nome do responsável" /></div>
+          <div><Label>Cargo/Função</Label><Input value={v("primary_contact_role")} onChange={e => set("primary_contact_role", e.target.value)} placeholder="Ex: Gerente, Financeiro" /></div>
+          <div><Label>Email</Label><Input value={v("primary_contact_email")} onChange={e => set("primary_contact_email", e.target.value)} placeholder="email@empresa.com" /></div>
+          <div><Label>Telefone/WhatsApp</Label><Input value={v("primary_contact_phone")} onChange={e => set("primary_contact_phone", e.target.value)} placeholder="(00) 00000-0000" /></div>
+          <div><Label>Melhor horário para contato</Label><Input value={v("primary_contact_best_time")} onChange={e => set("primary_contact_best_time", e.target.value)} placeholder="Ex: 9h-12h" /></div>
+        </div>
+      </section>
+
+      {/* Contrato */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Contrato</h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div><Label>Data Assinatura</Label><Input type="date" value={v("contract_signed_at")} onChange={e => set("contract_signed_at", e.target.value)} /></div>
+          <div><Label>Data Início</Label><Input type="date" value={v("contract_start_at")} onChange={e => set("contract_start_at", e.target.value)} /></div>
+          <div><Label>Data Base Reajuste</Label><Input type="date" value={v("adjustment_base_date")} onChange={e => set("adjustment_base_date", e.target.value)} /></div>
+          <div>
+            <Label>Tipo Reajuste</Label>
+            <Select value={v("adjustment_type")} onValueChange={val => set("adjustment_type", val)}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ipca">IPCA</SelectItem>
+                <SelectItem value="igpm">IGPM</SelectItem>
+                <SelectItem value="fixo">Fixo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>% Reajuste</Label><Input type="number" value={String(formData.adjustment_percent ?? cliente.adjustment_percent ?? 0)} onChange={e => set("adjustment_percent", Number(e.target.value) || 0)} /></div>
+        </div>
+      </section>
+
+      {/* Contatos Adicionais */}
+      <section className="space-y-4">
+        <div className="flex justify-between items-center border-b border-border pb-2">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Contatos Adicionais ({contacts.length})</h3>
+          <Button size="sm" variant="outline" onClick={openNewContact} className="gap-1.5"><Plus className="h-3.5 w-3.5" />Adicionar</Button>
+        </div>
+        {contacts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum contato adicional cadastrado.</p>
+        ) : (
+          <div className="space-y-2">
+            {contacts.map(c => (
+              <div key={c.id} className="flex items-start gap-3 p-3 rounded-lg border border-border">
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{c.name}</span>
+                    {c.is_billing_preferred && <Badge variant="outline" className="text-[9px] gap-1"><Star className="h-2.5 w-2.5" />Cobrança</Badge>}
+                    {c.is_support_preferred && <Badge variant="outline" className="text-[9px] gap-1"><Star className="h-2.5 w-2.5" />Suporte</Badge>}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {c.phone && <span className="mr-3">📱 {c.phone}</span>}
+                    {c.email && <span>✉️ {c.email}</span>}
+                  </div>
+                  {(c.roles || []).length > 0 && (
+                    <div className="flex gap-1 flex-wrap">
+                      {c.roles.map(r => <Badge key={r} variant="secondary" className="text-[9px]">{ROLE_OPTIONS.find(o => o.value === r)?.label || r}</Badge>)}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-1">
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditContact(c)}><Pencil className="h-3.5 w-3.5" /></Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => setDeleteContactId(c.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Observações */}
+      <section className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Observações</h3>
+        <Textarea value={v("notes")} onChange={e => set("notes", e.target.value)} rows={3} placeholder="Observações gerais do cliente..." />
+      </section>
+
+      {/* Contact Dialog */}
+      <Dialog open={showContactForm} onOpenChange={setShowContactForm}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editingContactId ? "Editar Contato" : "Novo Contato"}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div><Label>Nome *</Label><Input value={contactForm.name} onChange={e => setContactForm(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Telefone/WhatsApp</Label><Input value={contactForm.phone} onChange={e => setContactForm(p => ({ ...p, phone: e.target.value }))} /></div>
+              <div><Label>Email</Label><Input value={contactForm.email} onChange={e => setContactForm(p => ({ ...p, email: e.target.value }))} /></div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Funções</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {ROLE_OPTIONS.map(r => (
+                  <label key={r.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox checked={contactForm.roles.includes(r.value)} onCheckedChange={() => toggleRole(r.value)} />
+                    {r.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={contactForm.is_billing_preferred} onCheckedChange={val => setContactForm(p => ({ ...p, is_billing_preferred: !!val }))} />
+                Preferencial para cobrança
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox checked={contactForm.is_support_preferred} onCheckedChange={val => setContactForm(p => ({ ...p, is_support_preferred: !!val }))} />
+                Preferencial para suporte
+              </label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowContactForm(false)}>Cancelar</Button>
+            <Button onClick={handleSaveContact}>{editingContactId ? "Salvar" : "Adicionar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteContactId} onOpenChange={() => setDeleteContactId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover contato?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (deleteContactId) onDeleteContact(deleteContactId); setDeleteContactId(null); }}>Remover</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
