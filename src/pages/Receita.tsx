@@ -12,8 +12,11 @@ import {
 } from "recharts";
 import {
   DollarSign, Users, TrendingUp, TrendingDown, Percent, Activity,
-  BarChart3, PieChartIcon,
+  BarChart3, PieChartIcon, FileDown,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { gerarRelatorioPDF } from "@/lib/pdfRelatorioReceita";
+import { toast } from "sonner";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtShort = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -168,15 +171,28 @@ export default function Receita() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Receita Recorrente</h1>
-        <Select value={periodo} onValueChange={setPeriodo}>
-          <SelectTrigger className="w-[120px] h-9"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">7 dias</SelectItem>
-            <SelectItem value="30d">30 dias</SelectItem>
-            <SelectItem value="90d">90 dias</SelectItem>
-            <SelectItem value="12m">12 meses</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              gerarRelatorioPDF(clientesReceita);
+              toast.success("Relatório gerado! Use Ctrl+P / ⌘+P para salvar como PDF.");
+            }}
+          >
+            <FileDown className="h-4 w-4 mr-1.5" />
+            Exportar PDF
+          </Button>
+          <Select value={periodo} onValueChange={setPeriodo}>
+            <SelectTrigger className="w-[120px] h-9"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">7 dias</SelectItem>
+              <SelectItem value="30d">30 dias</SelectItem>
+              <SelectItem value="90d">90 dias</SelectItem>
+              <SelectItem value="12m">12 meses</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* KPIs */}
