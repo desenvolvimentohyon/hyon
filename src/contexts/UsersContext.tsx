@@ -1,9 +1,53 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { Role, AppUser } from "@/types/users";
-import { seedRoles, seedUsers } from "@/data/seedUsers";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { Role, AppUser, ALL_PERMISSIONS } from "@/types/users";
 
-function uid() {
-  return Math.random().toString(36).slice(2, 11);
+// Default permission sets mapped to profile.role
+const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
+  admin: [...ALL_PERMISSIONS],
+  financeiro: [
+    "financeiro:visualizar", "financeiro:lancar", "financeiro:conciliar",
+    "financeiro:editar-plano-contas", "financeiro:relatorios",
+    "clientes:visualizar", "tarefas:visualizar", "configuracoes:visualizar",
+  ],
+  comercial: [
+    "propostas:visualizar", "propostas:criar", "propostas:editar",
+    "propostas:enviar", "propostas:baixar-pdf", "propostas:aprovar",
+    "clientes:visualizar", "clientes:criar", "clientes:editar",
+    "tarefas:visualizar", "tarefas:criar", "tarefas:editar", "configuracoes:visualizar",
+  ],
+  suporte: [
+    "tarefas:visualizar", "tarefas:criar", "tarefas:editar",
+    "tarefas:atribuir", "tarefas:encerrar",
+    "clientes:visualizar", "configuracoes:visualizar",
+  ],
+  implantacao: [
+    "tarefas:visualizar", "tarefas:criar", "tarefas:editar",
+    "tarefas:atribuir", "tarefas:encerrar",
+    "clientes:visualizar", "configuracoes:visualizar",
+  ],
+  leitura: [
+    "clientes:visualizar", "propostas:visualizar", "financeiro:visualizar",
+    "tarefas:visualizar", "configuracoes:visualizar",
+  ],
+};
+
+// ===== Mappers =====
+function dbToRole(r: any): Role {
+  return {
+    id: r.id, nome: r.name, descricao: r.description,
+    permissions: r.permissions || [], sistema: r.is_system,
+  };
+}
+
+function dbToUser(r: any): AppUser {
+  return {
+    id: r.id, nome: r.full_name, email: "",
+    ativo: r.is_active, roleId: r.custom_role_id || r.role,
+    criadoEm: r.created_at, atualizadoEm: r.updated_at,
+  };
 }
 
 interface UsersState {
@@ -14,122 +58,138 @@ interface UsersState {
 }
 
 interface UsersContextType extends UsersState {
-  // Users
   addUser: (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => void;
   updateUser: (id: string, changes: Partial<AppUser>) => void;
   deleteUser: (id: string) => void;
   setCurrentUser: (id: string) => void;
   getUser: (id: string) => AppUser | undefined;
   getCurrentUser: () => AppUser | undefined;
-  // Roles
   addRole: (r: Omit<Role, "id" | "sistema">) => void;
   updateRole: (id: string, changes: Partial<Role>) => void;
   deleteRole: (id: string) => void;
   getRole: (id: string) => Role | undefined;
-  // Permissions
   hasPermission: (permission: string) => boolean;
   hasAnyPermission: (permissions: string[]) => boolean;
   getCurrentPermissions: () => string[];
-  // Reset
   resetUsers: () => void;
 }
 
 const UsersContext = createContext<UsersContextType | null>(null);
-const STORAGE_KEY = "gestao-users-data";
-
-function loadFromStorage(): Omit<UsersState, "loading"> | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
-}
-
-function saveToStorage(state: Omit<UsersState, "loading">) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function createInitialState(): Omit<UsersState, "loading"> {
-  return {
-    users: seedUsers,
-    roles: seedRoles,
-    currentUserId: "user-admin",
-  };
-}
 
 export function UsersProvider({ children }: { children: React.ReactNode }) {
+  const { profile, user } = useAuth();
+  const orgId = profile?.org_id;
+
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [currentUserId, setCurrentUserId] = useState("user-admin");
-  const initialized = useRef(false);
+  const [currentUserId, setCurrentUserId] = useState("");
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    const timer = setTimeout(() => {
-      const saved = loadFromStorage();
-      if (saved) {
-        setUsers(saved.users);
-        setRoles(saved.roles);
-        setCurrentUserId(saved.currentUserId);
+    if (user?.id) setCurrentUserId(user.id);
+  }, [user?.id]);
+
+  const fetchAll = useCallback(async () => {
+    if (!orgId) return;
+    setLoading(true);
+    const [profilesRes, rolesRes] = await Promise.all([
+      supabase.from("profiles").select("*"),
+      supabase.from("custom_roles" as any).select("*"),
+    ]);
+    if (profilesRes.data) setUsers(profilesRes.data.map(dbToUser));
+    if (rolesRes.data) {
+      const dbRoles = (rolesRes.data as any[]).map(dbToRole);
+      // Add default roles from profile.role if no custom roles exist
+      const defaultRoles: Role[] = Object.entries(DEFAULT_ROLE_PERMISSIONS).map(([key, perms]) => ({
+        id: key, nome: key.charAt(0).toUpperCase() + key.slice(1),
+        descricao: `Perfil ${key}`, permissions: perms, sistema: true,
+      }));
+      // Merge: custom roles + default roles (for users without custom_role_id)
+      setRoles([...defaultRoles, ...dbRoles]);
+    }
+    setLoading(false);
+  }, [orgId]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const addUser = useCallback(async (_u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => {
+    toast.info("Para adicionar usuários, use o convite por email via gestão de usuários.");
+  }, []);
+
+  const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
+    const upd: any = {};
+    if (changes.nome !== undefined) upd.full_name = changes.nome;
+    if (changes.ativo !== undefined) upd.is_active = changes.ativo;
+    if (changes.roleId !== undefined) {
+      // If roleId matches a default role name, update profile.role
+      if (DEFAULT_ROLE_PERMISSIONS[changes.roleId]) {
+        upd.role = changes.roleId;
+        upd.custom_role_id = null;
       } else {
-        const initial = createInitialState();
-        setUsers(initial.users);
-        setRoles(initial.roles);
-        setCurrentUserId(initial.currentUserId);
-        saveToStorage(initial);
+        // It's a custom role UUID
+        upd.custom_role_id = changes.roleId;
       }
-      setLoading(false);
-    }, 100);
-    return () => clearTimeout(timer);
+    }
+    const { error } = await supabase.from("profiles").update(upd).eq("id", id);
+    if (error) { toast.error("Erro ao atualizar usuário: " + error.message); return; }
+    fetchAll();
+  }, [fetchAll]);
+
+  const deleteUser = useCallback(async (_id: string) => {
+    toast.info("Desative o usuário ao invés de excluir.");
   }, []);
 
-  useEffect(() => {
-    if (loading) return;
-    saveToStorage({ users, roles, currentUserId });
-  }, [users, roles, currentUserId, loading]);
-
-  const addUser = useCallback((u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => {
-    const now = new Date().toISOString();
-    setUsers(prev => [...prev, { ...u, id: uid(), criadoEm: now, atualizadoEm: now }]);
-  }, []);
-
-  const updateUser = useCallback((id: string, changes: Partial<AppUser>) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...changes, atualizadoEm: new Date().toISOString() } : u));
-  }, []);
-
-  const deleteUser = useCallback((id: string) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
-  }, []);
-
-  const setCurrentUser = useCallback((id: string) => {
-    setCurrentUserId(id);
-  }, []);
-
+  const setCurrentUser = useCallback((id: string) => setCurrentUserId(id), []);
   const getUser = useCallback((id: string) => users.find(u => u.id === id), [users]);
   const getCurrentUser = useCallback(() => users.find(u => u.id === currentUserId), [users, currentUserId]);
 
-  const addRole = useCallback((r: Omit<Role, "id" | "sistema">) => {
-    setRoles(prev => [...prev, { ...r, id: uid(), sistema: false }]);
-  }, []);
+  // ===== Roles =====
+  const addRole = useCallback(async (r: Omit<Role, "id" | "sistema">) => {
+    if (!orgId) return;
+    const { error } = await supabase.from("custom_roles" as any).insert({
+      org_id: orgId, name: r.nome, description: r.descricao, permissions: r.permissions,
+    });
+    if (error) { toast.error("Erro ao criar perfil: " + error.message); return; }
+    fetchAll();
+  }, [orgId, fetchAll]);
 
-  const updateRole = useCallback((id: string, changes: Partial<Role>) => {
-    setRoles(prev => prev.map(r => r.id === id ? { ...r, ...changes } : r));
-  }, []);
+  const updateRole = useCallback(async (id: string, changes: Partial<Role>) => {
+    // Don't update default roles
+    if (DEFAULT_ROLE_PERMISSIONS[id]) {
+      toast.error("Perfis padrão não podem ser editados.");
+      return;
+    }
+    const upd: any = {};
+    if (changes.nome !== undefined) upd.name = changes.nome;
+    if (changes.descricao !== undefined) upd.description = changes.descricao;
+    if (changes.permissions !== undefined) upd.permissions = changes.permissions;
+    const { error } = await supabase.from("custom_roles" as any).update(upd).eq("id", id);
+    if (error) { toast.error("Erro ao atualizar perfil"); return; }
+    fetchAll();
+  }, [fetchAll]);
 
-  const deleteRole = useCallback((id: string) => {
-    setRoles(prev => prev.filter(r => r.id !== id || r.sistema));
-  }, []);
+  const deleteRole = useCallback(async (id: string) => {
+    if (DEFAULT_ROLE_PERMISSIONS[id]) {
+      toast.error("Perfis padrão não podem ser excluídos.");
+      return;
+    }
+    const { error } = await supabase.from("custom_roles" as any).delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir perfil"); return; }
+    fetchAll();
+  }, [fetchAll]);
 
   const getRole = useCallback((id: string) => roles.find(r => r.id === id), [roles]);
 
   const getCurrentPermissions = useCallback(() => {
-    const user = users.find(u => u.id === currentUserId);
-    if (!user) return [];
-    const role = roles.find(r => r.id === user.roleId);
-    return role?.permissions || [];
-  }, [users, roles, currentUserId]);
+    const currentUser = users.find(u => u.id === currentUserId);
+    if (!currentUser) return DEFAULT_ROLE_PERMISSIONS["leitura"] || [];
+    // Find role by roleId
+    const role = roles.find(r => r.id === currentUser.roleId);
+    if (role) return role.permissions;
+    // Fallback to profile role text
+    const profileRole = profile?.role || "leitura";
+    return DEFAULT_ROLE_PERMISSIONS[profileRole] || DEFAULT_ROLE_PERMISSIONS["leitura"] || [];
+  }, [users, roles, currentUserId, profile?.role]);
 
   const hasPermission = useCallback((permission: string) => {
     return getCurrentPermissions().includes(permission);
@@ -141,10 +201,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   }, [getCurrentPermissions]);
 
   const resetUsers = useCallback(() => {
-    const initial = createInitialState();
-    setUsers(initial.users);
-    setRoles(initial.roles);
-    setCurrentUserId(initial.currentUserId);
+    toast.info("Use a função de seed para resetar dados de usuários.");
   }, []);
 
   const value: UsersContextType = {

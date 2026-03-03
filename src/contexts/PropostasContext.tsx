@@ -1,14 +1,59 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import { Proposta, CRMConfig, PropostaHistorico, DEFAULT_CRM_CONFIG } from "@/types/propostas";
-import { seedPropostas, defaultCRMConfig } from "@/data/seedPropostas";
 
-function uid() { return Math.random().toString(36).slice(2, 11); }
-
-interface PropostasState {
-  propostas: Proposta[];
-  crmConfig: CRMConfig;
-  loading: boolean;
+// ===== Mappers =====
+function dbToProposta(r: any): Proposta {
+  const items = (r.proposal_items || []).map((i: any) => ({
+    id: i.id, descricao: i.description, quantidade: Number(i.quantity) || 1, valor: Number(i.unit_value) || 0,
+  }));
+  return {
+    id: r.id, numeroProposta: r.proposal_number,
+    clienteId: r.client_id, clienteNomeSnapshot: r.client_name_snapshot || "",
+    sistema: r.system_name || "OUTRO", planoNome: r.plan_name || "",
+    valorMensalidade: Number(r.monthly_value) || 0,
+    valorImplantacao: Number(r.implementation_value) || 0,
+    fluxoPagamentoImplantacao: r.implementation_flow || "a_vista",
+    parcelasImplantacao: r.implementation_installments,
+    dataEnvio: r.sent_at, validadeDias: r.valid_days || 15,
+    dataValidade: r.valid_until, statusCRM: r.crm_status || "Rascunho",
+    statusVisualizacao: r.view_status || "nao_enviado",
+    statusAceite: r.acceptance_status || "pendente",
+    linkAceite: r.acceptance_link || "", pdfGeradoEm: r.pdf_generated_at,
+    observacoesInternas: r.notes_internal || "",
+    informacoesAdicionais: r.additional_info || "",
+    itens: items, historico: [], // historico not stored in proposals table
+    criadoEm: r.created_at, atualizadoEm: r.updated_at,
+  };
 }
+
+function dbToCRMConfig(settings: any, statuses: any[]): CRMConfig {
+  return {
+    statusKanban: statuses.sort((a: any, b: any) => a.sort_order - b.sort_order).map((s: any) => s.name),
+    validadePadraoDias: settings?.default_valid_days || 15,
+    formaEnvioPadrao: (settings?.default_send_method || "whatsapp") as any,
+    mensagemPadraoEnvio: settings?.default_message_template || DEFAULT_CRM_CONFIG.mensagemPadraoEnvio,
+    nomeEmpresa: settings?.company_name || DEFAULT_CRM_CONFIG.nomeEmpresa,
+    informacoesAdicionaisPadrao: settings?.additional_info_default || DEFAULT_CRM_CONFIG.informacoesAdicionaisPadrao,
+    rodapePDF: settings?.pdf_footer || DEFAULT_CRM_CONFIG.rodapePDF,
+    corTemaPDF: DEFAULT_CRM_CONFIG.corTemaPDF,
+    exibirAssinaturaDigitalFake: DEFAULT_CRM_CONFIG.exibirAssinaturaDigitalFake,
+  };
+}
+
+function gerarNumero(propostas: Proposta[]): string {
+  const year = new Date().getFullYear();
+  let max = 0;
+  propostas.forEach(p => {
+    const match = p.numeroProposta.match(/PROP-\d{4}-(\d{4})/);
+    if (match) max = Math.max(max, parseInt(match[1]));
+  });
+  return `PROP-${year}-${String(max + 1).padStart(4, "0")}`;
+}
+
+interface PropostasState { propostas: Proposta[]; crmConfig: CRMConfig; loading: boolean; }
 
 interface PropostasContextType extends PropostasState {
   addProposta: (p: Omit<Proposta, "id" | "numeroProposta" | "criadoEm" | "atualizadoEm" | "historico" | "linkAceite">) => Proposta;
@@ -24,125 +69,178 @@ interface PropostasContextType extends PropostasState {
 
 const PropostasContext = createContext<PropostasContextType | null>(null);
 
-const STORAGE_KEY = "propostas-data";
-
-function loadFromStorage(): { propostas: Proposta[]; crmConfig: CRMConfig } | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
-}
-
-function saveToStorage(data: { propostas: Proposta[]; crmConfig: CRMConfig }) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-function gerarNumero(propostas: Proposta[]): string {
-  const year = new Date().getFullYear();
-  let max = 0;
-  propostas.forEach(p => {
-    const match = p.numeroProposta.match(/PROP-\d{4}-(\d{4})/);
-    if (match) max = Math.max(max, parseInt(match[1]));
-  });
-  return `PROP-${year}-${String(max + 1).padStart(4, "0")}`;
-}
-
-function addHistorico(acao: string, detalhes: string): PropostaHistorico {
-  return { id: uid(), acao, detalhes, criadoEm: new Date().toISOString() };
-}
-
 export function PropostasProvider({ children }: { children: React.ReactNode }) {
+  const { profile } = useAuth();
+  const orgId = profile?.org_id;
+
   const [loading, setLoading] = useState(true);
   const [propostas, setPropostas] = useState<Proposta[]>([]);
-  const [crmConfig, setCRMConfig] = useState<CRMConfig>(defaultCRMConfig);
-  const initialized = useRef(false);
+  const [crmConfig, setCRMConfig] = useState<CRMConfig>({ ...DEFAULT_CRM_CONFIG });
 
-  useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    const timer = setTimeout(() => {
-      const saved = loadFromStorage();
-      if (saved) {
-        setPropostas(saved.propostas);
-        setCRMConfig(saved.crmConfig);
-      } else {
-        setPropostas(seedPropostas);
-        setCRMConfig(defaultCRMConfig);
-        saveToStorage({ propostas: seedPropostas, crmConfig: defaultCRMConfig });
+  const fetchAll = useCallback(async () => {
+    if (!orgId) return;
+    setLoading(true);
+    const [pRes, sRes, csRes] = await Promise.all([
+      supabase.from("proposals").select("*, proposal_items(*)"),
+      supabase.from("proposal_settings").select("*").maybeSingle(),
+      supabase.from("crm_statuses").select("*"),
+    ]);
+    if (pRes.data) setPropostas(pRes.data.map(dbToProposta));
+    if (sRes.data || csRes.data) {
+      setCRMConfig(dbToCRMConfig(sRes.data, csRes.data || []));
+    }
+    setLoading(false);
+  }, [orgId]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const addProposta = useCallback((p: any): Proposta => {
+    if (!orgId) return {} as Proposta;
+    const numero = gerarNumero(propostas);
+    const nova: Proposta = {
+      ...p, id: "", numeroProposta: numero, linkAceite: `/aceite/${numero}`,
+      historico: [], criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
+    };
+    // Fire and forget insert
+    (async () => {
+      const { data, error } = await supabase.from("proposals").insert({
+        org_id: orgId, proposal_number: numero, client_id: p.clienteId || null,
+        client_name_snapshot: p.clienteNomeSnapshot, system_name: p.sistema,
+        plan_name: p.planoNome, monthly_value: p.valorMensalidade,
+        implementation_value: p.valorImplantacao,
+        implementation_flow: p.fluxoPagamentoImplantacao,
+        implementation_installments: p.parcelasImplantacao,
+        valid_days: p.validadeDias, crm_status: p.statusCRM || "Rascunho",
+        view_status: p.statusVisualizacao || "nao_enviado",
+        acceptance_status: p.statusAceite || "pendente",
+        acceptance_link: `/aceite/${numero}`,
+        notes_internal: p.observacoesInternas, additional_info: p.informacoesAdicionais,
+      }).select().single();
+      if (error) { toast.error("Erro ao criar proposta: " + error.message); return; }
+      // Insert items
+      if (p.itens?.length && data) {
+        await supabase.from("proposal_items").insert(
+          p.itens.map((i: any) => ({
+            org_id: orgId, proposal_id: data.id,
+            description: i.descricao, quantity: i.quantidade, unit_value: i.valor,
+          }))
+        );
       }
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (loading) return;
-    saveToStorage({ propostas, crmConfig });
-  }, [propostas, crmConfig, loading]);
-
-  const addProposta = useCallback((p: Omit<Proposta, "id" | "numeroProposta" | "criadoEm" | "atualizadoEm" | "historico" | "linkAceite">): Proposta => {
-    const now = new Date().toISOString();
-    let nova: Proposta = {} as any;
-    setPropostas(prev => {
-      const numero = gerarNumero(prev);
-      nova = {
-        ...p, id: uid(), numeroProposta: numero,
-        linkAceite: `/aceite/${numero}`,
-        historico: [addHistorico("Criação", "Proposta criada")],
-        criadoEm: now, atualizadoEm: now,
-      };
-      return [...prev, nova];
-    });
+      fetchAll();
+    })();
     return nova;
-  }, []);
+  }, [orgId, propostas, fetchAll]);
 
-  const updateProposta = useCallback((id: string, changes: Partial<Proposta>, acao?: string) => {
-    setPropostas(prev => prev.map(p => {
-      if (p.id !== id) return p;
-      const hist = acao ? [...p.historico, addHistorico(acao, JSON.stringify(changes).slice(0, 200))] : p.historico;
-      return { ...p, ...changes, atualizadoEm: new Date().toISOString(), historico: changes.historico || hist };
-    }));
-  }, []);
+  const updateProposta = useCallback(async (id: string, changes: Partial<Proposta>, _acao?: string) => {
+    const upd: any = {};
+    if (changes.clienteId !== undefined) upd.client_id = changes.clienteId;
+    if (changes.clienteNomeSnapshot !== undefined) upd.client_name_snapshot = changes.clienteNomeSnapshot;
+    if (changes.sistema !== undefined) upd.system_name = changes.sistema;
+    if (changes.planoNome !== undefined) upd.plan_name = changes.planoNome;
+    if (changes.valorMensalidade !== undefined) upd.monthly_value = changes.valorMensalidade;
+    if (changes.valorImplantacao !== undefined) upd.implementation_value = changes.valorImplantacao;
+    if (changes.fluxoPagamentoImplantacao !== undefined) upd.implementation_flow = changes.fluxoPagamentoImplantacao;
+    if (changes.parcelasImplantacao !== undefined) upd.implementation_installments = changes.parcelasImplantacao;
+    if (changes.dataEnvio !== undefined) upd.sent_at = changes.dataEnvio;
+    if (changes.validadeDias !== undefined) upd.valid_days = changes.validadeDias;
+    if (changes.dataValidade !== undefined) upd.valid_until = changes.dataValidade;
+    if (changes.statusCRM !== undefined) upd.crm_status = changes.statusCRM;
+    if (changes.statusVisualizacao !== undefined) upd.view_status = changes.statusVisualizacao;
+    if (changes.statusAceite !== undefined) upd.acceptance_status = changes.statusAceite;
+    if (changes.pdfGeradoEm !== undefined) upd.pdf_generated_at = changes.pdfGeradoEm;
+    if (changes.observacoesInternas !== undefined) upd.notes_internal = changes.observacoesInternas;
+    if (changes.informacoesAdicionais !== undefined) upd.additional_info = changes.informacoesAdicionais;
 
-  const deleteProposta = useCallback((id: string) => {
-    setPropostas(prev => prev.filter(p => p.id !== id));
-  }, []);
+    if (Object.keys(upd).length > 0) {
+      const { error } = await supabase.from("proposals").update(upd).eq("id", id);
+      if (error) { toast.error("Erro ao atualizar proposta"); return; }
+    }
+    // Update items if changed
+    if (changes.itens && orgId) {
+      await supabase.from("proposal_items").delete().eq("proposal_id", id);
+      if (changes.itens.length > 0) {
+        await supabase.from("proposal_items").insert(
+          changes.itens.map(i => ({
+            org_id: orgId, proposal_id: id,
+            description: i.descricao, quantity: i.quantidade, unit_value: i.valor,
+          }))
+        );
+      }
+    }
+    fetchAll();
+  }, [orgId, fetchAll]);
+
+  const deleteProposta = useCallback(async (id: string) => {
+    const { error } = await supabase.from("proposals").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir proposta"); return; }
+    fetchAll();
+  }, [fetchAll]);
 
   const cloneProposta = useCallback((id: string): Proposta | null => {
-    let cloned: Proposta | null = null;
-    setPropostas(prev => {
-      const original = prev.find(p => p.id === id);
-      if (!original) return prev;
-      const numero = gerarNumero(prev);
-      const now = new Date().toISOString();
-      cloned = {
-        ...original, id: uid(), numeroProposta: numero,
-        linkAceite: `/aceite/${numero}`,
-        statusCRM: "Rascunho", statusVisualizacao: "nao_enviado", statusAceite: "pendente",
-        dataEnvio: null, dataValidade: null, pdfGeradoEm: null,
-        historico: [addHistorico("Criação", `Clonada de ${original.numeroProposta}`)],
-        criadoEm: now, atualizadoEm: now,
-      };
-      return [...prev, cloned];
-    });
+    const original = propostas.find(p => p.id === id);
+    if (!original || !orgId) return null;
+    const numero = gerarNumero(propostas);
+    const cloned: Proposta = {
+      ...original, id: "", numeroProposta: numero, linkAceite: `/aceite/${numero}`,
+      statusCRM: "Rascunho", statusVisualizacao: "nao_enviado", statusAceite: "pendente",
+      dataEnvio: null, dataValidade: null, pdfGeradoEm: null,
+      historico: [], criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
+    };
+    (async () => {
+      const { data, error } = await supabase.from("proposals").insert({
+        org_id: orgId, proposal_number: numero, client_id: original.clienteId || null,
+        client_name_snapshot: original.clienteNomeSnapshot, system_name: original.sistema,
+        plan_name: original.planoNome, monthly_value: original.valorMensalidade,
+        implementation_value: original.valorImplantacao,
+        implementation_flow: original.fluxoPagamentoImplantacao,
+        implementation_installments: original.parcelasImplantacao,
+        valid_days: original.validadeDias, acceptance_link: `/aceite/${numero}`,
+        notes_internal: original.observacoesInternas, additional_info: original.informacoesAdicionais,
+      }).select().single();
+      if (error) { toast.error("Erro ao clonar proposta"); return; }
+      if (original.itens?.length && data) {
+        await supabase.from("proposal_items").insert(
+          original.itens.map(i => ({
+            org_id: orgId, proposal_id: data.id,
+            description: i.descricao, quantity: i.quantidade, unit_value: i.valor,
+          }))
+        );
+      }
+      fetchAll();
+    })();
     return cloned;
-  }, []);
+  }, [orgId, propostas, fetchAll]);
 
   const getProposta = useCallback((id: string) => propostas.find(p => p.id === id), [propostas]);
-  const getPropostaByNumero = useCallback((numero: string) => propostas.find(p => p.numeroProposta === numero), [propostas]);
+  const getPropostaByNumero = useCallback((n: string) => propostas.find(p => p.numeroProposta === n), [propostas]);
 
-  const updateCRMConfig = useCallback((changes: Partial<CRMConfig>) => {
-    setCRMConfig(prev => ({ ...prev, ...changes }));
-  }, []);
+  const updateCRMConfig = useCallback(async (changes: Partial<CRMConfig>) => {
+    if (!orgId) return;
+    const newConfig = { ...crmConfig, ...changes };
+    setCRMConfig(newConfig);
+    await supabase.from("proposal_settings").upsert({
+      org_id: orgId,
+      default_valid_days: newConfig.validadePadraoDias,
+      default_send_method: newConfig.formaEnvioPadrao,
+      default_message_template: newConfig.mensagemPadraoEnvio,
+      company_name: newConfig.nomeEmpresa,
+      additional_info_default: newConfig.informacoesAdicionaisPadrao,
+      pdf_footer: newConfig.rodapePDF,
+    }, { onConflict: "org_id" });
+    // Update CRM statuses if changed
+    if (changes.statusKanban) {
+      await supabase.from("crm_statuses").delete().eq("org_id", orgId);
+      await supabase.from("crm_statuses").insert(
+        changes.statusKanban.map((name, i) => ({
+          org_id: orgId, name, sort_order: i, is_default: i === 0,
+        }))
+      );
+    }
+  }, [orgId, crmConfig]);
 
-  const resetCRMConfig = useCallback(() => {
-    setCRMConfig({ ...DEFAULT_CRM_CONFIG });
-  }, []);
-
+  const resetCRMConfig = useCallback(() => setCRMConfig({ ...DEFAULT_CRM_CONFIG }), []);
   const resetPropostas = useCallback(() => {
-    setPropostas(seedPropostas);
-    setCRMConfig(defaultCRMConfig);
+    toast.info("Use a função de seed da organização para resetar propostas.");
   }, []);
 
   const value: PropostasContextType = {
