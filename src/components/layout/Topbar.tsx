@@ -1,4 +1,4 @@
-import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, Users, ChevronRight, Shield } from "lucide-react";
+import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, Users, ChevronRight, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,7 @@ import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { usePropostas } from "@/contexts/PropostasContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { useTheme } from "next-themes";
@@ -28,6 +29,7 @@ interface Notificacao {
 export function Topbar() {
   const { tecnicos, tecnicoAtualId, setTecnicoAtual, tarefas, clientes } = useApp();
   const { users, currentUserId, setCurrentUser, getCurrentUser, getRole } = useUsers();
+  const { signOut } = useAuth();
   const { titulos } = useFinanceiro();
   const { propostas } = usePropostas();
   const navigate = useNavigate();
@@ -311,6 +313,16 @@ export function Topbar() {
         <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Nova Tarefa</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 text-muted-foreground hover:text-destructive"
+          onClick={() => signOut()}
+          title="Sair"
+        >
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </header>
