@@ -31,6 +31,15 @@ export interface SuporteEvento {
   resolvido: boolean;
 }
 
+export interface MensalidadeAjuste {
+  id: string;
+  clienteId: string;
+  data: string;
+  valorAnterior: number;
+  valorNovo: number;
+  motivo: string;
+}
+
 export interface MetricasConfig {
   periodoPadrao: "30d" | "90d" | "12m";
   churnWindowMeses: number;
