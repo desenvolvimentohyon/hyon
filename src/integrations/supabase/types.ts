@@ -318,12 +318,124 @@ export type Database = {
           },
         ]
       }
+      client_attachments: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          file_path: string
+          file_type: string
+          id: string
+          org_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_type?: string
+          id?: string
+          org_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_type?: string
+          id?: string
+          org_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_attachments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_attachments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_contacts: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_billing_preferred: boolean | null
+          is_support_preferred: boolean | null
+          name: string
+          org_id: string
+          phone: string | null
+          roles: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_billing_preferred?: boolean | null
+          is_support_preferred?: boolean | null
+          name: string
+          org_id: string
+          phone?: string | null
+          roles?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_billing_preferred?: boolean | null
+          is_support_preferred?: boolean | null
+          name?: string
+          org_id?: string
+          phone?: string | null
+          roles?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contacts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           accountant_email: string | null
           accountant_name: string | null
           accountant_office: string | null
           accountant_phone: string | null
+          address_cep: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_reference: string | null
+          address_street: string | null
+          address_uf: string | null
           adjustment_base_date: string | null
           adjustment_percent: number | null
           adjustment_type: string | null
@@ -340,16 +452,23 @@ export type Database = {
           cert_recognition_date: string | null
           cert_serial: string | null
           city: string | null
+          cnae_principal: string | null
+          company_branch_type: string | null
           contract_signed_at: string | null
+          contract_start_at: string | null
           cost_active: boolean
           cost_system_name: string | null
           created_at: string
+          default_due_day: number | null
           document: string | null
           email: string | null
+          environment_notes: string | null
           external_client_id: string | null
+          fiscal_notes: string | null
           health_score: number | null
           health_status: string | null
           id: string
+          legal_name: string | null
           metadata: Json | null
           monthly_cost_value: number
           monthly_value_base: number
@@ -360,6 +479,12 @@ export type Database = {
           phone: string | null
           plan_id: string | null
           portal_token: string | null
+          preferred_channel: string | null
+          primary_contact_best_time: string | null
+          primary_contact_email: string | null
+          primary_contact_name: string | null
+          primary_contact_phone: string | null
+          primary_contact_role: string | null
           recurrence_active: boolean
           ref_partner_end_at: string | null
           ref_partner_id: string | null
@@ -367,8 +492,15 @@ export type Database = {
           ref_partner_recur_months: number | null
           ref_partner_recur_percent: number | null
           ref_partner_start_at: string | null
+          risk_reason: string | null
+          state_registration: string | null
           status: string
+          support_type: string | null
           system_name: string | null
+          tags: string[] | null
+          tax_regime: string | null
+          technical_notes: string | null
+          trade_name: string | null
           updated_at: string
         }
         Insert: {
@@ -376,6 +508,13 @@ export type Database = {
           accountant_name?: string | null
           accountant_office?: string | null
           accountant_phone?: string | null
+          address_cep?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_reference?: string | null
+          address_street?: string | null
+          address_uf?: string | null
           adjustment_base_date?: string | null
           adjustment_percent?: number | null
           adjustment_type?: string | null
@@ -392,16 +531,23 @@ export type Database = {
           cert_recognition_date?: string | null
           cert_serial?: string | null
           city?: string | null
+          cnae_principal?: string | null
+          company_branch_type?: string | null
           contract_signed_at?: string | null
+          contract_start_at?: string | null
           cost_active?: boolean
           cost_system_name?: string | null
           created_at?: string
+          default_due_day?: number | null
           document?: string | null
           email?: string | null
+          environment_notes?: string | null
           external_client_id?: string | null
+          fiscal_notes?: string | null
           health_score?: number | null
           health_status?: string | null
           id?: string
+          legal_name?: string | null
           metadata?: Json | null
           monthly_cost_value?: number
           monthly_value_base?: number
@@ -412,6 +558,12 @@ export type Database = {
           phone?: string | null
           plan_id?: string | null
           portal_token?: string | null
+          preferred_channel?: string | null
+          primary_contact_best_time?: string | null
+          primary_contact_email?: string | null
+          primary_contact_name?: string | null
+          primary_contact_phone?: string | null
+          primary_contact_role?: string | null
           recurrence_active?: boolean
           ref_partner_end_at?: string | null
           ref_partner_id?: string | null
@@ -419,8 +571,15 @@ export type Database = {
           ref_partner_recur_months?: number | null
           ref_partner_recur_percent?: number | null
           ref_partner_start_at?: string | null
+          risk_reason?: string | null
+          state_registration?: string | null
           status?: string
+          support_type?: string | null
           system_name?: string | null
+          tags?: string[] | null
+          tax_regime?: string | null
+          technical_notes?: string | null
+          trade_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -428,6 +587,13 @@ export type Database = {
           accountant_name?: string | null
           accountant_office?: string | null
           accountant_phone?: string | null
+          address_cep?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_reference?: string | null
+          address_street?: string | null
+          address_uf?: string | null
           adjustment_base_date?: string | null
           adjustment_percent?: number | null
           adjustment_type?: string | null
@@ -444,16 +610,23 @@ export type Database = {
           cert_recognition_date?: string | null
           cert_serial?: string | null
           city?: string | null
+          cnae_principal?: string | null
+          company_branch_type?: string | null
           contract_signed_at?: string | null
+          contract_start_at?: string | null
           cost_active?: boolean
           cost_system_name?: string | null
           created_at?: string
+          default_due_day?: number | null
           document?: string | null
           email?: string | null
+          environment_notes?: string | null
           external_client_id?: string | null
+          fiscal_notes?: string | null
           health_score?: number | null
           health_status?: string | null
           id?: string
+          legal_name?: string | null
           metadata?: Json | null
           monthly_cost_value?: number
           monthly_value_base?: number
@@ -464,6 +637,12 @@ export type Database = {
           phone?: string | null
           plan_id?: string | null
           portal_token?: string | null
+          preferred_channel?: string | null
+          primary_contact_best_time?: string | null
+          primary_contact_email?: string | null
+          primary_contact_name?: string | null
+          primary_contact_phone?: string | null
+          primary_contact_role?: string | null
           recurrence_active?: boolean
           ref_partner_end_at?: string | null
           ref_partner_id?: string | null
@@ -471,8 +650,15 @@ export type Database = {
           ref_partner_recur_months?: number | null
           ref_partner_recur_percent?: number | null
           ref_partner_start_at?: string | null
+          risk_reason?: string | null
+          state_registration?: string | null
           status?: string
+          support_type?: string | null
           system_name?: string | null
+          tags?: string[] | null
+          tax_regime?: string | null
+          technical_notes?: string | null
+          trade_name?: string | null
           updated_at?: string
         }
         Relationships: [

@@ -1,7 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,16 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, ArrowLeft, Cloud, CreditCard, Monitor, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { PerfilCliente, SistemaRelacionado, StatusFinanceiro } from "@/types";
 import { validateCNPJ, cleanCNPJ, maskDocument, CnpjLookupResult } from "@/lib/cnpjUtils";
 import { supabase } from "@/integrations/supabase/client";
+import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 
 export default function Clientes() {
-  const { clientes, addCliente, updateCliente, tarefas, getStatusLabel, getPrioridadeLabel } = useApp();
+  const { clientes, addCliente, tarefas } = useApp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
@@ -41,8 +41,7 @@ export default function Clientes() {
   const [showCnpjConfirm, setShowCnpjConfirm] = useState(false);
 
   const filtered = clientes.filter(c => c.nome.toLowerCase().includes(busca.toLowerCase()));
-  const selected = clientes.find(c => c.id === selectedId);
-  const clienteTarefas = selectedId ? tarefas.filter(t => t.clienteId === selectedId) : [];
+  
 
   const applyCnpjData = useCallback((data: CnpjLookupResult) => {
     if (data.nome) setNome(data.nome);
@@ -116,65 +115,8 @@ export default function Clientes() {
     setNome(""); setTelefone(""); setEmail(""); setDocumento(""); setObs(""); setTipoNegocio(""); setMensalidade("");
   };
 
-  if (selected) {
-    const { score, saude } = getScore(selected.id);
-    return (
-      <div className="space-y-4 max-w-3xl">
-        <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)} className="gap-1.5 -ml-2"><ArrowLeft className="h-4 w-4" />Voltar</Button>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{selected.nome}</h1>
-          <Badge className={`${saude.className}`}>{saude.label} ({score})</Badge>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardContent className="pt-6 space-y-2 text-sm">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Dados Cadastrais</p>
-              {selected.telefone && <p><span className="text-muted-foreground">Telefone:</span> {selected.telefone}</p>}
-              {selected.email && <p><span className="text-muted-foreground">Email:</span> {selected.email}</p>}
-              {selected.documento && <p><span className="text-muted-foreground">Documento:</span> {selected.documento}</p>}
-              {selected.observacoes && <p><span className="text-muted-foreground">Obs:</span> {selected.observacoes}</p>}
-              <p><span className="text-muted-foreground">Cadastrado em:</span> {new Date(selected.criadoEm).toLocaleDateString("pt-BR")}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6 space-y-2 text-sm">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Perfil Técnico</p>
-              <p><span className="text-muted-foreground">Sistema:</span> {selected.sistemaUsado?.toUpperCase() || "—"}</p>
-              <p><span className="text-muted-foreground">Tipo Negócio:</span> {selected.tipoNegocio || "—"}</p>
-              <p><span className="text-muted-foreground">Perfil:</span> {selected.perfilCliente || "—"}</p>
-              <div className="flex gap-2 pt-1">
-                {selected.usaCloud && <Badge variant="outline" className="text-[10px] gap-1"><Cloud className="h-3 w-3" />Cloud</Badge>}
-                {selected.usaTEF && <Badge variant="outline" className="text-[10px] gap-1"><CreditCard className="h-3 w-3" />TEF</Badge>}
-                {selected.usaPagamentoIntegrado && <Badge variant="outline" className="text-[10px] gap-1"><Monitor className="h-3 w-3" />Pag. Integrado</Badge>}
-              </div>
-              <p><span className="text-muted-foreground">Mensalidade:</span> R$ {selected.mensalidadeAtual || 0}/mês</p>
-              <p><span className="text-muted-foreground">Status Financeiro:</span> {
-                selected.statusFinanceiro === "em_dia" ? "Em dia" :
-                selected.statusFinanceiro === "1_atraso" ? "1 atraso" : "2+ atrasos"
-              }</p>
-              {selected.riscoCancelamento && <Badge variant="destructive" className="text-[10px]">Risco de Cancelamento</Badge>}
-            </CardContent>
-          </Card>
-        </div>
-
-        <h2 className="text-lg font-semibold">Tarefas ({clienteTarefas.length})</h2>
-        {clienteTarefas.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma tarefa vinculada</p>
-        ) : (
-          <div className="space-y-2">
-            {clienteTarefas.map(t => (
-              <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/tarefas/${t.id}`)}>
-                <Badge variant="outline" className="text-[10px]">{getStatusLabel(t.status)}</Badge>
-                <span className="text-sm font-medium flex-1">{t.titulo}</span>
-                <Badge variant="outline" className="text-[10px]">{getPrioridadeLabel(t.prioridade)}</Badge>
-              </div>
-            ))}
-          </div>
-        )}
-        <Button size="sm" onClick={() => navigate(`/tarefas?nova=1`)} className="gap-1.5"><Plus className="h-3.5 w-3.5" />Nova Tarefa</Button>
-      </div>
-    );
+  if (selectedId) {
+    return <ClienteDetalhe clienteId={selectedId} onBack={() => setSelectedId(null)} />;
   }
 
   return (
