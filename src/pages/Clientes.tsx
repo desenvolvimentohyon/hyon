@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,11 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Search, Plus, ArrowLeft, Cloud, CreditCard, Monitor } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Search, Plus, ArrowLeft, Cloud, CreditCard, Monitor, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { PerfilCliente, SistemaRelacionado, StatusFinanceiro } from "@/types";
+import { validateCNPJ, cleanCNPJ, CnpjLookupResult } from "@/lib/cnpjUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Clientes() {
   const { clientes, addCliente, updateCliente, tarefas, getStatusLabel, getPrioridadeLabel } = useApp();
@@ -33,10 +36,61 @@ export default function Clientes() {
   const [tipoNegocio, setTipoNegocio] = useState("");
   const [perfilCliente, setPerfilCliente] = useState<PerfilCliente>("estrategico");
   const [mensalidade, setMensalidade] = useState("");
+  const [cnpjLoading, setCnpjLoading] = useState(false);
+  const [cnpjLookupData, setCnpjLookupData] = useState<CnpjLookupResult | null>(null);
+  const [showCnpjConfirm, setShowCnpjConfirm] = useState(false);
 
   const filtered = clientes.filter(c => c.nome.toLowerCase().includes(busca.toLowerCase()));
   const selected = clientes.find(c => c.id === selectedId);
   const clienteTarefas = selectedId ? tarefas.filter(t => t.clienteId === selectedId) : [];
+
+  const applyCnpjData = useCallback((data: CnpjLookupResult) => {
+    if (data.nome) setNome(data.nome);
+    if (data.email) setEmail(data.email);
+    if (data.telefone) setTelefone(data.telefone);
+    if (data.municipio) {
+      const cidade = data.uf ? `${data.municipio}/${data.uf}` : data.municipio;
+      setObs(prev => {
+        const lines: string[] = [];
+        if (data.logradouro) lines.push(`End: ${data.logradouro}${data.numero ? `, ${data.numero}` : ""}${data.complemento ? ` - ${data.complemento}` : ""}`);
+        if (data.bairro) lines.push(`Bairro: ${data.bairro}`);
+        lines.push(`Cidade: ${cidade}`);
+        if (data.cep) lines.push(`CEP: ${data.cep}`);
+        if (data.situacao) lines.push(`Situação: ${data.situacao}`);
+        if (data.fantasia) lines.push(`Fantasia: ${data.fantasia}`);
+        const extra = lines.join("\n");
+        return prev ? `${prev}\n---\n${extra}` : extra;
+      });
+    }
+    toast({ title: "Dados do CNPJ preenchidos!" });
+  }, []);
+
+  const handleDocumentoChange = useCallback(async (value: string) => {
+    setDocumento(value);
+    const cleaned = cleanCNPJ(value);
+    if (cleaned.length !== 14 || !validateCNPJ(cleaned)) return;
+
+    setCnpjLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cnpj-lookup", { body: { cnpj: cleaned } });
+      if (error || !data || data.error) {
+        const msg = data?.error || "Erro ao consultar CNPJ";
+        toast({ title: msg, variant: "destructive" });
+        return;
+      }
+      const hasExisting = !!(nome || email || telefone);
+      if (hasExisting) {
+        setCnpjLookupData(data);
+        setShowCnpjConfirm(true);
+      } else {
+        applyCnpjData(data);
+      }
+    } catch {
+      toast({ title: "Erro ao consultar CNPJ. Tente novamente.", variant: "destructive" });
+    } finally {
+      setCnpjLoading(false);
+    }
+  }, [nome, email, telefone, applyCnpjData]);
 
   const getScore = (clienteId: string) => {
     const c = clientes.find(cl => cl.id === clienteId);
@@ -176,7 +230,13 @@ export default function Clientes() {
               <div><Label>Email</Label><Input value={email} onChange={e => setEmail(e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Documento</Label><Input value={documento} onChange={e => setDocumento(e.target.value)} /></div>
+              <div className="relative">
+                <Label>Documento (CNPJ)</Label>
+                <div className="relative">
+                  <Input value={documento} onChange={e => handleDocumentoChange(e.target.value)} placeholder="00.000.000/0000-00" />
+                  {cnpjLoading && <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                </div>
+              </div>
               <div>
                 <Label>Sistema</Label>
                 <Select value={sistemaUsado} onValueChange={v => setSistemaUsado(v as SistemaRelacionado)}>
@@ -213,6 +273,19 @@ export default function Clientes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showCnpjConfirm} onOpenChange={setShowCnpjConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Substituir dados?</AlertDialogTitle>
+            <AlertDialogDescription>Deseja substituir os dados atuais pelos dados da Receita Federal?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (cnpjLookupData) applyCnpjData(cnpjLookupData); setShowCnpjConfirm(false); }}>Substituir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
