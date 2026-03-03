@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { usePropostas } from "@/contexts/PropostasContext";
+import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { STATUS_ORDER } from "@/types";
 import { FormaEnvio } from "@/types/propostas";
+import { MetricasConfig } from "@/types/receita";
 import { toast } from "@/hooks/use-toast";
 import { Download, Upload, RotateCcw, Plus, Trash2, GripVertical } from "lucide-react";
 
 export default function Configuracoes() {
   const { configuracoes, updateConfiguracoes, resetDados, exportJSON, importJSON } = useApp();
   const { crmConfig, updateCRMConfig, resetCRMConfig, resetPropostas } = usePropostas();
+  const { metricasConfig, updateMetricasConfig, resetReceita } = useReceita();
 
   const [labels, setLabels] = useState({ ...configuracoes.labelsStatus });
   const [prioridadeLabels, setPrioridadeLabels] = useState({ ...configuracoes.labelsPrioridade });
@@ -32,6 +35,11 @@ export default function Configuracoes() {
   const [crmRodape, setCrmRodape] = useState(crmConfig.rodapePDF);
   const [crmInfoPadrao, setCrmInfoPadrao] = useState(crmConfig.informacoesAdicionaisPadrao);
   const [crmAssinatura, setCrmAssinatura] = useState(crmConfig.exibirAssinaturaDigitalFake);
+
+  // Metricas config
+  const [metPeriodo, setMetPeriodo] = useState<string>(metricasConfig.periodoPadrao);
+  const [metChurnWindow, setMetChurnWindow] = useState(metricasConfig.churnWindowMeses);
+  const [metMoeda, setMetMoeda] = useState(metricasConfig.moeda);
 
   const saveLabels = () => {
     updateConfiguracoes({ labelsStatus: labels, labelsPrioridade: prioridadeLabels });
@@ -84,9 +92,15 @@ export default function Configuracoes() {
   const handleReset = () => {
     resetDados();
     resetPropostas();
+    resetReceita();
     setLabels({ ...configuracoes.labelsStatus });
     setPrioridadeLabels({ ...configuracoes.labelsPrioridade });
     toast({ title: "Dados resetados para o padrão!" });
+  };
+
+  const saveMetricas = () => {
+    updateMetricasConfig({ periodoPadrao: metPeriodo as MetricasConfig["periodoPadrao"], churnWindowMeses: metChurnWindow, moeda: metMoeda });
+    toast({ title: "Configurações de métricas salvas!" });
   };
 
   return (
@@ -203,6 +217,46 @@ export default function Configuracoes() {
               resetCRMConfig();
               toast({ title: "Config CRM restaurada!" });
             }}>Restaurar Padrão</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* MÉTRICAS & RECEITA */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Métricas & Receita</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Período Padrão do Dashboard</Label>
+              <Select value={metPeriodo} onValueChange={setMetPeriodo}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30d">30 dias</SelectItem>
+                  <SelectItem value="90d">90 dias</SelectItem>
+                  <SelectItem value="12m">12 meses</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Churn Window (meses)</Label>
+              <Input type="number" className="h-8" value={metChurnWindow} onChange={e => setMetChurnWindow(Number(e.target.value))} />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Moeda / Formatação</Label>
+            <Select value={metMoeda} onValueChange={setMetMoeda}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BRL">R$ (BRL - pt-BR)</SelectItem>
+                <SelectItem value="USD">$ (USD - en-US)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={saveMetricas}>Salvar Métricas</Button>
+            <Button size="sm" variant="outline" onClick={() => { resetReceita(); toast({ title: "Dados de receita resetados!" }); }}>Resetar Dados Receita</Button>
           </div>
         </CardContent>
       </Card>

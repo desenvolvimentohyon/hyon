@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban } from "lucide-react";
+import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -28,6 +28,7 @@ const sections = [
     label: "Gestão",
     items: [
       { title: "Clientes", url: "/clientes", icon: Users },
+      { title: "Receita", url: "/receita", icon: DollarSign },
       { title: "Técnicos", url: "/tecnicos", icon: Wrench },
       { title: "Painel Executivo", url: "/executivo", icon: BarChart3 },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
