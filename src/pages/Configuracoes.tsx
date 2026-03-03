@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useApp } from "@/contexts/AppContext";
+import { usePropostas } from "@/contexts/PropostasContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,20 +8,59 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { STATUS_ORDER } from "@/types";
+import { FormaEnvio } from "@/types/propostas";
 import { toast } from "@/hooks/use-toast";
-import { Download, Upload, RotateCcw } from "lucide-react";
+import { Download, Upload, RotateCcw, Plus, Trash2, GripVertical } from "lucide-react";
 
 export default function Configuracoes() {
   const { configuracoes, updateConfiguracoes, resetDados, exportJSON, importJSON } = useApp();
+  const { crmConfig, updateCRMConfig, resetCRMConfig, resetPropostas } = usePropostas();
+
   const [labels, setLabels] = useState({ ...configuracoes.labelsStatus });
   const [prioridadeLabels, setPrioridadeLabels] = useState({ ...configuracoes.labelsPrioridade });
   const [importText, setImportText] = useState("");
+
+  // CRM config local state
+  const [crmStatusList, setCrmStatusList] = useState([...crmConfig.statusKanban]);
+  const [novoStatus, setNovoStatus] = useState("");
+  const [crmForma, setCrmForma] = useState(crmConfig.formaEnvioPadrao);
+  const [crmMensagem, setCrmMensagem] = useState(crmConfig.mensagemPadraoEnvio);
+  const [crmValidade, setCrmValidade] = useState(crmConfig.validadePadraoDias);
+  const [crmEmpresa, setCrmEmpresa] = useState(crmConfig.nomeEmpresa);
+  const [crmRodape, setCrmRodape] = useState(crmConfig.rodapePDF);
+  const [crmInfoPadrao, setCrmInfoPadrao] = useState(crmConfig.informacoesAdicionaisPadrao);
+  const [crmAssinatura, setCrmAssinatura] = useState(crmConfig.exibirAssinaturaDigitalFake);
 
   const saveLabels = () => {
     updateConfiguracoes({ labelsStatus: labels, labelsPrioridade: prioridadeLabels });
     toast({ title: "Labels atualizados!" });
   };
+
+  const saveCRM = () => {
+    updateCRMConfig({
+      statusKanban: crmStatusList,
+      formaEnvioPadrao: crmForma,
+      mensagemPadraoEnvio: crmMensagem,
+      validadePadraoDias: crmValidade,
+      nomeEmpresa: crmEmpresa,
+      rodapePDF: crmRodape,
+      informacoesAdicionaisPadrao: crmInfoPadrao,
+      exibirAssinaturaDigitalFake: crmAssinatura,
+    });
+    toast({ title: "Configurações de propostas salvas!" });
+  };
+
+  const addCrmStatus = () => {
+    const s = novoStatus.trim();
+    if (s && !crmStatusList.includes(s)) {
+      setCrmStatusList(prev => [...prev, s]);
+      setNovoStatus("");
+    }
+  };
+
+  const removeCrmStatus = (s: string) => setCrmStatusList(prev => prev.filter(x => x !== s));
 
   const handleExport = () => {
     const data = exportJSON();
@@ -43,6 +83,7 @@ export default function Configuracoes() {
 
   const handleReset = () => {
     resetDados();
+    resetPropostas();
     setLabels({ ...configuracoes.labelsStatus });
     setPrioridadeLabels({ ...configuracoes.labelsPrioridade });
     toast({ title: "Dados resetados para o padrão!" });
@@ -83,6 +124,85 @@ export default function Configuracoes() {
           <div className="flex items-center justify-between">
             <Label>Modo Compacto</Label>
             <Switch checked={configuracoes.modoCompacto} onCheckedChange={v => updateConfiguracoes({ modoCompacto: v })} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* PROPOSTAS CONFIG */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Propostas — CRM Pipeline</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-xs font-medium">Status do Pipeline (colunas Kanban)</Label>
+            <div className="space-y-1 mt-2">
+              {crmStatusList.map((s, i) => (
+                <div key={s} className="flex items-center gap-2 bg-muted/50 rounded px-2 py-1">
+                  <GripVertical className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-sm flex-1">{s}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeCrmStatus(s)}><Trash2 className="h-3 w-3" /></Button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <Input className="h-8" placeholder="Novo status..." value={novoStatus} onChange={e => setNovoStatus(e.target.value)} onKeyDown={e => e.key === "Enter" && addCrmStatus()} />
+              <Button size="sm" variant="outline" onClick={addCrmStatus} className="gap-1"><Plus className="h-3 w-3" />Adicionar</Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <Label className="text-xs">Forma de Envio Padrão</Label>
+            <Select value={crmForma} onValueChange={v => setCrmForma(v as FormaEnvio)}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value="email">E-mail</SelectItem>
+                <SelectItem value="manual_link">Link Manual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-xs">Mensagem Padrão de Envio</Label>
+            <Textarea rows={3} value={crmMensagem} onChange={e => setCrmMensagem(e.target.value)} />
+            <p className="text-[10px] text-muted-foreground mt-1">Variáveis: {"{cliente}"}, {"{numeroProposta}"}, {"{sistema}"}, {"{mensalidade}"}, {"{implantacao}"}, {"{linkAceite}"}, {"{validade}"}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Validade Padrão (dias)</Label>
+              <Input type="number" className="h-8" value={crmValidade} onChange={e => setCrmValidade(Number(e.target.value))} />
+            </div>
+            <div>
+              <Label className="text-xs">Nome da Empresa</Label>
+              <Input className="h-8" value={crmEmpresa} onChange={e => setCrmEmpresa(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs">Rodapé PDF</Label>
+            <Input className="h-8" value={crmRodape} onChange={e => setCrmRodape(e.target.value)} />
+          </div>
+
+          <div>
+            <Label className="text-xs">Informações Adicionais Padrão</Label>
+            <Textarea rows={2} value={crmInfoPadrao} onChange={e => setCrmInfoPadrao(e.target.value)} />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Assinatura Digital Fake no PDF</Label>
+            <Switch checked={crmAssinatura} onCheckedChange={setCrmAssinatura} />
+          </div>
+
+          <div className="flex gap-2">
+            <Button size="sm" onClick={saveCRM}>Salvar Configurações</Button>
+            <Button size="sm" variant="outline" onClick={() => {
+              resetCRMConfig();
+              toast({ title: "Config CRM restaurada!" });
+            }}>Restaurar Padrão</Button>
           </div>
         </CardContent>
       </Card>

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3 } from "lucide-react";
+import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -20,6 +20,8 @@ const sections = [
       { title: "Comercial", url: "/comercial", icon: TrendingUp },
       { title: "Implantação", url: "/implantacao", icon: Rocket },
       { title: "Suporte", url: "/suporte", icon: Headphones },
+      { title: "Propostas", url: "/propostas", icon: FileText },
+      { title: "CRM", url: "/crm", icon: Kanban },
     ],
   },
   {
