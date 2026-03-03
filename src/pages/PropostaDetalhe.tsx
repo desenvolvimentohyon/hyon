@@ -18,6 +18,19 @@ import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Cloc
 import { Proposta, SistemaProposta, FluxoPagamento, StatusVisualizacao, StatusAceite, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 import { supabase } from "@/integrations/supabase/client";
 
+const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+interface PartnerOption {
+  id: string;
+  name: string;
+  commission_percent: number;
+  commission_implant_percent: number;
+  commission_recur_percent: number;
+  commission_recur_months: number;
+  commission_recur_apply_on: string;
+  commission_type: string;
+}
+
 export default function PropostaDetalhe() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -27,11 +40,11 @@ export default function PropostaDetalhe() {
   const [form, setForm] = useState<Partial<Proposta>>({});
   const [enviarOpen, setEnviarOpen] = useState(false);
   const [mensagemEnvio, setMensagemEnvio] = useState("");
-  const [partners, setPartners] = useState<{ id: string; name: string; commission_percent: number }[]>([]);
+  const [partners, setPartners] = useState<PartnerOption[]>([]);
 
   useEffect(() => {
-    supabase.from("partners").select("id, name, commission_percent").eq("active", true).order("name").then(({ data }) => {
-      if (data) setPartners(data);
+    supabase.from("partners").select("id, name, commission_percent, commission_implant_percent, commission_recur_percent, commission_recur_months, commission_recur_apply_on, commission_type").eq("active", true).order("name").then(({ data }) => {
+      if (data) setPartners(data as any);
     });
   }, []);
 
@@ -55,7 +68,6 @@ export default function PropostaDetalhe() {
   };
 
   const handleEnviar = () => {
-    // Build message from template
     const msg = crmConfig.mensagemPadraoEnvio
       .replace("{cliente}", form.clienteNomeSnapshot || "")
       .replace("{numeroProposta}", proposta.numeroProposta)
@@ -109,6 +121,51 @@ export default function PropostaDetalhe() {
   const updateItem = (itemId: string, key: string, val: any) => {
     set("itens", (form.itens || []).map(i => i.id === itemId ? { ...i, [key]: val } : i));
   };
+
+  const handlePartnerChange = (v: string) => {
+    if (v === "none") {
+      set("partnerId", null);
+      set("partnerCommissionPercent", null);
+      set("partnerCommissionValue", null);
+      set("partnerCommissionImplantPercent", null);
+      set("partnerCommissionImplantValue", null);
+      set("partnerCommissionRecurPercent", null);
+      set("partnerCommissionRecurMonths", null);
+      set("partnerCommissionRecurApplyOn", null);
+    } else {
+      const partner = partners.find(p => p.id === v);
+      if (!partner) return;
+      const implPct = partner.commission_implant_percent || partner.commission_percent || 0;
+      const implVal = form.valorImplantacao || 0;
+      const implCommission = Math.round(implVal * implPct / 100 * 100) / 100;
+      setForm(prev => ({
+        ...prev,
+        partnerId: v,
+        partnerCommissionPercent: implPct,
+        partnerCommissionValue: implCommission,
+        partnerCommissionImplantPercent: implPct,
+        partnerCommissionImplantValue: implCommission,
+        partnerCommissionRecurPercent: partner.commission_type === "implantacao_e_mensalidade" ? partner.commission_recur_percent : null,
+        partnerCommissionRecurMonths: partner.commission_type === "implantacao_e_mensalidade" ? partner.commission_recur_months : null,
+        partnerCommissionRecurApplyOn: partner.commission_type === "implantacao_e_mensalidade" ? partner.commission_recur_apply_on : null,
+      }));
+    }
+  };
+
+  const recalcImplantCommission = (implVal: number) => {
+    const pct = form.partnerCommissionImplantPercent || form.partnerCommissionPercent || 0;
+    const commVal = Math.round(implVal * pct / 100 * 100) / 100;
+    setForm(prev => ({
+      ...prev,
+      valorImplantacao: implVal,
+      partnerCommissionValue: commVal,
+      partnerCommissionImplantValue: commVal,
+    }));
+  };
+
+  const recurEstimado = form.partnerCommissionRecurPercent && form.valorMensalidade
+    ? Math.round(form.valorMensalidade * form.partnerCommissionRecurPercent / 100 * 100) / 100
+    : 0;
 
   return (
     <div className="space-y-4 max-w-4xl">
@@ -190,7 +247,10 @@ export default function PropostaDetalhe() {
             </div>
             <div>
               <Label className="text-xs">Implantação (R$)</Label>
-              <Input type="number" className="h-9" value={form.valorImplantacao || 0} onChange={e => set("valorImplantacao", Number(e.target.value))} />
+              <Input type="number" className="h-9" value={form.valorImplantacao || 0} onChange={e => {
+                if (form.partnerId) recalcImplantCommission(Number(e.target.value));
+                else set("valorImplantacao", Number(e.target.value));
+              }} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
@@ -252,53 +312,86 @@ export default function PropostaDetalhe() {
         <CardContent className="space-y-3">
           <div>
             <Label className="text-xs">Parceiro</Label>
-            <Select
-              value={form.partnerId || "none"}
-              onValueChange={v => {
-                if (v === "none") {
-                  set("partnerId", null);
-                  set("partnerCommissionPercent", null);
-                  set("partnerCommissionValue", null);
-                } else {
-                  const partner = partners.find(p => p.id === v);
-                  set("partnerId", v);
-                  set("partnerCommissionPercent", partner?.commission_percent || 0);
-                  const implVal = form.valorImplantacao || 0;
-                  set("partnerCommissionValue", Math.round(implVal * (partner?.commission_percent || 0) / 100 * 100) / 100);
-                }
-              }}
-            >
+            <Select value={form.partnerId || "none"} onValueChange={handlePartnerChange}>
               <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum parceiro" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum</SelectItem>
-                {partners.map(p => <SelectItem key={p.id} value={p.id}>{p.name} ({p.commission_percent}%)</SelectItem>)}
+                {partners.map(p => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name} (Impl: {p.commission_implant_percent || p.commission_percent}%{p.commission_type === "implantacao_e_mensalidade" ? ` / Recor: ${p.commission_recur_percent}%` : ""})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           {form.partnerId && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Comissão (%)</Label>
-                <Input
-                  type="number" className="h-9"
-                  value={form.partnerCommissionPercent || 0}
-                  onChange={e => {
-                    const pct = Number(e.target.value);
-                    set("partnerCommissionPercent", pct);
-                    set("partnerCommissionValue", Math.round((form.valorImplantacao || 0) * pct / 100 * 100) / 100);
-                  }}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Valor Comissão (R$)</Label>
-                <div className="h-9 flex items-center px-3 bg-muted rounded-md text-sm font-semibold text-primary">
-                  {(form.partnerCommissionValue || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">% Comissão Implantação</Label>
+                  <Input
+                    type="number" className="h-9"
+                    value={form.partnerCommissionImplantPercent ?? form.partnerCommissionPercent ?? 0}
+                    onChange={e => {
+                      const pct = Number(e.target.value);
+                      const implVal = form.valorImplantacao || 0;
+                      const commVal = Math.round(implVal * pct / 100 * 100) / 100;
+                      setForm(prev => ({
+                        ...prev,
+                        partnerCommissionPercent: pct,
+                        partnerCommissionImplantPercent: pct,
+                        partnerCommissionValue: commVal,
+                        partnerCommissionImplantValue: commVal,
+                      }));
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Comissão Implantação (R$)</Label>
+                  <div className="h-9 flex items-center px-3 bg-muted rounded-md text-sm font-semibold text-primary">
+                    {fmt(form.partnerCommissionImplantValue ?? form.partnerCommissionValue ?? 0)}
+                  </div>
                 </div>
               </div>
-            </div>
+
+              {/* Recurrence section */}
+              {form.partnerCommissionRecurPercent != null && form.partnerCommissionRecurPercent > 0 && (
+                <div className="rounded-md border p-3 bg-muted/30 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Comissão Recorrente (Mensalidade)</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-xs">% Recorrente</Label>
+                      <Input type="number" className="h-9" value={form.partnerCommissionRecurPercent || 0} onChange={e => set("partnerCommissionRecurPercent", Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Meses (0=∞)</Label>
+                      <Input type="number" className="h-9" value={form.partnerCommissionRecurMonths ?? 0} onChange={e => set("partnerCommissionRecurMonths", Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Aplicar em</Label>
+                      <Select value={form.partnerCommissionRecurApplyOn || "on_invoice_paid"} onValueChange={v => set("partnerCommissionRecurApplyOn", v)}>
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="on_invoice_paid">Ao pagar</SelectItem>
+                          <SelectItem value="on_invoice_created">Ao gerar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {recurEstimado > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Comissão recorrente estimada: <span className="font-semibold text-primary">{fmt(recurEstimado)}/mês</span>
+                      {form.partnerCommissionRecurMonths && form.partnerCommissionRecurMonths > 0
+                        ? ` por ${form.partnerCommissionRecurMonths} meses`
+                        : " enquanto ativo"}
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
           )}
-          {form.commissionGenerated && (
-            <Badge className="bg-success/10 text-success border-success/20">✓ Comissão já gerada no financeiro</Badge>
+          {(form.commissionImplantGenerated || form.commissionGenerated) && (
+            <Badge className="bg-success/10 text-success border-success/20">✓ Comissão de implantação já gerada</Badge>
           )}
         </CardContent>
       </Card>

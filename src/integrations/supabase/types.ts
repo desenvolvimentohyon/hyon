@@ -361,6 +361,12 @@ export type Database = {
           plan_id: string | null
           portal_token: string | null
           recurrence_active: boolean
+          ref_partner_end_at: string | null
+          ref_partner_id: string | null
+          ref_partner_recur_apply_on: string | null
+          ref_partner_recur_months: number | null
+          ref_partner_recur_percent: number | null
+          ref_partner_start_at: string | null
           status: string
           system_name: string | null
           updated_at: string
@@ -407,6 +413,12 @@ export type Database = {
           plan_id?: string | null
           portal_token?: string | null
           recurrence_active?: boolean
+          ref_partner_end_at?: string | null
+          ref_partner_id?: string | null
+          ref_partner_recur_apply_on?: string | null
+          ref_partner_recur_months?: number | null
+          ref_partner_recur_percent?: number | null
+          ref_partner_start_at?: string | null
           status?: string
           system_name?: string | null
           updated_at?: string
@@ -453,6 +465,12 @@ export type Database = {
           plan_id?: string | null
           portal_token?: string | null
           recurrence_active?: boolean
+          ref_partner_end_at?: string | null
+          ref_partner_id?: string | null
+          ref_partner_recur_apply_on?: string | null
+          ref_partner_recur_months?: number | null
+          ref_partner_recur_percent?: number | null
+          ref_partner_start_at?: string | null
           status?: string
           system_name?: string | null
           updated_at?: string
@@ -611,6 +629,7 @@ export type Database = {
           asaas_status: string | null
           bank_account_id: string | null
           client_id: string | null
+          commission_type: string | null
           competency: string | null
           created_at: string
           description: string
@@ -630,6 +649,7 @@ export type Database = {
           payment_method_id: string | null
           plan_account_code: string | null
           reference_proposal_id: string | null
+          reference_title_id: string | null
           status: string
           supplier_name: string | null
           type: string
@@ -646,6 +666,7 @@ export type Database = {
           asaas_status?: string | null
           bank_account_id?: string | null
           client_id?: string | null
+          commission_type?: string | null
           competency?: string | null
           created_at?: string
           description?: string
@@ -665,6 +686,7 @@ export type Database = {
           payment_method_id?: string | null
           plan_account_code?: string | null
           reference_proposal_id?: string | null
+          reference_title_id?: string | null
           status?: string
           supplier_name?: string | null
           type: string
@@ -681,6 +703,7 @@ export type Database = {
           asaas_status?: string | null
           bank_account_id?: string | null
           client_id?: string | null
+          commission_type?: string | null
           competency?: string | null
           created_at?: string
           description?: string
@@ -700,6 +723,7 @@ export type Database = {
           payment_method_id?: string | null
           plan_account_code?: string | null
           reference_proposal_id?: string | null
+          reference_title_id?: string | null
           status?: string
           supplier_name?: string | null
           type?: string
@@ -810,7 +834,11 @@ export type Database = {
       partners: {
         Row: {
           active: boolean
+          commission_implant_percent: number
           commission_percent: number
+          commission_recur_apply_on: string
+          commission_recur_months: number
+          commission_recur_percent: number
           commission_type: string
           created_at: string
           document: string | null
@@ -824,7 +852,11 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          commission_implant_percent?: number
           commission_percent?: number
+          commission_recur_apply_on?: string
+          commission_recur_months?: number
+          commission_recur_percent?: number
           commission_type?: string
           created_at?: string
           document?: string | null
@@ -838,7 +870,11 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          commission_implant_percent?: number
           commission_percent?: number
+          commission_recur_apply_on?: string
+          commission_recur_months?: number
+          commission_recur_percent?: number
           commission_type?: string
           created_at?: string
           document?: string | null
@@ -1147,6 +1183,7 @@ export type Database = {
           client_id: string | null
           client_name_snapshot: string | null
           commission_generated: boolean
+          commission_implant_generated: boolean
           created_at: string
           crm_status: string | null
           id: string
@@ -1156,7 +1193,12 @@ export type Database = {
           monthly_value: number
           notes_internal: string | null
           org_id: string
+          partner_commission_implant_percent: number | null
+          partner_commission_implant_value: number | null
           partner_commission_percent: number | null
+          partner_commission_recur_apply_on: string | null
+          partner_commission_recur_months: number | null
+          partner_commission_recur_percent: number | null
           partner_commission_value: number | null
           partner_id: string | null
           pdf_generated_at: string | null
@@ -1176,6 +1218,7 @@ export type Database = {
           client_id?: string | null
           client_name_snapshot?: string | null
           commission_generated?: boolean
+          commission_implant_generated?: boolean
           created_at?: string
           crm_status?: string | null
           id?: string
@@ -1185,7 +1228,12 @@ export type Database = {
           monthly_value?: number
           notes_internal?: string | null
           org_id: string
+          partner_commission_implant_percent?: number | null
+          partner_commission_implant_value?: number | null
           partner_commission_percent?: number | null
+          partner_commission_recur_apply_on?: string | null
+          partner_commission_recur_months?: number | null
+          partner_commission_recur_percent?: number | null
           partner_commission_value?: number | null
           partner_id?: string | null
           pdf_generated_at?: string | null
@@ -1205,6 +1253,7 @@ export type Database = {
           client_id?: string | null
           client_name_snapshot?: string | null
           commission_generated?: boolean
+          commission_implant_generated?: boolean
           created_at?: string
           crm_status?: string | null
           id?: string
@@ -1214,7 +1263,12 @@ export type Database = {
           monthly_value?: number
           notes_internal?: string | null
           org_id?: string
+          partner_commission_implant_percent?: number | null
+          partner_commission_implant_value?: number | null
           partner_commission_percent?: number | null
+          partner_commission_recur_apply_on?: string | null
+          partner_commission_recur_months?: number | null
+          partner_commission_recur_percent?: number | null
           partner_commission_value?: number | null
           partner_id?: string | null
           pdf_generated_at?: string | null

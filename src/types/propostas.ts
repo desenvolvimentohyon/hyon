@@ -47,6 +47,13 @@ export interface Proposta {
   partnerCommissionPercent: number | null;
   partnerCommissionValue: number | null;
   commissionGenerated: boolean;
+  // Advanced commission fields
+  partnerCommissionImplantPercent: number | null;
+  partnerCommissionImplantValue: number | null;
+  partnerCommissionRecurPercent: number | null;
+  partnerCommissionRecurMonths: number | null;
+  partnerCommissionRecurApplyOn: string | null;
+  commissionImplantGenerated: boolean;
 }
 
 export interface CRMConfig {

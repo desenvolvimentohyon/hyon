@@ -11,7 +11,7 @@ interface OverdueClient { name: string; days_late: number; value: number }
 interface CertExpiring { name: string; days_remaining: number }
 interface HealthClient { name: string; health_score: number; health_status: string }
 interface UpsellItem { client_name: string; module_name: string; status: string }
-interface CommissionStats { totalAPagar: number; totalPago: number; geradoMes: number; ranking: { name: string; total: number }[] }
+interface CommissionStats { totalAPagar: number; totalPago: number; geradoMes: number; recorrentePrevista: number; ranking: { name: string; total: number }[] }
 
 export default function DashboardExecutiveWidgets() {
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function DashboardExecutiveWidgets() {
   const [upsellItems, setUpsellItems] = useState<UpsellItem[]>([]);
   const [mrrAdjusted, setMrrAdjusted] = useState(0);
   const [mrrGrowth, setMrrGrowth] = useState({ current: 0, previous: 0 });
-  const [commissions, setCommissions] = useState<CommissionStats>({ totalAPagar: 0, totalPago: 0, geradoMes: 0, ranking: [] });
+  const [commissions, setCommissions] = useState<CommissionStats>({ totalAPagar: 0, totalPago: 0, geradoMes: 0, recorrentePrevista: 0, ranking: [] });
 
   useEffect(() => {
     loadData();
@@ -153,7 +153,7 @@ export default function DashboardExecutiveWidgets() {
             .sort((a, b) => b.total - a.total)
             .slice(0, 5);
         }
-        setCommissions({ totalAPagar, totalPago, geradoMes, ranking });
+        setCommissions({ totalAPagar, totalPago, geradoMes, recorrentePrevista: 0, ranking });
       }
 
       // 7. Upsell suggestions

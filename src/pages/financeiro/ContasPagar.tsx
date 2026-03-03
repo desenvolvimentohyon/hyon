@@ -122,7 +122,14 @@ export default function ContasPagar() {
                 <TableRow key={t.id}>
                   <TableCell className="font-medium text-sm">{t.descricao}</TableCell>
                   <TableCell className="text-sm">{t.fornecedorNome || "—"}</TableCell>
-                  <TableCell><Badge variant="outline" className="text-xs">{t.origem}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">{t.origem}</Badge>
+                    {String(t.origem) === "comissao_parceiro" && (
+                      <Badge variant="secondary" className="text-[10px] ml-1">
+                        {(t as any).commissionType === "recorrente" ? "Recorrente" : "Implantação"}
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-sm">{t.competenciaMes}</TableCell>
                   <TableCell className="text-sm">{new Date(t.vencimento).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell className="text-sm font-semibold">{fmt(t.valorOriginal)}</TableCell>

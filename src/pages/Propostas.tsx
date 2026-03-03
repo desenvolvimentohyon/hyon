@@ -62,6 +62,9 @@ export default function Propostas() {
       informacoesAdicionais: crmConfig.informacoesAdicionaisPadrao,
       itens: [],
       partnerId: null, partnerCommissionPercent: null, partnerCommissionValue: null, commissionGenerated: false,
+      partnerCommissionImplantPercent: null, partnerCommissionImplantValue: null,
+      partnerCommissionRecurPercent: null, partnerCommissionRecurMonths: null, partnerCommissionRecurApplyOn: null,
+      commissionImplantGenerated: false,
     });
     toast({ title: "Proposta criada!" });
     navigate(`/propostas/${nova.id}`);
