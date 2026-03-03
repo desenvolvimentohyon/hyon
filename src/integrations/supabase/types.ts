@@ -678,6 +678,196 @@ export type Database = {
           },
         ]
       }
+      company_bank_accounts: {
+        Row: {
+          account: string | null
+          account_type: string | null
+          agency: string | null
+          bank_code: string | null
+          bank_name: string
+          created_at: string
+          holder_document: string | null
+          holder_name: string | null
+          id: string
+          is_default: boolean | null
+          org_id: string
+          pix_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          account?: string | null
+          account_type?: string | null
+          agency?: string | null
+          bank_code?: string | null
+          bank_name?: string
+          created_at?: string
+          holder_document?: string | null
+          holder_name?: string | null
+          id?: string
+          is_default?: boolean | null
+          org_id: string
+          pix_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account?: string | null
+          account_type?: string | null
+          agency?: string | null
+          bank_code?: string | null
+          bank_name?: string
+          created_at?: string
+          holder_document?: string | null
+          holder_name?: string | null
+          id?: string
+          is_default?: boolean | null
+          org_id?: string
+          pix_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_bank_accounts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_profile: {
+        Row: {
+          address_cep: string | null
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_street: string | null
+          address_uf: string | null
+          certificate_expiration: string | null
+          certificate_number: string | null
+          cnae: string | null
+          cnpj: string | null
+          created_at: string
+          csc_code: string | null
+          default_billing_message: string | null
+          default_due_day: number | null
+          default_interest_percent: number | null
+          default_late_fee_percent: number | null
+          default_proposal_message: string | null
+          email: string | null
+          fiscal_notes: string | null
+          footer_text: string | null
+          id: string
+          institutional_text: string | null
+          legal_name: string | null
+          logo_dark_path: string | null
+          logo_path: string | null
+          municipal_registration: string | null
+          org_id: string
+          partner_commission_days: number | null
+          phone: string | null
+          primary_color: string | null
+          proposal_validity_days: number | null
+          secondary_color: string | null
+          state_registration: string | null
+          tax_regime: string | null
+          trade_name: string | null
+          updated_at: string
+          website: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_uf?: string | null
+          certificate_expiration?: string | null
+          certificate_number?: string | null
+          cnae?: string | null
+          cnpj?: string | null
+          created_at?: string
+          csc_code?: string | null
+          default_billing_message?: string | null
+          default_due_day?: number | null
+          default_interest_percent?: number | null
+          default_late_fee_percent?: number | null
+          default_proposal_message?: string | null
+          email?: string | null
+          fiscal_notes?: string | null
+          footer_text?: string | null
+          id?: string
+          institutional_text?: string | null
+          legal_name?: string | null
+          logo_dark_path?: string | null
+          logo_path?: string | null
+          municipal_registration?: string | null
+          org_id: string
+          partner_commission_days?: number | null
+          phone?: string | null
+          primary_color?: string | null
+          proposal_validity_days?: number | null
+          secondary_color?: string | null
+          state_registration?: string | null
+          tax_regime?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_uf?: string | null
+          certificate_expiration?: string | null
+          certificate_number?: string | null
+          cnae?: string | null
+          cnpj?: string | null
+          created_at?: string
+          csc_code?: string | null
+          default_billing_message?: string | null
+          default_due_day?: number | null
+          default_interest_percent?: number | null
+          default_late_fee_percent?: number | null
+          default_proposal_message?: string | null
+          email?: string | null
+          fiscal_notes?: string | null
+          footer_text?: string | null
+          id?: string
+          institutional_text?: string | null
+          legal_name?: string | null
+          logo_dark_path?: string | null
+          logo_path?: string | null
+          municipal_registration?: string | null
+          org_id?: string
+          partner_commission_days?: number | null
+          phone?: string | null
+          primary_color?: string | null
+          proposal_validity_days?: number | null
+          secondary_color?: string | null
+          state_registration?: string | null
+          tax_regime?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_profile_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_adjustments: {
         Row: {
           applied_at: string
