@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target } from "lucide-react";
+import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 
 export default function Suporte() {
@@ -102,6 +102,43 @@ export default function Suporte() {
     return { taxaCumprimento, tempoMedioH, porPrioridade, satisfacao, statusDist, porSistema, reincidentes, volumeMensal, dentroSlaCount: dentroSla.length, totalComSla: concluidosComSla.length };
   }, [chamados, concluidos, slaVencido]);
 
+  // ── Ranking de Técnicos ──
+  const rankingTecnicos = useMemo(() => {
+    const tecnicoMap: Record<string, { total: number; resolvidos: number; tempoTotal: number; dentroSla: number; comSla: number; reincidentes: number; abertos: number }> = {};
+    chamados.forEach(t => {
+      if (!t.responsavelId) return;
+      if (!tecnicoMap[t.responsavelId]) tecnicoMap[t.responsavelId] = { total: 0, resolvidos: 0, tempoTotal: 0, dentroSla: 0, comSla: 0, reincidentes: 0, abertos: 0 };
+      const m = tecnicoMap[t.responsavelId];
+      m.total++;
+      if (t.reincidente) m.reincidentes++;
+      if (t.status === "concluida") {
+        m.resolvidos++;
+        m.tempoTotal += t.tempoTotalSegundos;
+        if (t.slaHoras && t.criadoEm) {
+          m.comSla++;
+          const deadline = new Date(new Date(t.criadoEm).getTime() + t.slaHoras * 3600000);
+          if (new Date(t.atualizadoEm) <= deadline) m.dentroSla++;
+        }
+      } else if (t.status !== "cancelada") {
+        m.abertos++;
+      }
+    });
+    return Object.entries(tecnicoMap)
+      .map(([id, m]) => ({
+        id,
+        nome: getTecnico(id)?.nome || "Desconhecido",
+        ...m,
+        tempoMedioH: m.resolvidos > 0 ? m.tempoTotal / m.resolvidos / 3600 : 0,
+        taxaSla: m.comSla > 0 ? Math.round((m.dentroSla / m.comSla) * 100) : 100,
+        // Score: peso em resolução, SLA e baixa reincidência
+        score: m.resolvidos * 10 + (m.comSla > 0 ? (m.dentroSla / m.comSla) * 30 : 30) - m.reincidentes * 5,
+      }))
+      .sort((a, b) => b.score - a.score);
+  }, [chamados, getTecnico]);
+
+  const rankIcons = [Trophy, Medal, Award];
+  const rankColors = ["text-yellow-500", "text-muted-foreground", "text-amber-700"];
+
   const tempoMedioSeg = concluidos.length > 0
     ? Math.round(concluidos.reduce((a, t) => a + t.tempoTotalSegundos, 0) / concluidos.length)
     : 0;
@@ -174,6 +211,7 @@ export default function Suporte() {
       <Tabs defaultValue="sla" className="space-y-4">
         <TabsList>
           <TabsTrigger value="sla">Métricas SLA</TabsTrigger>
+          <TabsTrigger value="tecnicos">Ranking Técnicos</TabsTrigger>
           <TabsTrigger value="chamados">Chamados</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
         </TabsList>
@@ -405,6 +443,123 @@ export default function Suporte() {
               {topClientes.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Sem dados</p>}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ── Tab: Ranking Técnicos ── */}
+        <TabsContent value="tecnicos" className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-3">
+            {/* Pódio */}
+            {rankingTecnicos.slice(0, 3).map((tec, i) => {
+              const RankIcon = rankIcons[i] || Award;
+              return (
+                <Card key={tec.id} className={i === 0 ? "border-yellow-400/50 shadow-md" : ""}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <RankIcon className={`h-5 w-5 ${rankColors[i]}`} />
+                      <CardTitle className="text-base">{tec.nome}</CardTitle>
+                    </div>
+                    <CardDescription>#{i + 1} no ranking geral</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="rounded-lg border p-2 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-lg font-bold">{tec.total}</p>
+                      </div>
+                      <div className="rounded-lg border p-2 text-center">
+                        <p className="text-xs text-muted-foreground">Resolvidos</p>
+                        <p className="text-lg font-bold text-emerald-600">{tec.resolvidos}</p>
+                      </div>
+                      <div className="rounded-lg border p-2 text-center">
+                        <p className="text-xs text-muted-foreground">Tempo Médio</p>
+                        <p className="text-lg font-bold">{tec.tempoMedioH.toFixed(1)}h</p>
+                      </div>
+                      <div className="rounded-lg border p-2 text-center">
+                        <p className="text-xs text-muted-foreground">SLA</p>
+                        <p className={`text-lg font-bold ${tec.taxaSla >= 80 ? "text-emerald-600" : tec.taxaSla >= 50 ? "text-yellow-600" : "text-destructive"}`}>{tec.taxaSla}%</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Performance</span>
+                        <span>{Math.round(tec.score)} pts</span>
+                      </div>
+                      <Progress value={Math.min(100, (tec.score / (rankingTecnicos[0]?.score || 1)) * 100)} className="h-2" />
+                    </div>
+                    {tec.reincidentes > 0 && (
+                      <Badge variant="destructive" className="text-[9px]">{tec.reincidentes} reincidência(s)</Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Tabela completa */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2"><Wrench className="h-4 w-4" />Ranking Completo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Técnico</TableHead>
+                      <TableHead className="text-center">Total</TableHead>
+                      <TableHead className="text-center">Resolvidos</TableHead>
+                      <TableHead className="text-center">Abertos</TableHead>
+                      <TableHead className="text-center">Tempo Médio</TableHead>
+                      <TableHead className="text-center">SLA %</TableHead>
+                      <TableHead className="text-center">Reincid.</TableHead>
+                      <TableHead className="text-center">Score</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rankingTecnicos.map((tec, i) => (
+                      <TableRow key={tec.id}>
+                        <TableCell className="font-bold text-muted-foreground">{i + 1}</TableCell>
+                        <TableCell className="font-medium">{tec.nome}</TableCell>
+                        <TableCell className="text-center">{tec.total}</TableCell>
+                        <TableCell className="text-center text-emerald-600 font-medium">{tec.resolvidos}</TableCell>
+                        <TableCell className="text-center">{tec.abertos}</TableCell>
+                        <TableCell className="text-center">{tec.tempoMedioH.toFixed(1)}h</TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={`text-[10px] ${tec.taxaSla >= 80 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" : tec.taxaSla >= 50 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300" : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"}`}>{tec.taxaSla}%</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">{tec.reincidentes > 0 ? <Badge variant="destructive" className="text-[9px]">{tec.reincidentes}</Badge> : "—"}</TableCell>
+                        <TableCell className="text-center font-bold">{Math.round(tec.score)}</TableCell>
+                      </TableRow>
+                    ))}
+                    {rankingTecnicos.length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Sem dados</TableCell></TableRow>}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Gráfico comparativo */}
+          {rankingTecnicos.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2"><BarChart3 className="h-4 w-4" />Comparativo de Volume</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={rankingTecnicos} barSize={24}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="nome" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="resolvidos" fill="hsl(var(--chart-2))" name="Resolvidos" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="abertos" fill="hsl(var(--chart-4))" name="Abertos" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
