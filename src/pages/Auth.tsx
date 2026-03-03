@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import logoHyon from "@/assets/logo-hyon.png";
 
 export default function Auth() {
   const { signIn, signUp } = useAuth();
@@ -44,12 +45,12 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          
-
-          
+          <div className="flex justify-center mb-4">
+            <img src={logoHyon} alt="Hyon Tech" className="h-16 w-auto" />
+          </div>
           <CardTitle className="text-xl">{isLogin ? "Entrar" : "Criar Conta"}</CardTitle>
           <CardDescription>
-            {isLogin ? "\n" : "Crie sua conta para começar"}
+            {isLogin ? "Acesse com suas credenciais" : "Crie sua conta para começar"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
