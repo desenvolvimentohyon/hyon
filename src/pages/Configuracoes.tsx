@@ -14,7 +14,8 @@ import { STATUS_ORDER } from "@/types";
 import { FormaEnvio } from "@/types/propostas";
 import { MetricasConfig } from "@/types/receita";
 import { toast } from "@/hooks/use-toast";
-import { Download, Upload, RotateCcw, Plus, Trash2, GripVertical } from "lucide-react";
+import { Download, Upload, RotateCcw, Plus, Trash2, GripVertical, CloudUpload, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Configuracoes() {
   const { configuracoes, updateConfiguracoes, resetDados, exportJSON, importJSON } = useApp();
@@ -24,6 +25,7 @@ export default function Configuracoes() {
   const [labels, setLabels] = useState({ ...configuracoes.labelsStatus });
   const [prioridadeLabels, setPrioridadeLabels] = useState({ ...configuracoes.labelsPrioridade });
   const [importText, setImportText] = useState("");
+  const [seedLoading, setSeedLoading] = useState(false);
 
   // CRM config local state
   const [crmStatusList, setCrmStatusList] = useState([...crmConfig.statusKanban]);
@@ -262,6 +264,68 @@ export default function Configuracoes() {
       </Card>
 
       <Separator />
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Importar Dados para o Cloud</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Popula o banco de dados com dados de exemplo (clientes, tarefas, propostas, financeiro, receita, parâmetros). 
+            Se já existirem dados, você pode forçar a reimportação (apaga e recria tudo).
+          </p>
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              disabled={seedLoading}
+              onClick={async () => {
+                setSeedLoading(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke("seed-org", {
+                    body: { force: false },
+                  });
+                  if (error) throw error;
+                  if (data?.error === "already_seeded") {
+                    toast({ title: "Dados já existem", description: "Use 'Forçar reimportação' para sobrescrever.", variant: "destructive" });
+                  } else {
+                    toast({ title: "Dados importados com sucesso!", description: data?.results?.join(", ") });
+                    // Reload page to refresh all contexts
+                    setTimeout(() => window.location.reload(), 1500);
+                  }
+                } catch (err: any) {
+                  toast({ title: "Erro ao importar", description: err.message, variant: "destructive" });
+                }
+                setSeedLoading(false);
+              }}
+              className="gap-1.5"
+            >
+              {seedLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CloudUpload className="h-3.5 w-3.5" />}
+              Importar Dados para o Cloud
+            </Button>
+            <Button 
+              size="sm" 
+              variant="destructive"
+              disabled={seedLoading}
+              onClick={async () => {
+                setSeedLoading(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke("seed-org", {
+                    body: { force: true },
+                  });
+                  if (error) throw error;
+                  toast({ title: "Dados reimportados com sucesso!", description: data?.results?.join(", ") });
+                  setTimeout(() => window.location.reload(), 1500);
+                } catch (err: any) {
+                  toast({ title: "Erro ao reimportar", description: err.message, variant: "destructive" });
+                }
+                setSeedLoading(false);
+              }}
+              className="gap-1.5"
+            >
+              {seedLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+              Forçar Reimportação
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Dados</CardTitle></CardHeader>
