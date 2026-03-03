@@ -86,6 +86,7 @@ serve(async (req) => {
         supabase.from("plan_accounts").delete().eq("org_id", orgId),
         supabase.from("bank_accounts").delete().eq("org_id", orgId),
         supabase.from("proposal_settings").delete().eq("org_id", orgId),
+        supabase.from("partners").delete().eq("org_id", orgId),
       ]);
     }
 
@@ -251,6 +252,56 @@ serve(async (req) => {
     if (insertedClients) insertedClients.forEach(c => { clientMap[c.name] = c.id; });
     results.push("Clients: " + clientDefs.length);
 
+    // ===== 9.5 Partners =====
+    const { data: insertedPartners } = await supabase.from("partners").insert([
+      {
+        org_id: orgId, name: "João Indicador", email: "joao@indicador.com", phone: "(11) 91234-5678",
+        document: "123.456.789-00", commission_type: "implantacao_e_recorrente",
+        commission_implant_percent: 15, commission_recur_percent: 5, commission_recur_months: 12,
+        commission_recur_apply_on: "on_invoice_paid", active: true,
+        notes: "Parceiro estratégico, indicou vários clientes do setor alimentício",
+      },
+      {
+        org_id: orgId, name: "Maria Parceira", email: "maria@parceira.com.br", phone: "(21) 98765-4321",
+        document: "987.654.321-00", commission_type: "apenas_implantacao",
+        commission_implant_percent: 10, commission_recur_percent: 0, commission_recur_months: 0,
+        commission_recur_apply_on: "on_invoice_paid", active: true,
+        notes: "Contadora que indica clientes",
+      },
+      {
+        org_id: orgId, name: "Tech Solutions", email: "contato@techsolutions.com.br", phone: "(19) 3333-9999",
+        document: "12.345.678/0001-99", commission_type: "implantacao_e_recorrente",
+        commission_implant_percent: 12, commission_recur_percent: 3, commission_recur_months: 0,
+        commission_recur_apply_on: "on_invoice_paid", active: true,
+        notes: "Empresa de TI parceira — comissão recorrente ilimitada",
+      },
+    ]).select("id, name");
+    const partnerMap: Record<string, string> = {};
+    if (insertedPartners) insertedPartners.forEach(p => { partnerMap[p.name] = p.id; });
+    results.push("Partners: 3");
+
+    // Update 5 clients with partner references
+    const partnerClientUpdates: { clientName: string; partnerId: string; recurPercent: number; recurMonths: number }[] = [
+      { clientName: "Supermercado Bom Preço", partnerId: partnerMap["João Indicador"], recurPercent: 5, recurMonths: 12 },
+      { clientName: "Farmácia Vida Plena", partnerId: partnerMap["Maria Parceira"], recurPercent: 0, recurMonths: 0 },
+      { clientName: "Auto Peças Nacional", partnerId: partnerMap["Tech Solutions"], recurPercent: 3, recurMonths: 0 },
+      { clientName: "Padaria Estrela Dourada", partnerId: partnerMap["João Indicador"], recurPercent: 5, recurMonths: 12 },
+      { clientName: "Eletrônicos Tech", partnerId: partnerMap["Tech Solutions"], recurPercent: 3, recurMonths: 0 },
+    ];
+    for (const u of partnerClientUpdates) {
+      const cid = clientMap[u.clientName];
+      if (cid && u.partnerId) {
+        await supabase.from("clients").update({
+          ref_partner_id: u.partnerId,
+          ref_partner_recur_percent: u.recurPercent,
+          ref_partner_recur_months: u.recurMonths,
+          ref_partner_start_at: pastDate(90),
+          ref_partner_recur_apply_on: u.recurPercent > 0 ? "on_invoice_paid" : null,
+        }).eq("id", cid);
+      }
+    }
+    results.push("Partner-client links: 5");
+
     // ===== 10. Support events =====
     const tipos: string[] = ["suporte", "implantacao", "treinamento"];
     const supportInserts: any[] = [];
@@ -343,8 +394,8 @@ serve(async (req) => {
       { org_id: orgId, proposal_number: "PROP-2026-0005", client_id: clientMap["Padaria Estrela Dourada"], client_name_snapshot: "Padaria Estrela Dourada", system_name: "HYON", plan_name: "Básico", monthly_value: 450, implementation_value: 1200, implementation_flow: "a_vista", sent_at: past(6), valid_days: 10, valid_until: day(4), crm_status: "Visualizada", view_status: "visualizado", acceptance_status: "pendente", acceptance_link: "/aceite/PROP-2026-0005", pdf_generated_at: past(6) },
       { org_id: orgId, proposal_number: "PROP-2026-0006", client_id: clientMap["Farmácia Vida Plena"], client_name_snapshot: "Farmácia Vida Plena", system_name: "HYON", plan_name: "Premium", monthly_value: 980, implementation_value: 4000, implementation_flow: "parcelado", implementation_installments: 6, sent_at: past(4), valid_days: 10, valid_until: day(6), crm_status: "Negociação", view_status: "visualizado", acceptance_status: "pendente", acceptance_link: "/aceite/PROP-2026-0006", pdf_generated_at: past(4) },
       { org_id: orgId, proposal_number: "PROP-2026-0007", client_id: clientMap["Loja Central Modas"], client_name_snapshot: "Loja Central Modas", system_name: "LINKPRO", plan_name: "Padrão", monthly_value: 380, implementation_value: 1000, implementation_flow: "a_vista", sent_at: past(8), valid_days: 7, valid_until: past(1), crm_status: "Enviada", view_status: "nao_abriu", acceptance_status: "pendente", acceptance_link: "/aceite/PROP-2026-0007", pdf_generated_at: past(8) },
-      { org_id: orgId, proposal_number: "PROP-2026-0008", client_id: clientMap["Auto Peças Nacional"], client_name_snapshot: "Auto Peças Nacional", system_name: "LINKPRO", plan_name: "Completo", monthly_value: 550, implementation_value: 2000, implementation_flow: "parcelado", implementation_installments: 4, sent_at: past(15), valid_days: 10, valid_until: past(5), crm_status: "Aceita", view_status: "visualizado", acceptance_status: "aceitou", acceptance_link: "/aceite/PROP-2026-0008", pdf_generated_at: past(15) },
-      { org_id: orgId, proposal_number: "PROP-2026-0009", client_id: clientMap["Farmácia Vida Plena"], client_name_snapshot: "Farmácia Vida Plena", system_name: "HYON", plan_name: "Completo", monthly_value: 750, implementation_value: 3000, implementation_flow: "parcelado", implementation_installments: 3, sent_at: past(25), valid_days: 10, valid_until: past(15), crm_status: "Aceita", view_status: "visualizado", acceptance_status: "aceitou", acceptance_link: "/aceite/PROP-2026-0009", pdf_generated_at: past(25) },
+      { org_id: orgId, proposal_number: "PROP-2026-0008", client_id: clientMap["Auto Peças Nacional"], client_name_snapshot: "Auto Peças Nacional", system_name: "LINKPRO", plan_name: "Completo", monthly_value: 550, implementation_value: 2000, implementation_flow: "parcelado", implementation_installments: 4, sent_at: past(15), valid_days: 10, valid_until: past(5), crm_status: "Aceita", view_status: "visualizado", acceptance_status: "aceitou", acceptance_link: "/aceite/PROP-2026-0008", pdf_generated_at: past(15), partner_id: partnerMap["Tech Solutions"] || null, partner_commission_implant_percent: 12, partner_commission_implant_value: 240, commission_implant_generated: true },
+      { org_id: orgId, proposal_number: "PROP-2026-0009", client_id: clientMap["Farmácia Vida Plena"], client_name_snapshot: "Farmácia Vida Plena", system_name: "HYON", plan_name: "Completo", monthly_value: 750, implementation_value: 3000, implementation_flow: "parcelado", implementation_installments: 3, sent_at: past(25), valid_days: 10, valid_until: past(15), crm_status: "Aceita", view_status: "visualizado", acceptance_status: "aceitou", acceptance_link: "/aceite/PROP-2026-0009", pdf_generated_at: past(25), partner_id: partnerMap["Maria Parceira"] || null, partner_commission_implant_percent: 10, partner_commission_implant_value: 300, commission_implant_generated: true },
       { org_id: orgId, proposal_number: "PROP-2026-0010", client_id: clientMap["Pet Shop Amigo Fiel"], client_name_snapshot: "Pet Shop Amigo Fiel", system_name: "LINKPRO", plan_name: "Básico", monthly_value: 290, implementation_value: 800, implementation_flow: "a_vista", sent_at: past(12), valid_days: 7, valid_until: past(5), crm_status: "Recusada", view_status: "visualizado", acceptance_status: "recusou", acceptance_link: "/aceite/PROP-2026-0010", pdf_generated_at: past(12) },
     ];
 
@@ -437,6 +488,106 @@ serve(async (req) => {
           metadata: { formaPagamento: "transferencia" },
         });
       }
+    }
+
+    // ===== Partner commissions =====
+    // Find inserted proposal IDs for PROP-0008 and PROP-0009
+    const prop0008 = insertedProposals?.find(p => p.proposal_number === "PROP-2026-0008");
+    const prop0009 = insertedProposals?.find(p => p.proposal_number === "PROP-2026-0009");
+
+    // 3 implantation commissions (one per partner)
+    if (partnerMap["Tech Solutions"] && prop0008) {
+      titleInserts.push({
+        org_id: orgId, type: "pagar", origin: "comissao_parceiro", commission_type: "implantacao",
+        description: "Comissão implantação - Auto Peças Nacional (Tech Solutions)",
+        partner_id: partnerMap["Tech Solutions"], reference_proposal_id: prop0008.id,
+        client_id: clientMap["Auto Peças Nacional"],
+        plan_account_code: "3.04", competency: competencia(1),
+        issued_at: pastDate(15), due_at: pastDate(5),
+        value_original: 240, status: "pago", bank_account_id: mainBankId,
+        supplier_name: "Tech Solutions", metadata: { formaPagamento: "pix" },
+      });
+    }
+    if (partnerMap["Maria Parceira"] && prop0009) {
+      titleInserts.push({
+        org_id: orgId, type: "pagar", origin: "comissao_parceiro", commission_type: "implantacao",
+        description: "Comissão implantação - Farmácia Vida Plena (Maria Parceira)",
+        partner_id: partnerMap["Maria Parceira"], reference_proposal_id: prop0009.id,
+        client_id: clientMap["Farmácia Vida Plena"],
+        plan_account_code: "3.04", competency: competencia(2),
+        issued_at: pastDate(25), due_at: pastDate(15),
+        value_original: 300, status: "pago", bank_account_id: mainBankId,
+        supplier_name: "Maria Parceira", metadata: { formaPagamento: "pix" },
+      });
+    }
+    if (partnerMap["João Indicador"]) {
+      // João doesn't have a proposal in seed but we add one implantation commission anyway
+      titleInserts.push({
+        org_id: orgId, type: "pagar", origin: "comissao_parceiro", commission_type: "implantacao",
+        description: "Comissão implantação - Supermercado Bom Preço (João Indicador)",
+        partner_id: partnerMap["João Indicador"],
+        client_id: clientMap["Supermercado Bom Preço"],
+        plan_account_code: "3.04", competency: competencia(3),
+        issued_at: pastDate(60), due_at: pastDate(50),
+        value_original: 375, status: "pago", bank_account_id: mainBankId,
+        supplier_name: "João Indicador", metadata: { formaPagamento: "pix" },
+      });
+    }
+
+    // 4 recurring commissions paid (past months)
+    if (partnerMap["João Indicador"]) {
+      for (let m = 2; m <= 3; m++) {
+        titleInserts.push({
+          org_id: orgId, type: "pagar", origin: "comissao_parceiro", commission_type: "recorrente",
+          description: `Comissão recorrente ${competencia(m)} - Supermercado Bom Preço (João Indicador)`,
+          partner_id: partnerMap["João Indicador"],
+          client_id: clientMap["Supermercado Bom Preço"],
+          plan_account_code: "3.04", competency: competencia(m),
+          issued_at: pastDate(m * 30), due_at: pastDate(m * 30 - 10),
+          value_original: 17.50, status: "pago", bank_account_id: mainBankId,
+          supplier_name: "João Indicador", metadata: { formaPagamento: "pix" },
+        });
+      }
+    }
+    if (partnerMap["Tech Solutions"]) {
+      for (let m = 1; m <= 2; m++) {
+        titleInserts.push({
+          org_id: orgId, type: "pagar", origin: "comissao_parceiro", commission_type: "recorrente",
+          description: `Comissão recorrente ${competencia(m)} - Auto Peças Nacional (Tech Solutions)`,
+          partner_id: partnerMap["Tech Solutions"],
+          client_id: clientMap["Auto Peças Nacional"],
+          plan_account_code: "3.04", competency: competencia(m),
+          issued_at: pastDate(m * 30), due_at: pastDate(m * 30 - 10),
+          value_original: 9.60, status: "pago", bank_account_id: mainBankId,
+          supplier_name: "Tech Solutions", metadata: { formaPagamento: "pix" },
+        });
+      }
+    }
+
+    // 2 recurring commissions open (current month)
+    if (partnerMap["João Indicador"]) {
+      titleInserts.push({
+        org_id: orgId, type: "pagar", origin: "comissao_parceiro", commission_type: "recorrente",
+        description: `Comissão recorrente ${competencia(0)} - Supermercado Bom Preço (João Indicador)`,
+        partner_id: partnerMap["João Indicador"],
+        client_id: clientMap["Supermercado Bom Preço"],
+        plan_account_code: "3.04", competency: competencia(0),
+        issued_at: pastDate(5), due_at: pastDate(-10),
+        value_original: 17.50, status: "aberto", bank_account_id: mainBankId,
+        supplier_name: "João Indicador", metadata: { formaPagamento: "pix" },
+      });
+    }
+    if (partnerMap["Tech Solutions"]) {
+      titleInserts.push({
+        org_id: orgId, type: "pagar", origin: "comissao_parceiro", commission_type: "recorrente",
+        description: `Comissão recorrente ${competencia(0)} - Auto Peças Nacional (Tech Solutions)`,
+        partner_id: partnerMap["Tech Solutions"],
+        client_id: clientMap["Auto Peças Nacional"],
+        plan_account_code: "3.04", competency: competencia(0),
+        issued_at: pastDate(5), due_at: pastDate(-10),
+        value_original: 9.60, status: "aberto", bank_account_id: mainBankId,
+        supplier_name: "Tech Solutions", metadata: { formaPagamento: "pix" },
+      });
     }
 
     // Insert in batches
