@@ -4,6 +4,7 @@ import { usePropostas } from "@/contexts/PropostasContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import {
   ListTodo, Play, CheckCircle2, AlertTriangle, Clock, Plus, Users, TrendingUp,
@@ -14,6 +15,7 @@ import { StatusTarefa } from "@/types";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import DashboardExecutiveWidgets from "@/components/DashboardExecutiveWidgets";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -419,6 +421,9 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+      {/* Executive Widgets */}
+      <Separator className="my-2" />
+      <DashboardExecutiveWidgets />
     </div>
   );
 }
