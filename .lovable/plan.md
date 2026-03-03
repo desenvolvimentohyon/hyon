@@ -1,40 +1,52 @@
 
 
-# Plano: Adicionar seed data com 3 parceiros e clientes vinculados
+## Plan: "Minha Empresa" — Cadastro Institucional em Configurações
 
-## Objetivo
-Incluir no edge function `seed-org` a criação de 3 parceiros com regras de comissão distintas, vincular clientes existentes a eles (via `ref_partner_id`), e gerar títulos financeiros de comissão (implantação + recorrente) para popular o sistema com dados representativos.
+### Overview
+Create a new "Minha Empresa" section inside the Configurações page with 6 internal tabs for the organization's institutional data. This requires a new database table, a storage bucket for logos, and a new UI component.
 
-## Parceiros a criar
+### 1. Database Migration
 
-| Parceiro | Tipo | Impl. % | Recorr. % | Meses | Trigger |
-|---|---|---|---|---|---|
-| João Indicador | `implantacao_e_recorrente` | 15% | 5% | 12 | `on_invoice_paid` |
-| Maria Parceira | `apenas_implantacao` | 10% | 0 | 0 | — |
-| Tech Solutions | `implantacao_e_recorrente` | 12% | 3% | 0 (ilimitado) | `on_invoice_paid` |
+**Create `company_profile` table:**
+- Single record per org (unique constraint on `org_id`)
+- All fields from the prompt: legal_name, trade_name, cnpj, state/municipal registration, phone, whatsapp, email, website, address fields, tax_regime, cnae, csc_code, certificate_expiration, certificate_number, fiscal_notes, logo_path, logo_dark_path, primary_color, secondary_color, footer_text, institutional_text, default_due_day, proposal_validity_days, default_late_fee_percent, default_interest_percent, partner_commission_days, default_billing_message, default_proposal_message, created_at, updated_at
+- RLS: SELECT for all authenticated org members, INSERT/UPDATE/DELETE restricted to admin role
+- Updated_at trigger using existing `handle_updated_at` function
 
-## Clientes vinculados
+**Create `company_bank_accounts` table:**
+- id, org_id, bank_name, bank_code, agency, account, type (corrente/poupança), pix_key, holder_name, holder_document, is_default (bool), created_at, updated_at
+- RLS: SELECT for org, INSERT/UPDATE/DELETE for admin + financeiro
 
-- "Supermercado Bom Preço" → João Indicador (recorrente 5%, 12 meses)
-- "Farmácia Vida Plena" → Maria Parceira (só implantação)
-- "Auto Peças Nacional" → Tech Solutions (recorrente 3%, ilimitado)
-- "Padaria Estrela Dourada" → João Indicador
-- "Eletrônicos Tech" → Tech Solutions
+**Create storage bucket `company-logos`** (public: true for rendering in PDFs/proposals)
 
-## Comissões financeiras geradas (seed)
+### 2. New Component: `src/components/configuracoes/MinhaEmpresa.tsx`
 
-- 3 comissões de implantação (uma por parceiro, vinculadas às propostas aceitas PROP-0008 e PROP-0009)
-- 4 comissões recorrentes pagas (2 para João, 2 para Tech Solutions) em competências passadas
-- 2 comissões recorrentes abertas (mês atual)
+A single component with 6 internal tabs (Dados Gerais, Endereço, Fiscal, Bancário, Identidade Visual, Parâmetros Operacionais). Uses `useQuery`/`useMutation` from TanStack Query to fetch/save the `company_profile` record.
 
-## Alterações
+Key features:
+- **Dados Gerais**: CNPJ mask + auto-lookup via existing `cnpj-lookup` edge function, all identification fields
+- **Endereço**: CEP lookup via ViaCEP (same pattern as client detail), all address fields
+- **Fiscal**: Tax regime select, CSC with copy button, certificate expiration with date picker, alert logic
+- **Bancário**: CRUD list for `company_bank_accounts`, mark one as default
+- **Identidade Visual**: Logo upload to `company-logos` bucket, color pickers, footer/institutional text
+- **Parâmetros Operacionais**: Default due day, late fee %, interest %, proposal validity, commission days, message templates
 
-### `supabase/functions/seed-org/index.ts`
-1. **Force cleanup**: Adicionar `supabase.from("partners").delete().eq("org_id", orgId)` no bloco de limpeza
-2. **Seção 9.5 (após clients)**: Inserir 3 parceiros na tabela `partners` e capturar IDs no `partnerMap`
-3. **Update clients**: Atualizar 5 clientes com `ref_partner_id`, `ref_partner_recur_percent`, `ref_partner_recur_months`, `ref_partner_start_at`
-4. **Seção 13 (proposals)**: Vincular PROP-0008 e PROP-0009 aos parceiros com `partner_id`, `partner_commission_implant_percent`, `partner_commission_implant_value`, `commission_implant_generated: true`
-5. **Seção 14 (financial titles)**: Adicionar ~9 títulos de comissão com `origin: "comissao_parceiro"`, `commission_type`, `partner_id`, `reference_proposal_id`
+Footer with "Cancelar" and "Salvar Alterações" buttons (same pattern as client detail).
 
-Resultado: ao rodar o seed (force=true), o Dashboard, Parceiros e Contas a Pagar terão dados de comissão representativos desde o início.
+### 3. Integrate into Configurações Page
+
+Modify `src/pages/Configuracoes.tsx` to add top-level Tabs splitting "Configurações Gerais" (existing content) and "Minha Empresa" (new component). Only show "Minha Empresa" tab for admin users (check via `useAuth().profile.role`).
+
+### 4. Files to Create/Edit
+
+| Action | File |
+|--------|------|
+| Create | `src/components/configuracoes/MinhaEmpresa.tsx` |
+| Edit | `src/pages/Configuracoes.tsx` (wrap in Tabs) |
+| Migration | New table `company_profile`, `company_bank_accounts`, bucket `company-logos` |
+
+### 5. Security
+- RLS enforced by `org_id = current_org_id()` on both tables
+- Admin-only edit enforced via `current_role() = 'admin'` in RLS policies
+- UI hides the tab for non-admin users as an additional guard
 
