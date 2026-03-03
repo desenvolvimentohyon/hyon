@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useReceita } from "@/contexts/ReceitaContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +16,17 @@ import { STATUS_ORDER } from "@/types";
 import { FormaEnvio } from "@/types/propostas";
 import { MetricasConfig } from "@/types/receita";
 import { toast } from "@/hooks/use-toast";
-import { Download, Upload, RotateCcw, Plus, Trash2, GripVertical, CloudUpload, Loader2 } from "lucide-react";
+import { Download, Upload, RotateCcw, Plus, Trash2, GripVertical, CloudUpload, Loader2, Building2, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 
 export default function Configuracoes() {
   const { configuracoes, updateConfiguracoes, resetDados, exportJSON, importJSON } = useApp();
   const { crmConfig, updateCRMConfig, resetCRMConfig, resetPropostas } = usePropostas();
   const { metricasConfig, updateMetricasConfig, resetReceita } = useReceita();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === "admin";
 
   const [labels, setLabels] = useState({ ...configuracoes.labelsStatus });
   const [prioridadeLabels, setPrioridadeLabels] = useState({ ...configuracoes.labelsPrioridade });
@@ -106,242 +112,232 @@ export default function Configuracoes() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-3xl">
       <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Labels de Status</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          {STATUS_ORDER.map(s => (
-            <div key={s} className="flex items-center gap-3">
-              <Label className="w-40 text-xs text-muted-foreground">{s}</Label>
-              <Input value={labels[s]} onChange={e => setLabels(prev => ({ ...prev, [s]: e.target.value }))} className="h-8" />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="geral" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="geral" className="gap-1.5"><Settings className="h-4 w-4" />Configurações Gerais</TabsTrigger>
+          {isAdmin && <TabsTrigger value="empresa" className="gap-1.5"><Building2 className="h-4 w-4" />Minha Empresa</TabsTrigger>}
+        </TabsList>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Labels de Prioridade</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          {(["baixa", "media", "alta", "urgente"] as const).map(p => (
-            <div key={p} className="flex items-center gap-3">
-              <Label className="w-40 text-xs text-muted-foreground">{p}</Label>
-              <Input value={prioridadeLabels[p]} onChange={e => setPrioridadeLabels(prev => ({ ...prev, [p]: e.target.value }))} className="h-8" />
-            </div>
-          ))}
-          <Button size="sm" onClick={saveLabels}>Salvar Labels</Button>
-        </CardContent>
-      </Card>
+        <TabsContent value="geral">
+          <div className="space-y-6">
+            {/* All existing config cards below */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">Labels de Status</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                {STATUS_ORDER.map(s => (
+                  <div key={s} className="flex items-center gap-3">
+                    <Label className="w-40 text-xs text-muted-foreground">{s}</Label>
+                    <Input value={labels[s]} onChange={e => setLabels(prev => ({ ...prev, [s]: e.target.value }))} className="h-8" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Aparência</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <Label>Modo Compacto</Label>
-            <Switch checked={configuracoes.modoCompacto} onCheckedChange={v => updateConfiguracoes({ modoCompacto: v })} />
-          </div>
-        </CardContent>
-      </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Labels de Prioridade</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                {(["baixa", "media", "alta", "urgente"] as const).map(p => (
+                  <div key={p} className="flex items-center gap-3">
+                    <Label className="w-40 text-xs text-muted-foreground">{p}</Label>
+                    <Input value={prioridadeLabels[p]} onChange={e => setPrioridadeLabels(prev => ({ ...prev, [p]: e.target.value }))} className="h-8" />
+                  </div>
+                ))}
+                <Button size="sm" onClick={saveLabels}>Salvar Labels</Button>
+              </CardContent>
+            </Card>
 
-      <Separator />
-
-      {/* PROPOSTAS CONFIG */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Propostas — CRM Pipeline</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label className="text-xs font-medium">Status do Pipeline (colunas Kanban)</Label>
-            <div className="space-y-1 mt-2">
-              {crmStatusList.map((s, i) => (
-                <div key={s} className="flex items-center gap-2 bg-muted/50 rounded px-2 py-1">
-                  <GripVertical className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-sm flex-1">{s}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeCrmStatus(s)}><Trash2 className="h-3 w-3" /></Button>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Aparência</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <Label>Modo Compacto</Label>
+                  <Switch checked={configuracoes.modoCompacto} onCheckedChange={v => updateConfiguracoes({ modoCompacto: v })} />
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-2 mt-2">
-              <Input className="h-8" placeholder="Novo status..." value={novoStatus} onChange={e => setNovoStatus(e.target.value)} onKeyDown={e => e.key === "Enter" && addCrmStatus()} />
-              <Button size="sm" variant="outline" onClick={addCrmStatus} className="gap-1"><Plus className="h-3 w-3" />Adicionar</Button>
-            </div>
-          </div>
+              </CardContent>
+            </Card>
 
-          <Separator />
+            <Separator />
 
-          <div>
-            <Label className="text-xs">Forma de Envio Padrão</Label>
-            <Select value={crmForma} onValueChange={v => setCrmForma(v as FormaEnvio)}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="email">E-mail</SelectItem>
-                <SelectItem value="manual_link">Link Manual</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Propostas — CRM Pipeline</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-xs font-medium">Status do Pipeline (colunas Kanban)</Label>
+                  <div className="space-y-1 mt-2">
+                    {crmStatusList.map((s) => (
+                      <div key={s} className="flex items-center gap-2 bg-muted/50 rounded px-2 py-1">
+                        <GripVertical className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm flex-1">{s}</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeCrmStatus(s)}><Trash2 className="h-3 w-3" /></Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Input className="h-8" placeholder="Novo status..." value={novoStatus} onChange={e => setNovoStatus(e.target.value)} onKeyDown={e => e.key === "Enter" && addCrmStatus()} />
+                    <Button size="sm" variant="outline" onClick={addCrmStatus} className="gap-1"><Plus className="h-3 w-3" />Adicionar</Button>
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <Label className="text-xs">Forma de Envio Padrão</Label>
+                  <Select value={crmForma} onValueChange={v => setCrmForma(v as FormaEnvio)}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                      <SelectItem value="email">E-mail</SelectItem>
+                      <SelectItem value="manual_link">Link Manual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Mensagem Padrão de Envio</Label>
+                  <Textarea rows={3} value={crmMensagem} onChange={e => setCrmMensagem(e.target.value)} />
+                  <p className="text-[10px] text-muted-foreground mt-1">Variáveis: {"{cliente}"}, {"{numeroProposta}"}, {"{sistema}"}, {"{mensalidade}"}, {"{implantacao}"}, {"{linkAceite}"}, {"{validade}"}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Validade Padrão (dias)</Label>
+                    <Input type="number" className="h-8" value={crmValidade} onChange={e => setCrmValidade(Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Nome da Empresa</Label>
+                    <Input className="h-8" value={crmEmpresa} onChange={e => setCrmEmpresa(e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Rodapé PDF</Label>
+                  <Input className="h-8" value={crmRodape} onChange={e => setCrmRodape(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Informações Adicionais Padrão</Label>
+                  <Textarea rows={2} value={crmInfoPadrao} onChange={e => setCrmInfoPadrao(e.target.value)} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Assinatura Digital Fake no PDF</Label>
+                  <Switch checked={crmAssinatura} onCheckedChange={setCrmAssinatura} />
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveCRM}>Salvar Configurações</Button>
+                  <Button size="sm" variant="outline" onClick={() => { resetCRMConfig(); toast({ title: "Config CRM restaurada!" }); }}>Restaurar Padrão</Button>
+                </div>
+              </CardContent>
+            </Card>
 
-          <div>
-            <Label className="text-xs">Mensagem Padrão de Envio</Label>
-            <Textarea rows={3} value={crmMensagem} onChange={e => setCrmMensagem(e.target.value)} />
-            <p className="text-[10px] text-muted-foreground mt-1">Variáveis: {"{cliente}"}, {"{numeroProposta}"}, {"{sistema}"}, {"{mensalidade}"}, {"{implantacao}"}, {"{linkAceite}"}, {"{validade}"}</p>
-          </div>
+            <Separator />
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">Validade Padrão (dias)</Label>
-              <Input type="number" className="h-8" value={crmValidade} onChange={e => setCrmValidade(Number(e.target.value))} />
-            </div>
-            <div>
-              <Label className="text-xs">Nome da Empresa</Label>
-              <Input className="h-8" value={crmEmpresa} onChange={e => setCrmEmpresa(e.target.value)} />
-            </div>
-          </div>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Métricas & Receita</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Período Padrão do Dashboard</Label>
+                    <Select value={metPeriodo} onValueChange={setMetPeriodo}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30d">30 dias</SelectItem>
+                        <SelectItem value="90d">90 dias</SelectItem>
+                        <SelectItem value="12m">12 meses</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Churn Window (meses)</Label>
+                    <Input type="number" className="h-8" value={metChurnWindow} onChange={e => setMetChurnWindow(Number(e.target.value))} />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Moeda / Formatação</Label>
+                  <Select value={metMoeda} onValueChange={setMetMoeda}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BRL">R$ (BRL - pt-BR)</SelectItem>
+                      <SelectItem value="USD">$ (USD - en-US)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveMetricas}>Salvar Métricas</Button>
+                  <Button size="sm" variant="outline" onClick={() => { resetReceita(); toast({ title: "Dados de receita resetados!" }); }}>Resetar Dados Receita</Button>
+                </div>
+              </CardContent>
+            </Card>
 
-          <div>
-            <Label className="text-xs">Rodapé PDF</Label>
-            <Input className="h-8" value={crmRodape} onChange={e => setCrmRodape(e.target.value)} />
-          </div>
+            <Separator />
 
-          <div>
-            <Label className="text-xs">Informações Adicionais Padrão</Label>
-            <Textarea rows={2} value={crmInfoPadrao} onChange={e => setCrmInfoPadrao(e.target.value)} />
-          </div>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Importar Dados para o Cloud</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Popula o banco de dados com dados de exemplo (clientes, tarefas, propostas, financeiro, receita, parâmetros).
+                </p>
+                <div className="flex gap-2">
+                  <Button size="sm" disabled={seedLoading} onClick={async () => {
+                    setSeedLoading(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("seed-org", { body: { force: false } });
+                      if (error) throw error;
+                      if (data?.error === "already_seeded") {
+                        toast({ title: "Dados já existem", description: "Use 'Forçar reimportação' para sobrescrever.", variant: "destructive" });
+                      } else {
+                        toast({ title: "Dados importados com sucesso!", description: data?.results?.join(", ") });
+                        setTimeout(() => window.location.reload(), 1500);
+                      }
+                    } catch (err: any) {
+                      toast({ title: "Erro ao importar", description: err.message, variant: "destructive" });
+                    }
+                    setSeedLoading(false);
+                  }} className="gap-1.5">
+                    {seedLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CloudUpload className="h-3.5 w-3.5" />}
+                    Importar Dados para o Cloud
+                  </Button>
+                  <Button size="sm" variant="destructive" disabled={seedLoading} onClick={async () => {
+                    setSeedLoading(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("seed-org", { body: { force: true } });
+                      if (error) throw error;
+                      toast({ title: "Dados reimportados com sucesso!", description: data?.results?.join(", ") });
+                      setTimeout(() => window.location.reload(), 1500);
+                    } catch (err: any) {
+                      toast({ title: "Erro ao reimportar", description: err.message, variant: "destructive" });
+                    }
+                    setSeedLoading(false);
+                  }} className="gap-1.5">
+                    {seedLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                    Forçar Reimportação
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Assinatura Digital Fake no PDF</Label>
-            <Switch checked={crmAssinatura} onCheckedChange={setCrmAssinatura} />
+            <Card>
+              <CardHeader><CardTitle className="text-base">Dados</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5"><Download className="h-3.5 w-3.5" />Exportar JSON</Button>
+                  <Button variant="destructive" size="sm" onClick={handleReset} className="gap-1.5"><RotateCcw className="h-3.5 w-3.5" />Resetar Dados</Button>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Importar JSON</Label>
+                  <Textarea value={importText} onChange={e => setImportText(e.target.value)} rows={4} placeholder='Cole o JSON exportado aqui...' />
+                  <Button size="sm" onClick={handleImport} disabled={!importText.trim()} className="gap-1.5"><Upload className="h-3.5 w-3.5" />Importar</Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+        </TabsContent>
 
-          <div className="flex gap-2">
-            <Button size="sm" onClick={saveCRM}>Salvar Configurações</Button>
-            <Button size="sm" variant="outline" onClick={() => {
-              resetCRMConfig();
-              toast({ title: "Config CRM restaurada!" });
-            }}>Restaurar Padrão</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Separator />
-
-      {/* MÉTRICAS & RECEITA */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Métricas & Receita</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">Período Padrão do Dashboard</Label>
-              <Select value={metPeriodo} onValueChange={setMetPeriodo}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30d">30 dias</SelectItem>
-                  <SelectItem value="90d">90 dias</SelectItem>
-                  <SelectItem value="12m">12 meses</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Churn Window (meses)</Label>
-              <Input type="number" className="h-8" value={metChurnWindow} onChange={e => setMetChurnWindow(Number(e.target.value))} />
-            </div>
-          </div>
-          <div>
-            <Label className="text-xs">Moeda / Formatação</Label>
-            <Select value={metMoeda} onValueChange={setMetMoeda}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="BRL">R$ (BRL - pt-BR)</SelectItem>
-                <SelectItem value="USD">$ (USD - en-US)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={saveMetricas}>Salvar Métricas</Button>
-            <Button size="sm" variant="outline" onClick={() => { resetReceita(); toast({ title: "Dados de receita resetados!" }); }}>Resetar Dados Receita</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Separator />
-
-      <Card>
-        <CardHeader><CardTitle className="text-base">Importar Dados para o Cloud</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Popula o banco de dados com dados de exemplo (clientes, tarefas, propostas, financeiro, receita, parâmetros). 
-            Se já existirem dados, você pode forçar a reimportação (apaga e recria tudo).
-          </p>
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              disabled={seedLoading}
-              onClick={async () => {
-                setSeedLoading(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke("seed-org", {
-                    body: { force: false },
-                  });
-                  if (error) throw error;
-                  if (data?.error === "already_seeded") {
-                    toast({ title: "Dados já existem", description: "Use 'Forçar reimportação' para sobrescrever.", variant: "destructive" });
-                  } else {
-                    toast({ title: "Dados importados com sucesso!", description: data?.results?.join(", ") });
-                    // Reload page to refresh all contexts
-                    setTimeout(() => window.location.reload(), 1500);
-                  }
-                } catch (err: any) {
-                  toast({ title: "Erro ao importar", description: err.message, variant: "destructive" });
-                }
-                setSeedLoading(false);
-              }}
-              className="gap-1.5"
-            >
-              {seedLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CloudUpload className="h-3.5 w-3.5" />}
-              Importar Dados para o Cloud
-            </Button>
-            <Button 
-              size="sm" 
-              variant="destructive"
-              disabled={seedLoading}
-              onClick={async () => {
-                setSeedLoading(true);
-                try {
-                  const { data, error } = await supabase.functions.invoke("seed-org", {
-                    body: { force: true },
-                  });
-                  if (error) throw error;
-                  toast({ title: "Dados reimportados com sucesso!", description: data?.results?.join(", ") });
-                  setTimeout(() => window.location.reload(), 1500);
-                } catch (err: any) {
-                  toast({ title: "Erro ao reimportar", description: err.message, variant: "destructive" });
-                }
-                setSeedLoading(false);
-              }}
-              className="gap-1.5"
-            >
-              {seedLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
-              Forçar Reimportação
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-base">Dados</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5"><Download className="h-3.5 w-3.5" />Exportar JSON</Button>
-            <Button variant="destructive" size="sm" onClick={handleReset} className="gap-1.5"><RotateCcw className="h-3.5 w-3.5" />Resetar Dados</Button>
-          </div>
-          <Separator />
-          <div className="space-y-2">
-            <Label>Importar JSON</Label>
-            <Textarea value={importText} onChange={e => setImportText(e.target.value)} rows={4} placeholder='Cole o JSON exportado aqui...' />
-            <Button size="sm" onClick={handleImport} disabled={!importText.trim()} className="gap-1.5"><Upload className="h-3.5 w-3.5" />Importar</Button>
-          </div>
-        </CardContent>
-      </Card>
+        {isAdmin && (
+          <TabsContent value="empresa">
+            <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+              <MinhaEmpresa />
+            </Suspense>
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
