@@ -1,154 +1,110 @@
 
 
-# PRD Parte 2 — Módulo Operacional para Revenda de Software ERP
+# Módulo "Propostas + CRM" — Plano de Implementação
 
 ## Resumo
-
-Expandir o sistema existente de gerenciador de tarefas para incluir 4 módulos operacionais (Comercial, Implantação, Suporte, Treinamento/Financeiro), perfil técnico do cliente, dashboard executivo e automações simuladas. Tudo continua 100% local com localStorage.
-
----
-
-## Alterações no Modelo de Dados
-
-### Tarefa — novos campos
-- `tipoOperacional`: "comercial" | "implantacao" | "suporte" | "treinamento" | "financeiro" | "interno"
-- `sistemaRelacionado`: "hyon" | "linkpro" | null
-- `moduloRelacionado`: "estoque" | "fiscal" | "financeiro" | "relatorios" | null
-- `slaHoras`, `reincidente`, `geraCobrancaExtra`, `valorCobrancaExtra`
-- `etapaImplantacao`, `riscoCancelamento`
-- Campos comerciais: `valorProposta`, `tipoPlano`, `dataPrevisaoFechamento`, `origemLead`, `statusComercial`
-- Campos treinamento: `setorTreinamento`, `horasMinistradas`, `participantes`, `treinamentoExtraCobrado`
-
-### Cliente — novos campos
-- `sistemaUsado`: "hyon" | "linkpro"
-- `usaCloud`, `usaTEF`, `usaPagamentoIntegrado`
-- `tipoNegocio`, `perfilCliente`: "conservador" | "resistente" | "estrategico"
-- `scoreSaude` (calculado no front)
-- `mensalidadeAtual`, `statusFinanceiro`: "em_dia" | "1_atraso" | "2_mais_atrasos"
-- `riscoCancelamento`
-
-### Nova entidade: TemplateImplantacao
-- `id`, `nome`, `sistemaRelacionado`, `etapas[]` (texto + responsavelPadraoId)
+Novo módulo completo de Propostas com gestão em tabela, pipeline CRM em Kanban, editor de proposta, geração de PDF fake, link de aceite simulado, e configurações parametrizáveis. Tudo local com localStorage.
 
 ---
 
-## Novas Páginas e Rotas
+## Modelo de Dados
 
-1. **`/comercial`** — Pipeline Comercial (Kanban: Lead → Proposta → Negociação → Fechado → Perdido)
-2. **`/implantacao`** — Lista de implantações em andamento com barra de progresso e templates
-3. **`/suporte`** — Dashboard de suporte com SLA, chamados vencidos, métricas
-4. **`/executivo`** — Painel Executivo com KPIs consolidados
+### Nova entidade: `Proposta`
+Campos: `id`, `numeroProposta` (PROP-2026-XXXX), `clienteId`, `clienteNomeSnapshot`, `sistema` (HYON/LINKPRO/OUTRO), `planoNome`, `valorMensalidade`, `valorImplantacao`, `fluxoPagamentoImplantacao`, `parcelasImplantacao`, `dataEnvio`, `validadeDias`, `dataValidade`, `statusCRM`, `statusVisualizacao`, `statusAceite`, `linkAceite`, `pdfGeradoEm`, `observacoesInternas`, `informacoesAdicionais`, `itens[]`, `historico[]`, `criadoEm`, `atualizadoEm`.
 
----
+### Nova entidade: `CRMConfig`
+Campos: `statusKanban[]`, `validadePadraoDias`, `formaEnvioPadrao`, `mensagemPadraoEnvio`, `nomeEmpresa`, `informacoesAdicionaisPadrao`, `rodapePDF`, `corTemaPDF`, `exibirAssinaturaDigitalFake`.
 
-## Sidebar atualizada
-Adicionar seções agrupadas:
-- **Operacional**: Dashboard, Tarefas
-- **Módulos**: Comercial, Implantação, Suporte
-- **Gestão**: Clientes, Técnicos, Painel Executivo, Configurações
+### Alteração em `Configuracoes`
+Adicionar campo `crmConfig: CRMConfig` ao tipo existente.
 
 ---
 
-## Funcionalidades por Módulo
+## Novas Rotas e Navegação
 
-### Comercial
-- Kanban com colunas de pipeline comercial
-- Formulário de lead com campos específicos (valor, plano, origem, data prevista)
-- Botão "Converter em Cliente" que cria cliente + tarefa de implantação automaticamente
-- Registrar objeções e motivo de perda
+| Rota | Página | Descrição |
+|------|--------|-----------|
+| `/propostas` | Propostas.tsx | Tabela com filtros, busca, ações por linha |
+| `/propostas/:id` | PropostaDetalhe.tsx | Editor/detalhe da proposta |
+| `/crm` | CRM.tsx | Kanban de propostas por statusCRM |
+| `/aceite/:numero` | AceiteProposta.tsx | Tela pública fake de aceite/recusa |
 
-### Implantação
-- Templates reutilizáveis de implantação (ex: "Hyon Alimentação")
-- Ao criar implantação: gerar subtarefas automaticamente a partir do template
-- Barra de progresso geral (baseada nas subtarefas)
-- Alerta visual se prazo ultrapassado
-- Regra: só concluir se todas etapas concluídas
-
-### Suporte
-- Dashboard com: chamados abertos, SLA vencido, tempo médio resolução, top clientes
-- Prioridade automática sugerida baseada em palavras-chave na descrição
-- Contador regressivo visual de SLA em cada tarefa
-- Badge de SLA vencido
-
-### Treinamento + Financeiro
-- Campos de treinamento na tarefa (setor, horas, participantes, cobrança extra)
-- Tarefas financeiras automáticas simuladas (renovação, reajuste, atraso)
-- Badges visuais de risco: vermelho (alto), amarelo (atenção), verde (saudável)
+Sidebar: adicionar "Propostas" e "CRM" na seção "Módulos".
 
 ---
 
-## Dashboard Executivo
-- Clientes ativos, em implantação
-- Receita recorrente estimada (fake)
-- Implantações atrasadas
-- Chamados abertos
-- Clientes com risco alto
-- Ticket médio estimado
+## Arquivos a Criar
+
+1. **`src/types/propostas.ts`** — Tipos `Proposta`, `CRMConfig`, `PropostaItem`, `PropostaHistorico`
+2. **`src/contexts/PropostasContext.tsx`** — Context separado para propostas e CRM config, com CRUD, persistência localStorage, geração de número sequencial, cálculo de validade, registro de histórico
+3. **`src/data/seedPropostas.ts`** — 10 propostas seed + config CRM default
+4. **`src/pages/Propostas.tsx`** — Tabela com filtros, busca, menu de ações (3 pontos) por linha
+5. **`src/pages/PropostaDetalhe.tsx`** — Editor com seções (cliente, sistema, valores, conteúdo, status) + barra de ações fixa + timeline de histórico
+6. **`src/pages/CRM.tsx`** — Kanban com drag-and-drop, colunas parametrizadas pelo CRM config
+7. **`src/pages/AceiteProposta.tsx`** — Tela simples pública fake com resumo + botões Aceitar/Recusar
+8. **`src/lib/pdfGenerator.ts`** — Geração de PDF fake usando canvas/blob para download
+
+## Arquivos a Modificar
+
+1. **`src/App.tsx`** — Novas rotas + PropostasProvider wrapper
+2. **`src/components/layout/AppSidebar.tsx`** — Adicionar "Propostas" e "CRM" na seção Módulos
+3. **`src/pages/Configuracoes.tsx`** — Nova seção "Propostas" com CRUD de status CRM, templates de mensagem, branding, validade padrão
+4. **`src/pages/Dashboard.tsx`** — KPIs de propostas (enviadas 7d, aceitas 30d, expiradas) + lista de propostas vencendo
 
 ---
 
-## Score de Saúde do Cliente
-Calculado no front-end com base em:
-- Número de chamados de suporte
-- Status financeiro (atrasos)
-- Tempo médio de resolução dos chamados
-Exibido como badge colorido no perfil do cliente
+## Funcionalidades Detalhadas
+
+### Tabela de Propostas (`/propostas`)
+- Filtros: statusCRM, visualização, aceite, sistema, data envio
+- Colunas: número, cliente, sistema, mensalidade, implantação, fluxo, envio, visualização, aceite, status CRM
+- Menu de ações: abrir, clonar, baixar PDF, gerar link, marcar enviada/visualizada/não abriu/aceitou/recusou, excluir
+- Badge "Expirada" quando `dataValidade < now` e `statusAceite !== "aceitou"`
+
+### Editor de Proposta (`/propostas/:id`)
+- Seções: dados cliente (dropdown com busca ou nome manual), sistema/plano, valores (mensalidade + implantação + fluxo), conteúdo (textarea + itens opcionais), status
+- Barra de ações fixa: Salvar, Enviar (modal com template de mensagem), Baixar PDF, Copiar link, Clonar
+- Timeline de histórico na lateral/abaixo
+
+### CRM Kanban (`/crm`)
+- Colunas dinâmicas baseadas em `crmConfig.statusKanban`
+- Cards com: cliente, sistema, mensalidade, implantação, badges de visualização/aceite/expirada
+- Drag-and-drop atualiza statusCRM e registra no histórico
+
+### PDF Fake
+- Gerar blob HTML formatado como PDF usando `window.print()` ou canvas-to-blob
+- Layout: logo + empresa, dados cliente, sistema/plano, valores, texto adicional, rodapé, validade
+- Download como arquivo .html estilizado (sem dependência externa)
+
+### Tela de Aceite (`/aceite/:numero`)
+- Rota pública (sem layout sidebar)
+- Resumo da proposta + botões Aceitar/Recusar
+- Atualiza `statusAceite` e `statusCRM` no estado local
+
+### Configurações de Propostas
+- CRUD de status CRM (criar, editar, remover, reordenar)
+- Template de mensagem com variáveis: `{cliente}`, `{numeroProposta}`, `{sistema}`, etc.
+- Validade padrão em dias
+- Nome empresa, rodapé PDF, informações adicionais padrão
+- Botões: salvar, restaurar padrão
+
+### Dashboard — Novos Widgets
+- KPI: propostas enviadas (7d), aceitas (30d), expiradas
+- Lista: propostas vencendo hoje/amanhã
+- Resumo por statusCRM (contagem por coluna)
 
 ---
 
-## Automações Simuladas (local)
-- Fechar venda → criar tarefa de implantação
-- Concluir implantação → criar tarefa pós-implantação (prazo +15 dias)
-- Cliente com 2+ atrasos → criar tarefa de contato financeiro
+## Seed de Dados
+10 propostas: 3 enviadas, 2 visualizadas, 1 não abriu, 2 aceitas, 1 recusada, 2 expiradas, 1 rascunho. Config CRM com status padrão: Rascunho, Enviada, Visualizada, Negociação, Aceita, Recusada.
 
 ---
 
-## Filtros Avançados na página Tarefas
-Adicionar filtros: tipo operacional, sistema (Hyon/LinkPro), módulo, risco cancelamento, cobrança extra, SLA vencido, implantação atrasada
+## Detalhes Técnicos
 
----
-
-## Identidade Visual por Tipo Operacional
-| Tipo | Cor | Ícone |
-|------|-----|-------|
-| Comercial | Azul | TrendingUp |
-| Implantação | Roxo | Rocket |
-| Suporte | Laranja | Headphones |
-| Treinamento | Verde | GraduationCap |
-| Financeiro | Vermelho | DollarSign |
-| Interno | Cinza | Building |
-
----
-
-## Seed Atualizado
-- 8 clientes (com perfil técnico, sistema, score)
-- 4 técnicos
-- 5 leads comerciais (tarefas tipo comercial com statusComercial variado)
-- 3 implantações em andamento (com subtarefas)
-- 12 chamados de suporte (alguns com SLA vencido)
-- 4 treinamentos
-- 2 clientes com risco de cancelamento
-- Tarefas financeiras simuladas
-
----
-
-## Arquivos a criar/modificar
-
-**Modificar:**
-- `src/types/index.ts` — novos tipos e campos
-- `src/data/seed.ts` — seed expandido
-- `src/contexts/AppContext.tsx` — novos métodos, automações, score de saúde
-- `src/App.tsx` — novas rotas
-- `src/components/layout/AppSidebar.tsx` — novos itens de menu agrupados
-- `src/pages/Tarefas.tsx` — filtros avançados, badge tipo operacional
-- `src/pages/TarefaDetalhe.tsx` — campos dos módulos
-- `src/pages/Clientes.tsx` — perfil técnico, score de saúde
-- `src/pages/Dashboard.tsx` — ajustes menores
-
-**Criar:**
-- `src/pages/Comercial.tsx` — Pipeline comercial
-- `src/pages/Implantacao.tsx` — Gestão de implantações
-- `src/pages/Suporte.tsx` — Dashboard de suporte
-- `src/pages/Executivo.tsx` — Painel executivo
-- `src/lib/constants.ts` — cores, ícones e labels dos tipos operacionais
+- Context separado (`PropostasContext`) para não sobrecarregar o `AppContext` existente
+- Persistência em chave localStorage separada: `propostas-data`
+- Numeração sequencial: buscar maior número existente e incrementar
+- Skeleton loading 500ms consistente com o resto do app
+- Toasts para todas as ações: salvar, enviar, copiar link, baixar PDF, aceitar, recusar
 
