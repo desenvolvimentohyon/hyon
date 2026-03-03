@@ -19,6 +19,7 @@ export default function ContasPagar() {
   const { titulos, contasBancarias, addTitulo, baixarTitulo, planoContas, loading } = useFinanceiro();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroFornecedor, setFiltroFornecedor] = useState("");
+  const [filtroOrigem, setFiltroOrigem] = useState<string>("todos");
   const [modalBaixa, setModalBaixa] = useState<TituloFinanceiro | null>(null);
   const [contaBaixaId, setContaBaixaId] = useState("cb1");
   const [valorBaixa, setValorBaixa] = useState("");
@@ -28,8 +29,9 @@ export default function ContasPagar() {
     let list = titulos.filter(t => t.tipo === "pagar");
     if (filtroStatus !== "todos") list = list.filter(t => t.status === filtroStatus);
     if (filtroFornecedor) list = list.filter(t => t.fornecedorNome?.toLowerCase().includes(filtroFornecedor.toLowerCase()) || t.descricao.toLowerCase().includes(filtroFornecedor.toLowerCase()));
+    if (filtroOrigem !== "todos") list = list.filter(t => t.origem === filtroOrigem);
     return list.sort((a, b) => new Date(a.vencimento).getTime() - new Date(b.vencimento).getTime());
-  }, [titulos, filtroStatus, filtroFornecedor]);
+  }, [titulos, filtroStatus, filtroFornecedor, filtroOrigem]);
 
   const hoje = new Date().toISOString().split("T")[0];
   const vencidos = pagar.filter(t => t.status === "aberto" && t.vencimento < hoje);
@@ -88,6 +90,14 @@ export default function ContasPagar() {
             <SelectItem value="pago">Pago</SelectItem>
             <SelectItem value="vencido">Vencido</SelectItem>
             <SelectItem value="parcial">Parcial</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filtroOrigem} onValueChange={setFiltroOrigem}>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todas origens</SelectItem>
+            <SelectItem value="comissao_parceiro">Comissão Parceiro</SelectItem>
+            <SelectItem value="despesa_operacional">Despesa Operacional</SelectItem>
           </SelectContent>
         </Select>
       </div>

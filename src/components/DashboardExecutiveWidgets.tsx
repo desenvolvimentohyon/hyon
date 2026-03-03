@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Heart, TrendingUp, Shield, Zap } from "lucide-react";
+import { AlertTriangle, Heart, TrendingUp, Shield, Zap, Handshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,6 +11,7 @@ interface OverdueClient { name: string; days_late: number; value: number }
 interface CertExpiring { name: string; days_remaining: number }
 interface HealthClient { name: string; health_score: number; health_status: string }
 interface UpsellItem { client_name: string; module_name: string; status: string }
+interface CommissionStats { totalAPagar: number; totalPago: number; geradoMes: number; ranking: { name: string; total: number }[] }
 
 export default function DashboardExecutiveWidgets() {
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,7 @@ export default function DashboardExecutiveWidgets() {
   const [upsellItems, setUpsellItems] = useState<UpsellItem[]>([]);
   const [mrrAdjusted, setMrrAdjusted] = useState(0);
   const [mrrGrowth, setMrrGrowth] = useState({ current: 0, previous: 0 });
+  const [commissions, setCommissions] = useState<CommissionStats>({ totalAPagar: 0, totalPago: 0, geradoMes: 0, ranking: [] });
 
   useEffect(() => {
     loadData();
@@ -124,7 +126,37 @@ export default function DashboardExecutiveWidgets() {
         setMrrGrowth({ current: currentMrr, previous: prevMrr || currentMrr });
       }
 
-      // 6. Upsell suggestions
+      // 6. Commissions (partners)
+      const { data: commTitles } = await supabase
+        .from("financial_titles")
+        .select("partner_id, value_original, status, created_at")
+        .eq("origin", "comissao_parceiro");
+
+      if (commTitles && commTitles.length > 0) {
+        const totalAPagar = commTitles.filter(t => t.status === "aberto" || t.status === "parcial").reduce((s, t) => s + t.value_original, 0);
+        const totalPago = commTitles.filter(t => t.status === "pago").reduce((s, t) => s + t.value_original, 0);
+        const geradoMes = commTitles.filter(t => t.created_at >= monthStart).reduce((s, t) => s + t.value_original, 0);
+
+        // Ranking by partner
+        const partnerTotals = new Map<string, number>();
+        commTitles.forEach(t => {
+          if (!t.partner_id) return;
+          partnerTotals.set(t.partner_id, (partnerTotals.get(t.partner_id) || 0) + t.value_original);
+        });
+        const partnerIds = Array.from(partnerTotals.keys());
+        let ranking: { name: string; total: number }[] = [];
+        if (partnerIds.length > 0) {
+          const { data: pNames } = await supabase.from("partners").select("id, name").in("id", partnerIds);
+          const nameMap = new Map((pNames || []).map(p => [p.id, p.name]));
+          ranking = Array.from(partnerTotals.entries())
+            .map(([id, total]) => ({ name: nameMap.get(id) || "—", total }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 5);
+        }
+        setCommissions({ totalAPagar, totalPago, geradoMes, ranking });
+      }
+
+      // 7. Upsell suggestions
       const { data: upsells } = await supabase
         .from("upsell_suggestions")
         .select("client_id, suggested_module_id, status")
@@ -257,6 +289,43 @@ export default function DashboardExecutiveWidgets() {
           </Card>
         )}
       </div>
+
+      {/* Comissões de Parceiros */}
+      {(commissions.totalAPagar > 0 || commissions.totalPago > 0 || commissions.ranking.length > 0) && (
+        <>
+          <h3 className="text-sm font-bold flex items-center gap-2 mt-4"><Handshake className="h-4 w-4 text-primary" /> Comissões de Parceiros</h3>
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase">A Pagar</CardTitle></CardHeader>
+              <CardContent><p className="text-xl font-bold text-destructive">{fmt(commissions.totalAPagar)}</p></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase">Pago</CardTitle></CardHeader>
+              <CardContent><p className="text-xl font-bold text-green-600">{fmt(commissions.totalPago)}</p></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase">Gerado Este Mês</CardTitle></CardHeader>
+              <CardContent><p className="text-xl font-bold text-primary">{fmt(commissions.geradoMes)}</p></CardContent>
+            </Card>
+          </div>
+          {commissions.ranking.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Top Parceiros por Comissão</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {commissions.ranking.map((r, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <Badge variant="outline" className="text-[10px] w-6 justify-center">{i + 1}</Badge>
+                      <span className="flex-1 truncate">{r.name}</span>
+                      <span className="font-semibold">{fmt(r.total)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -14,8 +14,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { gerarPDFProposta } from "@/lib/pdfGenerator";
-import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Clock } from "lucide-react";
+import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Clock, Handshake } from "lucide-react";
 import { Proposta, SistemaProposta, FluxoPagamento, StatusVisualizacao, StatusAceite, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PropostaDetalhe() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,13 @@ export default function PropostaDetalhe() {
   const [form, setForm] = useState<Partial<Proposta>>({});
   const [enviarOpen, setEnviarOpen] = useState(false);
   const [mensagemEnvio, setMensagemEnvio] = useState("");
+  const [partners, setPartners] = useState<{ id: string; name: string; commission_percent: number }[]>([]);
+
+  useEffect(() => {
+    supabase.from("partners").select("id, name, commission_percent").eq("active", true).order("name").then(({ data }) => {
+      if (data) setPartners(data);
+    });
+  }, []);
 
   const proposta = getProposta(id || "");
 
@@ -237,6 +245,63 @@ export default function PropostaDetalhe() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Parceiro Indicador */}
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Handshake className="h-4 w-4 text-primary" /> Parceiro Indicador</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <Label className="text-xs">Parceiro</Label>
+            <Select
+              value={form.partnerId || "none"}
+              onValueChange={v => {
+                if (v === "none") {
+                  set("partnerId", null);
+                  set("partnerCommissionPercent", null);
+                  set("partnerCommissionValue", null);
+                } else {
+                  const partner = partners.find(p => p.id === v);
+                  set("partnerId", v);
+                  set("partnerCommissionPercent", partner?.commission_percent || 0);
+                  const implVal = form.valorImplantacao || 0;
+                  set("partnerCommissionValue", Math.round(implVal * (partner?.commission_percent || 0) / 100 * 100) / 100);
+                }
+              }}
+            >
+              <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum parceiro" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
+                {partners.map(p => <SelectItem key={p.id} value={p.id}>{p.name} ({p.commission_percent}%)</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          {form.partnerId && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Comissão (%)</Label>
+                <Input
+                  type="number" className="h-9"
+                  value={form.partnerCommissionPercent || 0}
+                  onChange={e => {
+                    const pct = Number(e.target.value);
+                    set("partnerCommissionPercent", pct);
+                    set("partnerCommissionValue", Math.round((form.valorImplantacao || 0) * pct / 100 * 100) / 100);
+                  }}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Valor Comissão (R$)</Label>
+                <div className="h-9 flex items-center px-3 bg-muted rounded-md text-sm font-semibold text-primary">
+                  {(form.partnerCommissionValue || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </div>
+              </div>
+            </div>
+          )}
+          {form.commissionGenerated && (
+            <Badge className="bg-success/10 text-success border-success/20">✓ Comissão já gerada no financeiro</Badge>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Conteúdo */}
       <Card>

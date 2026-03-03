@@ -626,8 +626,10 @@ export type Database = {
           notes: string | null
           org_id: string
           origin: string | null
+          partner_id: string | null
           payment_method_id: string | null
           plan_account_code: string | null
+          reference_proposal_id: string | null
           status: string
           supplier_name: string | null
           type: string
@@ -659,8 +661,10 @@ export type Database = {
           notes?: string | null
           org_id: string
           origin?: string | null
+          partner_id?: string | null
           payment_method_id?: string | null
           plan_account_code?: string | null
+          reference_proposal_id?: string | null
           status?: string
           supplier_name?: string | null
           type: string
@@ -692,8 +696,10 @@ export type Database = {
           notes?: string | null
           org_id?: string
           origin?: string | null
+          partner_id?: string | null
           payment_method_id?: string | null
           plan_account_code?: string | null
+          reference_proposal_id?: string | null
           status?: string
           supplier_name?: string | null
           type?: string
@@ -800,6 +806,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      partners: {
+        Row: {
+          active: boolean
+          commission_percent: number
+          commission_type: string
+          created_at: string
+          document: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          commission_percent?: number
+          commission_type?: string
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          commission_percent?: number
+          commission_type?: string
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partners_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_methods: {
         Row: {
@@ -1087,6 +1146,7 @@ export type Database = {
           additional_info: string | null
           client_id: string | null
           client_name_snapshot: string | null
+          commission_generated: boolean
           created_at: string
           crm_status: string | null
           id: string
@@ -1096,6 +1156,9 @@ export type Database = {
           monthly_value: number
           notes_internal: string | null
           org_id: string
+          partner_commission_percent: number | null
+          partner_commission_value: number | null
+          partner_id: string | null
           pdf_generated_at: string | null
           plan_name: string | null
           proposal_number: string
@@ -1112,6 +1175,7 @@ export type Database = {
           additional_info?: string | null
           client_id?: string | null
           client_name_snapshot?: string | null
+          commission_generated?: boolean
           created_at?: string
           crm_status?: string | null
           id?: string
@@ -1121,6 +1185,9 @@ export type Database = {
           monthly_value?: number
           notes_internal?: string | null
           org_id: string
+          partner_commission_percent?: number | null
+          partner_commission_value?: number | null
+          partner_id?: string | null
           pdf_generated_at?: string | null
           plan_name?: string | null
           proposal_number: string
@@ -1137,6 +1204,7 @@ export type Database = {
           additional_info?: string | null
           client_id?: string | null
           client_name_snapshot?: string | null
+          commission_generated?: boolean
           created_at?: string
           crm_status?: string | null
           id?: string
@@ -1146,6 +1214,9 @@ export type Database = {
           monthly_value?: number
           notes_internal?: string | null
           org_id?: string
+          partner_commission_percent?: number | null
+          partner_commission_value?: number | null
+          partner_id?: string | null
           pdf_generated_at?: string | null
           plan_name?: string | null
           proposal_number?: string
@@ -1169,6 +1240,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]

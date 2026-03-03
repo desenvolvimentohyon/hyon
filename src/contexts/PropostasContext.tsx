@@ -26,6 +26,10 @@ function dbToProposta(r: any): Proposta {
     informacoesAdicionais: r.additional_info || "",
     itens: items, historico: [], // historico not stored in proposals table
     criadoEm: r.created_at, atualizadoEm: r.updated_at,
+    partnerId: r.partner_id || null,
+    partnerCommissionPercent: r.partner_commission_percent != null ? Number(r.partner_commission_percent) : null,
+    partnerCommissionValue: r.partner_commission_value != null ? Number(r.partner_commission_value) : null,
+    commissionGenerated: r.commission_generated || false,
   };
 }
 
@@ -115,6 +119,9 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         acceptance_status: p.statusAceite || "pendente",
         acceptance_link: `/aceite/${numero}`,
         notes_internal: p.observacoesInternas, additional_info: p.informacoesAdicionais,
+        partner_id: p.partnerId || null,
+        partner_commission_percent: p.partnerCommissionPercent || null,
+        partner_commission_value: p.partnerCommissionValue || null,
       }).select().single();
       if (error) { toast.error("Erro ao criar proposta: " + error.message); return; }
       // Insert items
@@ -150,6 +157,10 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
     if (changes.pdfGeradoEm !== undefined) upd.pdf_generated_at = changes.pdfGeradoEm;
     if (changes.observacoesInternas !== undefined) upd.notes_internal = changes.observacoesInternas;
     if (changes.informacoesAdicionais !== undefined) upd.additional_info = changes.informacoesAdicionais;
+    if (changes.partnerId !== undefined) upd.partner_id = changes.partnerId;
+    if (changes.partnerCommissionPercent !== undefined) upd.partner_commission_percent = changes.partnerCommissionPercent;
+    if (changes.partnerCommissionValue !== undefined) upd.partner_commission_value = changes.partnerCommissionValue;
+    if (changes.commissionGenerated !== undefined) upd.commission_generated = changes.commissionGenerated;
 
     if (Object.keys(upd).length > 0) {
       const { error } = await supabase.from("proposals").update(upd).eq("id", id);
@@ -167,8 +178,42 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         );
       }
     }
+
+    // === Auto-comissão: gerar título financeiro quando aceite ===
+    if (changes.statusAceite === "aceitou") {
+      const current = propostas.find(p => p.id === id);
+      const mergedPartnerId = changes.partnerId !== undefined ? changes.partnerId : current?.partnerId;
+      const mergedImplantacao = changes.valorImplantacao !== undefined ? changes.valorImplantacao : current?.valorImplantacao;
+      const mergedCommissionValue = changes.partnerCommissionValue !== undefined ? changes.partnerCommissionValue : current?.partnerCommissionValue;
+      const mergedCommissionGenerated = changes.commissionGenerated !== undefined ? changes.commissionGenerated : current?.commissionGenerated;
+      const mergedNumero = current?.numeroProposta || "";
+      const mergedClienteId = changes.clienteId !== undefined ? changes.clienteId : current?.clienteId;
+
+      if (mergedPartnerId && mergedImplantacao && mergedImplantacao > 0 && mergedCommissionValue && mergedCommissionValue > 0 && !mergedCommissionGenerated && orgId) {
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 7);
+        const { error: ftError } = await supabase.from("financial_titles").insert({
+          org_id: orgId,
+          type: "pagar",
+          origin: "comissao_parceiro",
+          description: `Comissão referente à proposta ${mergedNumero}`,
+          client_id: mergedClienteId || null,
+          value_original: mergedCommissionValue,
+          value_final: mergedCommissionValue,
+          due_at: dueDate.toISOString().split("T")[0],
+          status: "aberto",
+          partner_id: mergedPartnerId,
+          reference_proposal_id: id,
+        });
+        if (!ftError) {
+          await supabase.from("proposals").update({ commission_generated: true }).eq("id", id);
+          toast.success(`Comissão de R$ ${mergedCommissionValue.toFixed(2)} gerada automaticamente!`);
+        }
+      }
+    }
+
     fetchAll();
-  }, [orgId, fetchAll]);
+  }, [orgId, propostas, fetchAll]);
 
   const deleteProposta = useCallback(async (id: string) => {
     const { error } = await supabase.from("proposals").delete().eq("id", id);
