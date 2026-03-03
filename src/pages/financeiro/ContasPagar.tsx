@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,13 @@ export default function ContasPagar() {
   const [filtroFornecedor, setFiltroFornecedor] = useState("");
   const [filtroOrigem, setFiltroOrigem] = useState<string>("todos");
   const [modalBaixa, setModalBaixa] = useState<TituloFinanceiro | null>(null);
-  const [contaBaixaId, setContaBaixaId] = useState("cb1");
+  const [contaBaixaId, setContaBaixaId] = useState("");
+
+  useEffect(() => {
+    if (contasBancarias.length > 0 && !contaBaixaId) {
+      setContaBaixaId(contasBancarias[0].id);
+    }
+  }, [contasBancarias]);
   const [valorBaixa, setValorBaixa] = useState("");
   const [modalNovo, setModalNovo] = useState(false);
 
@@ -212,7 +218,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
         valorOriginal: Math.round(valorParcela * 100) / 100,
         desconto: 0, juros: 0, multa: 0,
         status: "aberto", formaPagamento: "boleto",
-        contaBancariaId: "cb1", anexosFake: [], observacoes: "",
+        contaBancariaId: null, anexosFake: [], observacoes: "",
       });
     }
     onSave();

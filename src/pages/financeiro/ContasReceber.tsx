@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +23,14 @@ export default function ContasReceber() {
   const [filtroCliente, setFiltroCliente] = useState<string>("");
   const [modalBaixa, setModalBaixa] = useState<TituloFinanceiro | null>(null);
   const [modalNovo, setModalNovo] = useState(false);
-  const [contaBaixaId, setContaBaixaId] = useState("cb1");
+  const [contaBaixaId, setContaBaixaId] = useState("");
   const [valorBaixa, setValorBaixa] = useState("");
+
+  useEffect(() => {
+    if (contasBancarias.length > 0 && !contaBaixaId) {
+      setContaBaixaId(contasBancarias[0].id);
+    }
+  }, [contasBancarias]);
 
   const receber = useMemo(() => {
     let list = titulos.filter(t => t.tipo === "receber");
