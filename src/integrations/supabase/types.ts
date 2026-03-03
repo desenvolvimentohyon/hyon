@@ -216,12 +216,117 @@ export type Database = {
           },
         ]
       }
+      billing_notifications: {
+        Row: {
+          channel: string
+          client_id: string
+          created_at: string
+          id: string
+          org_id: string
+          sent_at: string | null
+          title_id: string | null
+          type: string
+        }
+        Insert: {
+          channel?: string
+          client_id: string
+          created_at?: string
+          id?: string
+          org_id: string
+          sent_at?: string | null
+          title_id?: string | null
+          type: string
+        }
+        Update: {
+          channel?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          sent_at?: string | null
+          title_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_notifications_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "financial_titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_rules: {
+        Row: {
+          auto_email: boolean | null
+          auto_task: boolean | null
+          auto_whatsapp: boolean | null
+          created_at: string
+          days_after: number[] | null
+          days_before: number[] | null
+          id: string
+          on_due_day: boolean | null
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          auto_email?: boolean | null
+          auto_task?: boolean | null
+          auto_whatsapp?: boolean | null
+          created_at?: string
+          days_after?: number[] | null
+          days_before?: number[] | null
+          id?: string
+          on_due_day?: boolean | null
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          auto_email?: boolean | null
+          auto_task?: boolean | null
+          auto_whatsapp?: boolean | null
+          created_at?: string
+          days_after?: number[] | null
+          days_before?: number[] | null
+          id?: string
+          on_due_day?: boolean | null
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_rules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           accountant_email: string | null
           accountant_name: string | null
           accountant_office: string | null
           accountant_phone: string | null
+          adjustment_base_date: string | null
+          adjustment_percent: number | null
+          adjustment_type: string | null
           asaas_customer_id: string | null
           billing_address_json: Json | null
           billing_document: string | null
@@ -242,6 +347,8 @@ export type Database = {
           document: string | null
           email: string | null
           external_client_id: string | null
+          health_score: number | null
+          health_status: string | null
           id: string
           metadata: Json | null
           monthly_cost_value: number
@@ -252,6 +359,7 @@ export type Database = {
           org_id: string
           phone: string | null
           plan_id: string | null
+          portal_token: string | null
           recurrence_active: boolean
           status: string
           system_name: string | null
@@ -262,6 +370,9 @@ export type Database = {
           accountant_name?: string | null
           accountant_office?: string | null
           accountant_phone?: string | null
+          adjustment_base_date?: string | null
+          adjustment_percent?: number | null
+          adjustment_type?: string | null
           asaas_customer_id?: string | null
           billing_address_json?: Json | null
           billing_document?: string | null
@@ -282,6 +393,8 @@ export type Database = {
           document?: string | null
           email?: string | null
           external_client_id?: string | null
+          health_score?: number | null
+          health_status?: string | null
           id?: string
           metadata?: Json | null
           monthly_cost_value?: number
@@ -292,6 +405,7 @@ export type Database = {
           org_id: string
           phone?: string | null
           plan_id?: string | null
+          portal_token?: string | null
           recurrence_active?: boolean
           status?: string
           system_name?: string | null
@@ -302,6 +416,9 @@ export type Database = {
           accountant_name?: string | null
           accountant_office?: string | null
           accountant_phone?: string | null
+          adjustment_base_date?: string | null
+          adjustment_percent?: number | null
+          adjustment_type?: string | null
           asaas_customer_id?: string | null
           billing_address_json?: Json | null
           billing_document?: string | null
@@ -322,6 +439,8 @@ export type Database = {
           document?: string | null
           email?: string | null
           external_client_id?: string | null
+          health_score?: number | null
+          health_status?: string | null
           id?: string
           metadata?: Json | null
           monthly_cost_value?: number
@@ -332,6 +451,7 @@ export type Database = {
           org_id?: string
           phone?: string | null
           plan_id?: string | null
+          portal_token?: string | null
           recurrence_active?: boolean
           status?: string
           system_name?: string | null
@@ -350,6 +470,54 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_adjustments: {
+        Row: {
+          applied_at: string
+          client_id: string
+          created_at: string
+          id: string
+          new_value: number
+          old_value: number
+          org_id: string
+          percent_applied: number
+        }
+        Insert: {
+          applied_at?: string
+          client_id: string
+          created_at?: string
+          id?: string
+          new_value?: number
+          old_value?: number
+          org_id: string
+          percent_applied?: number
+        }
+        Update: {
+          applied_at?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          new_value?: number
+          old_value?: number
+          org_id?: string
+          percent_applied?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_adjustments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_adjustments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1323,6 +1491,58 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upsell_suggestions: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          org_id: string
+          status: string
+          suggested_module_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          org_id: string
+          status?: string
+          suggested_module_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          status?: string
+          suggested_module_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upsell_suggestions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upsell_suggestions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upsell_suggestions_suggested_module_id_fkey"
+            columns: ["suggested_module_id"]
+            isOneToOne: false
+            referencedRelation: "system_modules"
             referencedColumns: ["id"]
           },
         ]
