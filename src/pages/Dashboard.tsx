@@ -120,9 +120,9 @@ export default function Dashboard() {
 
   const prioridadeColor = (p: string) => {
     switch (p) {
-      case "urgente": return "bg-destructive text-destructive-foreground";
-      case "alta": return "bg-warning text-warning-foreground";
-      case "media": return "bg-info text-info-foreground";
+      case "urgente": return "bg-destructive/10 text-destructive border-destructive/20";
+      case "alta": return "bg-warning/10 text-warning border-warning/20";
+      case "media": return "bg-info/10 text-info border-info/20";
       default: return "bg-muted text-muted-foreground";
     }
   };
@@ -133,23 +133,23 @@ export default function Dashboard() {
   };
 
   const kpis = [
-    { label: "Total", value: total, icon: ListTodo, color: "text-primary" },
-    { label: "Em Andamento", value: emAndamento, icon: Play, color: "text-info" },
-    { label: "Concluídas", value: concluidas, icon: CheckCircle2, color: "text-success" },
-    { label: "Atrasadas", value: atrasadas, icon: AlertTriangle, color: "text-destructive" },
-    { label: "Vence Hoje", value: venceHoje, icon: Clock, color: "text-warning" },
+    { label: "Total", value: total, icon: ListTodo, color: "text-primary", bg: "bg-primary/8" },
+    { label: "Em Andamento", value: emAndamento, icon: Play, color: "text-info", bg: "bg-info/8" },
+    { label: "Concluídas", value: concluidas, icon: CheckCircle2, color: "text-success", bg: "bg-success/8" },
+    { label: "Atrasadas", value: atrasadas, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/8" },
+    { label: "Vence Hoje", value: venceHoje, icon: Clock, color: "text-warning", bg: "bg-warning/8" },
   ];
 
   const modulosCards = [
-    { label: "Leads Ativos", value: leadsAtivos, icon: TrendingUp, color: "text-blue-600", route: "/comercial" },
-    { label: "Implantações", value: implantacoesAtivas, icon: Rocket, color: "text-purple-600", route: "/implantacao" },
-    { label: "Chamados", value: chamadosAbertos, icon: Headphones, color: "text-orange-600", route: "/suporte" },
+    { label: "Leads Ativos", value: leadsAtivos, icon: TrendingUp, color: "text-primary", bg: "bg-primary/8", route: "/comercial" },
+    { label: "Implantações", value: implantacoesAtivas, icon: Rocket, color: "text-purple", bg: "bg-purple/8", route: "/implantacao" },
+    { label: "Chamados", value: chamadosAbertos, icon: Headphones, color: "text-warning", bg: "bg-warning/8", route: "/suporte" },
   ];
 
   const propostasKpis = [
-    { label: "Enviadas (7d)", value: propostasEnviadas7d, icon: Send, color: "text-blue-600" },
-    { label: "Aceitas (30d)", value: propostasAceitas30d, icon: ThumbsUp, color: "text-emerald-600" },
-    { label: "Expiradas", value: propostasExpiradas, icon: Ban, color: "text-destructive" },
+    { label: "Enviadas (7d)", value: propostasEnviadas7d, icon: Send, color: "text-primary", bg: "bg-primary/8" },
+    { label: "Aceitas (30d)", value: propostasAceitas30d, icon: ThumbsUp, color: "text-success", bg: "bg-success/8" },
+    { label: "Expiradas", value: propostasExpiradas, icon: Ban, color: "text-destructive", bg: "bg-destructive/8" },
   ];
 
   const receitaKpis = [
@@ -163,8 +163,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm">Bem-vindo, {tecnicoNome}</p>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">Bem-vindo, {tecnicoNome}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5"><Plus className="h-3.5 w-3.5" />Tarefa</Button>
@@ -173,12 +173,14 @@ export default function Dashboard() {
       </div>
 
       {/* Task KPIs */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {kpis.map(k => (
-          <Card key={k.label}>
+          <Card key={k.label} className="hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{k.label}</CardTitle>
-              <k.icon className={`h-4 w-4 ${k.color}`} />
+              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{k.label}</CardTitle>
+              <div className={`h-8 w-8 rounded-lg ${k.bg} flex items-center justify-center`}>
+                <k.icon className={`h-4 w-4 ${k.color}`} />
+              </div>
             </CardHeader>
             <CardContent><div className="text-2xl font-bold">{k.value}</div></CardContent>
           </Card>
@@ -186,12 +188,14 @@ export default function Dashboard() {
       </div>
 
       {/* Module cards */}
-      <div className="grid gap-4 grid-cols-3">
+      <div className="grid gap-3 grid-cols-3">
         {modulosCards.map(m => (
-          <Card key={m.label} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(m.route)}>
+          <Card key={m.label} className="cursor-pointer hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200" onClick={() => navigate(m.route)}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{m.label}</CardTitle>
-              <m.icon className={`h-4 w-4 ${m.color}`} />
+              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{m.label}</CardTitle>
+              <div className={`h-8 w-8 rounded-lg ${m.bg} flex items-center justify-center`}>
+                <m.icon className={`h-4 w-4 ${m.color}`} />
+              </div>
             </CardHeader>
             <CardContent><div className="text-2xl font-bold">{m.value}</div></CardContent>
           </Card>
@@ -199,11 +203,11 @@ export default function Dashboard() {
       </div>
 
       {/* Receita KPIs */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {receitaKpis.map(k => (
-          <Card key={k.label} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/receita")}>
+          <Card key={k.label} className="cursor-pointer hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200" onClick={() => navigate("/receita")}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{k.label}</CardTitle>
+              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{k.label}</CardTitle>
               <k.icon className="h-4 w-4" style={{ color: k.color }} />
             </CardHeader>
             <CardContent><div className="text-xl font-bold">{k.value}</div></CardContent>

@@ -7,6 +7,7 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 const sections = [
   {
@@ -68,45 +69,57 @@ export function AppSidebar() {
 
   const canAccess = (url: string) => {
     const perm = ROTA_PERMISSAO[url];
-    if (!perm) return true; // no restriction defined
+    if (!perm) return true;
     return hasPermission(perm);
   };
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-sm">
+      <SidebarHeader className="p-4 pb-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 text-sidebar-primary-foreground font-bold text-sm shadow-md">
             GT
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">GestãoTask</span>
-              <span className="text-[10px] text-sidebar-foreground/50">Revenda ERP</span>
+              <span className="text-sm font-bold text-sidebar-foreground tracking-tight">GestãoTask</span>
+              <span className="text-[10px] text-sidebar-foreground/40 font-medium">Revenda ERP</span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        {sections.map((section) => {
+      {!collapsed && <Separator className="mx-4 w-auto bg-sidebar-border/50" />}
+
+      <SidebarContent className="pt-2">
+        {sections.map((section, idx) => {
           const visibleItems = section.items.filter(item => canAccess(item.url));
           if (visibleItems.length === 0) return null;
           return (
             <SidebarGroup key={section.label}>
-              <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[10px] uppercase tracking-widest font-semibold text-sidebar-foreground/30 px-3">
+                {section.label}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {visibleItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                        <NavLink to={item.url} end={item.url === "/" || item.url === "/financeiro"} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {visibleItems.map((item) => {
+                    const active = isActive(item.url);
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+                          <NavLink
+                            to={item.url}
+                            end={item.url === "/" || item.url === "/financeiro"}
+                            className={`transition-all duration-150 rounded-lg mx-1 ${active ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold shadow-sm" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"}`}
+                            activeClassName=""
+                          >
+                            <item.icon className={`h-4 w-4 ${active ? "text-sidebar-primary" : ""}`} />
+                            {!collapsed && <span className="text-[13px]">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -116,7 +129,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         {!collapsed && (
-          <p className="text-[10px] text-sidebar-foreground/40 text-center">v4.0 — RBAC + Financeiro</p>
+          <p className="text-[10px] text-sidebar-foreground/25 text-center font-medium">v4.0 — RBAC + Financeiro</p>
         )}
       </SidebarFooter>
     </Sidebar>

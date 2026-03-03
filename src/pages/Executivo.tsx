@@ -127,29 +127,31 @@ export default function Executivo() {
   const margemAtual = comparativoMensal.length > 0 ? comparativoMensal[comparativoMensal.length - 1].margem : 0;
 
   const kpis = [
-    { label: "Clientes Ativos", value: clientesAtivos, icon: Users, color: "text-primary" },
-    { label: "Em Implantação", value: clientesEmImplantacao, icon: Rocket, color: "text-purple-600" },
-    { label: "Receita Recorrente", value: `R$ ${receitaRecorrente.toLocaleString("pt-BR")}`, icon: DollarSign, color: "text-emerald-600" },
-    { label: "Impl. Atrasadas", value: implantacoesAtrasadas, icon: AlertTriangle, color: "text-destructive" },
-    { label: "Chamados Abertos", value: chamadosAbertos, icon: Headphones, color: "text-orange-600" },
-    { label: "Clientes Risco", value: clientesRisco, icon: AlertTriangle, color: "text-destructive" },
-    { label: "Ticket Médio", value: `R$ ${ticketMedio}`, icon: TrendingUp, color: "text-blue-600" },
-    { label: "Propostas", value: propostas.length, icon: BarChart3, color: "text-primary" },
+    { label: "Clientes Ativos", value: clientesAtivos, icon: Users, color: "text-primary", bg: "bg-primary/8" },
+    { label: "Em Implantação", value: clientesEmImplantacao, icon: Rocket, color: "text-purple", bg: "bg-purple/8" },
+    { label: "Receita Recorrente", value: `R$ ${receitaRecorrente.toLocaleString("pt-BR")}`, icon: DollarSign, color: "text-success", bg: "bg-success/8" },
+    { label: "Impl. Atrasadas", value: implantacoesAtrasadas, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/8" },
+    { label: "Chamados Abertos", value: chamadosAbertos, icon: Headphones, color: "text-warning", bg: "bg-warning/8" },
+    { label: "Clientes Risco", value: clientesRisco, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/8" },
+    { label: "Ticket Médio", value: `R$ ${ticketMedio}`, icon: TrendingUp, color: "text-info", bg: "bg-info/8" },
+    { label: "Propostas", value: propostas.length, icon: BarChart3, color: "text-primary", bg: "bg-primary/8" },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <BarChart3 className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">Painel Executivo</h1>
+        <h1 className="text-2xl font-bold">Painel Executivo</h1>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {kpis.map(k => (
-          <Card key={k.label}>
+          <Card key={k.label} className="hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{k.label}</CardTitle>
-              <k.icon className={`h-4 w-4 ${k.color}`} />
+              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{k.label}</CardTitle>
+              <div className={`h-8 w-8 rounded-lg ${k.bg} flex items-center justify-center`}>
+                <k.icon className={`h-4 w-4 ${k.color}`} />
+              </div>
             </CardHeader>
             <CardContent><div className="text-2xl font-bold">{k.value}</div></CardContent>
           </Card>
