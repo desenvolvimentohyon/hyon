@@ -1,0 +1,113 @@
+import { Role, AppUser, ALL_PERMISSIONS } from "@/types/users";
+
+export const seedRoles: Role[] = [
+  {
+    id: "role-admin",
+    nome: "Admin",
+    descricao: "Acesso total ao sistema",
+    permissions: [...ALL_PERMISSIONS],
+    sistema: true,
+  },
+  {
+    id: "role-financeiro",
+    nome: "Financeiro",
+    descricao: "Acesso ao módulo financeiro e relatórios",
+    permissions: [
+      "financeiro:visualizar", "financeiro:lancar", "financeiro:conciliar",
+      "financeiro:editar-plano-contas", "financeiro:relatorios",
+      "clientes:visualizar",
+      "tarefas:visualizar",
+      "configuracoes:visualizar",
+    ],
+    sistema: true,
+  },
+  {
+    id: "role-comercial",
+    nome: "Comercial",
+    descricao: "Acesso a propostas, CRM e clientes",
+    permissions: [
+      "propostas:visualizar", "propostas:criar", "propostas:editar",
+      "propostas:enviar", "propostas:baixar-pdf", "propostas:aprovar",
+      "clientes:visualizar", "clientes:criar", "clientes:editar",
+      "tarefas:visualizar", "tarefas:criar", "tarefas:editar",
+      "configuracoes:visualizar",
+    ],
+    sistema: true,
+  },
+  {
+    id: "role-suporte",
+    nome: "Suporte",
+    descricao: "Acesso a tarefas de suporte e clientes",
+    permissions: [
+      "tarefas:visualizar", "tarefas:criar", "tarefas:editar",
+      "tarefas:atribuir", "tarefas:encerrar",
+      "clientes:visualizar",
+      "configuracoes:visualizar",
+    ],
+    sistema: true,
+  },
+  {
+    id: "role-leitura",
+    nome: "Leitura",
+    descricao: "Apenas visualização, sem edição",
+    permissions: [
+      "clientes:visualizar",
+      "propostas:visualizar",
+      "financeiro:visualizar",
+      "tarefas:visualizar",
+      "configuracoes:visualizar",
+    ],
+    sistema: true,
+  },
+];
+
+export const seedUsers: AppUser[] = [
+  {
+    id: "user-admin",
+    nome: "Carlos Silva",
+    email: "carlos@gestao.com",
+    telefone: "(11) 98765-4321",
+    ativo: true,
+    roleId: "role-admin",
+    criadoEm: "2024-01-15T10:00:00Z",
+    atualizadoEm: "2024-01-15T10:00:00Z",
+  },
+  {
+    id: "user-financeiro",
+    nome: "Ana Souza",
+    email: "ana@gestao.com",
+    telefone: "(11) 91234-5678",
+    ativo: true,
+    roleId: "role-financeiro",
+    criadoEm: "2024-02-01T10:00:00Z",
+    atualizadoEm: "2024-02-01T10:00:00Z",
+  },
+  {
+    id: "user-comercial",
+    nome: "Rafael Costa",
+    email: "rafael@gestao.com",
+    ativo: true,
+    roleId: "role-comercial",
+    criadoEm: "2024-03-10T10:00:00Z",
+    atualizadoEm: "2024-03-10T10:00:00Z",
+  },
+  {
+    id: "user-suporte",
+    nome: "Juliana Mendes",
+    email: "juliana@gestao.com",
+    telefone: "(11) 99876-5432",
+    ativo: true,
+    roleId: "role-suporte",
+    criadoEm: "2024-04-05T10:00:00Z",
+    atualizadoEm: "2024-04-05T10:00:00Z",
+  },
+  {
+    id: "user-leitura",
+    nome: "Pedro Oliveira",
+    email: "pedro@gestao.com",
+    ativo: true,
+    roleId: "role-leitura",
+    criadoEm: "2024-05-20T10:00:00Z",
+    atualizadoEm: "2024-05-20T10:00:00Z",
+  },
+];

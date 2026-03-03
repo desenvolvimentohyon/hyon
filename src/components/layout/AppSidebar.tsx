@@ -1,6 +1,8 @@
-import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign, Landmark, Receipt, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2, SlidersHorizontal } from "lucide-react";
+import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign, Landmark, Receipt, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2, SlidersHorizontal, Shield, Settings2 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useUsers } from "@/contexts/UsersContext";
+import { ROTA_PERMISSAO } from "@/types/users";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
@@ -44,6 +46,8 @@ const sections = [
       { title: "Receita", url: "/receita", icon: DollarSign },
       { title: "Técnicos", url: "/tecnicos", icon: Wrench },
       { title: "Painel Executivo", url: "/executivo", icon: BarChart3 },
+      { title: "Usuários", url: "/usuarios", icon: Shield },
+      { title: "Parâmetros", url: "/parametros", icon: Settings2 },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
   },
@@ -54,11 +58,18 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
+  const { hasPermission } = useUsers();
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/";
     if (path === "/financeiro") return currentPath === "/financeiro";
     return currentPath.startsWith(path);
+  };
+
+  const canAccess = (url: string) => {
+    const perm = ROTA_PERMISSAO[url];
+    if (!perm) return true; // no restriction defined
+    return hasPermission(perm);
   };
 
   return (
@@ -78,30 +89,34 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {sections.map((section) => (
-          <SidebarGroup key={section.label}>
-            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {section.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                      <NavLink to={item.url} end={item.url === "/" || item.url === "/financeiro"} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {sections.map((section) => {
+          const visibleItems = section.items.filter(item => canAccess(item.url));
+          if (visibleItems.length === 0) return null;
+          return (
+            <SidebarGroup key={section.label}>
+              <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {visibleItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                        <NavLink to={item.url} end={item.url === "/" || item.url === "/financeiro"} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className="p-4">
         {!collapsed && (
-          <p className="text-[10px] text-sidebar-foreground/40 text-center">v3.0 — Módulo Financeiro</p>
+          <p className="text-[10px] text-sidebar-foreground/40 text-center">v4.0 — RBAC + Financeiro</p>
         )}
       </SidebarFooter>
     </Sidebar>
