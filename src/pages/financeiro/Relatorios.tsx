@@ -8,9 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, ComposedChart, Cell, PieChart, Pie } from "recharts";
 import { FINANCEIRO_COLORS } from "@/types/financeiro";
 import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
+import { exportDREPDF, exportMRRPDF } from "@/lib/pdfRelatorioFinanceiro";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
@@ -65,8 +69,18 @@ function DRETab({ titulos, planoContas }: any) {
     return months;
   }, [titulos]);
 
+  const handleExportDRE = () => {
+    exportDREPDF(dreData);
+    toast.success("Relatório DRE exportado com sucesso!");
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={handleExportDRE}>
+          <Download className="h-4 w-4 mr-1" /> Exportar DRE (PDF)
+        </Button>
+      </div>
       <Card>
         <CardHeader><CardTitle className="text-sm">DRE - Demonstrativo de Resultado (12 meses)</CardTitle></CardHeader>
         <CardContent>
@@ -136,8 +150,29 @@ function MRRTab({ clientesReceita, titulos }: any) {
 
   const pieCols = [C.receita, C.conciliacao, C.atraso, C.lucro, C.despesa];
 
+  const ativosEmDia = clientesReceita.filter((c: any) => c.statusCliente === "ativo" && c.mensalidadeAtiva);
+  const ativosAtraso = clientesReceita.filter((c: any) => c.statusCliente === "atraso" && c.mensalidadeAtiva);
+  const mrrEmDia = ativosEmDia.reduce((s: number, c: any) => s + c.valorMensalidade, 0);
+  const mrrAtraso = ativosAtraso.reduce((s: number, c: any) => s + c.valorMensalidade, 0);
+
+  const handleExportMRR = () => {
+    exportMRRPDF({
+      mrr, arr, ticket, churn, ltv,
+      porSistema: mrrPorSistema,
+      ativosEmDia: ativosEmDia.length,
+      ativosAtraso: ativosAtraso.length,
+      mrrEmDia, mrrAtraso,
+    });
+    toast.success("Relatório MRR exportado com sucesso!");
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={handleExportMRR}>
+          <Download className="h-4 w-4 mr-1" /> Exportar MRR (PDF)
+        </Button>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { label: "MRR", value: fmt(mrr) },
