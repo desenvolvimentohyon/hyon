@@ -14,6 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
+      asaas_settings: {
+        Row: {
+          created_at: string
+          default_billing_type: string
+          default_due_days: number
+          description_template: string | null
+          enabled: boolean
+          environment: string
+          fine_percent: number | null
+          id: string
+          interest_percent_month: number | null
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_billing_type?: string
+          default_due_days?: number
+          description_template?: string | null
+          enabled?: boolean
+          environment?: string
+          fine_percent?: number | null
+          id?: string
+          interest_percent_month?: number | null
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_billing_type?: string
+          default_due_days?: number
+          description_template?: string | null
+          enabled?: boolean
+          environment?: string
+          fine_percent?: number | null
+          id?: string
+          interest_percent_month?: number | null
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_settings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asaas_webhook_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_id: string | null
+          event_type: string
+          id: string
+          org_id: string
+          payload: Json
+          payment_id: string
+          processed: boolean
+          processed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          event_type: string
+          id?: string
+          org_id: string
+          payload?: Json
+          payment_id: string
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          org_id?: string
+          payload?: Json
+          payment_id?: string
+          processed?: boolean
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_webhook_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bank_accounts: {
         Row: {
           account: string | null
@@ -125,6 +222,11 @@ export type Database = {
           accountant_name: string | null
           accountant_office: string | null
           accountant_phone: string | null
+          asaas_customer_id: string | null
+          billing_address_json: Json | null
+          billing_document: string | null
+          billing_email: string | null
+          billing_phone: string | null
           cert_expires_at: string | null
           cert_file_path: string | null
           cert_issuer: string | null
@@ -152,6 +254,11 @@ export type Database = {
           accountant_name?: string | null
           accountant_office?: string | null
           accountant_phone?: string | null
+          asaas_customer_id?: string | null
+          billing_address_json?: Json | null
+          billing_document?: string | null
+          billing_email?: string | null
+          billing_phone?: string | null
           cert_expires_at?: string | null
           cert_file_path?: string | null
           cert_issuer?: string | null
@@ -179,6 +286,11 @@ export type Database = {
           accountant_name?: string | null
           accountant_office?: string | null
           accountant_phone?: string | null
+          asaas_customer_id?: string | null
+          billing_address_json?: Json | null
+          billing_document?: string | null
+          billing_email?: string | null
+          billing_phone?: string | null
           cert_expires_at?: string | null
           cert_file_path?: string | null
           cert_issuer?: string | null
@@ -258,6 +370,12 @@ export type Database = {
       }
       financial_titles: {
         Row: {
+          asaas_bank_slip_url: string | null
+          asaas_invoice_url: string | null
+          asaas_payment_id: string | null
+          asaas_pix_payload: string | null
+          asaas_pix_qr_code: string | null
+          asaas_status: string | null
           bank_account_id: string | null
           client_id: string | null
           competency: string | null
@@ -265,7 +383,9 @@ export type Database = {
           description: string
           discount: number
           due_at: string | null
+          external_reference: string | null
           fine: number
+          generated_at: string | null
           id: string
           interest: number
           issued_at: string | null
@@ -280,6 +400,12 @@ export type Database = {
           value_original: number
         }
         Insert: {
+          asaas_bank_slip_url?: string | null
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_pix_payload?: string | null
+          asaas_pix_qr_code?: string | null
+          asaas_status?: string | null
           bank_account_id?: string | null
           client_id?: string | null
           competency?: string | null
@@ -287,7 +413,9 @@ export type Database = {
           description?: string
           discount?: number
           due_at?: string | null
+          external_reference?: string | null
           fine?: number
+          generated_at?: string | null
           id?: string
           interest?: number
           issued_at?: string | null
@@ -302,6 +430,12 @@ export type Database = {
           value_original?: number
         }
         Update: {
+          asaas_bank_slip_url?: string | null
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
+          asaas_pix_payload?: string | null
+          asaas_pix_qr_code?: string | null
+          asaas_status?: string | null
           bank_account_id?: string | null
           client_id?: string | null
           competency?: string | null
@@ -309,7 +443,9 @@ export type Database = {
           description?: string
           discount?: number
           due_at?: string | null
+          external_reference?: string | null
           fine?: number
+          generated_at?: string | null
           id?: string
           interest?: number
           issued_at?: string | null
