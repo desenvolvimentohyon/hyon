@@ -44,9 +44,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg mb-2">
-            GT
-          </div>
+          
+
+          
           <CardTitle className="text-xl">{isLogin ? "Entrar" : "Criar Conta"}</CardTitle>
           <CardDescription>
             {isLogin ? "Acesse o GestãoTask com suas credenciais" : "Crie sua conta para começar"}
@@ -54,28 +54,28 @@ export default function Auth() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {!isLogin && (
-              <div className="space-y-2">
+            {!isLogin &&
+            <div className="space-y-2">
                 <Label htmlFor="fullName">Nome completo</Label>
                 <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  placeholder="Seu nome"
-                  required={!isLogin}
-                />
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Seu nome"
+                required={!isLogin} />
+              
               </div>
-            )}
+            }
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                required
-              />
+                required />
+              
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
@@ -83,11 +83,11 @@ export default function Auth() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                minLength={6}
-              />
+                minLength={6} />
+              
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
@@ -99,13 +99,13 @@ export default function Auth() {
               type="button"
               variant="link"
               className="text-sm"
-              onClick={() => setIsLogin(!isLogin)}
-            >
+              onClick={() => setIsLogin(!isLogin)}>
+              
               {isLogin ? "Não tem conta? Criar agora" : "Já tem conta? Entrar"}
             </Button>
           </CardFooter>
         </form>
       </Card>
-    </div>
-  );
+    </div>);
+
 }
