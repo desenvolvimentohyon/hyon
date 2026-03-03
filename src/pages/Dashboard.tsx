@@ -1,19 +1,23 @@
 import { useApp } from "@/contexts/AppContext";
+import { usePropostas } from "@/contexts/PropostasContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ListTodo, Play, CheckCircle2, AlertTriangle, Clock, Plus, Users, Wrench, TrendingUp, Headphones, Rocket } from "lucide-react";
+import { ListTodo, Play, CheckCircle2, AlertTriangle, Clock, Plus, Users, TrendingUp, Headphones, Rocket, FileText, Send, ThumbsUp, Ban } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { StatusTarefa } from "@/types";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 
 export default function Dashboard() {
   const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel } = useApp();
+  const { propostas, crmConfig } = usePropostas();
   const navigate = useNavigate();
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+  const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const thirtyDaysAgo = new Date(today); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   const total = tarefas.length;
   const emAndamento = tarefas.filter(t => t.status === "em_andamento").length;
@@ -32,6 +36,25 @@ export default function Dashboard() {
   const chamadosAbertos = tarefas.filter(t => t.tipoOperacional === "suporte" && t.status !== "concluida" && t.status !== "cancelada").length;
   const implantacoesAtivas = tarefas.filter(t => t.tipoOperacional === "implantacao" && !t.implantacaoId && t.status !== "concluida" && t.status !== "cancelada").length;
   const leadsAtivos = tarefas.filter(t => t.tipoOperacional === "comercial" && t.statusComercial !== "fechado" && t.statusComercial !== "perdido").length;
+
+  // Propostas KPIs
+  const propostasEnviadas7d = propostas.filter(p => p.dataEnvio && new Date(p.dataEnvio) >= sevenDaysAgo).length;
+  const propostasAceitas30d = propostas.filter(p => p.statusAceite === "aceitou" && p.historico.some(h => h.acao.toLowerCase().includes("aceit") && new Date(h.criadoEm) >= thirtyDaysAgo)).length;
+  const propostasExpiradas = propostas.filter(p => p.dataValidade && new Date(p.dataValidade) < now && p.statusAceite !== "aceitou").length;
+
+  // Propostas vencendo hoje/amanhã
+  const tomorrowEnd = new Date(tomorrow); tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+  const propostasVencendo = propostas.filter(p => {
+    if (!p.dataValidade || p.statusAceite === "aceitou") return false;
+    const d = new Date(p.dataValidade);
+    return d >= today && d < tomorrowEnd;
+  });
+
+  // CRM summary
+  const crmSummary = crmConfig.statusKanban.map(s => ({
+    status: s,
+    count: propostas.filter(p => p.statusCRM === s).length,
+  }));
 
   const minhasTarefas = tarefas
     .filter(t => t.responsavelId === tecnicoAtualId && t.status !== "concluida" && t.status !== "cancelada")
@@ -72,6 +95,12 @@ export default function Dashboard() {
     { label: "Chamados", value: chamadosAbertos, icon: Headphones, color: "text-orange-600", route: "/suporte" },
   ];
 
+  const propostasKpis = [
+    { label: "Enviadas (7d)", value: propostasEnviadas7d, icon: Send, color: "text-blue-600" },
+    { label: "Aceitas (30d)", value: propostasAceitas30d, icon: ThumbsUp, color: "text-emerald-600" },
+    { label: "Expiradas", value: propostasExpiradas, icon: Ban, color: "text-destructive" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -108,6 +137,56 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Propostas KPIs */}
+      <div className="grid gap-4 grid-cols-3">
+        {propostasKpis.map(k => (
+          <Card key={k.label} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/propostas")}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{k.label}</CardTitle>
+              <k.icon className={`h-4 w-4 ${k.color}`} />
+            </CardHeader>
+            <CardContent><div className="text-2xl font-bold">{k.value}</div></CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* CRM Summary */}
+      <Card>
+        <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5" />Pipeline CRM</CardTitle></CardHeader>
+        <CardContent>
+          <div className="flex gap-3 flex-wrap">
+            {crmSummary.map(s => (
+              <div key={s.status} className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 cursor-pointer hover:bg-muted transition-colors" onClick={() => navigate("/crm")}>
+                <span className="text-sm text-muted-foreground">{s.status}</span>
+                <Badge variant="secondary" className="text-xs">{s.count}</Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Propostas vencendo */}
+      {propostasVencendo.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-warning" />Propostas Vencendo Hoje/Amanhã</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {propostasVencendo.map(p => (
+                <div key={p.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/propostas/${p.id}`)}>
+                  <span className="text-xs font-mono text-muted-foreground">{p.numeroProposta}</span>
+                  <span className="text-sm font-medium flex-1">{p.clienteNomeSnapshot || "Sem cliente"}</span>
+                  <Badge variant="outline" className="text-[10px]">{p.sistema}</Badge>
+                  <span className="text-sm font-medium">R$ {p.valorMensalidade.toFixed(0)}/mês</span>
+                  <Badge className="text-[10px] bg-warning text-warning-foreground">
+                    {p.dataValidade && new Date(p.dataValidade) < tomorrow ? "Hoje" : "Amanhã"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle className="text-lg">Minhas Tarefas</CardTitle></CardHeader>
