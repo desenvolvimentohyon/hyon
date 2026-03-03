@@ -7,8 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench, Filter } from "lucide-react";
+import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench, Filter, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
+import { Button } from "@/components/ui/button";
+import { exportSLAPDF } from "@/lib/pdfRelatorioSLA";
+import { toast } from "sonner";
 
 export default function Suporte() {
   const { tarefas, clientes, getCliente, getTecnico, getStatusLabel } = useApp();
@@ -208,6 +211,31 @@ export default function Suporte() {
           <h1 className="text-2xl font-bold tracking-tight">Suporte Técnico</h1>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => {
+            const periodoLabel = periodo === "todos" ? "Todos os períodos" : `Últimos ${periodo} dias`;
+            const chamadosAbertosData = abertos.map(t => {
+              const sla = getSlaStatus(t);
+              return { titulo: t.titulo, cliente: t.clienteId ? getCliente(t.clienteId)?.nome || "—" : "—", status: getStatusLabel(t.status), sla: sla?.label || "—" };
+            });
+            exportSLAPDF({
+              periodo: periodoLabel,
+              kpis: kpis.map(k => ({ label: k.label, value: k.value })),
+              taxaCumprimento: slaMetrics.taxaCumprimento,
+              dentroSla: slaMetrics.dentroSlaCount,
+              totalComSla: slaMetrics.totalComSla,
+              satisfacao: slaMetrics.satisfacao,
+              tempoMedioH: slaMetrics.tempoMedioH,
+              reincidentes: slaMetrics.reincidentes.length,
+              slaVencido: slaVencido.length,
+              porPrioridade: slaMetrics.porPrioridade,
+              porSistema: slaMetrics.porSistema,
+              rankingTecnicos: rankingTecnicos.map(t => ({ nome: t.nome, total: t.total, resolvidos: t.resolvidos, tempoMedioH: t.tempoMedioH, taxaSla: t.taxaSla, reincidentes: t.reincidentes, score: t.score })),
+              chamadosAbertos: chamadosAbertosData,
+            });
+            toast.success("Relatório SLA exportado com sucesso!");
+          }}>
+            <Download className="h-4 w-4 mr-1" /> Exportar PDF
+          </Button>
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={periodo} onValueChange={setPeriodo}>
             <SelectTrigger className="w-[160px] h-9">
