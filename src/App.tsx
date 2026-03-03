@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
 import { PropostasProvider } from "@/contexts/PropostasContext";
 import { ReceitaProvider } from "@/contexts/ReceitaContext";
+import { FinanceiroProvider } from "@/contexts/FinanceiroContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Tarefas from "./pages/Tarefas";
@@ -24,6 +25,15 @@ import PropostaDetalhe from "./pages/PropostaDetalhe";
 import CRM from "./pages/CRM";
 import AceiteProposta from "./pages/AceiteProposta";
 import NotFound from "./pages/NotFound";
+// Financeiro
+import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
+import ContasReceber from "./pages/financeiro/ContasReceber";
+import ContasPagar from "./pages/financeiro/ContasPagar";
+import PlanoDeContas from "./pages/financeiro/PlanoDeContas";
+import ConciliacaoBancaria from "./pages/financeiro/ConciliacaoBancaria";
+import Lancamentos from "./pages/financeiro/Lancamentos";
+import Relatorios from "./pages/financeiro/Relatorios";
+import ConfiguracoesFinanceiras from "./pages/financeiro/ConfiguracoesFinanceiras";
 
 const queryClient = new QueryClient();
 
@@ -35,29 +45,40 @@ const App = () => (
       <AppProvider>
         <PropostasProvider>
           <ReceitaProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route element={<AppLayout />}>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/tarefas" element={<Tarefas />} />
-                  <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
-                  <Route path="/clientes" element={<ClientesReceita />} />
-                  <Route path="/clientes-tarefas" element={<Clientes />} />
-                  <Route path="/receita" element={<Receita />} />
-                  <Route path="/tecnicos" element={<Tecnicos />} />
-                  <Route path="/configuracoes" element={<Configuracoes />} />
-                  <Route path="/comercial" element={<Comercial />} />
-                  <Route path="/implantacao" element={<Implantacao />} />
-                  <Route path="/suporte" element={<Suporte />} />
-                  <Route path="/executivo" element={<Executivo />} />
-                  <Route path="/propostas" element={<Propostas />} />
-                  <Route path="/propostas/:id" element={<PropostaDetalhe />} />
-                  <Route path="/crm" element={<CRM />} />
-                </Route>
-                <Route path="/aceite/:numero" element={<AceiteProposta />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
+            <FinanceiroProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route element={<AppLayout />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/tarefas" element={<Tarefas />} />
+                    <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
+                    <Route path="/clientes" element={<ClientesReceita />} />
+                    <Route path="/clientes-tarefas" element={<Clientes />} />
+                    <Route path="/receita" element={<Receita />} />
+                    <Route path="/tecnicos" element={<Tecnicos />} />
+                    <Route path="/configuracoes" element={<Configuracoes />} />
+                    <Route path="/comercial" element={<Comercial />} />
+                    <Route path="/implantacao" element={<Implantacao />} />
+                    <Route path="/suporte" element={<Suporte />} />
+                    <Route path="/executivo" element={<Executivo />} />
+                    <Route path="/propostas" element={<Propostas />} />
+                    <Route path="/propostas/:id" element={<PropostaDetalhe />} />
+                    <Route path="/crm" element={<CRM />} />
+                    {/* Financeiro */}
+                    <Route path="/financeiro" element={<FinanceiroVisaoGeral />} />
+                    <Route path="/financeiro/contas-a-receber" element={<ContasReceber />} />
+                    <Route path="/financeiro/contas-a-pagar" element={<ContasPagar />} />
+                    <Route path="/financeiro/plano-de-contas" element={<PlanoDeContas />} />
+                    <Route path="/financeiro/conciliacao-bancaria" element={<ConciliacaoBancaria />} />
+                    <Route path="/financeiro/lancamentos" element={<Lancamentos />} />
+                    <Route path="/financeiro/relatorios" element={<Relatorios />} />
+                    <Route path="/financeiro/configuracoes" element={<ConfiguracoesFinanceiras />} />
+                  </Route>
+                  <Route path="/aceite/:numero" element={<AceiteProposta />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </FinanceiroProvider>
           </ReceitaProvider>
         </PropostasProvider>
       </AppProvider>

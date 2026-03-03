@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign } from "lucide-react";
+import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign, Landmark, Receipt, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2, SlidersHorizontal } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -25,6 +25,19 @@ const sections = [
     ],
   },
   {
+    label: "Financeiro",
+    items: [
+      { title: "Visão Geral", url: "/financeiro", icon: Landmark },
+      { title: "Contas a Receber", url: "/financeiro/contas-a-receber", icon: TrendingUp },
+      { title: "Contas a Pagar", url: "/financeiro/contas-a-pagar", icon: CreditCard },
+      { title: "Lançamentos", url: "/financeiro/lancamentos", icon: BookOpen },
+      { title: "Plano de Contas", url: "/financeiro/plano-de-contas", icon: FolderTree },
+      { title: "Conciliação", url: "/financeiro/conciliacao-bancaria", icon: ArrowLeftRight },
+      { title: "Relatórios", url: "/financeiro/relatorios", icon: BarChart2 },
+      { title: "Config. Financeira", url: "/financeiro/configuracoes", icon: SlidersHorizontal },
+    ],
+  },
+  {
     label: "Gestão",
     items: [
       { title: "Clientes", url: "/clientes", icon: Users },
@@ -44,6 +57,7 @@ export function AppSidebar() {
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/";
+    if (path === "/financeiro") return currentPath === "/financeiro";
     return currentPath.startsWith(path);
   };
 
@@ -72,7 +86,7 @@ export function AppSidebar() {
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                      <NavLink to={item.url} end={item.url === "/"} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
+                      <NavLink to={item.url} end={item.url === "/" || item.url === "/financeiro"} className="hover:bg-sidebar-accent/50" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium">
                         <item.icon className="h-4 w-4" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
@@ -87,7 +101,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         {!collapsed && (
-          <p className="text-[10px] text-sidebar-foreground/40 text-center">v2.0 — Módulo Operacional</p>
+          <p className="text-[10px] text-sidebar-foreground/40 text-center">v3.0 — Módulo Financeiro</p>
         )}
       </SidebarFooter>
     </Sidebar>
