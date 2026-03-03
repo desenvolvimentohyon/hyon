@@ -49,7 +49,7 @@ export default function Auth() {
           
           <CardTitle className="text-xl">{isLogin ? "Entrar" : "Criar Conta"}</CardTitle>
           <CardDescription>
-            {isLogin ? "Acesse o GestãoTask com suas credenciais" : "Crie sua conta para começar"}
+            {isLogin ? "\n" : "Crie sua conta para começar"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
