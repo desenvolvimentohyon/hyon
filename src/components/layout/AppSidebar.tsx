@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign, Landmark, Receipt, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2, SlidersHorizontal, Shield, Settings2 } from "lucide-react";
+import { LayoutDashboard, ListTodo, Users, Wrench, Settings, TrendingUp, Rocket, Headphones, BarChart3, FileText, Kanban, DollarSign, Landmark, Receipt, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2, SlidersHorizontal, Shield, Settings2, Globe, ShoppingCart } from "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -47,6 +47,7 @@ const sections = [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Receita", url: "/receita", icon: DollarSign },
       { title: "Técnicos", url: "/tecnicos", icon: Wrench },
+      { title: "Checkout Interno", url: "/checkout-interno", icon: ShoppingCart },
       { title: "Painel Executivo", url: "/executivo", icon: BarChart3 },
       { title: "Usuários", url: "/usuarios", icon: Shield },
       { title: "Parâmetros", url: "/parametros", icon: Settings2 },

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +12,46 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, ArrowLeft, X, TrendingUp } from "lucide-react";
+import { Search, Plus, ArrowLeft, X, TrendingUp, Globe, Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ClienteReceita, SistemaPrincipal, StatusCliente, RECEITA_COLORS } from "@/types/receita";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+
+function PortalLinkButton({ clientId }: { clientId: string }) {
+  const [loading, setLoading] = useState(false);
+  const [portalUrl, setPortalUrl] = useState<string | null>(null);
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-portal-token", {
+        body: { client_id: clientId },
+      });
+      if (error) throw error;
+      const url = `${window.location.origin}/portal/${data.token}`;
+      setPortalUrl(url);
+      navigator.clipboard.writeText(url);
+      toast({ title: "Link copiado!", description: "O link do portal foi copiado para a área de transferência." });
+    } catch (err: any) {
+      toast({ title: "Erro ao gerar link", description: err?.message || "Tente novamente", variant: "destructive" });
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="flex gap-1">
+      <Button size="sm" variant="outline" onClick={generate} disabled={loading} className="gap-1">
+        <Globe className="h-3 w-3" /> {loading ? "Gerando..." : "Gerar Link Portal"}
+      </Button>
+      {portalUrl && (
+        <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(portalUrl); toast({ title: "Link copiado!" }); }}>
+          <Copy className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  );
+}
 
 const SISTEMAS: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
 const STATUSES: StatusCliente[] = ["ativo", "atraso", "suspenso", "cancelado"];
@@ -175,11 +211,12 @@ export default function Clientes() {
               </Card>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {selected.statusCliente !== "ativo" && <Button size="sm" variant="outline" onClick={() => handleStatusChange(selected.id, "ativo")}>Reativar</Button>}
               {selected.statusCliente !== "atraso" && selected.statusCliente !== "cancelado" && <Button size="sm" variant="outline" onClick={() => handleStatusChange(selected.id, "atraso")}>Marcar Atraso</Button>}
               {selected.statusCliente !== "suspenso" && selected.statusCliente !== "cancelado" && <Button size="sm" variant="outline" onClick={() => handleStatusChange(selected.id, "suspenso")}>Suspender</Button>}
               {selected.statusCliente !== "cancelado" && <Button size="sm" variant="destructive" onClick={() => handleStatusChange(selected.id, "cancelado")}>Cancelar</Button>}
+              <PortalLinkButton clientId={selected.id} />
             </div>
           </TabsContent>
 

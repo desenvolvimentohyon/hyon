@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,24 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Save, Download, Upload, RotateCcw } from "lucide-react";
+import { Save, Download, Upload, RotateCcw, Bell, Plus, X } from "lucide-react";
 import { SistemaPrincipal } from "@/types/receita";
+import { supabase } from "@/integrations/supabase/client";
 
 const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
+
+interface BillingRules {
+  id?: string;
+  days_before: number[];
+  on_due_day: boolean;
+  days_after: number[];
+  auto_email: boolean;
+  auto_whatsapp: boolean;
+  auto_task: boolean;
+}
 
 export default function ConfiguracoesFinanceiras() {
   const { config, updateConfig, resetFinanceiro, exportFinanceiro, importFinanceiro, contasBancarias, loading } = useFinanceiro();
@@ -20,6 +33,89 @@ export default function ConfiguracoesFinanceiras() {
   const [contaPadrao, setContaPadrao] = useState(config.contaBancariaPadraoId);
   const [periodo, setPeriodo] = useState(config.periodoPadraoRelatorio);
   const [custos, setCustos] = useState({ ...config.custoPorSistema });
+
+  // Billing rules state
+  const [billingRules, setBillingRules] = useState<BillingRules>({
+    days_before: [5],
+    on_due_day: true,
+    days_after: [3, 7, 15],
+    auto_email: false,
+    auto_whatsapp: false,
+    auto_task: true,
+  });
+  const [loadingRules, setLoadingRules] = useState(true);
+  const [newDayBefore, setNewDayBefore] = useState("");
+  const [newDayAfter, setNewDayAfter] = useState("");
+
+  useEffect(() => {
+    loadBillingRules();
+  }, []);
+
+  const loadBillingRules = async () => {
+    try {
+      const { data } = await supabase.from("billing_rules").select("*").limit(1).single();
+      if (data) {
+        setBillingRules({
+          id: data.id,
+          days_before: data.days_before || [5],
+          on_due_day: data.on_due_day ?? true,
+          days_after: data.days_after || [3, 7, 15],
+          auto_email: data.auto_email ?? false,
+          auto_whatsapp: data.auto_whatsapp ?? false,
+          auto_task: data.auto_task ?? true,
+        });
+      }
+    } catch {}
+    setLoadingRules(false);
+  };
+
+  const saveBillingRules = async () => {
+    try {
+      const { data: profile } = await supabase.from("profiles").select("org_id").limit(1).single();
+      if (!profile) return;
+
+      if (billingRules.id) {
+        await supabase.from("billing_rules").update({
+          days_before: billingRules.days_before,
+          on_due_day: billingRules.on_due_day,
+          days_after: billingRules.days_after,
+          auto_email: billingRules.auto_email,
+          auto_whatsapp: billingRules.auto_whatsapp,
+          auto_task: billingRules.auto_task,
+        }).eq("id", billingRules.id);
+      } else {
+        const { data } = await supabase.from("billing_rules").insert({
+          org_id: profile.org_id,
+          days_before: billingRules.days_before,
+          on_due_day: billingRules.on_due_day,
+          days_after: billingRules.days_after,
+          auto_email: billingRules.auto_email,
+          auto_whatsapp: billingRules.auto_whatsapp,
+          auto_task: billingRules.auto_task,
+        }).select("id").single();
+        if (data) setBillingRules(prev => ({ ...prev, id: data.id }));
+      }
+      toast.success("Régua de cobrança salva!");
+    } catch {
+      toast.error("Erro ao salvar régua");
+    }
+  };
+
+  const addDayBefore = () => {
+    const d = parseInt(newDayBefore);
+    if (d > 0 && !billingRules.days_before.includes(d)) {
+      setBillingRules(prev => ({ ...prev, days_before: [...prev.days_before, d].sort((a, b) => a - b) }));
+      setNewDayBefore("");
+    }
+  };
+
+  const addDayAfter = () => {
+    const d = parseInt(newDayAfter);
+    if (d > 0 && !billingRules.days_after.includes(d)) {
+      setBillingRules(prev => ({ ...prev, days_after: [...prev.days_after, d].sort((a, b) => a - b) }));
+      setNewDayAfter("");
+    }
+  };
 
   const handleSave = () => {
     updateConfig({
@@ -70,6 +166,75 @@ export default function ConfiguracoesFinanceiras() {
         <h1 className="text-2xl font-bold text-foreground">Configurações Financeiras</h1>
         <p className="text-muted-foreground text-sm">Parâmetros e regras do módulo financeiro</p>
       </div>
+
+      {/* Régua de Cobrança */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2"><Bell className="h-4 w-4" /> Régua de Cobrança Automática</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {loadingRules ? <Skeleton className="h-32" /> : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Dias antes */}
+                <div className="space-y-2">
+                  <Label>Dias antes do vencimento</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {billingRules.days_before.map(d => (
+                      <Badge key={d} variant="secondary" className="gap-1">
+                        {d} dias
+                        <button onClick={() => setBillingRules(prev => ({ ...prev, days_before: prev.days_before.filter(x => x !== d) }))}><X className="h-3 w-3" /></button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input type="number" placeholder="Ex: 3" value={newDayBefore} onChange={e => setNewDayBefore(e.target.value)} className="w-24" />
+                    <Button size="sm" variant="outline" onClick={addDayBefore}><Plus className="h-3 w-3" /></Button>
+                  </div>
+                </div>
+
+                {/* Dias após */}
+                <div className="space-y-2">
+                  <Label>Dias após o vencimento</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {billingRules.days_after.map(d => (
+                      <Badge key={d} variant="secondary" className="gap-1">
+                        {d} dias
+                        <button onClick={() => setBillingRules(prev => ({ ...prev, days_after: prev.days_after.filter(x => x !== d) }))}><X className="h-3 w-3" /></button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input type="number" placeholder="Ex: 7" value={newDayAfter} onChange={e => setNewDayAfter(e.target.value)} className="w-24" />
+                    <Button size="sm" variant="outline" onClick={addDayAfter}><Plus className="h-3 w-3" /></Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2">
+                  <Switch checked={billingRules.on_due_day} onCheckedChange={v => setBillingRules(prev => ({ ...prev, on_due_day: v }))} />
+                  <Label>Notificar no dia do vencimento</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={billingRules.auto_email} onCheckedChange={v => setBillingRules(prev => ({ ...prev, auto_email: v }))} />
+                  <Label>Email automático</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={billingRules.auto_whatsapp} onCheckedChange={v => setBillingRules(prev => ({ ...prev, auto_whatsapp: v }))} />
+                  <Label>WhatsApp automático</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={billingRules.auto_task} onCheckedChange={v => setBillingRules(prev => ({ ...prev, auto_task: v }))} />
+                  <Label>Criar tarefa automática (7+ dias atraso)</Label>
+                </div>
+              </div>
+
+              <Button size="sm" onClick={saveBillingRules}><Save className="h-4 w-4 mr-1" /> Salvar Régua</Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Inadimplência */}
