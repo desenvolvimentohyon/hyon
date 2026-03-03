@@ -74,15 +74,14 @@ export default function Dashboard() {
     const custos = clientesReceita.filter(c => c.custoAtivo).reduce((s, c) => s + c.valorCustoMensal, 0);
     const margem = mrr - custos;
     const emAtraso = clientesReceita.filter(c => c.statusCliente === "atraso");
-    // Calculate days in arrears using a hash of the client id for consistent simulation
     const emAtrasoComDias = emAtraso.map(c => {
-      // Simulate days in arrears: use a deterministic value based on client id
       const hash = c.id.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-      const diasAtraso = 3 + (hash % 25); // 3-27 days range
+      const diasAtraso = 3 + (hash % 55); // 3-57 days range
       return { ...c, diasAtraso };
     }).sort((a, b) => b.diasAtraso - a.diasAtraso);
-    const alertaCritico = emAtrasoComDias.filter(c => c.diasAtraso > 7);
-    return { mrr, arr, ticket, churnRate, margem, emAtraso: emAtrasoComDias, alertaCritico };
+    const alertaCritico30 = emAtrasoComDias.filter(c => c.diasAtraso > 30);
+    const alertaCritico7 = emAtrasoComDias.filter(c => c.diasAtraso > 7 && c.diasAtraso <= 30);
+    return { mrr, arr, ticket, churnRate, margem, emAtraso: emAtrasoComDias, alertaCritico7, alertaCritico30 };
   }, [clientesReceita]);
 
   const sistemasMini = useMemo(() => {
@@ -212,27 +211,55 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Alerta: clientes em atraso > 7 dias */}
-      {receitaMetricas.alertaCritico.length > 0 && (
-        <Card className="border-destructive/50 bg-destructive/5">
+      {/* Alerta URGENTE: clientes em atraso > 30 dias */}
+      {receitaMetricas.alertaCritico30.length > 0 && (
+        <Card className="border-destructive bg-destructive/10">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              <span>⚠️ Alerta: {receitaMetricas.alertaCritico.length} cliente{receitaMetricas.alertaCritico.length > 1 ? "s" : ""} em atraso há mais de 7 dias</span>
+              <span>🚨 URGENTE: {receitaMetricas.alertaCritico30.length} cliente{receitaMetricas.alertaCritico30.length > 1 ? "s" : ""} em atraso há mais de 30 dias</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {receitaMetricas.alertaCritico.map(c => (
-                <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-destructive/20 bg-background hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
+              {receitaMetricas.alertaCritico30.map(c => (
+                <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-background hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
                   <span className="text-sm font-medium flex-1">{c.nome}</span>
                   <Badge variant="outline" className="text-[10px]">{c.sistemaPrincipal}</Badge>
-                  <Badge variant="destructive" className="text-[10px]">{c.diasAtraso} dias</Badge>
+                  <Badge variant="destructive" className="text-[10px] animate-pulse">{c.diasAtraso} dias</Badge>
+                  <span className="text-sm font-medium">{fmt(c.valorMensalidade)}/mês</span>
+                </div>
+              ))}
+              <p className="text-xs mt-2">
+                <span className="text-destructive font-semibold">Receita em risco iminente: {fmt(receitaMetricas.alertaCritico30.reduce((s, c) => s + c.valorMensalidade, 0))}/mês</span>
+                <span className="text-muted-foreground"> — Ação imediata recomendada: contato ou suspensão</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Alerta: clientes em atraso > 7 dias (até 30) */}
+      {receitaMetricas.alertaCritico7.length > 0 && (
+        <Card className="border-warning/50 bg-warning/5">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              <span>⚠️ Atenção: {receitaMetricas.alertaCritico7.length} cliente{receitaMetricas.alertaCritico7.length > 1 ? "s" : ""} em atraso entre 7 e 30 dias</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {receitaMetricas.alertaCritico7.map(c => (
+                <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-warning/20 bg-background hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
+                  <span className="text-sm font-medium flex-1">{c.nome}</span>
+                  <Badge variant="outline" className="text-[10px]">{c.sistemaPrincipal}</Badge>
+                  <Badge className="text-[10px] bg-warning text-warning-foreground">{c.diasAtraso} dias</Badge>
                   <span className="text-sm font-medium">{fmt(c.valorMensalidade)}/mês</span>
                 </div>
               ))}
               <p className="text-xs text-muted-foreground mt-2">
-                Receita em risco: <span className="font-semibold text-destructive">{fmt(receitaMetricas.alertaCritico.reduce((s, c) => s + c.valorMensalidade, 0))}/mês</span>
+                Receita em risco: <span className="font-semibold text-warning">{fmt(receitaMetricas.alertaCritico7.reduce((s, c) => s + c.valorMensalidade, 0))}/mês</span>
               </p>
             </div>
           </CardContent>
@@ -242,14 +269,14 @@ export default function Dashboard() {
       {/* Clientes em atraso (todos) */}
       {receitaMetricas.emAtraso.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" style={{ color: RECEITA_COLORS.churn }} />Clientes em Atraso ({receitaMetricas.emAtraso.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" style={{ color: RECEITA_COLORS.churn }} />Todos em Atraso ({receitaMetricas.emAtraso.length})</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2">
               {receitaMetricas.emAtraso.map(c => (
                 <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
                   <span className="text-sm font-medium flex-1">{c.nome}</span>
                   <Badge variant="outline" className="text-[10px]">{c.sistemaPrincipal}</Badge>
-                  <Badge className={`text-[10px] ${c.diasAtraso > 7 ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}`}>{c.diasAtraso} dias</Badge>
+                  <Badge className={`text-[10px] ${c.diasAtraso > 30 ? "bg-destructive text-destructive-foreground" : c.diasAtraso > 7 ? "bg-warning text-warning-foreground" : "bg-muted text-muted-foreground"}`}>{c.diasAtraso} dias</Badge>
                   <span className="text-sm font-medium">{fmt(c.valorMensalidade)}/mês</span>
                 </div>
               ))}
