@@ -46,7 +46,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src={logoHyon} alt="Hyon Tech" className="h-16 w-auto" />
+            <img src={logoHyon} alt="Hyon Tech" className="h-28 w-auto" />
           </div>
           <CardTitle className="text-xl">{isLogin ? "Entrar" : "Criar Conta"}</CardTitle>
           <CardDescription>
