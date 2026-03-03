@@ -196,33 +196,33 @@ export function Topbar() {
 
   const getTipoBadge = (tipo: Notificacao["tipo"]) => {
     switch (tipo) {
-      case "critico": return "bg-destructive/15 text-destructive border-destructive/30";
-      case "alerta": return "bg-warning/15 text-warning border-warning/30";
-      case "info": return "bg-info/15 text-info border-info/30";
+      case "critico": return "bg-destructive/10 text-destructive border-destructive/20";
+      case "alerta": return "bg-warning/10 text-warning border-warning/20";
+      case "info": return "bg-info/10 text-info border-info/20";
     }
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/95 backdrop-blur px-4">
+    <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur-md px-4">
       <SidebarTrigger className="shrink-0" />
 
-      <form onSubmit={handleSearch} className="flex-1 max-w-md">
+      <form onSubmit={handleSearch} className="flex-1 max-w-lg">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
-            placeholder="Buscar tarefas..."
+            placeholder="Buscar tarefas, clientes..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="pl-9 h-9 bg-muted/50 border-0"
+            className="pl-10 h-9 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
           />
         </div>
       </form>
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-1.5 ml-auto">
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 rounded-lg"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           title={theme === "dark" ? "Modo claro" : "Modo escuro"}
         >
@@ -235,11 +235,11 @@ export function Topbar() {
             <Button
               variant="ghost"
               size="icon"
-              className={`relative h-9 w-9 ${temCritico ? "text-destructive hover:text-destructive" : totalNotificacoes > 0 ? "text-warning hover:text-warning" : ""}`}
+              className={`relative h-9 w-9 rounded-lg ${temCritico ? "text-destructive hover:text-destructive" : totalNotificacoes > 0 ? "text-warning hover:text-warning" : ""}`}
             >
               <Bell className="h-4 w-4" />
               {totalNotificacoes > 0 && (
-                <Badge className={`absolute -top-1 -right-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] ${temCritico ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}`}>
+                <Badge className={`absolute -top-1 -right-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] rounded-full ${temCritico ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}`}>
                   {totalNotificacoes}
                 </Badge>
               )}
@@ -248,9 +248,9 @@ export function Topbar() {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-96 p-0" align="end" sideOffset={8}>
+          <PopoverContent className="w-96 p-0 rounded-xl shadow-elevated" align="end" sideOffset={8}>
             <div className="px-4 py-3 border-b">
-              <h4 className="font-semibold text-sm text-foreground">Notificações</h4>
+              <h4 className="font-semibold text-sm">Notificações</h4>
               <p className="text-xs text-muted-foreground">
                 {totalNotificacoes === 0 ? "Nenhum alerta no momento" : `${totalNotificacoes} alerta(s) ativo(s)`}
               </p>
@@ -258,7 +258,7 @@ export function Topbar() {
             <ScrollArea className="max-h-80">
               {notificacoes.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                  <Bell className="h-8 w-8 mb-2 opacity-30" />
+                  <Bell className="h-8 w-8 mb-2 opacity-20" />
                   <p className="text-sm">Tudo em ordem! ✓</p>
                 </div>
               ) : (
@@ -272,14 +272,14 @@ export function Topbar() {
                       <div className="mt-0.5">{getIcone(n.icone)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-sm font-medium text-foreground truncate">{n.titulo}</span>
-                          <Badge variant="outline" className={`text-[9px] px-1.5 py-0 shrink-0 ${getTipoBadge(n.tipo)}`}>
+                          <span className="text-sm font-medium truncate">{n.titulo}</span>
+                          <Badge variant="outline" className={`text-[9px] px-1.5 py-0 shrink-0 rounded-full ${getTipoBadge(n.tipo)}`}>
                             {n.tipo === "critico" ? "CRÍTICO" : n.tipo === "alerta" ? "ALERTA" : "INFO"}
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{n.descricao}</p>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-0.5" />
                     </button>
                   ))}
                 </div>
@@ -288,21 +288,25 @@ export function Topbar() {
           </PopoverContent>
         </Popover>
 
+        <Separator orientation="vertical" className="h-6 mx-1" />
+
         <Select value={currentUserId} onValueChange={setCurrentUser}>
-          <SelectTrigger className="w-[180px] h-9 text-sm">
+          <SelectTrigger className="w-[180px] h-9 text-sm rounded-lg border-0 bg-muted/40 hover:bg-muted/60 transition-colors">
             <div className="flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <Shield className="h-3 w-3 text-primary shrink-0" />
+              </div>
               <SelectValue placeholder="Usuário" />
             </div>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-xl">
             {users.filter(u => u.ativo).map(u => {
               const role = getRole(u.roleId);
               return (
                 <SelectItem key={u.id} value={u.id}>
                   <div className="flex items-center gap-2">
                     <span>{u.nome}</span>
-                    <Badge variant="outline" className="text-[9px] ml-1">{role?.nome}</Badge>
+                    <Badge variant="outline" className="text-[9px] ml-1 rounded-full">{role?.nome}</Badge>
                   </div>
                 </SelectItem>
               );
@@ -310,7 +314,7 @@ export function Topbar() {
           </SelectContent>
         </Select>
 
-        <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5">
+        <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5 rounded-lg shadow-soft">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Nova Tarefa</span>
         </Button>
@@ -318,7 +322,7 @@ export function Topbar() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 text-muted-foreground hover:text-destructive"
+          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive"
           onClick={() => signOut()}
           title="Sair"
         >
