@@ -57,7 +57,7 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
             </div>
             <div className="space-y-2 min-h-[100px]">
               {columnTasks.map((t: Tarefa) => {
-                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional];
+                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || { label: t.tipoOperacional, bgClass: "bg-muted text-muted-foreground" };
                 return (
                   <Card
                     key={t.id}
@@ -273,7 +273,7 @@ export default function Tarefas() {
             </TableHeader>
             <TableBody>
               {filteredTarefas.map(t => {
-                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional];
+                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || { label: t.tipoOperacional || "N/A", bgClass: "bg-muted text-muted-foreground" };
                 return (
                   <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/tarefas/${t.id}`)}>
                     <TableCell>
