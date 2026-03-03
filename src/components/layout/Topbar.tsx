@@ -1,4 +1,4 @@
-import { Search, Plus, Bell } from "lucide-react";
+import { Search, Plus, Bell, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,11 +7,13 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 
 export function Topbar() {
   const { tecnicos, tecnicoAtualId, setTecnicoAtual, tarefas } = useApp();
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
+  const { theme, setTheme } = useTheme();
 
   const atrasadas = tarefas.filter(t => {
     if (!t.prazoDataHora) return false;
@@ -44,6 +46,16 @@ export function Topbar() {
       </form>
 
       <div className="flex items-center gap-2 ml-auto">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
+
         {atrasadas > 0 && (
           <Button variant="ghost" size="sm" className="relative text-destructive hover:text-destructive" onClick={() => navigate("/tarefas?filtro=atrasadas")}>
             <Bell className="h-4 w-4" />
