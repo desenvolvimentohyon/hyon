@@ -1,24 +1,22 @@
 
-# Plano: Corrigir bug no pagamento de comissão (ContasPagar)
 
-## Problema Identificado
-O pagamento da comissão R$ 225 **não foi salvo no banco** porque `contaBaixaId` tem valor padrão `"cb1"` (ID de seed antigo), mas as contas bancárias reais têm UUIDs válidos. A tentativa de gravar `bank_account_id: "cb1"` falha silenciosamente no Supabase.
+# Plano: Corrigir badge de comissão recorrente em ContasPagar
+
+## Problema
+A comissão recorrente R$ 17,50 está aparecendo com badge "Implantação" em vez de "Recorrente". O código em `ContasPagar.tsx` provavelmente não está lendo o campo `commission_type` do título financeiro para diferenciar.
+
+## Investigação Necessária
+Verificar como a coluna Origem em `ContasPagar.tsx` renderiza as badges — provavelmente está usando apenas `origin === "comissao_parceiro"` sem checar `commission_type`.
 
 ## Correção
+No `ContasPagar.tsx`, na renderização da coluna Origem, quando `origin === "comissao_parceiro"`:
+- Se `commission_type === "recorrente"` → badge "Recorrente" (cor diferente, ex: azul)
+- Se `commission_type === "implantacao"` ou sem valor → badge "Implantação"
 
-### Arquivo: `src/pages/financeiro/ContasPagar.tsx`
-- Linha 24: Trocar `useState("cb1")` por `useState("")`
-- Inicializar com a primeira conta bancária disponível via `useEffect`:
-```tsx
-useEffect(() => {
-  if (contasBancarias.length > 0 && !contaBaixaId) {
-    setContaBaixaId(contasBancarias[0].id);
-  }
-}, [contasBancarias]);
-```
+Também precisa garantir que o tipo `TituloFinanceiro` no frontend tenha o campo `commissionType` mapeado do DB `commission_type`.
 
-### Verificação adicional
-- Checar se o mesmo bug existe em `ContasReceber.tsx` (provavelmente sim) e aplicar a mesma correção.
+## Arquivos
+- `src/pages/financeiro/ContasPagar.tsx` — ajustar renderização da badge
+- `src/contexts/FinanceiroContext.tsx` — verificar se `commission_type` é mapeado no `dbToTitulo`
+- `src/types/financeiro.ts` — verificar se `commissionType` existe no tipo
 
-## Resultado
-Após a correção, ao clicar "Confirmar Pagamento" na modal, o status do título será atualizado para "pago" no banco, e o Dashboard exibirá corretamente os valores de "Pago" e "A Pagar".
