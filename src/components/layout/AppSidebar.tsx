@@ -127,7 +127,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         {!collapsed && (
-          <p className="text-[10px] text-sidebar-foreground/25 text-center font-medium">v4.0 — RBAC + Financeiro</p>
+          <p className="text-[10px] text-sidebar-foreground/25 text-center font-medium">© 2025 Hyon Tech</p>
         )}
       </SidebarFooter>
     </Sidebar>
