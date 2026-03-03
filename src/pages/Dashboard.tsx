@@ -1,16 +1,26 @@
+import { useMemo } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { usePropostas } from "@/contexts/PropostasContext";
+import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ListTodo, Play, CheckCircle2, AlertTriangle, Clock, Plus, Users, TrendingUp, Headphones, Rocket, FileText, Send, ThumbsUp, Ban } from "lucide-react";
+import {
+  ListTodo, Play, CheckCircle2, AlertTriangle, Clock, Plus, Users, TrendingUp,
+  Headphones, Rocket, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { StatusTarefa } from "@/types";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
+import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+
+const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function Dashboard() {
   const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel } = useApp();
   const { propostas, crmConfig } = usePropostas();
+  const { clientesReceita, suporteEventos } = useReceita();
   const navigate = useNavigate();
 
   const now = new Date();
@@ -19,6 +29,7 @@ export default function Dashboard() {
   const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const thirtyDaysAgo = new Date(today); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  // Task KPIs
   const total = tarefas.length;
   const emAndamento = tarefas.filter(t => t.status === "em_andamento").length;
   const concluidas = tarefas.filter(t => t.status === "concluida").length;
@@ -32,7 +43,6 @@ export default function Dashboard() {
     return d >= today && d < tomorrow;
   }).length;
 
-  // Module counts
   const chamadosAbertos = tarefas.filter(t => t.tipoOperacional === "suporte" && t.status !== "concluida" && t.status !== "cancelada").length;
   const implantacoesAtivas = tarefas.filter(t => t.tipoOperacional === "implantacao" && !t.implantacaoId && t.status !== "concluida" && t.status !== "cancelada").length;
   const leadsAtivos = tarefas.filter(t => t.tipoOperacional === "comercial" && t.statusComercial !== "fechado" && t.statusComercial !== "perdido").length;
@@ -42,7 +52,6 @@ export default function Dashboard() {
   const propostasAceitas30d = propostas.filter(p => p.statusAceite === "aceitou" && p.historico.some(h => h.acao.toLowerCase().includes("aceit") && new Date(h.criadoEm) >= thirtyDaysAgo)).length;
   const propostasExpiradas = propostas.filter(p => p.dataValidade && new Date(p.dataValidade) < now && p.statusAceite !== "aceitou").length;
 
-  // Propostas vencendo hoje/amanhã
   const tomorrowEnd = new Date(tomorrow); tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
   const propostasVencendo = propostas.filter(p => {
     if (!p.dataValidade || p.statusAceite === "aceitou") return false;
@@ -50,19 +59,54 @@ export default function Dashboard() {
     return d >= today && d < tomorrowEnd;
   });
 
-  // CRM summary
   const crmSummary = crmConfig.statusKanban.map(s => ({
-    status: s,
-    count: propostas.filter(p => p.statusCRM === s).length,
+    status: s, count: propostas.filter(p => p.statusCRM === s).length,
   }));
+
+  // Receita KPIs
+  const receitaMetricas = useMemo(() => {
+    const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
+    const mrr = ativos.reduce((s, c) => s + c.valorMensalidade, 0);
+    const arr = mrr * 12;
+    const ticket = ativos.length > 0 ? mrr / ativos.length : 0;
+    const cancelados = clientesReceita.filter(c => c.statusCliente === "cancelado").length;
+    const churnRate = clientesReceita.length > 0 ? (cancelados / clientesReceita.length) * 100 : 0;
+    const custos = clientesReceita.filter(c => c.custoAtivo).reduce((s, c) => s + c.valorCustoMensal, 0);
+    const margem = mrr - custos;
+    const emAtraso = clientesReceita.filter(c => c.statusCliente === "atraso");
+    return { mrr, arr, ticket, churnRate, margem, emAtraso };
+  }, [clientesReceita]);
+
+  const sistemasMini = useMemo(() => {
+    const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
+    return sistemas.map(s => ({
+      name: s,
+      clientes: clientesReceita.filter(c => c.sistemaPrincipal === s).length,
+      color: RECEITA_COLORS.sistemas[s],
+    })).filter(s => s.clientes > 0);
+  }, [clientesReceita]);
+
+  const custosMini = useMemo(() => {
+    const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
+    return sistemas.map(s => ({
+      name: s,
+      value: clientesReceita.filter(c => c.custoAtivo && c.sistemaCusto === s).reduce((sum, c) => sum + c.valorCustoMensal, 0),
+      color: RECEITA_COLORS.sistemas[s],
+    })).filter(s => s.value > 0);
+  }, [clientesReceita]);
+
+  const topSuporte = useMemo(() => {
+    const map: Record<string, number> = {};
+    suporteEventos.forEach(e => { map[e.clienteId] = (map[e.clienteId] || 0) + 1; });
+    return Object.entries(map)
+      .map(([cid, count]) => ({ name: clientesReceita.find(c => c.id === cid)?.nome || cid, ocorrencias: count }))
+      .sort((a, b) => b.ocorrencias - a.ocorrencias)
+      .slice(0, 5);
+  }, [suporteEventos, clientesReceita]);
 
   const minhasTarefas = tarefas
     .filter(t => t.responsavelId === tecnicoAtualId && t.status !== "concluida" && t.status !== "cancelada")
-    .sort((a, b) => {
-      const pa = ["urgente", "alta", "media", "baixa"].indexOf(a.prioridade);
-      const pb = ["urgente", "alta", "media", "baixa"].indexOf(b.prioridade);
-      return pa - pb;
-    })
+    .sort((a, b) => ["urgente", "alta", "media", "baixa"].indexOf(a.prioridade) - ["urgente", "alta", "media", "baixa"].indexOf(b.prioridade))
     .slice(0, 8);
 
   const tecnicoNome = getTecnico(tecnicoAtualId)?.nome || "—";
@@ -101,6 +145,13 @@ export default function Dashboard() {
     { label: "Expiradas", value: propostasExpiradas, icon: Ban, color: "text-destructive" },
   ];
 
+  const receitaKpis = [
+    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita },
+    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita },
+    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita },
+    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: fmt(receitaMetricas.margem), icon: Percent, color: RECEITA_COLORS.margem },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -110,10 +161,11 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5"><Plus className="h-3.5 w-3.5" />Tarefa</Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/clientes?novo=1")} className="gap-1.5"><Users className="h-3.5 w-3.5" />Cliente</Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/clientes")} className="gap-1.5"><Users className="h-3.5 w-3.5" />Cliente</Button>
         </div>
       </div>
 
+      {/* Task KPIs */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         {kpis.map(k => (
           <Card key={k.label}>
@@ -126,6 +178,7 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Module cards */}
       <div className="grid gap-4 grid-cols-3">
         {modulosCards.map(m => (
           <Card key={m.label} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(m.route)}>
@@ -136,6 +189,88 @@ export default function Dashboard() {
             <CardContent><div className="text-2xl font-bold">{m.value}</div></CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Receita KPIs */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        {receitaKpis.map(k => (
+          <Card key={k.label} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/receita")}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{k.label}</CardTitle>
+              <k.icon className="h-4 w-4" style={{ color: k.color }} />
+            </CardHeader>
+            <CardContent><div className="text-xl font-bold">{k.value}</div></CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Clientes em atraso */}
+      {receitaMetricas.emAtraso.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" style={{ color: RECEITA_COLORS.churn }} />Clientes em Atraso</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {receitaMetricas.emAtraso.map(c => (
+                <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
+                  <span className="text-sm font-medium flex-1">{c.nome}</span>
+                  <Badge variant="outline" className="text-[10px]">{c.sistemaPrincipal}</Badge>
+                  <span className="text-sm font-medium">{fmt(c.valorMensalidade)}/mês</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Mini charts row */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Top suporte */}
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Top Suporte</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {topSuporte.map((s, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-4">{i + 1}.</span>
+                  <span className="text-xs flex-1 truncate">{s.name}</span>
+                  <Badge variant="outline" className="text-[10px]">{s.ocorrencias}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sistemas mini */}
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Sistemas</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={150}>
+              <PieChart>
+                <Pie data={sistemasMini} cx="50%" cy="50%" outerRadius={60} innerRadius={35} dataKey="clientes" nameKey="name">
+                  {sistemasMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Custos mini */}
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Custos por Sistema</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={150}>
+              <BarChart data={custosMini}>
+                <XAxis dataKey="name" tick={{ fontSize: 9 }} className="fill-muted-foreground" />
+                <YAxis tick={{ fontSize: 9 }} className="fill-muted-foreground" />
+                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]} name="Custo">
+                  {custosMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Propostas KPIs */}
@@ -169,7 +304,7 @@ export default function Dashboard() {
       {/* Propostas vencendo */}
       {propostasVencendo.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-warning" />Propostas Vencendo Hoje/Amanhã</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-warning" />Propostas Vencendo</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2">
               {propostasVencendo.map(p => (
@@ -177,10 +312,7 @@ export default function Dashboard() {
                   <span className="text-xs font-mono text-muted-foreground">{p.numeroProposta}</span>
                   <span className="text-sm font-medium flex-1">{p.clienteNomeSnapshot || "Sem cliente"}</span>
                   <Badge variant="outline" className="text-[10px]">{p.sistema}</Badge>
-                  <span className="text-sm font-medium">R$ {p.valorMensalidade.toFixed(0)}/mês</span>
-                  <Badge className="text-[10px] bg-warning text-warning-foreground">
-                    {p.dataValidade && new Date(p.dataValidade) < tomorrow ? "Hoje" : "Amanhã"}
-                  </Badge>
+                  <span className="text-sm font-medium">{fmt(p.valorMensalidade)}/mês</span>
                 </div>
               ))}
             </div>
@@ -188,6 +320,7 @@ export default function Dashboard() {
         </Card>
       )}
 
+      {/* Minhas Tarefas */}
       <Card>
         <CardHeader><CardTitle className="text-lg">Minhas Tarefas</CardTitle></CardHeader>
         <CardContent>
