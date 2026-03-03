@@ -81,6 +81,7 @@ function gerarTitulo(
     contaBancariaId: Math.random() > 0.3 ? "cb1" : "cb2",
     anexosFake: [],
     observacoes: "",
+    commissionType: null,
     criadoEm: emissao,
     atualizadoEm: emissao,
   };

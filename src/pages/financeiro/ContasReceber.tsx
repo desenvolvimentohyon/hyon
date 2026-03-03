@@ -260,7 +260,7 @@ function NovoTituloModal({ open, onClose, tipo }: { open: boolean; onClose: () =
       dataEmissao: now.toISOString().split("T")[0], vencimento: venc,
       valorOriginal: parseFloat(valor), desconto: 0, juros: 0, multa: 0,
       status: "aberto", formaPagamento: "pix", contaBancariaId: "cb1",
-      anexosFake: [], observacoes: "",
+      anexosFake: [], observacoes: "", commissionType: null,
     });
     toast.success("Título criado!");
     onClose();
