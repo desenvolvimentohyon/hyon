@@ -132,7 +132,7 @@ export default function ContasPagar() {
                     <Badge variant="outline" className="text-xs">{t.origem}</Badge>
                     {String(t.origem) === "comissao_parceiro" && (
                       <Badge variant="secondary" className="text-[10px] ml-1">
-                        {(t as any).commissionType === "recorrente" ? "Recorrente" : "Implantação"}
+                        {t.commissionType === "recorrente" ? "Recorrente" : "Implantação"}
                       </Badge>
                     )}
                   </TableCell>
@@ -218,7 +218,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
         valorOriginal: Math.round(valorParcela * 100) / 100,
         desconto: 0, juros: 0, multa: 0,
         status: "aberto", formaPagamento: "boleto",
-        contaBancariaId: null, anexosFake: [], observacoes: "",
+        contaBancariaId: null, anexosFake: [], observacoes: "", commissionType: null,
       });
     }
     onSave();

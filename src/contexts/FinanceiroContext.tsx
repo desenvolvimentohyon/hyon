@@ -35,7 +35,8 @@ function dbToTitulo(r: any): TituloFinanceiro {
     multa: Number(r.fine) || 0, status: r.status as any,
     formaPagamento: (m.formaPagamento || "boleto") as any,
     contaBancariaId: r.bank_account_id, anexosFake: m.anexosFake || [],
-    observacoes: r.notes || "", criadoEm: r.created_at, atualizadoEm: r.updated_at,
+    observacoes: r.notes || "", commissionType: r.commission_type || null,
+    criadoEm: r.created_at, atualizadoEm: r.updated_at,
   };
 }
 
