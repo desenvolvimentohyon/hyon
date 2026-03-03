@@ -1,4 +1,4 @@
-import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, Users, ChevronRight } from "lucide-react";
+import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, Users, ChevronRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useApp } from "@/contexts/AppContext";
+import { useUsers } from "@/contexts/UsersContext";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useNavigate } from "react-router-dom";
@@ -26,12 +27,16 @@ interface Notificacao {
 
 export function Topbar() {
   const { tecnicos, tecnicoAtualId, setTecnicoAtual, tarefas, clientes } = useApp();
+  const { users, currentUserId, setCurrentUser, getCurrentUser, getRole } = useUsers();
   const { titulos } = useFinanceiro();
   const { propostas } = usePropostas();
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const { theme, setTheme } = useTheme();
   const [popoverOpen, setPopoverOpen] = useState(false);
+
+  const currentUser = getCurrentUser();
+  const currentRole = currentUser ? getRole(currentUser.roleId) : null;
 
   const notificacoes = useMemo<Notificacao[]>(() => {
     const items: Notificacao[] = [];
@@ -281,14 +286,25 @@ export function Topbar() {
           </PopoverContent>
         </Popover>
 
-        <Select value={tecnicoAtualId} onValueChange={setTecnicoAtual}>
-          <SelectTrigger className="w-[160px] h-9 text-sm">
-            <SelectValue placeholder="Técnico" />
+        <Select value={currentUserId} onValueChange={setCurrentUser}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <div className="flex items-center gap-1.5">
+              <Shield className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <SelectValue placeholder="Usuário" />
+            </div>
           </SelectTrigger>
           <SelectContent>
-            {tecnicos.filter(t => t.ativo).map(t => (
-              <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
-            ))}
+            {users.filter(u => u.ativo).map(u => {
+              const role = getRole(u.roleId);
+              return (
+                <SelectItem key={u.id} value={u.id}>
+                  <div className="flex items-center gap-2">
+                    <span>{u.nome}</span>
+                    <Badge variant="outline" className="text-[9px] ml-1">{role?.nome}</Badge>
+                  </div>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
 

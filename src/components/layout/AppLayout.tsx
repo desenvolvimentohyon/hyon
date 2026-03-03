@@ -1,12 +1,17 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Topbar } from "@/components/layout/Topbar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useApp } from "@/contexts/AppContext";
+import { useUsers } from "@/contexts/UsersContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ROTA_PERMISSAO } from "@/types/users";
+import AcessoNegado from "@/pages/AcessoNegado";
 
 export function AppLayout() {
   const { loading } = useApp();
+  const { hasPermission } = useUsers();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -25,6 +30,11 @@ export function AppLayout() {
     );
   }
 
+  // Check route permission
+  const currentPath = location.pathname;
+  const requiredPerm = ROTA_PERMISSAO[currentPath];
+  const hasAccess = !requiredPerm || hasPermission(requiredPerm);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -32,7 +42,7 @@ export function AppLayout() {
         <div className="flex-1 flex flex-col min-w-0">
           <Topbar />
           <main className="flex-1 p-4 md:p-6 overflow-auto">
-            <Outlet />
+            {hasAccess ? <Outlet /> : <AcessoNegado />}
           </main>
         </div>
       </div>
