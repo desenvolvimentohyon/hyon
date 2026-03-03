@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, ArrowLeft, X, TrendingUp, Globe, Copy } from "lucide-react";
+import { Search, Plus, ArrowLeft, X, TrendingUp, Globe, Copy, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ClienteReceita, SistemaPrincipal, StatusCliente, RECEITA_COLORS } from "@/types/receita";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { validateCNPJ, cleanCNPJ, formatCNPJ, type CnpjLookupResult } from "@/lib/cnpjUtils";
 
 function PortalLinkButton({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(false);
@@ -84,7 +85,58 @@ export default function Clientes() {
     valorMensalidade: "", valorCustoMensal: "", observacoes: "",
   });
 
-  const resetForm = () => setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "PDV+", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
+  // CNPJ lookup state
+  const [cnpjLoading, setCnpjLoading] = useState(false);
+  const [cnpjLookupData, setCnpjLookupData] = useState<CnpjLookupResult | null>(null);
+  const [showCnpjConfirm, setShowCnpjConfirm] = useState(false);
+  const cnpjLookupRef = useRef<string>("");
+
+  const resetForm = () => {
+    setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "PDV+", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
+    setCnpjLookupData(null);
+  };
+
+  // Auto-lookup CNPJ when document field changes
+  const handleDocumentoChange = useCallback(async (value: string) => {
+    setForm(f => ({ ...f, documento: value }));
+    const cleaned = cleanCNPJ(value);
+    if (cleaned.length === 14 && validateCNPJ(cleaned) && cleaned !== cnpjLookupRef.current) {
+      cnpjLookupRef.current = cleaned;
+      setCnpjLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("cnpj-lookup", {
+          body: { cnpj: cleaned },
+        });
+        if (error) throw new Error(error.message || "Erro na consulta");
+        if (data?.error) throw new Error(data.error);
+
+        const lookupResult = data as CnpjLookupResult;
+        // Check if any field is already filled
+        const hasExistingData = form.nome || form.email || form.telefone || form.cidade;
+        if (hasExistingData) {
+          setCnpjLookupData(lookupResult);
+          setShowCnpjConfirm(true);
+        } else {
+          applyCnpjData(lookupResult);
+          toast({ title: "Dados preenchidos!", description: `${lookupResult.nome}` });
+        }
+      } catch (err: any) {
+        toast({ title: "Consulta CNPJ", description: err.message || "Erro ao consultar CNPJ", variant: "destructive" });
+      } finally {
+        setCnpjLoading(false);
+      }
+    }
+  }, [form.nome, form.email, form.telefone, form.cidade]);
+
+  const applyCnpjData = useCallback((data: CnpjLookupResult) => {
+    setForm(f => ({
+      ...f,
+      nome: data.nome || f.nome,
+      email: data.email || f.email,
+      telefone: data.telefone || f.telefone,
+      cidade: data.municipio ? `${data.municipio}/${data.uf}` : f.cidade,
+    }));
+  }, []);
 
   const filtered = useMemo(() => {
     return clientesReceita.filter(c => {
@@ -471,7 +523,7 @@ export default function Clientes() {
         </Table>
       </div>
 
-      <Dialog open={showNovo} onOpenChange={setShowNovo}>
+      <Dialog open={showNovo} onOpenChange={v => { if (!v) resetForm(); setShowNovo(v); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Novo Cliente</DialogTitle></DialogHeader>
           <div className="space-y-4">
@@ -481,7 +533,17 @@ export default function Clientes() {
               <div><Label>Email</Label><Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Documento</Label><Input value={form.documento} onChange={e => setForm(f => ({ ...f, documento: e.target.value }))} placeholder="CPF/CNPJ" /></div>
+              <div>
+                <Label className="flex items-center gap-2">
+                  Documento (CPF/CNPJ)
+                  {cnpjLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                </Label>
+                <Input
+                  value={form.documento}
+                  onChange={e => handleDocumentoChange(e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                />
+              </div>
               <div><Label>Cidade</Label><Input value={form.cidade} onChange={e => setForm(f => ({ ...f, cidade: e.target.value }))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -502,6 +564,34 @@ export default function Clientes() {
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowNovo(false); resetForm(); }}>Cancelar</Button>
             <Button onClick={handleCriar}>Cadastrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CNPJ confirmation modal */}
+      <Dialog open={showCnpjConfirm} onOpenChange={setShowCnpjConfirm}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Substituir dados?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Deseja substituir os dados atuais pelos dados da Receita Federal?
+          </p>
+          {cnpjLookupData && (
+            <div className="text-sm space-y-1 p-3 rounded-lg bg-muted/50">
+              <p><span className="text-muted-foreground">Razão Social:</span> {cnpjLookupData.nome}</p>
+              {cnpjLookupData.fantasia && <p><span className="text-muted-foreground">Fantasia:</span> {cnpjLookupData.fantasia}</p>}
+              <p><span className="text-muted-foreground">Cidade:</span> {cnpjLookupData.municipio}/{cnpjLookupData.uf}</p>
+              <p><span className="text-muted-foreground">Situação:</span> {cnpjLookupData.situacao}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setShowCnpjConfirm(false)}>Manter Atuais</Button>
+            <Button size="sm" onClick={() => {
+              if (cnpjLookupData) {
+                applyCnpjData(cnpjLookupData);
+                toast({ title: "Dados atualizados!", description: cnpjLookupData.nome });
+              }
+              setShowCnpjConfirm(false);
+            }}>Substituir</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
