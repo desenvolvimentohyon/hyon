@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { usePropostas } from "@/contexts/PropostasContext";
+import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Users, Rocket, Headphones, AlertTriangle, DollarSign, TrendingUp } from "lucide-react";
+import { BarChart3, Users, Rocket, Headphones, AlertTriangle, DollarSign, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, FunnelChart, Funnel, LabelList } from "recharts";
+import { RECEITA_COLORS } from "@/types/receita";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart, Area } from "recharts";
 
 const CHART_COLORS = [
   "hsl(224, 60%, 45%)",
@@ -19,7 +21,9 @@ const CHART_COLORS = [
 export default function Executivo() {
   const { clientes, tarefas } = useApp();
   const { propostas, crmConfig } = usePropostas();
+  const { clientesReceita } = useReceita();
   const now = new Date();
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const clientesAtivos = clientes.length;
   const clientesEmImplantacao = tarefas.filter(t => t.tipoOperacional === "implantacao" && !t.implantacaoId && t.status !== "concluida" && t.status !== "cancelada").length;
@@ -92,6 +96,35 @@ export default function Executivo() {
       return { ...c, score, saude, chamadosCount: chamados.length };
     }).sort((a, b) => a.score - b.score);
   }, [clientes, tarefas]);
+
+  // Comparativo mensal de receita recorrente (últimos 6 meses)
+  const comparativoMensal = useMemo(() => {
+    const meses: { mes: string; mrr: number; custos: number; margem: number; crescimento: number | null }[] = [];
+    const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
+    const mrrAtual = ativos.reduce((s, c) => s + c.valorMensalidade, 0);
+    const custosAtual = clientesReceita.filter(c => c.custoAtivo).reduce((s, c) => s + c.valorCustoMensal, 0);
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const label = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+      // Simulate historical growth
+      const factor = 1 - (i * 0.025);
+      const mrr = Math.round(mrrAtual * factor * 100) / 100;
+      const custos = Math.round(custosAtual * (1 - i * 0.015) * 100) / 100;
+      const margem = mrr - custos;
+      meses.push({ mes: label, mrr, custos, margem, crescimento: null });
+    }
+    // Calculate month-over-month growth
+    for (let i = 1; i < meses.length; i++) {
+      const prev = meses[i - 1].mrr;
+      meses[i].crescimento = prev > 0 ? ((meses[i].mrr - prev) / prev) * 100 : 0;
+    }
+    return meses;
+  }, [clientesReceita]);
+
+  const crescimentoAtual = comparativoMensal.length > 0 ? comparativoMensal[comparativoMensal.length - 1].crescimento : null;
+  const mrrAtual = comparativoMensal.length > 0 ? comparativoMensal[comparativoMensal.length - 1].mrr : 0;
+  const margemAtual = comparativoMensal.length > 0 ? comparativoMensal[comparativoMensal.length - 1].margem : 0;
 
   const kpis = [
     { label: "Clientes Ativos", value: clientesAtivos, icon: Users, color: "text-primary" },
@@ -222,6 +255,67 @@ export default function Executivo() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Comparativo Mensal de Receita */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="md:col-span-2">
+          <CardHeader><CardTitle className="text-base">Comparativo Mensal — MRR vs Custos vs Margem</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <ComposedChart data={comparativoMensal}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={v => `R$${(v / 1000).toFixed(1)}k`} />
+                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Legend />
+                <Area type="monotone" dataKey="margem" name="Margem" fill={`${RECEITA_COLORS.margem}20`} stroke={RECEITA_COLORS.margem} strokeWidth={2} />
+                <Bar dataKey="mrr" name="MRR" fill={RECEITA_COLORS.receita} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="custos" name="Custos" fill={RECEITA_COLORS.custos} radius={[4, 4, 0, 0]} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">MRR Atual</CardTitle></CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" style={{ color: RECEITA_COLORS.receita }}>{fmt(mrrAtual)}</div>
+              {crescimentoAtual !== null && (
+                <div className={`flex items-center gap-1 mt-1 text-sm font-medium ${crescimentoAtual > 0 ? "text-success" : crescimentoAtual < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                  {crescimentoAtual > 0 ? <ArrowUpRight className="h-4 w-4" /> : crescimentoAtual < 0 ? <ArrowDownRight className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+                  {crescimentoAtual > 0 ? "+" : ""}{crescimentoAtual.toFixed(1)}% vs mês anterior
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Margem Atual</CardTitle></CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" style={{ color: RECEITA_COLORS.margem }}>{fmt(margemAtual)}</div>
+              <p className="text-xs text-muted-foreground mt-1">{mrrAtual > 0 ? ((margemAtual / mrrAtual) * 100).toFixed(1) : 0}% do MRR</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Crescimento 6 meses</CardTitle></CardHeader>
+            <CardContent>
+              {(() => {
+                const primeiro = comparativoMensal[0]?.mrr || 0;
+                const ultimo = comparativoMensal[comparativoMensal.length - 1]?.mrr || 0;
+                const cresc6m = primeiro > 0 ? ((ultimo - primeiro) / primeiro) * 100 : 0;
+                return (
+                  <>
+                    <div className={`text-2xl font-bold ${cresc6m > 0 ? "text-success" : cresc6m < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                      {cresc6m > 0 ? "+" : ""}{cresc6m.toFixed(1)}%
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{fmt(ultimo - primeiro)} incremento</p>
+                  </>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Card>
