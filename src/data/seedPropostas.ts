@@ -14,7 +14,9 @@ const h = (acao: string, det: string, d: number) => ({ id: uid(), acao, detalhes
 
 export const defaultCRMConfig: CRMConfig = { ...DEFAULT_CRM_CONFIG };
 
-export const seedPropostas: Proposta[] = [
+const partnerDefaults = { partnerId: null, partnerCommissionPercent: null, partnerCommissionValue: null, commissionGenerated: false };
+
+export const seedPropostas: Proposta[] = ([
   // Rascunho
   {
     id: "prop1", numeroProposta: "PROP-2026-0001",
@@ -177,4 +179,4 @@ export const seedPropostas: Proposta[] = [
     historico: [h("Criação", "Criada", 15), h("Envio", "Enviada", 12), h("Visualização", "Visualizada", 10), h("Recusa", "Cliente recusou a proposta", 8)],
     criadoEm: past(15), atualizadoEm: past(8),
   },
-];
+] as any[]).map(p => ({ ...partnerDefaults, ...p })) as Proposta[];

@@ -35,6 +35,7 @@ import AcessoNegado from "./pages/AcessoNegado";
 import NotFound from "./pages/NotFound";
 import PortalCliente from "./pages/PortalCliente";
 import CheckoutInterno from "./pages/CheckoutInterno";
+import Parceiros from "./pages/Parceiros";
 // Financeiro
 import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
 import ContasReceber from "./pages/financeiro/ContasReceber";
@@ -98,6 +99,7 @@ function AuthGate() {
                     <Route path="/usuarios" element={<UsuariosConfig />} />
                     <Route path="/parametros" element={<Parametros />} />
                     <Route path="/acesso-negado" element={<AcessoNegado />} />
+                    <Route path="/parceiros" element={<Parceiros />} />
                     <Route path="/checkout-interno" element={<CheckoutInterno />} />
                     {/* Financeiro */}
                     <Route path="/financeiro" element={<FinanceiroVisaoGeral />} />

@@ -61,6 +61,7 @@ export default function Propostas() {
       pdfGeradoEm: null, observacoesInternas: "",
       informacoesAdicionais: crmConfig.informacoesAdicionaisPadrao,
       itens: [],
+      partnerId: null, partnerCommissionPercent: null, partnerCommissionValue: null, commissionGenerated: false,
     });
     toast({ title: "Proposta criada!" });
     navigate(`/propostas/${nova.id}`);

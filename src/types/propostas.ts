@@ -43,6 +43,10 @@ export interface Proposta {
   historico: PropostaHistorico[];
   criadoEm: string;
   atualizadoEm: string;
+  partnerId: string | null;
+  partnerCommissionPercent: number | null;
+  partnerCommissionValue: number | null;
+  commissionGenerated: boolean;
 }
 
 export interface CRMConfig {
