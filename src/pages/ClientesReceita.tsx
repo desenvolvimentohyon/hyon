@@ -12,10 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, ArrowLeft, X } from "lucide-react";
+import { Search, Plus, ArrowLeft, X, TrendingUp } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { ClienteReceita, SistemaPrincipal, StatusCliente, RECEITA_COLORS } from "@/types/receita";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const SISTEMAS: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
 const STATUSES: StatusCliente[] = ["ativo", "atraso", "suspenso", "cancelado"];
@@ -30,7 +30,7 @@ const STATUS_COLORS: Record<StatusCliente, string> = {
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function Clientes() {
-  const { clientesReceita, suporteEventos, addClienteReceita, updateClienteReceita, deleteClienteReceita, loading } = useReceita();
+  const { clientesReceita, suporteEventos, addClienteReceita, updateClienteReceita, deleteClienteReceita, addMensalidadeAjuste, getAjustesCliente, loading } = useReceita();
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
@@ -38,6 +38,8 @@ export default function Clientes() {
   const [filtroMensalidade, setFiltroMensalidade] = useState<string>("todos");
   const [showNovo, setShowNovo] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [ajusteValor, setAjusteValor] = useState("");
+  const [ajusteMotivo, setAjusteMotivo] = useState("");
 
   // Form state
   const [form, setForm] = useState({
@@ -145,6 +147,7 @@ export default function Clientes() {
           <TabsList>
             <TabsTrigger value="geral">Visão Geral</TabsTrigger>
             <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+            <TabsTrigger value="historico">Histórico Mensalidade</TabsTrigger>
             <TabsTrigger value="suporte">Suporte ({selectedEventos.length})</TabsTrigger>
           </TabsList>
 
@@ -201,6 +204,102 @@ export default function Clientes() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="historico" className="space-y-4 mt-4">
+            {(() => {
+              const ajustes = getAjustesCliente(selected.id);
+              const chartData = ajustes.map(a => ({
+                data: new Date(a.data).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }),
+                valor: a.valorNovo,
+              }));
+              // Add current value as last point if different from last adjustment
+              if (chartData.length === 0 || chartData[chartData.length - 1].valor !== selected.valorMensalidade) {
+                chartData.push({ data: "Atual", valor: selected.valorMensalidade });
+              }
+              return (
+                <>
+                  <Card>
+                    <CardHeader><CardTitle className="text-sm flex items-center gap-2"><TrendingUp className="h-4 w-4" style={{ color: RECEITA_COLORS.receita }} />Evolução da Mensalidade</CardTitle></CardHeader>
+                    <CardContent>
+                      {chartData.length > 1 ? (
+                        <ResponsiveContainer width="100%" height={220}>
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                            <XAxis dataKey="data" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                            <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                            <Tooltip formatter={(v: number) => fmt(v)} />
+                            <Line type="monotone" dataKey="valor" stroke={RECEITA_COLORS.receita} strokeWidth={2} dot={{ r: 4, fill: RECEITA_COLORS.receita }} name="Mensalidade" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-8">Sem ajustes registrados ainda</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader><CardTitle className="text-sm">Registrar Novo Ajuste</CardTitle></CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-3 items-end">
+                        <div className="flex-1 min-w-[120px]">
+                          <Label className="text-xs">Novo Valor (R$)</Label>
+                          <Input type="number" placeholder="0.00" value={ajusteValor} onChange={e => setAjusteValor(e.target.value)} className="h-9" />
+                        </div>
+                        <div className="flex-[2] min-w-[180px]">
+                          <Label className="text-xs">Motivo</Label>
+                          <Input placeholder="Ex: Reajuste anual, Upgrade de plano..." value={ajusteMotivo} onChange={e => setAjusteMotivo(e.target.value)} className="h-9" />
+                        </div>
+                        <Button size="sm" onClick={() => {
+                          const val = Number(ajusteValor);
+                          if (!val || val <= 0) { toast({ title: "Valor inválido", variant: "destructive" }); return; }
+                          if (!ajusteMotivo.trim()) { toast({ title: "Informe o motivo", variant: "destructive" }); return; }
+                          addMensalidadeAjuste(selected.id, val, ajusteMotivo.trim());
+                          setAjusteValor("");
+                          setAjusteMotivo("");
+                          toast({ title: "Ajuste registrado!", description: `Mensalidade alterada para ${fmt(val)}` });
+                        }}>Registrar</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {ajustes.length > 0 && (
+                    <div className="rounded-lg border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Data</TableHead>
+                            <TableHead className="text-right">Anterior</TableHead>
+                            <TableHead className="text-right">Novo</TableHead>
+                            <TableHead className="text-right">Variação</TableHead>
+                            <TableHead>Motivo</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {[...ajustes].reverse().map(a => {
+                            const diff = a.valorNovo - a.valorAnterior;
+                            const diffPct = a.valorAnterior > 0 ? (diff / a.valorAnterior) * 100 : 0;
+                            return (
+                              <TableRow key={a.id}>
+                                <TableCell className="text-sm">{new Date(a.data).toLocaleDateString("pt-BR")}</TableCell>
+                                <TableCell className="text-right text-sm text-muted-foreground">{fmt(a.valorAnterior)}</TableCell>
+                                <TableCell className="text-right text-sm font-medium">{fmt(a.valorNovo)}</TableCell>
+                                <TableCell className="text-right text-sm">
+                                  <span style={{ color: diff >= 0 ? RECEITA_COLORS.margem : RECEITA_COLORS.custos }}>
+                                    {diff >= 0 ? "+" : ""}{fmt(diff)} ({diffPct >= 0 ? "+" : ""}{diffPct.toFixed(1)}%)
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-sm">{a.motivo}</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="suporte" className="space-y-4 mt-4">

@@ -1,4 +1,4 @@
-import { ClienteReceita, SuporteEvento, SistemaPrincipal } from "@/types/receita";
+import { ClienteReceita, SuporteEvento, SistemaPrincipal, MensalidadeAjuste } from "@/types/receita";
 
 const past = (days: number) => {
   const d = new Date();
@@ -92,5 +92,26 @@ seedClientesReceita.forEach(c => {
       duracaoMinutos: Math.floor(Math.random() * 120) + 10,
       resolvido: Math.random() > 0.2,
     });
+  }
+});
+
+// Generate fake fee adjustment history
+const motivos = ["Reajuste anual", "Upgrade de plano", "Negociação comercial", "Correção IGPM", "Promoção", "Downgrade de plano"];
+export const seedMensalidadeAjustes: MensalidadeAjuste[] = [];
+let ajusteId = 1;
+seedClientesReceita.forEach(c => {
+  const numAjustes = Math.floor(Math.random() * 5) + 1;
+  let valorAtual = Math.round(c.valorMensalidade * (0.6 + Math.random() * 0.3) * 100) / 100;
+  for (let i = numAjustes; i >= 1; i--) {
+    const valorNovo = i === 1 ? c.valorMensalidade : Math.round(valorAtual * (1 + (Math.random() * 0.2 - 0.05)) * 100) / 100;
+    seedMensalidadeAjustes.push({
+      id: `aj${ajusteId++}`,
+      clienteId: c.id,
+      data: past(i * 90 + Math.floor(Math.random() * 30)),
+      valorAnterior: valorAtual,
+      valorNovo,
+      motivo: motivos[Math.floor(Math.random() * motivos.length)],
+    });
+    valorAtual = valorNovo;
   }
 });
