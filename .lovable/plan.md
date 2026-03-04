@@ -1,19 +1,40 @@
 
 
-## Plan: Create `updated_at` triggers for all tables
+## Plan: Fix Footer Overlap + Add Destructive Action Confirmations
 
-A single migration adding `BEFORE UPDATE` triggers using the existing `handle_updated_at()` function to every table that has an `updated_at` column.
+### 1. Fix ClienteDetalhe footer overlapping sidebar
 
-### Tables to cover (21 total):
-`clients`, `profiles`, `organizations`, `company_profile`, `company_bank_accounts`, `proposals`, `proposal_items`, `proposal_settings`, `financial_titles`, `partners`, `payment_methods`, `bank_accounts`, `plan_accounts`, `plans`, `system_modules`, `custom_roles`, `crm_statuses`, `billing_rules`, `asaas_settings`, `client_contacts`, `monthly_adjustments`
+**File:** `src/components/clientes/ClienteDetalhe.tsx` (lines ~187-196)
 
-### Migration SQL:
-One `CREATE TRIGGER IF NOT EXISTS` per table, all in a single migration file. Each trigger fires `BEFORE UPDATE FOR EACH ROW EXECUTE FUNCTION handle_updated_at()`.
+Change the fixed footer from `left-0 right-0` to only span the content area. Since the component renders inside `AppLayout`'s `<main>` which is already to the right of the sidebar, the simplest fix is to make the footer sticky at the bottom of the scrollable content area instead of fixed to the viewport.
 
-### Files:
-| Action | File |
-|--------|------|
-| Migration | New trigger creation for 21 tables |
+Replace:
+```
+fixed bottom-0 left-0 right-0
+```
+With:
+```
+sticky bottom-0
+```
 
-No code changes needed — this is purely a database schema change.
+This keeps the footer pinned at the bottom of the scrollable `<main>` without overlapping the sidebar. Remove the `pb-20` spacer on the content since sticky handles it naturally, and remove the `max-w-5xl mx-auto` wrapper inside the footer (the parent already constrains width).
+
+### 2. Add AlertDialog to bank account deletion in MinhaEmpresa
+
+**File:** `src/components/configuracoes/MinhaEmpresa.tsx`
+
+- Add state `deleteBankId` (similar pattern to `TabContatos.tsx`)
+- Import `AlertDialog` components
+- Replace direct `deleteBank(b.id)` call on line 544 with `setDeleteBankId(b.id)`
+- Add AlertDialog at bottom of component
+
+### 3. TabContatos already has AlertDialog
+
+The `TabContatos.tsx` component already has a proper `AlertDialog` for contact deletion — no changes needed there.
+
+### Files to edit:
+| File | Change |
+|------|--------|
+| `src/components/clientes/ClienteDetalhe.tsx` | Fix footer positioning (sticky instead of fixed) |
+| `src/components/configuracoes/MinhaEmpresa.tsx` | Add AlertDialog for bank account deletion |
 
