@@ -64,7 +64,7 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
                     draggable
                     onDragStart={e => handleDragStart(e, t.id)}
                     onDragEnd={() => { setDragId(null); setDragOver(null); }}
-                    className={`cursor-grab active:cursor-grabbing hover:shadow-md transition-all ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
+                    className={`cursor-grab active:cursor-grabbing transition-all duration-150 hover:shadow-card-hover ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
                   >
                     <CardContent className="p-3 space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -275,7 +275,7 @@ export default function Tarefas() {
               {filteredTarefas.map(t => {
                 const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || { label: t.tipoOperacional || "N/A", bgClass: "bg-muted text-muted-foreground" };
                 return (
-                  <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/tarefas/${t.id}`)}>
+                  <TableRow key={t.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => navigate(`/tarefas/${t.id}`)}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{t.titulo}</span>

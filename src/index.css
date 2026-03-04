@@ -48,6 +48,10 @@
 
     --radius: 0.75rem;
 
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.04), 0 1px 2px -1px hsl(0 0% 0% / 0.04);
+    --shadow-card-hover: 0 4px 12px -2px hsl(0 0% 0% / 0.08), 0 2px 6px -2px hsl(0 0% 0% / 0.04);
+    --shadow-elevated: 0 8px 24px -4px hsl(0 0% 0% / 0.12), 0 4px 8px -4px hsl(0 0% 0% / 0.06);
+
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 220 20% 80%;
     --sidebar-primary: 221 83% 58%;
@@ -99,6 +103,10 @@
     --input: 222 20% 18%;
     --ring: 221 83% 58%;
 
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.12), 0 1px 2px -1px hsl(0 0% 0% / 0.12);
+    --shadow-card-hover: 0 4px 12px -2px hsl(0 0% 0% / 0.2), 0 2px 6px -2px hsl(0 0% 0% / 0.12);
+    --shadow-elevated: 0 8px 24px -4px hsl(0 0% 0% / 0.3), 0 4px 8px -4px hsl(0 0% 0% / 0.16);
+
     --sidebar-background: 222 47% 5%;
     --sidebar-foreground: 220 15% 75%;
     --sidebar-primary: 221 83% 58%;
@@ -132,10 +140,29 @@
   }
 
   .kpi-card {
-    @apply bg-card border rounded-xl p-5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+    @apply bg-card border rounded-xl p-5 transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+  .kpi-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
   }
 
   .list-row {
     @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-all duration-150;
+  }
+
+  .domain-border-left {
+    @apply border-l-[3px];
   }
 }
