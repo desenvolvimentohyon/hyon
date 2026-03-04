@@ -318,6 +318,370 @@ export type Database = {
           },
         ]
       }
+      card_clients: {
+        Row: {
+          card_machine_type: Database["public"]["Enums"]["card_machine_type"]
+          city: string | null
+          cnpj: string | null
+          company_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          linked_client_id: string | null
+          name: string
+          notes: string | null
+          org_id: string
+          phone: string
+          status: Database["public"]["Enums"]["card_client_status"]
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          card_machine_type?: Database["public"]["Enums"]["card_machine_type"]
+          city?: string | null
+          cnpj?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          linked_client_id?: string | null
+          name: string
+          notes?: string | null
+          org_id: string
+          phone?: string
+          status?: Database["public"]["Enums"]["card_client_status"]
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          card_machine_type?: Database["public"]["Enums"]["card_machine_type"]
+          city?: string | null
+          cnpj?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          linked_client_id?: string | null
+          name?: string
+          notes?: string | null
+          org_id?: string
+          phone?: string
+          status?: Database["public"]["Enums"]["card_client_status"]
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_clients_linked_client_id_fkey"
+            columns: ["linked_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_clients_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_commissions: {
+        Row: {
+          card_client_id: string
+          commission_percent: number
+          commission_value: number
+          competency: string
+          created_at: string
+          gross_volume: number
+          id: string
+          org_id: string
+          paid_at: string | null
+          status: Database["public"]["Enums"]["card_commission_status"]
+        }
+        Insert: {
+          card_client_id: string
+          commission_percent?: number
+          commission_value?: number
+          competency: string
+          created_at?: string
+          gross_volume?: number
+          id?: string
+          org_id: string
+          paid_at?: string | null
+          status?: Database["public"]["Enums"]["card_commission_status"]
+        }
+        Update: {
+          card_client_id?: string
+          commission_percent?: number
+          commission_value?: number
+          competency?: string
+          created_at?: string
+          gross_volume?: number
+          id?: string
+          org_id?: string
+          paid_at?: string | null
+          status?: Database["public"]["Enums"]["card_commission_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_commissions_card_client_id_fkey"
+            columns: ["card_client_id"]
+            isOneToOne: false
+            referencedRelation: "card_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_commissions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_fee_profiles: {
+        Row: {
+          active: boolean
+          aluguel_mensal: number | null
+          antecipacao_percent: number
+          card_client_id: string
+          created_at: string
+          id: string
+          mdr_credito_1x_percent: number
+          mdr_credito_2a6_percent: number
+          mdr_credito_7a12_percent: number
+          mdr_debito_percent: number
+          observacoes: string | null
+          org_id: string
+          prazo_repasse: number
+        }
+        Insert: {
+          active?: boolean
+          aluguel_mensal?: number | null
+          antecipacao_percent?: number
+          card_client_id: string
+          created_at?: string
+          id?: string
+          mdr_credito_1x_percent?: number
+          mdr_credito_2a6_percent?: number
+          mdr_credito_7a12_percent?: number
+          mdr_debito_percent?: number
+          observacoes?: string | null
+          org_id: string
+          prazo_repasse?: number
+        }
+        Update: {
+          active?: boolean
+          aluguel_mensal?: number | null
+          antecipacao_percent?: number
+          card_client_id?: string
+          created_at?: string
+          id?: string
+          mdr_credito_1x_percent?: number
+          mdr_credito_2a6_percent?: number
+          mdr_credito_7a12_percent?: number
+          mdr_debito_percent?: number
+          observacoes?: string | null
+          org_id?: string
+          prazo_repasse?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_fee_profiles_card_client_id_fkey"
+            columns: ["card_client_id"]
+            isOneToOne: false
+            referencedRelation: "card_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_fee_profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_proposal_onboarding: {
+        Row: {
+          card_client_id: string
+          card_proposal_id: string
+          completed_at: string | null
+          created_at: string
+          data_payload: Json | null
+          id: string
+          org_id: string
+          requested_at: string | null
+          status: Database["public"]["Enums"]["card_onboarding_status"]
+        }
+        Insert: {
+          card_client_id: string
+          card_proposal_id: string
+          completed_at?: string | null
+          created_at?: string
+          data_payload?: Json | null
+          id?: string
+          org_id: string
+          requested_at?: string | null
+          status?: Database["public"]["Enums"]["card_onboarding_status"]
+        }
+        Update: {
+          card_client_id?: string
+          card_proposal_id?: string
+          completed_at?: string | null
+          created_at?: string
+          data_payload?: Json | null
+          id?: string
+          org_id?: string
+          requested_at?: string | null
+          status?: Database["public"]["Enums"]["card_onboarding_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_proposal_onboarding_card_client_id_fkey"
+            columns: ["card_client_id"]
+            isOneToOne: false
+            referencedRelation: "card_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_proposal_onboarding_card_proposal_id_fkey"
+            columns: ["card_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "card_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_proposal_onboarding_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_proposals: {
+        Row: {
+          accepted_at: string | null
+          accepted_by_name: string | null
+          card_client_id: string
+          commission_percent: number
+          created_at: string
+          fee_profile_snapshot: Json | null
+          first_viewed_at: string | null
+          id: string
+          machine_type: Database["public"]["Enums"]["card_machine_type"]
+          org_id: string
+          public_token: string
+          refused_at: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["card_proposal_status"]
+          title: string
+          updated_at: string
+          validity_days: number
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by_name?: string | null
+          card_client_id: string
+          commission_percent?: number
+          created_at?: string
+          fee_profile_snapshot?: Json | null
+          first_viewed_at?: string | null
+          id?: string
+          machine_type?: Database["public"]["Enums"]["card_machine_type"]
+          org_id: string
+          public_token?: string
+          refused_at?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["card_proposal_status"]
+          title?: string
+          updated_at?: string
+          validity_days?: number
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by_name?: string | null
+          card_client_id?: string
+          commission_percent?: number
+          created_at?: string
+          fee_profile_snapshot?: Json | null
+          first_viewed_at?: string | null
+          id?: string
+          machine_type?: Database["public"]["Enums"]["card_machine_type"]
+          org_id?: string
+          public_token?: string
+          refused_at?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["card_proposal_status"]
+          title?: string
+          updated_at?: string
+          validity_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_proposals_card_client_id_fkey"
+            columns: ["card_client_id"]
+            isOneToOne: false
+            referencedRelation: "card_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_proposals_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_revenue_monthly: {
+        Row: {
+          card_client_id: string
+          competency: string
+          created_at: string
+          gross_volume: number
+          id: string
+          notes: string | null
+          org_id: string
+        }
+        Insert: {
+          card_client_id: string
+          competency: string
+          created_at?: string
+          gross_volume?: number
+          id?: string
+          notes?: string | null
+          org_id: string
+        }
+        Update: {
+          card_client_id?: string
+          competency?: string
+          created_at?: string
+          gross_volume?: number
+          id?: string
+          notes?: string | null
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_revenue_monthly_card_client_id_fkey"
+            columns: ["card_client_id"]
+            isOneToOne: false
+            referencedRelation: "card_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_revenue_monthly_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_attachments: {
         Row: {
           client_id: string
@@ -2267,7 +2631,27 @@ export type Database = {
       get_user_permissions: { Args: { _user_id: string }; Returns: string[] }
     }
     Enums: {
-      [_ in never]: never
+      card_client_status:
+        | "lead"
+        | "proposta_enviada"
+        | "em_negociacao"
+        | "ativo"
+        | "recusado"
+        | "inativo"
+      card_commission_status: "previsto" | "confirmado" | "pago"
+      card_machine_type: "fiscal" | "nao_fiscal"
+      card_onboarding_status:
+        | "pendente"
+        | "solicitado"
+        | "recebido"
+        | "concluido"
+      card_proposal_status:
+        | "draft"
+        | "enviada"
+        | "visualizada"
+        | "aceita"
+        | "recusada"
+        | "expirada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2394,6 +2778,31 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      card_client_status: [
+        "lead",
+        "proposta_enviada",
+        "em_negociacao",
+        "ativo",
+        "recusado",
+        "inativo",
+      ],
+      card_commission_status: ["previsto", "confirmado", "pago"],
+      card_machine_type: ["fiscal", "nao_fiscal"],
+      card_onboarding_status: [
+        "pendente",
+        "solicitado",
+        "recebido",
+        "concluido",
+      ],
+      card_proposal_status: [
+        "draft",
+        "enviada",
+        "visualizada",
+        "aceita",
+        "recusada",
+        "expirada",
+      ],
+    },
   },
 } as const

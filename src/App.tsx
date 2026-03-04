@@ -38,6 +38,13 @@ import NotFound from "./pages/NotFound";
 import PortalCliente from "./pages/PortalCliente";
 import CheckoutInterno from "./pages/CheckoutInterno";
 import Parceiros from "./pages/Parceiros";
+// Cartões
+import CardDashboard from "./pages/cartoes/CardDashboard";
+import CardClientes from "./pages/cartoes/CardClientes";
+import CardClienteDetalhe from "./pages/cartoes/CardClienteDetalhe";
+import CardPropostas from "./pages/cartoes/CardPropostas";
+import CardFaturamento from "./pages/cartoes/CardFaturamento";
+import CardPropostaPublica from "./pages/cartoes/CardPropostaPublica";
 // Financeiro
 import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
 import ContasReceber from "./pages/financeiro/ContasReceber";
@@ -102,6 +109,12 @@ function AuthGate() {
                     <Route path="/acesso-negado" element={<AcessoNegado />} />
                     <Route path="/parceiros" element={<Parceiros />} />
                     <Route path="/checkout-interno" element={<CheckoutInterno />} />
+                    {/* Cartões */}
+                    <Route path="/cartoes" element={<CardDashboard />} />
+                    <Route path="/cartoes/clientes" element={<CardClientes />} />
+                    <Route path="/cartoes/clientes/:id" element={<CardClienteDetalhe />} />
+                    <Route path="/cartoes/propostas" element={<CardPropostas />} />
+                    <Route path="/cartoes/faturamento" element={<CardFaturamento />} />
                     {/* Financeiro */}
                     <Route path="/financeiro" element={<FinanceiroVisaoGeral />} />
                     <Route path="/financeiro/contas-a-receber" element={<ContasReceber />} />
@@ -135,6 +148,7 @@ const App = () => (
             <Route path="/aceite/:numero" element={<AceiteProposta />} />
             <Route path="/proposta/:token" element={<PropostaPublica />} />
             <Route path="/portal/:token" element={<PortalCliente />} />
+            <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
             <Route path="*" element={<AuthGate />} />
           </Routes>
           <PwaInstallBanner />
