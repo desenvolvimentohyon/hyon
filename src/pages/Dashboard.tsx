@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useReceita } from "@/contexts/ReceitaContext";
@@ -44,6 +46,47 @@ function AcronymLabel({ label }: { label: string }) {
 }
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+function IndicacoesRecebidasCard() {
+  const { data: referrals } = useQuery({
+    queryKey: ["portal_referrals"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("portal_referrals")
+        .select("id, company_name, contact_name, city, status, created_at, client_id")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  if (!referrals || referrals.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" />
+          Indicações Recebidas ({referrals.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {referrals.map(r => (
+            <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{r.company_name}</p>
+                <p className="text-xs text-muted-foreground">{[r.contact_name, r.city].filter(Boolean).join(" · ")} · {new Date(r.created_at).toLocaleDateString("pt-BR")}</p>
+              </div>
+              <Badge variant={r.status === "pendente" ? "outline" : "default"}>{r.status}</Badge>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Dashboard() {
   const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel } = useApp();
@@ -451,6 +494,9 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+      {/* Indicações recebidas (Portal) */}
+      <IndicacoesRecebidasCard />
+
       {/* Executive Widgets */}
       <Separator className="my-2" />
       <DashboardExecutiveWidgets />
