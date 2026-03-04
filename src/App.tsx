@@ -16,7 +16,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Tarefas from "./pages/Tarefas";
 import TarefaDetalhe from "./pages/TarefaDetalhe";
-import Clientes from "./pages/Clientes";
+
 import ClientesReceita from "./pages/ClientesReceita";
 import Receita from "./pages/Receita";
 import Tecnicos from "./pages/Tecnicos";
