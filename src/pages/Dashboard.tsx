@@ -27,6 +27,111 @@ import { StatusTarefa } from "@/types";
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
 
+// ── Section Skeleton Loaders ─────────────────────────────────────────
+function KpisSkeleton() {
+  return (
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Card key={i} className="neon-border">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-4 w-4 rounded" />
+            </div>
+            <Skeleton className="h-8 w-28" />
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-14" />
+              <Skeleton className="h-7 w-20" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ChartsSkeleton() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-12">
+      <Card className="lg:col-span-8 neon-border">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-24" />
+            <div className="flex gap-1">
+              <Skeleton className="h-7 w-14" />
+              <Skeleton className="h-7 w-14" />
+              <Skeleton className="h-7 w-14" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent><Skeleton className="h-[280px] w-full rounded-lg" /></CardContent>
+      </Card>
+      <div className="lg:col-span-4 grid gap-4">
+        {[1, 2].map(i => (
+          <Card key={i} className="neon-border">
+            <CardHeader className="pb-1"><Skeleton className="h-4 w-32" /></CardHeader>
+            <CardContent className="flex flex-col items-center gap-2 pb-3">
+              <Skeleton className="h-[130px] w-[130px] rounded-full" />
+              <div className="flex gap-3">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OperationalSkeleton() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i} className="neon-border">
+          <CardHeader className="pb-2"><Skeleton className="h-4 w-36" /></CardHeader>
+          <CardContent className="space-y-2">
+            {Array.from({ length: 4 }).map((_, j) => (
+              <Skeleton key={j} className="h-10 w-full rounded-lg" />
+            ))}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function AnalyticsSkeleton() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      {[1, 2].map(i => (
+        <Card key={i} className="neon-border">
+          <CardHeader className="pb-2"><Skeleton className="h-4 w-40" /></CardHeader>
+          <CardContent><Skeleton className="h-[220px] w-full rounded-lg" /></CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function TasksSkeleton() {
+  return (
+    <Card className="neon-border">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-7 w-20" />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-1.5">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full rounded-lg" />
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Acronym tooltips ────────────────────────────────────────────────
 const ACRONYM_TOOLTIPS: Record<string, string> = {
   "MRR": "MRR — Monthly Recurring Revenue\nReceita recorrente mensal proveniente das mensalidades dos clientes ativos.",
@@ -121,11 +226,14 @@ function IndicacoesRecebidasCard() {
 // MAIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════
 export default function Dashboard() {
-  const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel } = useApp();
-  const { propostas, crmConfig } = usePropostas();
-  const { clientesReceita, suporteEventos } = useReceita();
+  const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel, loading: appLoading } = useApp();
+  const { propostas, crmConfig, loading: propostasLoading } = usePropostas();
+  const { clientesReceita, suporteEventos, loading: receitaLoading } = useReceita();
   const navigate = useNavigate();
   const [chartMode, setChartMode] = useState<"mrr" | "custos" | "margem">("mrr");
+
+  const dataLoading = appLoading || receitaLoading;
+  const allLoading = dataLoading || propostasLoading;
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -311,6 +419,7 @@ export default function Dashboard() {
         />
 
         {/* ══ LINHA 1 — KPIs executivos (5 cards) ══════════════════ */}
+        {dataLoading ? <KpisSkeleton /> : (
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
           {receitaKpis.map(k => (
             <Card
@@ -340,8 +449,10 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
+        )}
 
         {/* ══ LINHA 2 — Painel grande + laterais ═══════════════════ */}
+        {dataLoading ? <ChartsSkeleton /> : (
         <div className="grid gap-4 lg:grid-cols-12">
           {/* Painel principal — Evolução */}
           <Card className="lg:col-span-8 neon-border">
@@ -458,8 +569,10 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+        )}
 
         {/* ══ LINHA 3 — Operacional (3 painéis) ════════════════════ */}
+        {allLoading ? <OperationalSkeleton /> : (
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Clientes em atraso */}
           <Card className="neon-border">
@@ -548,8 +661,10 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* ══ LINHA 4 — Suporte + Custos ═══════════════════════════ */}
+        {dataLoading ? <AnalyticsSkeleton /> : (
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Top Suporte */}
           <Card className="neon-border">
@@ -601,6 +716,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* ══ ALERTAS ══════════════════════════════════════════════ */}
         {receitaMetricas.alertaCritico30.length > 0 && (
@@ -677,6 +793,7 @@ export default function Dashboard() {
         )}
 
         {/* Minhas Tarefas */}
+        {appLoading ? <TasksSkeleton /> : (
         <Card className="neon-border">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -716,6 +833,7 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        )}
 
         {/* Indicações + Executive Widgets */}
         <IndicacoesRecebidasCard />
