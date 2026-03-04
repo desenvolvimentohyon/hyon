@@ -103,7 +103,7 @@ export const ROTA_PERMISSAO: Record<string, string> = {
   "/financeiro/relatorios": "financeiro:relatorios",
   "/financeiro/configuracoes": "financeiro:visualizar",
   "/clientes": "clientes:visualizar",
-  "/clientes-tarefas": "clientes:visualizar",
+  
   "/receita": "financeiro:visualizar",
   "/tecnicos": "configuracoes:visualizar",
   "/executivo": "financeiro:relatorios",
