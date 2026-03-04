@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.portal-action]
 verify_jwt = false
+
+[functions.card-public-proposal]
+verify_jwt = false

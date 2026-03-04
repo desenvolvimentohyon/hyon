@@ -99,6 +99,17 @@ const modules: ParentModule[] = [
     ],
   },
   {
+    id: "cartoes",
+    title: "Cartões",
+    icon: CreditCard,
+    children: [
+      { title: "Dashboard", url: "/cartoes", icon: BarChart3 },
+      { title: "Clientes", url: "/cartoes/clientes", icon: Users },
+      { title: "Propostas", url: "/cartoes/propostas", icon: FileText },
+      { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign },
+    ],
+  },
+  {
     id: "configuracoes",
     title: "Configurações",
     icon: Settings,
