@@ -1555,6 +1555,8 @@ export type Database = {
         Row: {
           acceptance_link: string | null
           acceptance_status: string
+          accepted_at: string | null
+          accepted_by_name: string | null
           additional_info: string | null
           client_id: string | null
           client_name_snapshot: string | null
@@ -1562,6 +1564,7 @@ export type Database = {
           commission_implant_generated: boolean
           created_at: string
           crm_status: string | null
+          first_viewed_at: string | null
           id: string
           implementation_flow: string | null
           implementation_installments: number | null
@@ -1577,6 +1580,7 @@ export type Database = {
           partner_commission_recur_percent: number | null
           partner_commission_value: number | null
           partner_id: string | null
+          pdf_downloaded_at: string | null
           pdf_generated_at: string | null
           plan_name: string | null
           proposal_number: string
@@ -1586,10 +1590,14 @@ export type Database = {
           valid_days: number
           valid_until: string | null
           view_status: string
+          views_count: number
+          whatsapp_clicked_at: string | null
         }
         Insert: {
           acceptance_link?: string | null
           acceptance_status?: string
+          accepted_at?: string | null
+          accepted_by_name?: string | null
           additional_info?: string | null
           client_id?: string | null
           client_name_snapshot?: string | null
@@ -1597,6 +1605,7 @@ export type Database = {
           commission_implant_generated?: boolean
           created_at?: string
           crm_status?: string | null
+          first_viewed_at?: string | null
           id?: string
           implementation_flow?: string | null
           implementation_installments?: number | null
@@ -1612,6 +1621,7 @@ export type Database = {
           partner_commission_recur_percent?: number | null
           partner_commission_value?: number | null
           partner_id?: string | null
+          pdf_downloaded_at?: string | null
           pdf_generated_at?: string | null
           plan_name?: string | null
           proposal_number: string
@@ -1621,10 +1631,14 @@ export type Database = {
           valid_days?: number
           valid_until?: string | null
           view_status?: string
+          views_count?: number
+          whatsapp_clicked_at?: string | null
         }
         Update: {
           acceptance_link?: string | null
           acceptance_status?: string
+          accepted_at?: string | null
+          accepted_by_name?: string | null
           additional_info?: string | null
           client_id?: string | null
           client_name_snapshot?: string | null
@@ -1632,6 +1646,7 @@ export type Database = {
           commission_implant_generated?: boolean
           created_at?: string
           crm_status?: string | null
+          first_viewed_at?: string | null
           id?: string
           implementation_flow?: string | null
           implementation_installments?: number | null
@@ -1647,6 +1662,7 @@ export type Database = {
           partner_commission_recur_percent?: number | null
           partner_commission_value?: number | null
           partner_id?: string | null
+          pdf_downloaded_at?: string | null
           pdf_generated_at?: string | null
           plan_name?: string | null
           proposal_number?: string
@@ -1656,6 +1672,8 @@ export type Database = {
           valid_days?: number
           valid_until?: string | null
           view_status?: string
+          views_count?: number
+          whatsapp_clicked_at?: string | null
         }
         Relationships: [
           {

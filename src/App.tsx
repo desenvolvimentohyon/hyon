@@ -29,6 +29,7 @@ import Propostas from "./pages/Propostas";
 import PropostaDetalhe from "./pages/PropostaDetalhe";
 import CRM from "./pages/CRM";
 import AceiteProposta from "./pages/AceiteProposta";
+import PropostaPublica from "./pages/PropostaPublica";
 import UsuariosConfig from "./pages/UsuariosConfig";
 import Parametros from "./pages/Parametros";
 import AcessoNegado from "./pages/AcessoNegado";
@@ -131,6 +132,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/aceite/:numero" element={<AceiteProposta />} />
+            <Route path="/proposta/:token" element={<PropostaPublica />} />
             <Route path="/portal/:token" element={<PortalCliente />} />
             <Route path="*" element={<AuthGate />} />
           </Routes>
