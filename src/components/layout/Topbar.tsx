@@ -1,4 +1,4 @@
-import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, Users, ChevronRight, Shield, LogOut } from "lucide-react";
+import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, Users, ChevronRight, Shield, LogOut, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,7 +13,7 @@ import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTheme } from "next-themes";
 
 interface Notificacao {
@@ -36,9 +36,27 @@ export function Topbar() {
   const [busca, setBusca] = useState("");
   const { theme, setTheme } = useTheme();
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
 
   const currentUser = getCurrentUser();
   const currentRole = currentUser ? getRole(currentUser.roleId) : null;
+
+  // Get user initials for avatar
+  const userInitials = useMemo(() => {
+    if (!currentUser) return "?";
+    const parts = currentUser.nome.split(" ").filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0]?.[0]?.toUpperCase() || "?";
+  }, [currentUser]);
+
+  // Online/offline listener
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => { window.removeEventListener("online", goOnline); window.removeEventListener("offline", goOffline); };
+  }, []);
 
   const notificacoes = useMemo<Notificacao[]>(() => {
     const items: Notificacao[] = [];
@@ -203,22 +221,31 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur-md px-4">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/80 backdrop-blur-md px-4">
       <SidebarTrigger className="shrink-0" />
 
-      <form onSubmit={handleSearch} className="flex-1 max-w-lg">
+      <form onSubmit={handleSearch} className="flex-1 max-w-xl">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
             placeholder="Buscar tarefas, clientes..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="pl-10 h-9 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+            className="pl-10 pr-16 h-10 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all focus-glow"
           />
+          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/40 bg-muted/60 px-1.5 py-0.5 rounded font-mono pointer-events-none hidden sm:inline">⌘K</kbd>
         </div>
       </form>
 
       <div className="flex items-center gap-1.5 ml-auto">
+        {/* Online/Offline indicator */}
+        {!isOnline && (
+          <div className="flex items-center gap-1.5 text-destructive mr-1">
+            <WifiOff className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-medium hidden sm:inline">Offline</span>
+          </div>
+        )}
+
         <Button
           variant="ghost"
           size="icon"
@@ -293,8 +320,8 @@ export function Topbar() {
         <Select value={currentUserId} onValueChange={setCurrentUser}>
           <SelectTrigger className="w-[180px] h-9 text-sm rounded-lg border-0 bg-muted/40 hover:bg-muted/60 transition-colors">
             <div className="flex items-center gap-1.5">
-              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                <Shield className="h-3 w-3 text-primary shrink-0" />
+              <div className="h-6 w-6 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary">
+                {userInitials}
               </div>
               <SelectValue placeholder="Usuário" />
             </div>
@@ -314,7 +341,7 @@ export function Topbar() {
           </SelectContent>
         </Select>
 
-        <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5 rounded-lg shadow-soft">
+        <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5 rounded-lg shadow-sm">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Nova Tarefa</span>
         </Button>
