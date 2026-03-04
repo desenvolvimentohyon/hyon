@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { gerarPDFProposta } from "@/lib/pdfGenerator";
-import { Plus, Search, MoreHorizontal, FileText, Copy, Download, Send, Eye, EyeOff, ThumbsUp, ThumbsDown, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, Copy, Download, Send, Eye, EyeOff, ThumbsUp, ThumbsDown, Trash2, ExternalLink, MessageCircle } from "lucide-react";
 import { StatusVisualizacao, StatusAceite, SistemaProposta, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 
 export default function Propostas() {
@@ -65,6 +65,7 @@ export default function Propostas() {
       partnerCommissionImplantPercent: null, partnerCommissionImplantValue: null,
       partnerCommissionRecurPercent: null, partnerCommissionRecurMonths: null, partnerCommissionRecurApplyOn: null,
       commissionImplantGenerated: false,
+      whatsappSentAt: null, whatsappSendCount: 0,
     });
     toast({ title: "Proposta criada!" });
     navigate(`/propostas/${nova.id}`);
@@ -90,6 +91,34 @@ export default function Propostas() {
     const validade = new Date(now);
     validade.setDate(validade.getDate() + p.validadeDias);
     handleMarcar(id, { dataEnvio: now.toISOString(), dataValidade: validade.toISOString(), statusVisualizacao: "enviado" as StatusVisualizacao, statusCRM: "Enviada" }, "Envio", "Proposta marcada como enviada!");
+  };
+
+  const handleWhatsApp = (id: string) => {
+    const p = propostas.find(x => x.id === id);
+    if (!p) return;
+    const cliente = clientes.find(c => c.id === p.clienteId);
+    const phone = cliente?.telefone;
+    if (!phone) {
+      toast({ title: "Telefone do cliente não cadastrado", variant: "destructive" });
+      return;
+    }
+    const digits = phone.replace(/\D/g, "");
+    const cleanedPhone = digits.startsWith("55") ? digits : "55" + digits;
+    const link = `${window.location.origin}${p.linkAceite}`;
+    const msg = `Olá *${p.clienteNomeSnapshot}*, tudo bem?\n\nPreparamos sua proposta para o sistema *${p.sistema}*.\n\nSegue o link:\n${link}\n\nImplantação: R$ ${p.valorImplantacao.toFixed(2)}\nMensalidade: R$ ${p.valorMensalidade.toFixed(2)}\n\n${crmConfig.nomeEmpresa}`;
+    window.open(`https://wa.me/${cleanedPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+    const now = new Date();
+    const validade = new Date(now);
+    validade.setDate(validade.getDate() + p.validadeDias);
+    updateProposta(id, {
+      dataEnvio: now.toISOString(),
+      dataValidade: validade.toISOString(),
+      statusVisualizacao: "enviado" as StatusVisualizacao,
+      statusCRM: "Enviada",
+      whatsappSentAt: now.toISOString(),
+      whatsappSendCount: (p.whatsappSendCount || 0) + 1,
+    } as any, "Envio WhatsApp");
+    toast({ title: "Proposta aberta no WhatsApp!" });
   };
 
   const handlePDF = (id: string) => {
@@ -228,6 +257,7 @@ export default function Propostas() {
                         <DropdownMenuItem onClick={() => handleClone(p.id)}><Copy className="h-3.5 w-3.5 mr-2" />Clonar</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handlePDF(p.id)}><Download className="h-3.5 w-3.5 mr-2" />Baixar PDF</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleCopyLink(p.id)}><ExternalLink className="h-3.5 w-3.5 mr-2" />Copiar Link</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleWhatsApp(p.id)}><MessageCircle className="h-3.5 w-3.5 mr-2" />Enviar via WhatsApp</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleEnviar(p.id)}><Send className="h-3.5 w-3.5 mr-2" />Marcar Enviada</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleMarcar(p.id, { statusVisualizacao: "visualizado" as StatusVisualizacao }, "Visualização", "Marcada como visualizada!")}><Eye className="h-3.5 w-3.5 mr-2" />Marcar Visualizada</DropdownMenuItem>

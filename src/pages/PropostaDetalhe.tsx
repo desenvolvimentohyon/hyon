@@ -14,11 +14,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { gerarPDFProposta } from "@/lib/pdfGenerator";
-import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Clock, Handshake } from "lucide-react";
+import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Clock, Handshake, MessageCircle } from "lucide-react";
 import { Proposta, SistemaProposta, FluxoPagamento, StatusVisualizacao, StatusAceite, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 import { supabase } from "@/integrations/supabase/client";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+function cleanPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("55")) return digits;
+  return "55" + digits;
+}
 
 interface PartnerOption {
   id: string;
@@ -67,20 +73,29 @@ export default function PropostaDetalhe() {
     toast({ title: "Proposta salva!" });
   };
 
+  const buildWhatsAppMessage = () => {
+    const link = `${window.location.origin}${proposta.linkAceite}`;
+    return `Olá *${form.clienteNomeSnapshot || ""}*, tudo bem?\n\nPreparamos sua proposta para o sistema *${form.sistema || ""}*.\n\nSegue o link para visualizar todos os detalhes e realizar o aceite:\n${link}\n\nResumo da proposta:\n📋 Implantação: ${fmt(form.valorImplantacao || 0)}\n💰 Mensalidade: ${fmt(form.valorMensalidade || 0)}\n\nQualquer dúvida estou à disposição.\n\n${crmConfig.nomeEmpresa}`;
+  };
+
   const handleEnviar = () => {
-    const msg = crmConfig.mensagemPadraoEnvio
-      .replace("{cliente}", form.clienteNomeSnapshot || "")
-      .replace("{numeroProposta}", proposta.numeroProposta)
-      .replace("{sistema}", form.sistema || "")
-      .replace("{mensalidade}", String(form.valorMensalidade || 0))
-      .replace("{implantacao}", String(form.valorImplantacao || 0))
-      .replace("{linkAceite}", `${window.location.origin}${proposta.linkAceite}`)
-      .replace("{validade}", form.dataValidade ? new Date(form.dataValidade).toLocaleDateString("pt-BR") : "—");
-    setMensagemEnvio(msg);
+    setMensagemEnvio(buildWhatsAppMessage());
     setEnviarOpen(true);
   };
 
-  const confirmEnviar = () => {
+  const handleOpenWhatsApp = () => {
+    // Find client phone
+    const cliente = clientes.find(c => c.id === form.clienteId);
+    const phone = cliente?.telefone;
+    if (!phone) {
+      toast({ title: "Telefone do cliente não cadastrado", variant: "destructive" });
+      return;
+    }
+    const cleanedPhone = cleanPhone(phone);
+    const encoded = encodeURIComponent(mensagemEnvio);
+    window.open(`https://wa.me/${cleanedPhone}?text=${encoded}`, "_blank");
+
+    // Update proposal status
     const now = new Date();
     const validade = new Date(now);
     validade.setDate(validade.getDate() + (form.validadeDias || crmConfig.validadePadraoDias));
@@ -90,9 +105,16 @@ export default function PropostaDetalhe() {
       dataValidade: validade.toISOString(),
       statusVisualizacao: "enviado",
       statusCRM: "Enviada",
-    } as Partial<Proposta>, "Envio");
+      whatsappSentAt: now.toISOString(),
+      whatsappSendCount: (proposta.whatsappSendCount || 0) + 1,
+    } as Partial<Proposta>, "Envio WhatsApp");
     setEnviarOpen(false);
-    toast({ title: "Proposta enviada!" });
+    toast({ title: "Proposta aberta no WhatsApp!" });
+  };
+
+  const handleCopyMessage = () => {
+    navigator.clipboard.writeText(mensagemEnvio);
+    toast({ title: "Mensagem copiada!" });
   };
 
   const handlePDF = () => {
@@ -183,7 +205,7 @@ export default function PropostaDetalhe() {
       <Card>
         <CardContent className="py-3 flex flex-wrap gap-2">
           <Button size="sm" onClick={handleSave} className="gap-1.5"><Save className="h-3.5 w-3.5" />Salvar</Button>
-          <Button size="sm" variant="outline" onClick={handleEnviar} className="gap-1.5"><Send className="h-3.5 w-3.5" />Enviar</Button>
+          <Button size="sm" variant="outline" onClick={handleEnviar} className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" />Enviar WhatsApp</Button>
           <Button size="sm" variant="outline" onClick={handlePDF} className="gap-1.5"><Download className="h-3.5 w-3.5" />PDF</Button>
           <Button size="sm" variant="outline" onClick={handleCopyLink} className="gap-1.5"><ExternalLink className="h-3.5 w-3.5" />Link</Button>
           <Button size="sm" variant="outline" onClick={handleClone} className="gap-1.5"><Copy className="h-3.5 w-3.5" />Clonar</Button>
@@ -448,17 +470,23 @@ export default function PropostaDetalhe() {
         </CardContent>
       </Card>
 
-      {/* Enviar dialog */}
+      {/* WhatsApp Send Dialog */}
       <Dialog open={enviarOpen} onOpenChange={setEnviarOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Enviar Proposta</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><MessageCircle className="h-4 w-4" />Enviar Proposta via WhatsApp</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <Label className="text-xs">Forma de envio: {crmConfig.formaEnvioPadrao}</Label>
-            <Textarea rows={5} value={mensagemEnvio} onChange={e => setMensagemEnvio(e.target.value)} />
+            <div>
+              <Label className="text-xs">Mensagem (editável)</Label>
+              <Textarea rows={8} value={mensagemEnvio} onChange={e => setMensagemEnvio(e.target.value)} />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleCopyMessage} className="gap-1.5"><Copy className="h-3.5 w-3.5" />Copiar Mensagem</Button>
+              <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5"><ExternalLink className="h-3.5 w-3.5" />Copiar Link</Button>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEnviarOpen(false)}>Cancelar</Button>
-            <Button onClick={confirmEnviar}><Send className="h-3.5 w-3.5 mr-1.5" />Confirmar Envio</Button>
+            <Button onClick={handleOpenWhatsApp} className="gap-1.5"><MessageCircle className="h-3.5 w-3.5" />Abrir WhatsApp</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

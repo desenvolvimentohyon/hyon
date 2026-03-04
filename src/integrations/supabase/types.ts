@@ -1592,6 +1592,8 @@ export type Database = {
           view_status: string
           views_count: number
           whatsapp_clicked_at: string | null
+          whatsapp_send_count: number
+          whatsapp_sent_at: string | null
         }
         Insert: {
           acceptance_link?: string | null
@@ -1633,6 +1635,8 @@ export type Database = {
           view_status?: string
           views_count?: number
           whatsapp_clicked_at?: string | null
+          whatsapp_send_count?: number
+          whatsapp_sent_at?: string | null
         }
         Update: {
           acceptance_link?: string | null
@@ -1674,6 +1678,8 @@ export type Database = {
           view_status?: string
           views_count?: number
           whatsapp_clicked_at?: string | null
+          whatsapp_send_count?: number
+          whatsapp_sent_at?: string | null
         }
         Relationships: [
           {
