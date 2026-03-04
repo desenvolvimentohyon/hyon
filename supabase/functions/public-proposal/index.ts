@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
         const { data: cp } = await supabase
           .from("company_profile")
           .select(
-            "trade_name, legal_name, logo_path, primary_color, secondary_color, footer_text, phone, whatsapp, email, website"
+            "trade_name, legal_name, logo_path, primary_color, secondary_color, footer_text, phone, whatsapp, email, website, cnpj, address_street, address_number, address_neighborhood, address_city, address_uf, address_cep, institutional_text"
           )
           .eq("org_id", proposals_with_org.org_id)
           .single();
