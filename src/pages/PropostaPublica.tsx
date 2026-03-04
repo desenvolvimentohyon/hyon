@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
+import { generateProposalPDF, PdfCompanyData } from "@/lib/pdfGenerator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -81,6 +82,14 @@ interface CompanyData {
   whatsapp: string | null;
   email: string | null;
   website: string | null;
+  cnpj: string | null;
+  address_street: string | null;
+  address_number: string | null;
+  address_neighborhood: string | null;
+  address_city: string | null;
+  address_uf: string | null;
+  address_cep: string | null;
+  institutional_text: string | null;
 }
 
 type PageState = "loading" | "loaded" | "not_found" | "expired" | "error" | "accepted_success";
@@ -187,8 +196,54 @@ export default function PropostaPublica() {
 
   const handleDownloadPdf = () => {
     trackEvent("pdf_downloaded_at");
-    // Placeholder: in production generate/serve real PDF
-    alert("Download do PDF será implementado em breve.");
+    if (!proposal) return;
+    const logoUrl = company?.logo_path
+      ? supabase.storage.from("company-logos").getPublicUrl(company.logo_path).data.publicUrl
+      : null;
+    const companyPdf: PdfCompanyData = {
+      tradeName: company?.trade_name || null,
+      legalName: company?.legal_name || null,
+      cnpj: company?.cnpj || null,
+      phone: company?.phone || null,
+      email: company?.email || null,
+      website: company?.website || null,
+      whatsapp: company?.whatsapp || null,
+      logoUrl,
+      primaryColor: company?.primary_color || "#3b82f6",
+      secondaryColor: company?.secondary_color || "#10b981",
+      footerText: company?.footer_text || null,
+      institutionalText: company?.institutional_text || null,
+      addressStreet: company?.address_street || null,
+      addressNumber: company?.address_number || null,
+      addressNeighborhood: company?.address_neighborhood || null,
+      addressCity: company?.address_city || null,
+      addressUf: company?.address_uf || null,
+      addressCep: company?.address_cep || null,
+    };
+    generateProposalPDF(
+      {
+        proposalNumber: proposal.proposal_number,
+        clientName: proposal.client_name_snapshot || "",
+        systemName: proposal.system_name || "",
+        planName: proposal.plan_name || "",
+        monthlyValue: proposal.monthly_value,
+        implementationValue: proposal.implementation_value,
+        implementationFlow: proposal.implementation_flow || "a_vista",
+        implementationInstallments: proposal.implementation_installments,
+        sentAt: proposal.sent_at,
+        validUntil: proposal.valid_until,
+        additionalInfo: proposal.additional_info,
+        acceptedAt: proposal.accepted_at,
+        acceptedByName: proposal.accepted_by_name,
+        acceptanceStatus: proposal.acceptance_status,
+        items: items.map((i) => ({
+          description: i.description,
+          quantity: i.quantity,
+          unitValue: i.unit_value,
+        })),
+      },
+      companyPdf
+    );
   };
 
   const primaryColor = company?.primary_color || "#3b82f6";
