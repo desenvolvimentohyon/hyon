@@ -1,94 +1,113 @@
 
 
-## Plan: Dark Premium Redesign — Neon Glow + Executive Dashboard
+# Plano: Módulo Gestão de Máquinas de Cartão
 
-The system already has a dark theme, Inter font, design tokens, KPI cards, charts, sidebar with icons, and transitions. This plan deepens the dark aesthetic with a "petróleo/grafite" palette, adds subtle neon glow effects, and polishes charts and tables to match premium BI dashboards.
+## Visao Geral
 
----
+Novo módulo completo para gestão de clientes de maquininhas (fiscal/não fiscal), propostas com link público, faturamento mensal e comissões (30%). Separado dos módulos existentes, com tabelas próprias no banco.
 
-### 1. Deepen Dark Theme Tokens — `src/index.css`
+## 1. Banco de Dados (6 migrações)
 
-Update `.dark` CSS variables for a richer, more immersive dark palette:
+Criar as seguintes tabelas com RLS por `org_id` usando `current_org_id()`:
 
-- `--background`: shift to a blue-petrol dark (`222 47% 5%`)
-- `--card`: darker graphite with slight blue tint (`222 35% 8%`)
-- `--border`: subtler (`222 15% 12%`)
-- `--muted`: deeper (`222 20% 10%`)
-- Add new utility classes:
-  - `.neon-border`: `box-shadow: 0 0 8px hsl(var(--primary) / 0.15); border-color: hsl(var(--primary) / 0.3)`
-  - `.neon-glow-input`: subtle glow on input focus
-  - `.gradient-bg`: background gradient (top-left lighter → bottom-right darker)
-  - Update `.glass-surface` with lower opacity borders
+**card_clients** — Clientes da maquininha (campos conforme spec: name, company_name, cnpj, phone, email, city, status enum, card_machine_type enum, linked_client_id nullable FK clients.id, notes, org_id, timestamps)
 
-### 2. Global Gradient Background — `src/components/layout/AppLayout.tsx`
+**card_fee_profiles** — Taxas negociadas por cliente (mdr_debito, mdr_credito_1x/2a6/7a12, antecipacao, prazo_repasse, aluguel_mensal, active, card_client_id FK)
 
-Add a subtle radial gradient to the `<main>` wrapper: `bg-gradient-to-br from-background via-background to-background/95` with a faint radial overlay via CSS.
+**card_proposals** — Propostas de maquininha (public_token unique, title, machine_type, commission_percent default 30, fee_profile_snapshot jsonb, validity_days, status enum draft/enviada/visualizada/aceita/recusada/expirada, sent_at, first_viewed_at, accepted_at, refused_at, accepted_by_name, card_client_id FK)
 
-### 3. Chart Styling Refinement — `src/pages/Dashboard.tsx` + `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
+**card_proposal_onboarding** — Onboarding pós-aceite (card_proposal_id FK, card_client_id FK, status enum, data_payload jsonb, requested_at, completed_at)
 
-- Set `CartesianGrid` to very low opacity (`stroke-opacity: 0.08`)
-- Remove white backgrounds from chart containers
-- Add `filter: drop-shadow(0 0 4px ...)` on line strokes for neon glow effect
-- Donut charts: add center label with total value
-- Ensure all chart tooltips use dark background with rounded corners
+**card_revenue_monthly** — Faturamento mensal manual (card_client_id FK, competency text, gross_volume numeric, notes. Unique: org_id + card_client_id + competency)
 
-### 4. KPI Cards Neon Polish — `src/pages/Dashboard.tsx`
+**card_commissions** — Comissões calculadas (card_client_id FK, competency, gross_volume, commission_percent default 30, commission_value, status enum previsto/confirmado/pago, paid_at. Unique: org_id + card_client_id + competency)
 
-- Add subtle left-border glow on KPI cards matching domain color
-- Increase value font to `text-3xl font-extrabold` for executive feel
-- Add subtle sparkline placeholder area (visual only)
-- Cards get `.neon-border` on hover
+RLS: SELECT/INSERT/UPDATE/DELETE por org_id. Páginas públicas acessam via edge function com token.
 
-### 5. Table Premium Styling — `src/components/ui/table.tsx`
+## 2. Edge Functions
 
-- `TableHead`: sticky header with `bg-muted/30 backdrop-blur-sm`, uppercase text-[11px]
-- `TableRow`: subtle zebra via `even:bg-muted/20`, softer hover `hover:bg-primary/5`
-- Tighter borders with lower opacity
+**card-public-proposal** — Acesso público por token (verify_jwt=false). GET retorna dados da proposta. POST para registrar visualização/aceite/onboarding.
 
-### 6. Badge Glow Variants — `src/components/ui/badge.tsx`
+## 3. Navegação
 
-No structural changes, but add a `glow` variant option for status badges that adds a subtle box-shadow matching the badge color.
+Adicionar módulo mãe **"Cartões"** (ícone: CreditCard) no `AppSidebar.tsx` com filhos:
+- Clientes → `/cartoes/clientes`
+- Propostas → `/cartoes/propostas`
+- Faturamento → `/cartoes/faturamento`
+- Dashboard → `/cartoes`
 
-### 7. Button Neon Primary — `src/components/ui/button.tsx`
+Adicionar permissões `cartoes:visualizar`, `cartoes:criar`, `cartoes:editar` em `MODULOS_PERMISSOES` e `ROTA_PERMISSAO`.
 
-- Primary variant: add `shadow-[0_0_12px_hsl(var(--primary)/0.25)]` on hover
-- Smooth transition on shadow
+## 4. Rotas (App.tsx)
 
-### 8. Input Neon Focus — `src/components/ui/input.tsx`
+Dentro do `AppLayout`:
+- `/cartoes` — Dashboard do módulo
+- `/cartoes/clientes` — Lista de clientes maquininha
+- `/cartoes/clientes/:id` — Detalhe com tabs (Dados, Taxas, Propostas, Faturamento, Comissão)
+- `/cartoes/propostas` — Lista de propostas
+- `/cartoes/faturamento` — Lançamento de faturamento + comissões
 
-- Replace current focus ring with a neon glow: `focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]`
-- Slightly darker input background in dark mode
+Rota pública (fora do AuthGate):
+- `/cartoes/proposta/:token` — Página pública da proposta
 
-### 9. Sidebar Enhancement — `src/components/layout/AppSidebar.tsx`
+## 5. Páginas e Componentes
 
-- Active item: add left glow bar (`box-shadow: -2px 0 8px hsl(var(--primary)/0.3)`)
-- Deeper sidebar background
-- Group labels with slightly more visible dividers
+### 5.1 Dashboard Cartões (`/cartoes`)
+KPIs: Total faturamento mês, Comissão prevista, Leads sem proposta, Propostas aceitas mês, Onboarding pendente. Gráfico evolução mensal (linha). Top 10 clientes por faturamento.
 
-### 10. Topbar Refinement — `src/components/layout/Topbar.tsx`
+### 5.2 Clientes Maquininha (`/cartoes/clientes`)
+Tabela com filtros (status, tipo máquina). Ações rápidas: Criar proposta, Registrar faturamento, Vincular ao ERP. Dialog para novo cliente. Badge fiscal/não fiscal.
 
-- Add subtle bottom gradient border instead of solid line
-- Search input: darker bg with neon focus
+### 5.3 Detalhe Cliente (`/cartoes/clientes/:id`)
+Tabs: Dados, Taxas (histórico de perfis), Propostas, Faturamento, Comissão. Ação "Vincular ao Cliente ERP" com busca por nome/CNPJ.
 
-### 11. Financeiro Page Polish — `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
+### 5.4 Propostas Maquininha (`/cartoes/propostas`)
+Criar proposta: selecionar cliente, tipo máquina, carregar taxas ativas, comissão %, validade. Gerar link público + enviar WhatsApp. Tabela com status e tracking.
 
-- Use `PageHeader` component (currently uses raw h1)
-- KPI cards: apply same neon-border pattern as Dashboard
-- Chart gridlines: low opacity
+### 5.5 Página Pública (`/cartoes/proposta/:token`)
+Design SaaS premium (mesmo padrão do PropostaPublica existente). Mostra tipo máquina, tabela de taxas, validade. Botões: Aceitar, WhatsApp, PDF. Tracking de visualização/aceite. Formulário de onboarding após aceite.
 
-### Files to Edit
-| File | Change |
-|------|--------|
-| `src/index.css` | Deeper dark tokens, neon utility classes, gradient-bg |
-| `src/components/layout/AppLayout.tsx` | Gradient background on main |
-| `src/components/ui/table.tsx` | Sticky header, zebra, softer hover |
-| `src/components/ui/button.tsx` | Neon shadow on primary hover |
-| `src/components/ui/input.tsx` | Neon focus glow |
-| `src/components/ui/card.tsx` | Neon-border hover effect |
-| `src/components/layout/AppSidebar.tsx` | Active glow bar, deeper bg |
-| `src/components/layout/Topbar.tsx` | Gradient border, darker search |
-| `src/pages/Dashboard.tsx` | Chart glow, KPI typography bump, grid opacity |
-| `src/pages/financeiro/FinanceiroVisaoGeral.tsx` | PageHeader, chart polish, KPI neon |
+### 5.6 Faturamento & Comissão (`/cartoes/faturamento`)
+Lançar por cliente + competência. Auto-calcula comissão (gross_volume * 30%). Tabs: Faturamento | Comissões. Marcar comissão como paga.
 
-No logic changes. No route changes. No new dependencies.
+## 6. Widgets no Dashboard Geral
+
+Adicionar card compacto no Dashboard principal: "Cartões — Comissão Prevista: R$ X | Leads: Y | Onboarding: Z" com link para `/cartoes`.
+
+## 7. Segurança
+
+- Todas as tabelas com RLS por org_id
+- Página pública via edge function (sem acesso direto às tabelas)
+- Permissões RBAC integradas ao sistema existente
+
+## 8. Arquivos a Criar/Editar
+
+**Criar:**
+- `src/pages/cartoes/CardDashboard.tsx`
+- `src/pages/cartoes/CardClientes.tsx`
+- `src/pages/cartoes/CardClienteDetalhe.tsx`
+- `src/pages/cartoes/CardPropostas.tsx`
+- `src/pages/cartoes/CardFaturamento.tsx`
+- `src/pages/cartoes/CardPropostaPublica.tsx`
+- `src/hooks/useCardClients.ts` (CRUD com react-query)
+- `src/hooks/useCardProposals.ts`
+- `src/hooks/useCardRevenue.ts`
+- `supabase/functions/card-public-proposal/index.ts`
+
+**Editar:**
+- `src/App.tsx` — Adicionar rotas
+- `src/components/layout/AppSidebar.tsx` — Adicionar módulo Cartões
+- `src/types/users.ts` — Adicionar permissões
+- `src/pages/Dashboard.tsx` — Widget de comissão
+
+## Ordem de Execução
+
+1. Migração DB (todas as tabelas + RLS)
+2. Edge function pública
+3. Hooks de dados (react-query)
+4. Sidebar + Rotas
+5. Páginas: Clientes → Propostas → Faturamento → Dashboard Cartões
+6. Página pública + onboarding
+7. Widget no Dashboard geral
+8. Permissões RBAC
 
