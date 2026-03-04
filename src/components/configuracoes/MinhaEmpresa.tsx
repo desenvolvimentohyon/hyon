@@ -15,6 +15,7 @@ import {
   Building2, MapPin, FileText, Landmark, Palette, Settings2,
   Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle
 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { differenceInDays, parseISO } from "date-fns";
 
 type CompanyProfile = {
@@ -98,6 +99,7 @@ export default function MinhaEmpresa() {
   const [form, setForm] = useState<CompanyProfile>(emptyProfile);
   const [banks, setBanks] = useState<BankAccount[]>([]);
   const [editingBank, setEditingBank] = useState<BankAccount | null>(null);
+  const [deleteBankId, setDeleteBankId] = useState<string | null>(null);
   const [cnpjLoading, setCnpjLoading] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -541,7 +543,7 @@ export default function MinhaEmpresa() {
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingBank({ ...b })}>
                       <Settings2 className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteBank(b.id)}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => setDeleteBankId(b.id)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -655,6 +657,19 @@ export default function MinhaEmpresa() {
           Salvar Alterações
         </Button>
       </div>
+
+      <AlertDialog open={!!deleteBankId} onOpenChange={() => setDeleteBankId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover conta bancária?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (deleteBankId) deleteBank(deleteBankId); setDeleteBankId(null); }}>Remover</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
