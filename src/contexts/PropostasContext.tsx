@@ -37,6 +37,8 @@ function dbToProposta(r: any): Proposta {
     partnerCommissionRecurMonths: r.partner_commission_recur_months != null ? Number(r.partner_commission_recur_months) : null,
     partnerCommissionRecurApplyOn: r.partner_commission_recur_apply_on || null,
     commissionImplantGenerated: r.commission_implant_generated || false,
+    whatsappSentAt: r.whatsapp_sent_at || null,
+    whatsappSendCount: Number(r.whatsapp_send_count) || 0,
   };
 }
 
@@ -178,6 +180,8 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
     if (changes.partnerCommissionRecurMonths !== undefined) upd.partner_commission_recur_months = changes.partnerCommissionRecurMonths;
     if (changes.partnerCommissionRecurApplyOn !== undefined) upd.partner_commission_recur_apply_on = changes.partnerCommissionRecurApplyOn;
     if (changes.commissionImplantGenerated !== undefined) upd.commission_implant_generated = changes.commissionImplantGenerated;
+    if (changes.whatsappSentAt !== undefined) upd.whatsapp_sent_at = changes.whatsappSentAt;
+    if (changes.whatsappSendCount !== undefined) upd.whatsapp_send_count = changes.whatsappSendCount;
 
     if (Object.keys(upd).length > 0) {
       const { error } = await supabase.from("proposals").update(upd).eq("id", id);

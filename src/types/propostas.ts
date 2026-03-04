@@ -54,6 +54,8 @@ export interface Proposta {
   partnerCommissionRecurMonths: number | null;
   partnerCommissionRecurApplyOn: string | null;
   commissionImplantGenerated: boolean;
+  whatsappSentAt: string | null;
+  whatsappSendCount: number;
 }
 
 export interface CRMConfig {
