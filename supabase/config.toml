@@ -2,3 +2,9 @@ project_id = "prwdwpfziapwefdrkfaa"
 
 [functions.public-proposal]
 verify_jwt = false
+
+[functions.portal-data]
+verify_jwt = false
+
+[functions.portal-action]
+verify_jwt = false

@@ -475,6 +475,7 @@ export type Database = {
           monthly_value_final: number
           name: string
           notes: string | null
+          onboarding_completed_steps: string[]
           org_id: string
           phone: string | null
           plan_id: string | null
@@ -554,6 +555,7 @@ export type Database = {
           monthly_value_final?: number
           name: string
           notes?: string | null
+          onboarding_completed_steps?: string[]
           org_id: string
           phone?: string | null
           plan_id?: string | null
@@ -633,6 +635,7 @@ export type Database = {
           monthly_value_final?: number
           name?: string
           notes?: string | null
+          onboarding_completed_steps?: string[]
           org_id?: string
           phone?: string | null
           plan_id?: string | null
@@ -1401,6 +1404,146 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      portal_referrals: {
+        Row: {
+          city: string
+          client_id: string
+          company_name: string
+          contact_name: string
+          created_at: string
+          id: string
+          notes: string | null
+          org_id: string
+          phone: string
+          status: string
+        }
+        Insert: {
+          city?: string
+          client_id: string
+          company_name: string
+          contact_name?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          phone?: string
+          status?: string
+        }
+        Update: {
+          city?: string
+          client_id?: string
+          company_name?: string
+          contact_name?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          phone?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      portal_suggestions: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string
+          id: string
+          org_id: string
+          status: string
+          title: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string
+          id?: string
+          org_id: string
+          status?: string
+          title: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          org_id?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      portal_ticket_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          org_id: string
+          sender_name: string
+          sender_type: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string
+          org_id: string
+          sender_name?: string
+          sender_type?: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          org_id?: string
+          sender_name?: string
+          sender_type?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "portal_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_tickets: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string
+          id: string
+          org_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string
+          id?: string
+          org_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          org_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

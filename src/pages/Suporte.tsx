@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -272,6 +274,7 @@ export default function Suporte() {
           <TabsTrigger value="tecnicos">Ranking Técnicos</TabsTrigger>
           <TabsTrigger value="chamados">Chamados</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
+          <TabsTrigger value="portal">Tickets Portal</TabsTrigger>
         </TabsList>
 
         {/* ── Tab: Métricas SLA ── */}
@@ -619,7 +622,131 @@ export default function Suporte() {
             </Card>
           )}
         </TabsContent>
+
+        {/* ── Tab: Tickets Portal ── */}
+        <TabsContent value="portal" className="space-y-4">
+          <PortalTicketsTab />
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function PortalTicketsTab() {
+  const { data: tickets, isLoading, refetch } = useQuery({
+    queryKey: ["portal_tickets_admin"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("portal_tickets")
+        .select("id, title, description, status, created_at, updated_at, client_id")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: messages } = useQuery({
+    queryKey: ["portal_ticket_messages_admin"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("portal_ticket_messages")
+        .select("id, ticket_id, sender_type, sender_name, message, created_at")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { getCliente } = useApp();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reply, setReply] = useState("");
+  const [newStatus, setNewStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const selected = tickets?.find(t => t.id === selectedId);
+  const ticketMsgs = messages?.filter(m => m.ticket_id === selectedId) || [];
+
+  const handleReply = async () => {
+    if (!reply.trim() || !selected) return;
+    setSaving(true);
+    try {
+      const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", (await supabase.auth.getUser()).data.user?.id || "").single();
+      await supabase.from("portal_ticket_messages").insert({
+        ticket_id: selected.id,
+        org_id: (await supabase.from("portal_tickets").select("org_id").eq("id", selected.id).single()).data?.org_id || "",
+        sender_type: "staff",
+        sender_name: profile?.full_name || "Equipe",
+        message: reply.trim(),
+      });
+      setReply("");
+      refetch();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  const handleStatusChange = async (ticketId: string, status: string) => {
+    await supabase.from("portal_tickets").update({ status }).eq("id", ticketId);
+    refetch();
+  };
+
+  if (isLoading) return <div className="py-8 text-center text-muted-foreground text-sm">Carregando tickets...</div>;
+
+  if (selected) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)}>← Voltar</Button>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">{selected.title}</CardTitle>
+              <Select value={selected.status} onValueChange={v => handleStatusChange(selected.id, v)}>
+                <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="aberto">Aberto</SelectItem>
+                  <SelectItem value="em_analise">Em Análise</SelectItem>
+                  <SelectItem value="respondido">Respondido</SelectItem>
+                  <SelectItem value="finalizado">Finalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <CardDescription>Cliente: {getCliente(selected.client_id)?.nome || selected.client_id} · {new Date(selected.created_at).toLocaleDateString("pt-BR")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {ticketMsgs.map(m => (
+                <div key={m.id} className={`p-3 rounded-lg text-sm ${m.sender_type === "client" ? "bg-muted mr-4" : "bg-primary/5 ml-4"}`}>
+                  <p className="font-medium text-xs mb-1">{m.sender_name} <span className="text-muted-foreground">· {new Date(m.created_at).toLocaleDateString("pt-BR")}</span></p>
+                  <p className="whitespace-pre-wrap">{m.message}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input value={reply} onChange={e => setReply(e.target.value)} placeholder="Responder..." className="flex-1 px-3 py-2 border rounded-lg text-sm" />
+              <Button size="sm" onClick={handleReply} disabled={saving || !reply.trim()}>Enviar</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {!tickets || tickets.length === 0 ? (
+        <Card><CardContent className="py-8 text-center text-muted-foreground text-sm">Nenhum ticket do portal encontrado.</CardContent></Card>
+      ) : tickets.map(t => (
+        <Card key={t.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setSelectedId(t.id)}>
+          <CardContent className="py-3 flex items-center gap-3">
+            <Headphones className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{t.title}</p>
+              <p className="text-xs text-muted-foreground">{getCliente(t.client_id)?.nome || "Cliente"} · {new Date(t.created_at).toLocaleDateString("pt-BR")}</p>
+            </div>
+            <Badge variant={t.status === "aberto" ? "outline" : t.status === "finalizado" ? "secondary" : "default"}>{t.status}</Badge>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
