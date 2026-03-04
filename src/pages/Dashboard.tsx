@@ -231,7 +231,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 chart-container">
       <PageHeader
         title="Dashboard"
         subtitle={`Bem-vindo, ${tecnicoNome}`}
@@ -253,7 +253,7 @@ export default function Dashboard() {
                 <k.icon className={`h-4 w-4 ${k.color}`} />
               </div>
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold">{k.value}</div></CardContent>
+            <CardContent><div className="text-3xl font-extrabold">{k.value}</div></CardContent>
           </Card>
         ))}
       </div>
@@ -268,7 +268,7 @@ export default function Dashboard() {
                 <m.icon className={`h-4 w-4 ${m.color}`} />
               </div>
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold">{m.value}</div></CardContent>
+            <CardContent><div className="text-3xl font-extrabold">{m.value}</div></CardContent>
           </Card>
         ))}
       </div>
@@ -284,7 +284,7 @@ export default function Dashboard() {
                 </CardTitle>
                 <k.icon className="h-4 w-4" style={{ color: k.color }} />
               </CardHeader>
-              <CardContent><div className="text-3xl font-bold">{k.value}</div></CardContent>
+              <CardContent><div className="text-3xl font-extrabold">{k.value}</div></CardContent>
             </Card>
           ))}
         </div>
@@ -388,7 +388,7 @@ export default function Dashboard() {
           <CardContent>
             <ResponsiveContainer width="100%" height={150}>
               <PieChart>
-                <Pie data={sistemasMini} cx="50%" cy="50%" outerRadius={60} innerRadius={35} dataKey="clientes" nameKey="name">
+                <Pie data={sistemasMini} cx="50%" cy="50%" outerRadius={60} innerRadius={35} dataKey="clientes" nameKey="name" strokeWidth={0}>
                   {sistemasMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
                 <RechartsTooltip />
@@ -423,7 +423,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-muted-foreground">{k.label}</CardTitle>
               <k.icon className={`h-4 w-4 ${k.color}`} />
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold">{k.value}</div></CardContent>
+            <CardContent><div className="text-3xl font-extrabold">{k.value}</div></CardContent>
           </Card>
         ))}
       </div>

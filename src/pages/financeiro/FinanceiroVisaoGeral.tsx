@@ -103,11 +103,11 @@ export default function Financeiro() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 chart-container">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-muted-foreground text-sm">Visão geral financeira</p>
+          <h1 className="text-[28px] lg:text-[32px] font-bold tracking-tight">Financeiro</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">Visão geral financeira</p>
         </div>
         <Select value={periodo} onValueChange={setPeriodo}>
           <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
@@ -123,13 +123,13 @@ export default function Financeiro() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {kpiCards.map(k => (
-          <Card key={k.label} className="border">
+          <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
                 <k.icon className={`h-4 w-4 ${k.color}`} />
-                <span className="text-xs text-muted-foreground">{k.label}</span>
+                <span className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{k.label}</span>
               </div>
-              <p className="text-lg font-bold text-foreground">{k.value}</p>
+              <p className="text-xl font-bold text-foreground">{k.value}</p>
             </CardContent>
           </Card>
         ))}
@@ -142,7 +142,7 @@ export default function Financeiro() {
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={fluxoCaixa}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <Tooltip formatter={(v: number) => fmt(v)} />
@@ -159,7 +159,7 @@ export default function Financeiro() {
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={dreResumo} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
                 <XAxis type="number" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <YAxis dataKey="nome" type="category" tick={{ fontSize: 11 }} width={80} className="fill-muted-foreground" />
                 <Tooltip formatter={(v: number) => fmt(v)} />
@@ -195,7 +195,7 @@ export default function Financeiro() {
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={fluxoCaixa.map((f, i) => ({ ...f, mrr: kpis.mrr * (0.85 + i * 0.015) }))}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <Tooltip formatter={(v: number) => fmt(v)} />

@@ -41,7 +41,7 @@ export function AppLayout() {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <Topbar />
-          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
             {hasAccess ? <Outlet /> : <AcessoNegado />}
           </main>
         </div>

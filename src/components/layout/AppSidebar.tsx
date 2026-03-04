@@ -105,10 +105,11 @@ export function AppSidebar() {
                           <NavLink
                             to={item.url}
                             end={item.url === "/" || item.url === "/financeiro"}
-                            className={`relative transition-all duration-150 rounded-lg mx-1 ${active ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold shadow-sm" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"}`}
+                            className={`relative transition-all duration-150 rounded-lg mx-1 ${active ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"}`}
+                            style={active ? { boxShadow: "-2px 0 10px hsl(221 83% 58% / 0.2), 0 0 6px hsl(221 83% 58% / 0.08)" } : undefined}
                             activeClassName="">
                             {active && (
-                              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-sidebar-primary" />
+                              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary shadow-[0_0_6px_hsl(221_83%_58%/0.5)]" />
                             )}
                             <item.icon className={`h-4 w-4 ${active ? "text-sidebar-primary" : ""}`} />
                             {!collapsed && <span className="text-[13px]">{item.title}</span>}
