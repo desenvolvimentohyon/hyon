@@ -1,158 +1,94 @@
 
 
-## Plan: Portal do Cliente Completo — Phase 1
+## Plan: Dark Premium Redesign — Neon Glow + Executive Dashboard
 
-This is a large initiative. I'll scope it into a **Phase 1** that delivers the core portal experience (tickets, suggestions, referrals, modules, profile, onboarding) and a **Phase 2** (training center, notifications, rewards) for a follow-up.
-
----
-
-### Phase 1 Scope
-
-1. **Database: 4 new tables** + portal-data edge function expansion
-2. **Portal UI**: Expand from 3 tabs to 7 tabs (Dashboard, Contrato, Financeiro, Módulos, Suporte, Indicações, Perfil) + onboarding flow
-3. **Admin side**: Surface tickets + referrals in existing pages
+The system already has a dark theme, Inter font, design tokens, KPI cards, charts, sidebar with icons, and transitions. This plan deepens the dark aesthetic with a "petróleo/grafite" palette, adds subtle neon glow effects, and polishes charts and tables to match premium BI dashboards.
 
 ---
 
-### 1. Database Migration
+### 1. Deepen Dark Theme Tokens — `src/index.css`
 
-```sql
--- Support tickets from portal clients
-CREATE TABLE public.portal_tickets (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL,
-  client_id uuid NOT NULL,
-  title text NOT NULL,
-  description text NOT NULL DEFAULT '',
-  status text NOT NULL DEFAULT 'aberto',
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.portal_tickets ENABLE ROW LEVEL SECURITY;
+Update `.dark` CSS variables for a richer, more immersive dark palette:
 
--- Ticket messages (conversation thread)
-CREATE TABLE public.portal_ticket_messages (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  ticket_id uuid NOT NULL REFERENCES public.portal_tickets(id) ON DELETE CASCADE,
-  org_id uuid NOT NULL,
-  sender_type text NOT NULL DEFAULT 'client', -- 'client' or 'staff'
-  sender_name text NOT NULL DEFAULT '',
-  message text NOT NULL DEFAULT '',
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.portal_ticket_messages ENABLE ROW LEVEL SECURITY;
+- `--background`: shift to a blue-petrol dark (`222 47% 5%`)
+- `--card`: darker graphite with slight blue tint (`222 35% 8%`)
+- `--border`: subtler (`222 15% 12%`)
+- `--muted`: deeper (`222 20% 10%`)
+- Add new utility classes:
+  - `.neon-border`: `box-shadow: 0 0 8px hsl(var(--primary) / 0.15); border-color: hsl(var(--primary) / 0.3)`
+  - `.neon-glow-input`: subtle glow on input focus
+  - `.gradient-bg`: background gradient (top-left lighter → bottom-right darker)
+  - Update `.glass-surface` with lower opacity borders
 
--- Client suggestions
-CREATE TABLE public.portal_suggestions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL,
-  client_id uuid NOT NULL,
-  title text NOT NULL,
-  description text NOT NULL DEFAULT '',
-  status text NOT NULL DEFAULT 'nova',
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.portal_suggestions ENABLE ROW LEVEL SECURITY;
+### 2. Global Gradient Background — `src/components/layout/AppLayout.tsx`
 
--- Client referrals
-CREATE TABLE public.portal_referrals (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL,
-  client_id uuid NOT NULL,
-  company_name text NOT NULL,
-  contact_name text NOT NULL DEFAULT '',
-  phone text NOT NULL DEFAULT '',
-  city text NOT NULL DEFAULT '',
-  notes text DEFAULT '',
-  status text NOT NULL DEFAULT 'pendente',
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.portal_referrals ENABLE ROW LEVEL SECURITY;
+Add a subtle radial gradient to the `<main>` wrapper: `bg-gradient-to-br from-background via-background to-background/95` with a faint radial overlay via CSS.
 
--- Onboarding progress tracking column
-ALTER TABLE public.clients
-  ADD COLUMN IF NOT EXISTS onboarding_completed_steps text[] NOT NULL DEFAULT '{}';
+### 3. Chart Styling Refinement — `src/pages/Dashboard.tsx` + `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
 
--- RLS: internal staff can manage via org_id
--- (policies for select/insert/update on all 4 tables using current_org_id())
--- Portal access handled via edge function with service_role
-```
+- Set `CartesianGrid` to very low opacity (`stroke-opacity: 0.08`)
+- Remove white backgrounds from chart containers
+- Add `filter: drop-shadow(0 0 4px ...)` on line strokes for neon glow effect
+- Donut charts: add center label with total value
+- Ensure all chart tooltips use dark background with rounded corners
 
-RLS policies for admin access using `current_org_id()` for SELECT/INSERT/UPDATE on all tables. Portal client access will go through the edge function (service_role key), so no public RLS needed.
+### 4. KPI Cards Neon Polish — `src/pages/Dashboard.tsx`
 
----
+- Add subtle left-border glow on KPI cards matching domain color
+- Increase value font to `text-3xl font-extrabold` for executive feel
+- Add subtle sparkline placeholder area (visual only)
+- Cards get `.neon-border` on hover
 
-### 2. Edge Function: `portal-data` — Expand Response
+### 5. Table Premium Styling — `src/components/ui/table.tsx`
 
-Add to the existing `portal-data/index.ts`:
-- Fetch `system_modules` linked to the client's system
-- Fetch `portal_tickets` for the client
-- Fetch `portal_referrals` for the client
-- Return `onboarding_completed_steps` from client record
-- Include `contract_start_at` in client response
+- `TableHead`: sticky header with `bg-muted/30 backdrop-blur-sm`, uppercase text-[11px]
+- `TableRow`: subtle zebra via `even:bg-muted/20`, softer hover `hover:bg-primary/5`
+- Tighter borders with lower opacity
 
-### 3. Edge Function: `portal-action` — New
+### 6. Badge Glow Variants — `src/components/ui/badge.tsx`
 
-Create `supabase/functions/portal-action/index.ts` to handle portal write operations (authenticated by token):
-- `POST /portal-action?token=X` with JSON body:
-  - `action: "create_ticket"` → insert into `portal_tickets`
-  - `action: "add_ticket_message"` → insert into `portal_ticket_messages`
-  - `action: "create_suggestion"` → insert into `portal_suggestions`
-  - `action: "create_referral"` → insert into `portal_referrals`
-  - `action: "update_profile"` → update client phone/email
-  - `action: "complete_onboarding_step"` → append to `onboarding_completed_steps`
+No structural changes, but add a `glow` variant option for status badges that adds a subtle box-shadow matching the badge color.
 
-All actions validate token → get client_id/org_id → perform insert with service_role.
+### 7. Button Neon Primary — `src/components/ui/button.tsx`
 
----
+- Primary variant: add `shadow-[0_0_12px_hsl(var(--primary)/0.25)]` on hover
+- Smooth transition on shadow
 
-### 4. Portal UI Redesign — `src/pages/PortalCliente.tsx`
+### 8. Input Neon Focus — `src/components/ui/input.tsx`
 
-Expand from current 3-tab layout to a full portal with sidebar navigation on desktop / bottom tabs on mobile:
+- Replace current focus ring with a neon glow: `focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]`
+- Slightly darker input background in dark mode
 
-**Tabs/Sections:**
-- **Dashboard**: KPI cards (Sistema, Plano, Mensalidade, Status, Próximo vencimento, Tempo como cliente)
-- **Contrato**: Existing contract tab (keep as-is)
-- **Financeiro**: Existing financial tab (keep as-is)
-- **Módulos**: List active modules for the client's system from `system_modules`
-- **Suporte**: List tickets + create new ticket form + conversation thread
-- **Sugestões**: Submit suggestions form + list of past suggestions
-- **Indicações**: Referral form (empresa, responsável, telefone, cidade, observação) + list
-- **Perfil**: Show/edit phone + email
+### 9. Sidebar Enhancement — `src/components/layout/AppSidebar.tsx`
 
-**Onboarding overlay** (first access):
-- Show if `onboarding_completed_steps` is empty
-- Steps: "Conheça o sistema", "Acesse seus dados", "Abra um chamado"
-- Progress bar, dismissable, saves steps via `portal-action`
+- Active item: add left glow bar (`box-shadow: -2px 0 8px hsl(var(--primary)/0.3)`)
+- Deeper sidebar background
+- Group labels with slightly more visible dividers
 
----
+### 10. Topbar Refinement — `src/components/layout/Topbar.tsx`
 
-### 5. Admin Integration
+- Add subtle bottom gradient border instead of solid line
+- Search input: darker bg with neon focus
 
-- **Suporte page** (`src/pages/Suporte.tsx`): Add a sub-tab "Tickets Portal" showing `portal_tickets` with status management and reply capability
-- **Dashboard** (`src/pages/Dashboard.tsx`): Add a small "Indicações recebidas" card showing recent `portal_referrals`
+### 11. Financeiro Page Polish — `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
 
----
-
-### Files to Create
-| File | Purpose |
-|------|---------|
-| `supabase/functions/portal-action/index.ts` | Write operations for portal |
+- Use `PageHeader` component (currently uses raw h1)
+- KPI cards: apply same neon-border pattern as Dashboard
+- Chart gridlines: low opacity
 
 ### Files to Edit
 | File | Change |
 |------|--------|
-| `supabase/functions/portal-data/index.ts` | Add modules, tickets, referrals, onboarding to response |
-| `src/pages/PortalCliente.tsx` | Full redesign with 7+ tabs, onboarding, tickets, referrals, suggestions |
-| `src/pages/Suporte.tsx` | Add "Tickets Portal" sub-tab |
-| `src/pages/Dashboard.tsx` | Add referrals indicator card |
+| `src/index.css` | Deeper dark tokens, neon utility classes, gradient-bg |
+| `src/components/layout/AppLayout.tsx` | Gradient background on main |
+| `src/components/ui/table.tsx` | Sticky header, zebra, softer hover |
+| `src/components/ui/button.tsx` | Neon shadow on primary hover |
+| `src/components/ui/input.tsx` | Neon focus glow |
+| `src/components/ui/card.tsx` | Neon-border hover effect |
+| `src/components/layout/AppSidebar.tsx` | Active glow bar, deeper bg |
+| `src/components/layout/Topbar.tsx` | Gradient border, darker search |
+| `src/pages/Dashboard.tsx` | Chart glow, KPI typography bump, grid opacity |
+| `src/pages/financeiro/FinanceiroVisaoGeral.tsx` | PageHeader, chart polish, KPI neon |
 
-### Migration
-One SQL migration creating 4 tables + RLS policies + client column.
-
-### Phase 2 (Future)
-- Training center (tutorials table, video embedding)
-- Notification system for clients
-- Rewards/credits for referrals
-- Portal email notifications
+No logic changes. No route changes. No new dependencies.
 
