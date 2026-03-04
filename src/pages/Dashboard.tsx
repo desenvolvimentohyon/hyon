@@ -14,9 +14,34 @@ import { useNavigate } from "react-router-dom";
 import { StatusTarefa } from "@/types";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import DashboardExecutiveWidgets from "@/components/DashboardExecutiveWidgets";
 import { PageHeader } from "@/components/ui/page-header";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const ACRONYM_TOOLTIPS: Record<string, string> = {
+  "MRR": "MRR — Monthly Recurring Revenue\nReceita recorrente mensal proveniente das mensalidades dos clientes ativos.",
+  "ARR": "ARR — Annual Recurring Revenue\nProjeção anual da receita recorrente baseada no MRR atual.",
+  "Ticket Médio": "Ticket Médio\nValor médio pago por cliente ativo.",
+  "Churn": "Churn Rate\nTaxa de cancelamento de clientes em determinado período.",
+  "Margem": "Margem Líquida\nValor restante após deduzir custos da receita recorrente.",
+  "LTV": "LTV — Lifetime Value\nValor total estimado que um cliente gera durante todo o período de relacionamento.",
+};
+
+function AcronymLabel({ label }: { label: string }) {
+  const key = Object.keys(ACRONYM_TOOLTIPS).find(k => label.startsWith(k));
+  if (!key) return <span>{label}</span>;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="border-b border-dashed border-muted-foreground/40 cursor-help">{label}</span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs whitespace-pre-line text-xs">
+        {ACRONYM_TOOLTIPS[key]}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -206,17 +231,21 @@ export default function Dashboard() {
       </div>
 
       {/* Receita KPIs */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        {receitaKpis.map(k => (
-          <Card key={k.label} className="cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover domain-border-left" style={{ borderLeftColor: k.color }} onClick={() => navigate("/receita")}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{k.label}</CardTitle>
-              <k.icon className="h-4 w-4" style={{ color: k.color }} />
-            </CardHeader>
-            <CardContent><div className="text-2xl font-bold">{k.value}</div></CardContent>
-          </Card>
-        ))}
-      </div>
+      <TooltipProvider delayDuration={200}>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {receitaKpis.map(k => (
+            <Card key={k.label} className="cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover domain-border-left" style={{ borderLeftColor: k.color }} onClick={() => navigate("/receita")}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  <AcronymLabel label={k.label} />
+                </CardTitle>
+                <k.icon className="h-4 w-4" style={{ color: k.color }} />
+              </CardHeader>
+              <CardContent><div className="text-3xl font-bold">{k.value}</div></CardContent>
+            </Card>
+          ))}
+        </div>
+      </TooltipProvider>
 
       {/* Alerta URGENTE: clientes em atraso > 30 dias */}
       {receitaMetricas.alertaCritico30.length > 0 && (
@@ -319,7 +348,7 @@ export default function Dashboard() {
                 <Pie data={sistemasMini} cx="50%" cy="50%" outerRadius={60} innerRadius={35} dataKey="clientes" nameKey="name">
                   {sistemasMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip />
+                <RechartsTooltip />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -333,7 +362,7 @@ export default function Dashboard() {
               <BarChart data={custosMini}>
                 <XAxis dataKey="name" tick={{ fontSize: 9 }} className="fill-muted-foreground" />
                 <YAxis tick={{ fontSize: 9 }} className="fill-muted-foreground" />
-                <Tooltip formatter={(v: number) => fmt(v)} />
+                <RechartsTooltip formatter={(v: number) => fmt(v)} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]} name="Custo">
                   {custosMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Bar>

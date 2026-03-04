@@ -4,6 +4,25 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Heart, TrendingUp, Shield, Zap, Handshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+function MrrLabel({ children }: { children: string }) {
+  const tooltips: Record<string, string> = {
+    "MRR Atual": "MRR — Monthly Recurring Revenue\nReceita recorrente mensal dos clientes ativos.",
+    "Crescimento MRR": "Crescimento MRR\nVariação percentual do MRR em relação ao mês anterior.",
+    "Reajuste Este Mês": "Reajuste contratual\nImpacto dos reajustes aplicados no mês corrente.",
+  };
+  const tip = tooltips[children];
+  if (!tip) return <span>{children}</span>;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="border-b border-dashed border-muted-foreground/40 cursor-help">{children}</span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs whitespace-pre-line text-xs">{tip}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -198,24 +217,26 @@ export default function DashboardExecutiveWidgets() {
       <h2 className="text-lg font-bold flex items-center gap-2"><Zap className="h-5 w-5 text-primary" /> Painel Executivo</h2>
 
       {/* MRR row */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase">MRR Atual</CardTitle></CardHeader>
-          <CardContent><p className="text-xl font-bold text-primary">{fmt(mrrGrowth.current)}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase">Crescimento MRR</CardTitle></CardHeader>
-          <CardContent>
-            <p className={`text-xl font-bold ${Number(mrrGrowthPercent) >= 0 ? "text-green-600" : "text-destructive"}`}>
-              {Number(mrrGrowthPercent) >= 0 ? "+" : ""}{mrrGrowthPercent}%
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase">Reajuste Este Mês</CardTitle></CardHeader>
-          <CardContent><p className="text-xl font-bold text-primary">{mrrAdjusted > 0 ? `+${fmt(mrrAdjusted)}` : fmt(0)}</p></CardContent>
-        </Card>
-      </div>
+      <TooltipProvider delayDuration={200}>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase"><MrrLabel>MRR Atual</MrrLabel></CardTitle></CardHeader>
+            <CardContent><p className="text-xl font-bold text-primary">{fmt(mrrGrowth.current)}</p></CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase"><MrrLabel>Crescimento MRR</MrrLabel></CardTitle></CardHeader>
+            <CardContent>
+              <p className={`text-xl font-bold ${Number(mrrGrowthPercent) >= 0 ? "text-green-600" : "text-destructive"}`}>
+                {Number(mrrGrowthPercent) >= 0 ? "+" : ""}{mrrGrowthPercent}%
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase"><MrrLabel>Reajuste Este Mês</MrrLabel></CardTitle></CardHeader>
+            <CardContent><p className="text-xl font-bold text-primary">{mrrAdjusted > 0 ? `+${fmt(mrrAdjusted)}` : fmt(0)}</p></CardContent>
+          </Card>
+        </div>
+      </TooltipProvider>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Overdue 7+ */}
