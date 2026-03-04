@@ -107,7 +107,7 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-6rem)]">
-      <div className="flex-1 space-y-4 max-w-5xl pb-20">
+      <div className="flex-1 space-y-4 max-w-5xl">
         <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5 -ml-2">
           <ArrowLeft className="h-4 w-4" />Voltar
         </Button>
@@ -183,8 +183,8 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
       </div>
 
       {/* Fixed Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border px-6 py-3 z-50">
-        <div className="max-w-5xl mx-auto flex justify-end gap-3">
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t border-border px-6 py-3 z-30">
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={handleCancel} disabled={!hasChanges || saving}>
             Cancelar
           </Button>
