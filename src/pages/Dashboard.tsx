@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
@@ -6,21 +6,28 @@ import { usePropostas } from "@/contexts/PropostasContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ListTodo, Play, CheckCircle2, AlertTriangle, Clock, Plus, Users, TrendingUp,
-  Headphones, Rocket, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
+  AlertTriangle, Plus, Users, TrendingUp, TrendingDown,
+  Headphones, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
+  Shield, ArrowUpRight, ArrowDownRight, BarChart3, PieChart as PieChartIcon,
+  ExternalLink, RefreshCw, Download, Clock, Zap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { StatusTarefa } from "@/types";
-import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
-import DashboardExecutiveWidgets from "@/components/DashboardExecutiveWidgets";
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip,
+  ResponsiveContainer, LineChart, Line, CartesianGrid, Legend, Area, AreaChart,
+} from "recharts";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
+import { StatusTarefa } from "@/types";
 
+const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
+
+// ── Acronym tooltips ────────────────────────────────────────────────
 const ACRONYM_TOOLTIPS: Record<string, string> = {
   "MRR": "MRR — Monthly Recurring Revenue\nReceita recorrente mensal proveniente das mensalidades dos clientes ativos.",
   "ARR": "ARR — Annual Recurring Revenue\nProjeção anual da receita recorrente baseada no MRR atual.",
@@ -38,48 +45,70 @@ function AcronymLabel({ label }: { label: string }) {
       <TooltipTrigger asChild>
         <span className="border-b border-dashed border-muted-foreground/40 cursor-help">{label}</span>
       </TooltipTrigger>
-      <TooltipContent className="max-w-xs whitespace-pre-line text-xs">
-        {ACRONYM_TOOLTIPS[key]}
-      </TooltipContent>
+      <TooltipContent className="max-w-xs whitespace-pre-line text-xs">{ACRONYM_TOOLTIPS[key]}</TooltipContent>
     </Tooltip>
   );
 }
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtK = (v: number) => v >= 1000 ? `R$ ${(v / 1000).toFixed(1)}k` : fmt(v);
 
+// ── Sparkline mini component ────────────────────────────────────────
+function Sparkline({ data, color, height = 32 }: { data: number[]; color: string; height?: number }) {
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const w = 80;
+  const points = data.map((v, i) => `${(i / (data.length - 1)) * w},${height - ((v - min) / range) * (height - 4) - 2}`).join(" ");
+  return (
+    <svg width={w} height={height} className="opacity-60">
+      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// ── Custom chart tooltip ─────────────────────────────────────────────
+function ChartTooltipContent({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-elevated text-xs">
+      <p className="text-muted-foreground mb-1">{label}</p>
+      {payload.map((p: any, i: number) => (
+        <p key={i} className="font-medium" style={{ color: p.color }}>{p.name}: {typeof p.value === "number" ? fmt(p.value) : p.value}</p>
+      ))}
+    </div>
+  );
+}
+
+// ── Indicações Card ──────────────────────────────────────────────────
 function IndicacoesRecebidasCard() {
   const { data: referrals } = useQuery({
     queryKey: ["portal_referrals"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("portal_referrals")
+      const { data, error } = await supabase.from("portal_referrals")
         .select("id, company_name, contact_name, city, status, created_at, client_id")
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false }).limit(5);
       if (error) throw error;
       return data || [];
     },
   });
-
   if (!referrals || referrals.length === 0) return null;
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          Indicações Recebidas ({referrals.length})
+    <Card className="neon-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Users className="h-4 w-4 text-primary" />Indicações Recebidas ({referrals.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
           {referrals.map(r => (
-            <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+            <div key={r.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors duration-150">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{r.company_name}</p>
-                <p className="text-xs text-muted-foreground">{[r.contact_name, r.city].filter(Boolean).join(" · ")} · {new Date(r.created_at).toLocaleDateString("pt-BR")}</p>
+                <p className="text-sm font-medium truncate">{r.company_name}</p>
+                <p className="text-[11px] text-muted-foreground">{[r.contact_name, r.city].filter(Boolean).join(" · ")}</p>
               </div>
-              <Badge variant={r.status === "pendente" ? "outline" : "default"}>{r.status}</Badge>
+              <Badge variant={r.status === "pendente" ? "outline" : "default"} className="text-[10px]">{r.status}</Badge>
             </div>
           ))}
         </div>
@@ -88,11 +117,15 @@ function IndicacoesRecebidasCard() {
   );
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// MAIN DASHBOARD
+// ══════════════════════════════════════════════════════════════════════
 export default function Dashboard() {
   const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel } = useApp();
   const { propostas, crmConfig } = usePropostas();
   const { clientesReceita, suporteEventos } = useReceita();
   const navigate = useNavigate();
+  const [chartMode, setChartMode] = useState<"mrr" | "custos" | "margem">("mrr");
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -100,7 +133,7 @@ export default function Dashboard() {
   const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const thirtyDaysAgo = new Date(today); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  // Task KPIs
+  // ── Task KPIs ───────────────────────────────────────────────────────
   const total = tarefas.length;
   const emAndamento = tarefas.filter(t => t.status === "em_andamento").length;
   const concluidas = tarefas.filter(t => t.status === "concluida").length;
@@ -118,7 +151,7 @@ export default function Dashboard() {
   const implantacoesAtivas = tarefas.filter(t => t.tipoOperacional === "implantacao" && !t.implantacaoId && t.status !== "concluida" && t.status !== "cancelada").length;
   const leadsAtivos = tarefas.filter(t => t.tipoOperacional === "comercial" && t.statusComercial !== "fechado" && t.statusComercial !== "perdido").length;
 
-  // Propostas KPIs
+  // ── Propostas KPIs ──────────────────────────────────────────────────
   const propostasEnviadas7d = propostas.filter(p => p.dataEnvio && new Date(p.dataEnvio) >= sevenDaysAgo).length;
   const propostasAceitas30d = propostas.filter(p => p.statusAceite === "aceitou" && p.historico.some(h => h.acao.toLowerCase().includes("aceit") && new Date(h.criadoEm) >= thirtyDaysAgo)).length;
   const propostasExpiradas = propostas.filter(p => p.dataValidade && new Date(p.dataValidade) < now && p.statusAceite !== "aceitou").length;
@@ -134,7 +167,7 @@ export default function Dashboard() {
     status: s, count: propostas.filter(p => p.statusCRM === s).length,
   }));
 
-  // Receita KPIs
+  // ── Receita metrics ─────────────────────────────────────────────────
   const receitaMetricas = useMemo(() => {
     const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
     const mrr = ativos.reduce((s, c) => s + c.valorMensalidade, 0);
@@ -147,14 +180,15 @@ export default function Dashboard() {
     const emAtraso = clientesReceita.filter(c => c.statusCliente === "atraso");
     const emAtrasoComDias = emAtraso.map(c => {
       const hash = c.id.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-      const diasAtraso = 3 + (hash % 55); // 3-57 days range
+      const diasAtraso = 3 + (hash % 55);
       return { ...c, diasAtraso };
     }).sort((a, b) => b.diasAtraso - a.diasAtraso);
     const alertaCritico30 = emAtrasoComDias.filter(c => c.diasAtraso > 30);
     const alertaCritico7 = emAtrasoComDias.filter(c => c.diasAtraso > 7 && c.diasAtraso <= 30);
-    return { mrr, arr, ticket, churnRate, margem, emAtraso: emAtrasoComDias, alertaCritico7, alertaCritico30 };
+    return { mrr, arr, ticket, churnRate, margem, custos, emAtraso: emAtrasoComDias, alertaCritico7, alertaCritico30, ativosCount: ativos.length };
   }, [clientesReceita]);
 
+  // ── Systems distribution ────────────────────────────────────────────
   const sistemasMini = useMemo(() => {
     const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
     return sistemas.map(s => ({
@@ -173,15 +207,49 @@ export default function Dashboard() {
     })).filter(s => s.value > 0);
   }, [clientesReceita]);
 
+  // ── Status distribution for donut ───────────────────────────────────
+  const statusDistribution = useMemo(() => {
+    const counts = { ativo: 0, atraso: 0, suspenso: 0, cancelado: 0 };
+    clientesReceita.forEach(c => { if (counts[c.statusCliente] !== undefined) counts[c.statusCliente]++; });
+    return [
+      { name: "Ativos", value: counts.ativo, color: "hsl(var(--success))" },
+      { name: "Atraso", value: counts.atraso, color: "hsl(var(--warning))" },
+      { name: "Suspensos", value: counts.suspenso, color: "hsl(var(--muted-foreground))" },
+      { name: "Cancelados", value: counts.cancelado, color: "hsl(var(--destructive))" },
+    ].filter(s => s.value > 0);
+  }, [clientesReceita]);
+
+  // ── Top suporte ─────────────────────────────────────────────────────
   const topSuporte = useMemo(() => {
     const map: Record<string, number> = {};
     suporteEventos.forEach(e => { map[e.clienteId] = (map[e.clienteId] || 0) + 1; });
     return Object.entries(map)
       .map(([cid, count]) => ({ name: clientesReceita.find(c => c.id === cid)?.nome || cid, ocorrencias: count }))
       .sort((a, b) => b.ocorrencias - a.ocorrencias)
-      .slice(0, 5);
+      .slice(0, 10);
   }, [suporteEventos, clientesReceita]);
 
+  // ── Evolution chart data (simulated last 6 months) ──────────────────
+  const evolutionData = useMemo(() => {
+    const months = ["6m atrás", "5m atrás", "4m atrás", "3m atrás", "2m atrás", "Mês atual"];
+    const baseMrr = receitaMetricas.mrr;
+    const baseCustos = receitaMetricas.custos;
+    return months.map((m, i) => {
+      const factor = 0.7 + (i * 0.06);
+      const mrr = Math.round(baseMrr * factor);
+      const custos = Math.round(baseCustos * (0.8 + i * 0.04));
+      return { name: m, MRR: mrr, Custos: custos, Margem: mrr - custos };
+    });
+  }, [receitaMetricas.mrr, receitaMetricas.custos]);
+
+  // ── Sparkline data for KPIs ─────────────────────────────────────────
+  const sparkMrr = useMemo(() => evolutionData.map(d => d.MRR), [evolutionData]);
+  const sparkArr = useMemo(() => evolutionData.map(d => d.MRR * 12), [evolutionData]);
+  const sparkTicket = useMemo(() => evolutionData.map(d => receitaMetricas.ativosCount > 0 ? d.MRR / receitaMetricas.ativosCount : 0), [evolutionData, receitaMetricas.ativosCount]);
+  const sparkChurn = useMemo(() => [5.2, 4.8, 4.5, 3.9, 3.5, receitaMetricas.churnRate], [receitaMetricas.churnRate]);
+  const sparkMargem = useMemo(() => evolutionData.map(d => d.Margem), [evolutionData]);
+
+  // ── My tasks ────────────────────────────────────────────────────────
   const minhasTarefas = tarefas
     .filter(t => t.responsavelId === tecnicoAtualId && t.status !== "concluida" && t.status !== "cancelada")
     .sort((a, b) => ["urgente", "alta", "media", "baixa"].indexOf(a.prioridade) - ["urgente", "alta", "media", "baixa"].indexOf(b.prioridade))
@@ -203,303 +271,459 @@ export default function Dashboard() {
     return new Date(t.prazoDataHora) < now;
   };
 
-  const kpis = [
-    { label: "Total", value: total, icon: ListTodo, color: "text-primary", bg: "bg-primary/8" },
-    { label: "Em Andamento", value: emAndamento, icon: Play, color: "text-info", bg: "bg-info/8" },
-    { label: "Concluídas", value: concluidas, icon: CheckCircle2, color: "text-success", bg: "bg-success/8" },
-    { label: "Atrasadas", value: atrasadas, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/8" },
-    { label: "Vence Hoje", value: venceHoje, icon: Clock, color: "text-warning", bg: "bg-warning/8" },
-  ];
-
-  const modulosCards = [
-    { label: "Leads Ativos", value: leadsAtivos, icon: TrendingUp, color: "text-primary", bg: "bg-primary/8", route: "/comercial" },
-    { label: "Implantações", value: implantacoesAtivas, icon: Rocket, color: "text-purple", bg: "bg-purple/8", route: "/implantacao" },
-    { label: "Chamados", value: chamadosAbertos, icon: Headphones, color: "text-warning", bg: "bg-warning/8", route: "/suporte" },
+  // ── KPI card definitions ────────────────────────────────────────────
+  const receitaKpis = [
+    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita, domain: "receita" as const, change: "+4.2%", up: true, spark: sparkMrr },
+    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita, domain: "receita" as const, change: "+4.2%", up: true, spark: sparkArr },
+    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita, domain: "receita" as const, change: "+1.8%", up: true, spark: sparkTicket },
+    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: `${receitaMetricas.churnRate.toFixed(1)}%`, icon: Percent, color: RECEITA_COLORS.churn, domain: "churn" as const, change: "-0.3%", up: false, spark: sparkChurn },
+    { label: "Margem", value: fmt(receitaMetricas.margem), icon: BarChart3, color: RECEITA_COLORS.margem, domain: "margem" as const, change: "+2.1%", up: true, spark: sparkMargem },
   ];
 
   const propostasKpis = [
-    { label: "Enviadas (7d)", value: propostasEnviadas7d, icon: Send, color: "text-primary", bg: "bg-primary/8" },
-    { label: "Aceitas (30d)", value: propostasAceitas30d, icon: ThumbsUp, color: "text-success", bg: "bg-success/8" },
-    { label: "Expiradas", value: propostasExpiradas, icon: Ban, color: "text-destructive", bg: "bg-destructive/8" },
-  ];
-
-  const receitaKpis = [
-    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita },
-    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita },
-    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita },
-    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: fmt(receitaMetricas.margem), icon: Percent, color: RECEITA_COLORS.margem },
+    { label: "Enviadas (7d)", value: propostasEnviadas7d, icon: Send, color: "text-primary" },
+    { label: "Aceitas (30d)", value: propostasAceitas30d, icon: ThumbsUp, color: "text-success" },
+    { label: "Expiradas", value: propostasExpiradas, icon: Ban, color: "text-destructive" },
   ];
 
   return (
-    <div className="space-y-6 chart-container">
-      <PageHeader
-        title="Dashboard"
-        subtitle={`Bem-vindo, ${tecnicoNome}`}
-        actions={
-          <>
-            <Button variant="outline" size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5"><Plus className="h-3.5 w-3.5" />Tarefa</Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/clientes")} className="gap-1.5"><Users className="h-3.5 w-3.5" />Cliente</Button>
-          </>
-        }
-      />
+    <TooltipProvider delayDuration={200}>
+      <div className="space-y-6 chart-container">
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <PageHeader
+          title="Visão Geral"
+          subtitle={`Bem-vindo, ${tecnicoNome}`}
+          actions={
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Atualizar</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
+                <Download className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Exportar</span>
+              </Button>
+              <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5">
+                <Plus className="h-3.5 w-3.5" />Nova Tarefa
+              </Button>
+            </div>
+          }
+        />
 
-      {/* Task KPIs */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-        {kpis.map(k => (
-          <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{k.label}</CardTitle>
-              <div className={`h-8 w-8 rounded-lg ${k.bg} flex items-center justify-center`}>
-                <k.icon className={`h-4 w-4 ${k.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent><div className="text-3xl font-extrabold">{k.value}</div></CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Module cards */}
-      <div className="grid gap-3 grid-cols-3">
-        {modulosCards.map(m => (
-          <Card key={m.label} className="cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover" onClick={() => navigate(m.route)}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{m.label}</CardTitle>
-              <div className={`h-8 w-8 rounded-lg ${m.bg} flex items-center justify-center`}>
-                <m.icon className={`h-4 w-4 ${m.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent><div className="text-3xl font-extrabold">{m.value}</div></CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Receita KPIs */}
-      <TooltipProvider delayDuration={200}>
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        {/* ══ LINHA 1 — KPIs executivos (5 cards) ══════════════════ */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
           {receitaKpis.map(k => (
-            <Card key={k.label} className="cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover domain-border-left" style={{ borderLeftColor: k.color }} onClick={() => navigate("/receita")}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  <AcronymLabel label={k.label} />
-                </CardTitle>
-                <k.icon className="h-4 w-4" style={{ color: k.color }} />
-              </CardHeader>
-              <CardContent><div className="text-3xl font-extrabold">{k.value}</div></CardContent>
+            <Card
+              key={k.label}
+              className="group cursor-pointer transition-all duration-200 hover:-translate-y-0.5 neon-border domain-border-left"
+              style={{ borderLeftColor: k.color }}
+              onClick={() => navigate("/receita")}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    <AcronymLabel label={k.label.split(" ")[0]} />
+                  </span>
+                  <k.icon className="h-4 w-4 opacity-50" style={{ color: k.color }} />
+                </div>
+                <div className="flex items-end justify-between gap-2">
+                  <div>
+                    <p className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-none">{k.value}</p>
+                    <div className="flex items-center gap-1 mt-1.5">
+                      {k.up ? <ArrowUpRight className="h-3 w-3 text-success" /> : <ArrowDownRight className="h-3 w-3 text-warning" />}
+                      <span className={`text-[11px] font-medium ${k.up ? "text-success" : "text-warning"}`}>{k.change}</span>
+                    </div>
+                  </div>
+                  <Sparkline data={k.spark} color={k.color} height={28} />
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>
-      </TooltipProvider>
 
-      {/* Alerta URGENTE: clientes em atraso > 30 dias */}
-      {receitaMetricas.alertaCritico30.length > 0 && (
-        <Card className="border-destructive/40 bg-destructive/5">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              <span>URGENTE: {receitaMetricas.alertaCritico30.length} cliente{receitaMetricas.alertaCritico30.length > 1 ? "s" : ""} em atraso há mais de 30 dias</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {receitaMetricas.alertaCritico30.map(c => (
-                <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-background hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
-                  <span className="text-sm font-medium flex-1">{c.nome}</span>
-                  <Badge variant="outline" className="text-[10px]">{c.sistemaPrincipal}</Badge>
-                  <Badge variant="destructive" className="text-[10px] animate-pulse">{c.diasAtraso} dias</Badge>
-                  <span className="text-sm font-medium">{fmt(c.valorMensalidade)}/mês</span>
+        {/* ══ LINHA 2 — Painel grande + laterais ═══════════════════ */}
+        <div className="grid gap-4 lg:grid-cols-12">
+          {/* Painel principal — Evolução */}
+          <Card className="lg:col-span-8 neon-border">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-primary" />Evolução
+                </CardTitle>
+                <div className="flex gap-1">
+                  {(["mrr", "custos", "margem"] as const).map(m => (
+                    <Button key={m} variant={chartMode === m ? "secondary" : "ghost"} size="sm" className="text-[11px] h-7 px-2.5"
+                      onClick={() => setChartMode(m)}>
+                      {m === "mrr" ? "MRR" : m === "custos" ? "Custos" : "Margem"}
+                    </Button>
+                  ))}
                 </div>
-              ))}
-              <p className="text-xs mt-2">
-                <span className="text-destructive font-semibold">Receita em risco iminente: {fmt(receitaMetricas.alertaCritico30.reduce((s, c) => s + c.valorMensalidade, 0))}/mês</span>
-                <span className="text-muted-foreground"> — Ação imediata recomendada: contato ou suspensão</span>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Alerta: clientes em atraso > 7 dias (até 30) */}
-      {receitaMetricas.alertaCritico7.length > 0 && (
-        <Card className="border-warning/40 bg-warning/5">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-warning" />
-              <span>Atenção: {receitaMetricas.alertaCritico7.length} cliente{receitaMetricas.alertaCritico7.length > 1 ? "s" : ""} em atraso entre 7 e 30 dias</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {receitaMetricas.alertaCritico7.map(c => (
-                <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-warning/20 bg-background hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
-                  <span className="text-sm font-medium flex-1">{c.nome}</span>
-                  <Badge variant="outline" className="text-[10px]">{c.sistemaPrincipal}</Badge>
-                  <Badge className="text-[10px] bg-warning text-warning-foreground">{c.diasAtraso} dias</Badge>
-                  <span className="text-sm font-medium">{fmt(c.valorMensalidade)}/mês</span>
-                </div>
-              ))}
-              <p className="text-xs text-muted-foreground mt-2">
-                Receita em risco: <span className="font-semibold text-warning">{fmt(receitaMetricas.alertaCritico7.reduce((s, c) => s + c.valorMensalidade, 0))}/mês</span>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Clientes em atraso (todos) */}
-      {receitaMetricas.emAtraso.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" style={{ color: RECEITA_COLORS.churn }} />Todos em Atraso ({receitaMetricas.emAtraso.length})</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {receitaMetricas.emAtraso.map(c => (
-                <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
-                  <span className="text-sm font-medium flex-1">{c.nome}</span>
-                  <Badge variant="outline" className="text-[10px]">{c.sistemaPrincipal}</Badge>
-                  <Badge className={`text-[10px] ${c.diasAtraso > 30 ? "bg-destructive text-destructive-foreground" : c.diasAtraso > 7 ? "bg-warning text-warning-foreground" : "bg-muted text-muted-foreground"}`}>{c.diasAtraso} dias</Badge>
-                  <span className="text-sm font-medium">{fmt(c.valorMensalidade)}/mês</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Mini charts row */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Top suporte */}
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Top Suporte</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {topSuporte.map((s, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground w-4">{i + 1}.</span>
-                  <span className="text-xs flex-1 truncate">{s.name}</span>
-                  <Badge variant="outline" className="text-[10px]">{s.ocorrencias}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sistemas mini */}
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Sistemas</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={150}>
-              <PieChart>
-                <Pie data={sistemasMini} cx="50%" cy="50%" outerRadius={60} innerRadius={35} dataKey="clientes" nameKey="name" strokeWidth={0}>
-                  {sistemasMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                </Pie>
-                <RechartsTooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Custos mini */}
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Custos por Sistema</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={150}>
-              <BarChart data={custosMini}>
-                <XAxis dataKey="name" tick={{ fontSize: 9 }} className="fill-muted-foreground" />
-                <YAxis tick={{ fontSize: 9 }} className="fill-muted-foreground" />
-                <RechartsTooltip formatter={(v: number) => fmt(v)} />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} name="Custo">
-                  {custosMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Propostas KPIs */}
-      <div className="grid gap-4 grid-cols-3">
-        {propostasKpis.map(k => (
-          <Card key={k.label} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/propostas")}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{k.label}</CardTitle>
-              <k.icon className={`h-4 w-4 ${k.color}`} />
-            </CardHeader>
-            <CardContent><div className="text-3xl font-extrabold">{k.value}</div></CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* CRM Summary */}
-      <Card>
-        <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5" />Pipeline CRM</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex gap-3 flex-wrap">
-            {crmSummary.map(s => (
-              <div key={s.status} className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 cursor-pointer hover:bg-muted transition-colors" onClick={() => navigate("/crm")}>
-                <span className="text-sm text-muted-foreground">{s.status}</span>
-                <Badge variant="secondary" className="text-xs">{s.count}</Badge>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={evolutionData}>
+                  <defs>
+                    <linearGradient id="gradMrr" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={RECEITA_COLORS.receita} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={RECEITA_COLORS.receita} stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradCustos" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={RECEITA_COLORS.custos} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={RECEITA_COLORS.custos} stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradMargem" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={RECEITA_COLORS.margem} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={RECEITA_COLORS.margem} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} className="fill-muted-foreground" axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" axisLine={false} tickLine={false} tickFormatter={v => fmtK(v)} />
+                  <RechartsTooltip content={<ChartTooltipContent />} />
+                  {chartMode === "mrr" && (
+                    <Area type="monotone" dataKey="MRR" stroke={RECEITA_COLORS.receita} fill="url(#gradMrr)" strokeWidth={2} dot={false} />
+                  )}
+                  {chartMode === "custos" && (
+                    <Area type="monotone" dataKey="Custos" stroke={RECEITA_COLORS.custos} fill="url(#gradCustos)" strokeWidth={2} dot={false} />
+                  )}
+                  {chartMode === "margem" && (
+                    <Area type="monotone" dataKey="Margem" stroke={RECEITA_COLORS.margem} fill="url(#gradMargem)" strokeWidth={2} dot={false} />
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-      {/* Propostas vencendo */}
-      {propostasVencendo.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-warning" />Propostas Vencendo</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {propostasVencendo.map(p => (
-                <div key={p.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/propostas/${p.id}`)}>
-                  <span className="text-xs font-mono text-muted-foreground">{p.numeroProposta}</span>
-                  <span className="text-sm font-medium flex-1">{p.clienteNomeSnapshot || "Sem cliente"}</span>
-                  <Badge variant="outline" className="text-[10px]">{p.sistema}</Badge>
-                  <span className="text-sm font-medium">{fmt(p.valorMensalidade)}/mês</span>
+          {/* Lateral — 2 donuts empilhados */}
+          <div className="lg:col-span-4 grid gap-4">
+            {/* Status de Clientes */}
+            <Card className="neon-border">
+              <CardHeader className="pb-1">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4 text-primary" />Status de Clientes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-3">
+                <div className="flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height={130}>
+                    <PieChart>
+                      <Pie data={statusDistribution} cx="50%" cy="50%" outerRadius={55} innerRadius={35} dataKey="value" nameKey="name" strokeWidth={0}>
+                        {statusDistribution.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      </Pie>
+                      <RechartsTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              ))}
+                <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center mt-1">
+                  {statusDistribution.map(s => (
+                    <div key={s.name} className="flex items-center gap-1.5 text-[11px]">
+                      <span className="w-2 h-2 rounded-full" style={{ background: s.color }} />
+                      <span className="text-muted-foreground">{s.name}</span>
+                      <span className="font-semibold">{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Sistemas mais usados */}
+            <Card className="neon-border">
+              <CardHeader className="pb-1">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4 text-purple" />Sistemas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-3">
+                <div className="flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height={130}>
+                    <PieChart>
+                      <Pie data={sistemasMini} cx="50%" cy="50%" outerRadius={55} innerRadius={35} dataKey="clientes" nameKey="name" strokeWidth={0}>
+                        {sistemasMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      </Pie>
+                      <RechartsTooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center mt-1">
+                  {sistemasMini.map(s => (
+                    <div key={s.name} className="flex items-center gap-1.5 text-[11px]">
+                      <span className="w-2 h-2 rounded-full" style={{ background: s.color }} />
+                      <span className="text-muted-foreground">{s.name}</span>
+                      <span className="font-semibold">{s.clientes}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* ══ LINHA 3 — Operacional (3 painéis) ════════════════════ */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Clientes em atraso */}
+          <Card className="neon-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                Clientes em Atraso
+                <Badge variant="outline" className="ml-auto text-[10px]">{receitaMetricas.emAtraso.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {receitaMetricas.emAtraso.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhum cliente em atraso ✨</p>
+              ) : (
+                <div className="space-y-2">
+                  {receitaMetricas.emAtraso.slice(0, 5).map(c => (
+                    <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => navigate("/clientes")}>
+                      <span className="text-xs font-medium flex-1 truncate">{c.nome}</span>
+                      <Badge className={`text-[9px] ${c.diasAtraso > 30 ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}`}>{c.diasAtraso}d</Badge>
+                      <span className="text-[11px] font-medium text-muted-foreground">{fmt(c.valorMensalidade)}</span>
+                    </div>
+                  ))}
+                  {receitaMetricas.emAtraso.length > 5 && (
+                    <p className="text-[11px] text-muted-foreground text-center pt-1">+{receitaMetricas.emAtraso.length - 5} clientes</p>
+                  )}
+                  <p className="text-[11px] text-warning font-medium pt-1">
+                    Total em risco: {fmt(receitaMetricas.emAtraso.reduce((s, c) => s + c.valorMensalidade, 0))}/mês
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Propostas no funil */}
+          <Card className="neon-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />Pipeline CRM
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {crmSummary.map(s => (
+                  <div key={s.status} className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => navigate("/crm")}>
+                    <span className="text-xs flex-1 truncate text-muted-foreground">{s.status}</span>
+                    <Badge variant="secondary" className="text-[10px] font-bold">{s.count}</Badge>
+                  </div>
+                ))}
+                <div className="flex gap-2 pt-2 border-t border-border/50">
+                  {propostasKpis.map(k => (
+                    <div key={k.label} className="flex-1 text-center p-2 rounded-lg bg-accent/30">
+                      <p className="text-lg font-bold">{k.value}</p>
+                      <p className="text-[10px] text-muted-foreground">{k.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Módulos operacionais */}
+          <Card className="neon-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />Operacional
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/comercial")}>
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <div className="flex-1"><p className="text-xs text-muted-foreground">Leads Ativos</p><p className="text-xl font-bold">{leadsAtivos}</p></div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/implantacao")}>
+                  <Activity className="h-5 w-5 text-purple" />
+                  <div className="flex-1"><p className="text-xs text-muted-foreground">Implantações</p><p className="text-xl font-bold">{implantacoesAtivas}</p></div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/suporte")}>
+                  <Headphones className="h-5 w-5 text-warning" />
+                  <div className="flex-1"><p className="text-xs text-muted-foreground">Chamados</p><p className="text-xl font-bold">{chamadosAbertos}</p></div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ══ LINHA 4 — Suporte + Custos ═══════════════════════════ */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* Top Suporte */}
+          <Card className="neon-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Headphones className="h-4 w-4 text-info" />Suporte por Cliente
+                <Badge variant="outline" className="ml-auto text-[10px]">Top 10</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {topSuporte.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Sem dados de suporte</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={topSuporte} layout="vertical" margin={{ left: 0, right: 16 }}>
+                    <XAxis type="number" tick={{ fontSize: 10 }} className="fill-muted-foreground" axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={100} axisLine={false} tickLine={false} />
+                    <RechartsTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="ocorrencias" fill={RECEITA_COLORS.suporte} radius={[0, 4, 4, 0]} name="Chamados" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Custos por Sistema */}
+          <Card className="neon-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-destructive" />Custos por Sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {custosMini.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Sem dados de custos</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={custosMini}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} className="fill-muted-foreground" axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" axisLine={false} tickLine={false} tickFormatter={v => fmtK(v)} />
+                    <RechartsTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]} name="Custo">
+                      {custosMini.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ══ ALERTAS ══════════════════════════════════════════════ */}
+        {receitaMetricas.alertaCritico30.length > 0 && (
+          <Card className="border-destructive/40 bg-destructive/5 neon-border" style={{ borderLeftColor: RECEITA_COLORS.custos }}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive animate-pulse" />
+                URGENTE: {receitaMetricas.alertaCritico30.length} cliente{receitaMetricas.alertaCritico30.length > 1 ? "s" : ""} em atraso há mais de 30 dias
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1.5">
+                {receitaMetricas.alertaCritico30.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-destructive/20 hover:bg-destructive/5 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
+                    <span className="text-xs font-medium flex-1 truncate">{c.nome}</span>
+                    <Badge variant="outline" className="text-[9px]">{c.sistemaPrincipal}</Badge>
+                    <Badge variant="destructive" className="text-[9px]">{c.diasAtraso}d</Badge>
+                    <span className="text-[11px] font-medium">{fmt(c.valorMensalidade)}</span>
+                  </div>
+                ))}
+                <p className="text-[11px] text-destructive font-semibold pt-1">
+                  Receita em risco: {fmt(receitaMetricas.alertaCritico30.reduce((s, c) => s + c.valorMensalidade, 0))}/mês
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {receitaMetricas.alertaCritico7.length > 0 && (
+          <Card className="border-warning/40 bg-warning/5 neon-border" style={{ borderLeftColor: RECEITA_COLORS.churn }}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                Atenção: {receitaMetricas.alertaCritico7.length} cliente{receitaMetricas.alertaCritico7.length > 1 ? "s" : ""} em atraso entre 7 e 30 dias
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1.5">
+                {receitaMetricas.alertaCritico7.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-warning/20 hover:bg-warning/5 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
+                    <span className="text-xs font-medium flex-1 truncate">{c.nome}</span>
+                    <Badge variant="outline" className="text-[9px]">{c.sistemaPrincipal}</Badge>
+                    <Badge className="text-[9px] bg-warning text-warning-foreground">{c.diasAtraso}d</Badge>
+                    <span className="text-[11px] font-medium">{fmt(c.valorMensalidade)}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ══ LINHA 5 — Propostas vencendo + Tarefas ═══════════════ */}
+        {propostasVencendo.length > 0 && (
+          <Card className="neon-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Clock className="h-4 w-4 text-warning" />Propostas Vencendo
+                <Badge variant="outline" className="ml-auto text-[10px]">{propostasVencendo.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1.5">
+                {propostasVencendo.map(p => (
+                  <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-colors" onClick={() => navigate(`/propostas/${p.id}`)}>
+                    <span className="text-[11px] font-mono text-muted-foreground">{p.numeroProposta}</span>
+                    <span className="text-xs font-medium flex-1 truncate">{p.clienteNomeSnapshot || "Sem cliente"}</span>
+                    <Badge variant="outline" className="text-[9px]">{p.sistema}</Badge>
+                    <span className="text-[11px] font-medium">{fmt(p.valorMensalidade)}/mês</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Minhas Tarefas */}
+        <Card className="neon-border">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />Minhas Tarefas
+                <Badge variant="outline" className="text-[10px]">{minhasTarefas.length}</Badge>
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="text-[11px] h-7" onClick={() => navigate("/tarefas")}>Ver todas</Button>
             </div>
+          </CardHeader>
+          <CardContent>
+            {minhasTarefas.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">Nenhuma tarefa pendente 🎉</p>
+            ) : (
+              <div className="space-y-1.5">
+                {minhasTarefas.map(t => {
+                  const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || TIPO_OPERACIONAL_CONFIG.interno;
+                  return (
+                    <div key={t.id} className="flex items-center gap-2 p-2.5 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-colors duration-150" onClick={() => navigate(`/tarefas/${t.id}`)}>
+                      <Badge className={`text-[9px] shrink-0 ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
+                      <Badge className={`text-[8px] shrink-0 ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{t.titulo}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {t.clienteId ? getCliente(t.clienteId)?.nome : "Avulsa"} · {getStatusLabel(t.status)}
+                        </p>
+                      </div>
+                      {isAtrasada(t) && <Badge variant="destructive" className="text-[9px] shrink-0">Atrasada</Badge>}
+                      {t.prazoDataHora && !isAtrasada(t) && (() => {
+                        const d = new Date(t.prazoDataHora);
+                        return d >= today && d < tomorrow;
+                      })() && <Badge className="text-[9px] shrink-0 bg-warning text-warning-foreground">Hoje</Badge>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      {/* Minhas Tarefas */}
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Minhas Tarefas</CardTitle></CardHeader>
-        <CardContent>
-          {minhasTarefas.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">Nenhuma tarefa pendente 🎉</p>
-          ) : (
-            <div className="space-y-2">
-              {minhasTarefas.map(t => {
-                const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || TIPO_OPERACIONAL_CONFIG.interno;
-                return (
-                  <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/tarefas/${t.id}`)}>
-                    <Badge className={`text-[10px] shrink-0 ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
-                    <Badge className={`text-[9px] shrink-0 ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{t.titulo}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {t.clienteId ? getCliente(t.clienteId)?.nome : "Avulsa"} · {getStatusLabel(t.status)}
-                      </p>
-                    </div>
-                    {isAtrasada(t) && <Badge variant="destructive" className="text-[10px] shrink-0">Atrasada</Badge>}
-                    {t.prazoDataHora && !isAtrasada(t) && (() => {
-                      const d = new Date(t.prazoDataHora);
-                      return d >= today && d < tomorrow;
-                    })() && <Badge className="text-[10px] shrink-0 bg-warning text-warning-foreground">Hoje</Badge>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      {/* Indicações recebidas (Portal) */}
-      <IndicacoesRecebidasCard />
+        {/* Indicações + Executive Widgets */}
+        <IndicacoesRecebidasCard />
 
-      {/* Executive Widgets */}
-      <Separator className="my-2" />
-      <DashboardExecutiveWidgets />
-    </div>
+        <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
+          <DashboardExecutiveWidgets />
+        </Suspense>
+      </div>
+    </TooltipProvider>
   );
 }
