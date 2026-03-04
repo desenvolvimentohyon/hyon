@@ -81,18 +81,13 @@ export function AppSidebar() {
       <SidebarHeader className="p-4 pb-2">
         <div className="flex items-center gap-3">
           <img src={logoHyon} alt="Hyon Tech" className={`${collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"} transition-all`} />
-          {!collapsed &&
-          <div className="flex flex-col">
-              
-            </div>
-          }
         </div>
       </SidebarHeader>
 
       {!collapsed && <Separator className="mx-4 w-auto bg-sidebar-border/50" />}
 
       <SidebarContent className="pt-2">
-        {sections.map((section, idx) => {
+        {sections.map((section) => {
           const visibleItems = section.items.filter((item) => canAccess(item.url));
           if (visibleItems.length === 0) return null;
           return (
@@ -110,20 +105,20 @@ export function AppSidebar() {
                           <NavLink
                             to={item.url}
                             end={item.url === "/" || item.url === "/financeiro"}
-                            className={`transition-all duration-150 rounded-lg mx-1 ${active ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold shadow-sm" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"}`}
+                            className={`relative transition-all duration-150 rounded-lg mx-1 ${active ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold shadow-sm" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"}`}
                             activeClassName="">
-                            
+                            {active && (
+                              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-sidebar-primary" />
+                            )}
                             <item.icon className={`h-4 w-4 ${active ? "text-sidebar-primary" : ""}`} />
                             {!collapsed && <span className="text-[13px]">{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>);
-
                   })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>);
-
         })}
       </SidebarContent>
 
@@ -133,5 +128,4 @@ export function AppSidebar() {
         }
       </SidebarFooter>
     </Sidebar>);
-
 }

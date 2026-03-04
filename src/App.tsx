@@ -12,6 +12,7 @@ import { UsersProvider } from "@/contexts/UsersContext";
 import { ParametrosProvider } from "@/contexts/ParametrosContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PwaInstallBanner } from "@/components/PwaInstallBanner";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Tarefas from "./pages/Tarefas";
@@ -136,6 +137,7 @@ const App = () => (
             <Route path="/portal/:token" element={<PortalCliente />} />
             <Route path="*" element={<AuthGate />} />
           </Routes>
+          <PwaInstallBanner />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

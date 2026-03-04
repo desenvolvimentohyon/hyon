@@ -42,44 +42,56 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <img src={logoHyon} alt="Hyon Tech" className="h-28 w-auto" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{
+        background: "radial-gradient(ellipse at 50% 0%, hsl(221 83% 53% / 0.12) 0%, hsl(224 50% 4%) 60%)",
+      }}
+    >
+      {/* Subtle grid pattern */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+        backgroundSize: "60px 60px",
+      }} />
+
+      <Card className="w-full max-w-md glass-surface relative z-10">
+        <CardHeader className="text-center pb-2">
+          <div className="flex justify-center mb-6">
+            <img src={logoHyon} alt="Hyon Tech" className="h-24 w-auto drop-shadow-lg" />
           </div>
-          <CardTitle className="text-xl">{isLogin ? "Entrar" : "Criar Conta"}</CardTitle>
-          <CardDescription>
-            {isLogin ? "Acesse com suas credenciais" : "Crie sua conta para começar"}
+          <CardTitle className="text-2xl font-bold">{isLogin ? "Entrar" : "Criar Conta"}</CardTitle>
+          <CardDescription className="text-muted-foreground/80">
+            {isLogin ? "Acesse sua plataforma de gestão" : "Crie sua conta para começar"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {!isLogin &&
-            <div className="space-y-2">
-                <Label htmlFor="fullName">Nome completo</Label>
+          <CardContent className="space-y-4 pt-2">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Nome completo</Label>
                 <Input
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Seu nome"
-                required={!isLogin} />
-              
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Seu nome"
+                  required={!isLogin}
+                  className="h-11 focus-glow"
+                />
               </div>
-            }
+            )}
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">E-mail</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                required />
-              
+                required
+                className="h-11 focus-glow"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -87,26 +99,27 @@ export default function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                minLength={6} />
-              
+                minLength={6}
+                className="h-11 focus-glow"
+              />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={loading}>
+          <CardFooter className="flex flex-col gap-3 pt-2">
+            <Button type="submit" className="w-full h-11 text-sm font-semibold shadow-lg shadow-primary/20" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLogin ? "Entrar" : "Criar Conta"}
             </Button>
             <Button
               type="button"
               variant="link"
-              className="text-sm"
-              onClick={() => setIsLogin(!isLogin)}>
-              
+              className="text-sm text-muted-foreground hover:text-foreground"
+              onClick={() => setIsLogin(!isLogin)}
+            >
               {isLogin ? "Não tem conta? Criar agora" : "Já tem conta? Entrar"}
             </Button>
           </CardFooter>
         </form>
       </Card>
-    </div>);
-
+    </div>
+  );
 }
