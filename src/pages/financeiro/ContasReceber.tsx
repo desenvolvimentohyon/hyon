@@ -170,7 +170,7 @@ export default function ContasReceber() {
               {receber.slice(0, 50).map(t => {
                 const cli = clientesReceita.find(c => c.id === t.clienteId);
                 return (
-                  <TableRow key={t.id}>
+                  <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
                     <TableCell className="font-medium text-sm">{t.descricao}</TableCell>
                     <TableCell className="text-sm">{cli?.nome || "—"}</TableCell>
                     <TableCell className="text-sm">{t.competenciaMes}</TableCell>

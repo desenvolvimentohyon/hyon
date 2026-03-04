@@ -16,6 +16,7 @@ import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import DashboardExecutiveWidgets from "@/components/DashboardExecutiveWidgets";
+import { PageHeader } from "@/components/ui/page-header";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -163,21 +164,21 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Bem-vindo, {tecnicoNome}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5"><Plus className="h-3.5 w-3.5" />Tarefa</Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/clientes")} className="gap-1.5"><Users className="h-3.5 w-3.5" />Cliente</Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle={`Bem-vindo, ${tecnicoNome}`}
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5"><Plus className="h-3.5 w-3.5" />Tarefa</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/clientes")} className="gap-1.5"><Users className="h-3.5 w-3.5" />Cliente</Button>
+          </>
+        }
+      />
 
       {/* Task KPIs */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         {kpis.map(k => (
-          <Card key={k.label} className="hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
+          <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{k.label}</CardTitle>
               <div className={`h-8 w-8 rounded-lg ${k.bg} flex items-center justify-center`}>
@@ -192,7 +193,7 @@ export default function Dashboard() {
       {/* Module cards */}
       <div className="grid gap-3 grid-cols-3">
         {modulosCards.map(m => (
-          <Card key={m.label} className="cursor-pointer hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200" onClick={() => navigate(m.route)}>
+          <Card key={m.label} className="cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover" onClick={() => navigate(m.route)}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{m.label}</CardTitle>
               <div className={`h-8 w-8 rounded-lg ${m.bg} flex items-center justify-center`}>
@@ -207,23 +208,23 @@ export default function Dashboard() {
       {/* Receita KPIs */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {receitaKpis.map(k => (
-          <Card key={k.label} className="cursor-pointer hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200" onClick={() => navigate("/receita")}>
+          <Card key={k.label} className="cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover domain-border-left" style={{ borderLeftColor: k.color }} onClick={() => navigate("/receita")}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{k.label}</CardTitle>
               <k.icon className="h-4 w-4" style={{ color: k.color }} />
             </CardHeader>
-            <CardContent><div className="text-xl font-bold">{k.value}</div></CardContent>
+            <CardContent><div className="text-2xl font-bold">{k.value}</div></CardContent>
           </Card>
         ))}
       </div>
 
       {/* Alerta URGENTE: clientes em atraso > 30 dias */}
       {receitaMetricas.alertaCritico30.length > 0 && (
-        <Card className="border-destructive bg-destructive/10">
+        <Card className="border-destructive/40 bg-destructive/5">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              <span>🚨 URGENTE: {receitaMetricas.alertaCritico30.length} cliente{receitaMetricas.alertaCritico30.length > 1 ? "s" : ""} em atraso há mais de 30 dias</span>
+              <span>URGENTE: {receitaMetricas.alertaCritico30.length} cliente{receitaMetricas.alertaCritico30.length > 1 ? "s" : ""} em atraso há mais de 30 dias</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -247,11 +248,11 @@ export default function Dashboard() {
 
       {/* Alerta: clientes em atraso > 7 dias (até 30) */}
       {receitaMetricas.alertaCritico7.length > 0 && (
-        <Card className="border-warning/50 bg-warning/5">
+        <Card className="border-warning/40 bg-warning/5">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning" />
-              <span>⚠️ Atenção: {receitaMetricas.alertaCritico7.length} cliente{receitaMetricas.alertaCritico7.length > 1 ? "s" : ""} em atraso entre 7 e 30 dias</span>
+              <span>Atenção: {receitaMetricas.alertaCritico7.length} cliente{receitaMetricas.alertaCritico7.length > 1 ? "s" : ""} em atraso entre 7 e 30 dias</span>
             </CardTitle>
           </CardHeader>
           <CardContent>

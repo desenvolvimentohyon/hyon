@@ -125,7 +125,7 @@ export default function ContasPagar() {
             </TableHeader>
             <TableBody>
               {pagar.slice(0, 50).map(t => (
-                <TableRow key={t.id}>
+                <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
                   <TableCell className="font-medium text-sm">{t.descricao}</TableCell>
                   <TableCell className="text-sm">{t.fornecedorNome || "—"}</TableCell>
                   <TableCell>

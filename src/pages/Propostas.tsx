@@ -202,7 +202,7 @@ export default function Propostas() {
               {filtered.length === 0 ? (
                 <TableRow><TableCell colSpan={10} className="text-center py-12 text-muted-foreground">Nenhuma proposta encontrada</TableCell></TableRow>
               ) : filtered.map(p => (
-                <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/propostas/${p.id}`)}>
+                <TableRow key={p.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => navigate(`/propostas/${p.id}`)}>
                   <TableCell className="font-mono text-xs font-medium">{p.numeroProposta}</TableCell>
                   <TableCell className="max-w-[180px] truncate">{p.clienteNomeSnapshot || <span className="text-muted-foreground italic">Sem cliente</span>}</TableCell>
                   <TableCell><Badge variant="outline" className="text-[10px]">{p.sistema}</Badge></TableCell>

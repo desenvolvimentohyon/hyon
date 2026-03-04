@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, Eye, ClipboardPlus, MoreHorizontal } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
@@ -17,6 +17,10 @@ import { PerfilCliente, SistemaRelacionado, StatusFinanceiro } from "@/types";
 import { validateCNPJ, cleanCNPJ, maskDocument, CnpjLookupResult } from "@/lib/cnpjUtils";
 import { supabase } from "@/integrations/supabase/client";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { RowActions } from "@/components/ui/row-actions";
+import { Users } from "lucide-react";
 
 export default function Clientes() {
   const { clientes, addCliente, tarefas } = useApp();
@@ -121,10 +125,10 @@ export default function Clientes() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
-        <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>
-      </div>
+      <PageHeader
+        title="Clientes"
+        actions={<Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
+      />
       <div className="relative max-w-sm">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input placeholder="Buscar cliente..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-9" />
@@ -138,13 +142,26 @@ export default function Clientes() {
               <TableHead className="hidden md:table-cell">Mensalidade</TableHead>
               <TableHead>Saúde</TableHead>
               <TableHead>Tarefas</TableHead>
+              <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map(c => {
+            {filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <EmptyState
+                    icon={Users}
+                    title="Nenhum cliente encontrado"
+                    description={busca ? "Tente outro termo de busca" : "Cadastre seu primeiro cliente para começar"}
+                    actionLabel={!busca ? "Cadastrar primeiro cliente" : undefined}
+                    onAction={!busca ? () => setShowNovo(true) : undefined}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : filtered.map(c => {
               const { score, saude } = getScore(c.id);
               return (
-                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(c.id)}>
+                <TableRow key={c.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => setSelectedId(c.id)}>
                   <TableCell>
                     <div>
                       <span className="font-medium">{c.nome}</span>
@@ -155,10 +172,15 @@ export default function Clientes() {
                   <TableCell className="hidden md:table-cell text-muted-foreground">R$ {c.mensalidadeAtual || 0}</TableCell>
                   <TableCell><Badge className={`text-[10px] ${saude.className}`}>{score}</Badge></TableCell>
                   <TableCell><Badge variant="outline">{tarefas.filter(t => t.clienteId === c.id).length}</Badge></TableCell>
+                  <TableCell>
+                    <RowActions actions={[
+                      { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
+                      { label: "Nova tarefa", icon: ClipboardPlus, onClick: () => navigate(`/tarefas?nova=1`) },
+                    ]} />
+                  </TableCell>
                 </TableRow>
               );
             })}
-            {filtered.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">Nenhum cliente encontrado</TableCell></TableRow>}
           </TableBody>
         </Table>
       </div>
