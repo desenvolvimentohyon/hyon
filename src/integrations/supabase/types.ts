@@ -1135,12 +1135,16 @@ export type Database = {
           phone: string | null
           primary_color: string | null
           proposal_validity_days: number | null
+          renewal_alert_days: number | null
+          renewal_alert_enabled: boolean | null
           renewal_auto_proposal: boolean | null
           renewal_email: boolean | null
+          renewal_email_template: string | null
           renewal_same_plan: boolean | null
           renewal_template: string | null
           renewal_validity_days: number | null
           renewal_whatsapp: boolean | null
+          renewal_whatsapp_template: string | null
           secondary_color: string | null
           state_registration: string | null
           tax_regime: string | null
@@ -1182,12 +1186,16 @@ export type Database = {
           phone?: string | null
           primary_color?: string | null
           proposal_validity_days?: number | null
+          renewal_alert_days?: number | null
+          renewal_alert_enabled?: boolean | null
           renewal_auto_proposal?: boolean | null
           renewal_email?: boolean | null
+          renewal_email_template?: string | null
           renewal_same_plan?: boolean | null
           renewal_template?: string | null
           renewal_validity_days?: number | null
           renewal_whatsapp?: boolean | null
+          renewal_whatsapp_template?: string | null
           secondary_color?: string | null
           state_registration?: string | null
           tax_regime?: string | null
@@ -1229,12 +1237,16 @@ export type Database = {
           phone?: string | null
           primary_color?: string | null
           proposal_validity_days?: number | null
+          renewal_alert_days?: number | null
+          renewal_alert_enabled?: boolean | null
           renewal_auto_proposal?: boolean | null
           renewal_email?: boolean | null
+          renewal_email_template?: string | null
           renewal_same_plan?: boolean | null
           renewal_template?: string | null
           renewal_validity_days?: number | null
           renewal_whatsapp?: boolean | null
+          renewal_whatsapp_template?: string | null
           secondary_color?: string | null
           state_registration?: string | null
           tax_regime?: string | null
@@ -1564,6 +1576,60 @@ export type Database = {
           },
           {
             foreignKeyName: "monthly_adjustments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_logs: {
+        Row: {
+          channel: string
+          client_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          org_id: string
+          plan_end_date: string
+          status: string
+          target: string | null
+          type: string
+        }
+        Insert: {
+          channel: string
+          client_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          org_id: string
+          plan_end_date: string
+          status?: string
+          target?: string | null
+          type: string
+        }
+        Update: {
+          channel?: string
+          client_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          org_id?: string
+          plan_end_date?: string
+          status?: string
+          target?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
