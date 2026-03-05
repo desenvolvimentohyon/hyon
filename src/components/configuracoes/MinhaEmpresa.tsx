@@ -64,6 +64,11 @@ type CompanyProfile = {
   renewal_validity_days: number | null;
   renewal_same_plan: boolean | null;
   renewal_template: string | null;
+  // Alert config
+  renewal_alert_enabled: boolean | null;
+  renewal_alert_days: number | null;
+  renewal_whatsapp_template: string | null;
+  renewal_email_template: string | null;
 };
 
 type BankAccount = {
@@ -95,6 +100,9 @@ const emptyProfile: CompanyProfile = {
   renewal_auto_proposal: true, renewal_whatsapp: true, renewal_email: false,
   renewal_validity_days: 7, renewal_same_plan: true,
   renewal_template: "Olá {cliente}, segue sua proposta de renovação: {link}",
+  renewal_alert_enabled: true, renewal_alert_days: 7,
+  renewal_whatsapp_template: "Olá, {cliente_nome} 👋\nSeu plano {plano_nome} vence em {dias_restantes} dias (vencimento: {data_vencimento}).\n\nPara renovar de forma rápida, acesse:\n{link_renovacao}\n\nQualquer dúvida, me chame por aqui.\n{nome_empresa}",
+  renewal_email_template: "Olá {cliente_nome},\nSeu plano {plano_nome} vence em {dias_restantes} dias (vencimento: {data_vencimento}).\nPara solicitar a renovação, acesse: {link_renovacao}\n\nAtenciosamente,\n{nome_empresa}",
 };
 
 const emptyBank: BankAccount = {
@@ -702,9 +710,48 @@ export default function MinhaEmpresa() {
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs">Template de Mensagem de Renovação</Label>
+                  <Label className="text-xs">Template de Mensagem de Renovação (Proposta)</Label>
                   <Textarea rows={3} placeholder="Olá {cliente}, segue sua proposta de renovação: {link}" value={form.renewal_template || ""} onChange={e => set("renewal_template" as any, e.target.value)} />
                   <p className="text-[11px] text-muted-foreground mt-1">Variáveis: {"{cliente}"}, {"{link}"}, {"{plano_nome}"}, {"{data_vencimento}"}, {"{nome_empresa}"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ALERTAS AUTOMÁTICOS */}
+          <Card className="mt-4">
+            <CardHeader><CardTitle className="text-base">Alertas Automáticos de Renovação</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Ativar alertas automáticos</Label>
+                    <p className="text-xs text-muted-foreground">Enviar alertas diários para clientes com plano vencendo</p>
+                  </div>
+                  <Switch checked={form.renewal_alert_enabled ?? true} onCheckedChange={v => set("renewal_alert_enabled" as any, v)} />
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs">Dias de antecedência</Label>
+                    <Input className="h-9" type="number" min={1} max={30} value={form.renewal_alert_days ?? 7} onChange={e => set("renewal_alert_days" as any, Number(e.target.value))} />
+                    <p className="text-[11px] text-muted-foreground mt-1">Alertar clientes cujo plano vence nos próximos N dias</p>
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <Label className="text-xs">Template WhatsApp (Alerta)</Label>
+                  <Textarea rows={5} value={form.renewal_whatsapp_template || ""} onChange={e => set("renewal_whatsapp_template" as any, e.target.value)} />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Variáveis: {"{cliente_nome}"}, {"{plano_nome}"}, {"{data_vencimento}"}, {"{dias_restantes}"}, {"{valor_mensalidade}"}, {"{link_renovacao}"}, {"{nome_empresa}"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-xs">Template E-mail (Alerta)</Label>
+                  <Textarea rows={5} value={form.renewal_email_template || ""} onChange={e => set("renewal_email_template" as any, e.target.value)} />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Variáveis: {"{cliente_nome}"}, {"{plano_nome}"}, {"{data_vencimento}"}, {"{dias_restantes}"}, {"{valor_mensalidade}"}, {"{link_renovacao}"}, {"{nome_empresa}"}
+                  </p>
                 </div>
               </div>
             </CardContent>

@@ -300,7 +300,32 @@ function RenovacoesCard() {
     },
   });
 
-  if (!renewals || renewals.length === 0) return null;
+  // Fetch recent notification logs
+  const { data: alertLogs } = useQuery({
+    queryKey: ["notification_logs_dashboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notification_logs")
+        .select("id, client_id, channel, plan_end_date, status, created_at")
+        .eq("type", "plan_renewal")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      if (!data || data.length === 0) return [];
+      const clientIds = [...new Set(data.map((l: any) => l.client_id))];
+      const { data: clients } = await supabase
+        .from("clients")
+        .select("id, name")
+        .in("id", clientIds);
+      const clientMap = new Map((clients || []).map((c: any) => [c.id, c.name]));
+      return data.map((l: any) => ({ ...l, client_name: clientMap.get(l.client_id) || "—" }));
+    },
+  });
+
+  const hasRenewals = renewals && renewals.length > 0;
+  const hasAlerts = alertLogs && alertLogs.length > 0;
+
+  if (!hasRenewals && !hasAlerts) return null;
 
   const statusColors: Record<string, string> = {
     pendente: "bg-muted text-muted-foreground",
@@ -316,30 +341,56 @@ function RenovacoesCard() {
         <CardTitle className="text-sm flex items-center gap-2">
           <RefreshCw className="h-4 w-4 text-primary" />
           Renovações em Andamento
-          <Badge variant="outline" className="text-[10px]">{renewals.length}</Badge>
+          {hasRenewals && <Badge variant="outline" className="text-[10px]">{renewals.length}</Badge>}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {renewals.map((r: any) => (
-            <div
-              key={r.id}
-              className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-colors duration-150"
-              onClick={() => {
-                if (r.proposal_public_token) window.open(`/proposta/${r.proposal_public_token}`, "_blank");
-                else navigate(`/clientes?id=${r.client_id}`);
-              }}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{r.client_name}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  vence {new Date(r.renewal_for_end_date + "T00:00:00").toLocaleDateString("pt-BR")}
-                </p>
+      <CardContent className="space-y-4">
+        {hasRenewals && (
+          <div className="space-y-2">
+            {renewals.map((r: any) => (
+              <div
+                key={r.id}
+                className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-colors duration-150"
+                onClick={() => {
+                  if (r.proposal_public_token) window.open(`/proposta/${r.proposal_public_token}`, "_blank");
+                  else navigate(`/clientes?id=${r.client_id}`);
+                }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{r.client_name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    vence {new Date(r.renewal_for_end_date + "T00:00:00").toLocaleDateString("pt-BR")}
+                  </p>
+                </div>
+                <Badge className={`text-[10px] ${statusColors[r.status] || ""}`}>{r.status}</Badge>
               </div>
-              <Badge className={`text-[10px] ${statusColors[r.status] || ""}`}>{r.status}</Badge>
+            ))}
+          </div>
+        )}
+
+        {hasAlerts && (
+          <>
+            <div className="pt-2 border-t">
+              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Clock className="h-3 w-3" /> Alertas Enviados Recentes
+              </p>
+              <div className="space-y-1.5">
+                {alertLogs.map((l: any) => (
+                  <div key={l.id} className="flex items-center gap-2 p-2 rounded-lg border border-border/30 bg-muted/30">
+                    <Badge variant="outline" className="text-[9px] shrink-0">{l.channel}</Badge>
+                    <span className="text-xs font-medium flex-1 truncate">{l.client_name}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      vence {new Date(l.plan_end_date + "T00:00:00").toLocaleDateString("pt-BR")}
+                    </span>
+                    <Badge className={`text-[9px] ${l.status === "sent" ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
+                      {l.status === "sent" ? "enviado" : "falha"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
