@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Paperclip, Receipt, Settings2, Boxes, Save, Wallet, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Paperclip, Receipt, Settings2, Boxes, Save, Wallet, AlertTriangle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 import { useClienteDetalhe } from "@/hooks/useClienteDetalhe";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { useApp } from "@/contexts/AppContext";
@@ -129,8 +130,34 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
         {showExpiryBanner && (
           <Alert className="border-warning bg-warning/10">
             <AlertTriangle className="h-4 w-4 text-warning" />
-            <AlertDescription className="text-sm font-medium">
-              Plano vence em {daysToExpiry} dia{daysToExpiry !== 1 ? "s" : ""} ({new Date(cliente.plan_end_date! + "T00:00:00").toLocaleDateString("pt-BR")})
+            <AlertDescription className="text-sm font-medium flex items-center justify-between">
+              <span>Plano vence em {daysToExpiry} dia{daysToExpiry !== 1 ? "s" : ""} ({new Date(cliente.plan_end_date! + "T00:00:00").toLocaleDateString("pt-BR")})</span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 ml-4"
+                onClick={async () => {
+                  try {
+                    const { data, error } = await supabase.functions.invoke("generate-renewal-proposal", {
+                      body: { client_id: clienteId, renewal_for_end_date: cliente.plan_end_date },
+                    });
+                    if (error) throw error;
+                    if (data?.error) throw new Error(data.error);
+                    toast({ title: data.already_exists ? "Proposta já existente" : "Proposta de renovação gerada!" });
+                    if (data.proposal_public_token) {
+                      window.open(`/proposta/${data.proposal_public_token}`, "_blank");
+                    }
+                    if (data.whatsapp_url) {
+                      window.open(data.whatsapp_url, "_blank");
+                    }
+                  } catch (e: any) {
+                    toast({ title: "Erro ao gerar renovação", description: e.message, variant: "destructive" });
+                  }
+                }}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Gerar Renovação
+              </Button>
             </AlertDescription>
           </Alert>
         )}

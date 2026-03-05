@@ -45,6 +45,7 @@ import CardClienteDetalhe from "./pages/cartoes/CardClienteDetalhe";
 import CardPropostas from "./pages/cartoes/CardPropostas";
 import CardFaturamento from "./pages/cartoes/CardFaturamento";
 import CardPropostaPublica from "./pages/cartoes/CardPropostaPublica";
+import RenovarPlano from "./pages/RenovarPlano";
 // Financeiro
 import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
 import ContasReceber from "./pages/financeiro/ContasReceber";
@@ -149,6 +150,7 @@ const App = () => (
             <Route path="/proposta/:token" element={<PropostaPublica />} />
             <Route path="/portal/:token" element={<PortalCliente />} />
             <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
+            <Route path="/renovar/:token" element={<RenovarPlano />} />
             <Route path="*" element={<AuthGate />} />
           </Routes>
           <PwaInstallBanner />

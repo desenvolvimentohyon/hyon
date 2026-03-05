@@ -276,6 +276,75 @@ function PlanosVencendoCard() {
   );
 }
 
+// ── Renovações em Andamento Card ─────────────────────────────────────
+function RenovacoesCard() {
+  const navigate = useNavigate();
+  const { data: renewals } = useQuery({
+    queryKey: ["renewal_requests_dashboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plan_renewal_requests")
+        .select("id, client_id, renewal_for_end_date, status, proposal_public_token, created_at")
+        .neq("status", "concluido")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      if (!data || data.length === 0) return [];
+      const clientIds = [...new Set(data.map((r: any) => r.client_id))];
+      const { data: clients } = await supabase
+        .from("clients")
+        .select("id, name")
+        .in("id", clientIds);
+      const clientMap = new Map((clients || []).map((c: any) => [c.id, c.name]));
+      return data.map((r: any) => ({ ...r, client_name: clientMap.get(r.client_id) || "—" }));
+    },
+  });
+
+  if (!renewals || renewals.length === 0) return null;
+
+  const statusColors: Record<string, string> = {
+    pendente: "bg-muted text-muted-foreground",
+    proposta_enviada: "bg-primary/10 text-primary",
+    aceita: "bg-primary text-primary-foreground",
+    recusada: "bg-destructive/10 text-destructive",
+    expirada: "bg-muted text-muted-foreground",
+  };
+
+  return (
+    <Card className="neon-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <RefreshCw className="h-4 w-4 text-primary" />
+          Renovações em Andamento
+          <Badge variant="outline" className="text-[10px]">{renewals.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {renewals.map((r: any) => (
+            <div
+              key={r.id}
+              className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-colors duration-150"
+              onClick={() => {
+                if (r.proposal_public_token) window.open(`/proposta/${r.proposal_public_token}`, "_blank");
+                else navigate(`/clientes?id=${r.client_id}`);
+              }}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{r.client_name}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  vence {new Date(r.renewal_for_end_date + "T00:00:00").toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+              <Badge className={`text-[10px] ${statusColors[r.status] || ""}`}>{r.status}</Badge>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════════
 // MAIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════
@@ -889,9 +958,10 @@ export default function Dashboard() {
         </Card>
         )}
 
-        {/* Indicações + Planos Vencendo + Executive Widgets */}
+        {/* Indicações + Planos Vencendo + Renovações + Executive Widgets */}
         <IndicacoesRecebidasCard />
         <PlanosVencendoCard />
+        <RenovacoesCard />
 
         <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
           <DashboardExecutiveWidgets />

@@ -13,8 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import {
   Building2, MapPin, FileText, Landmark, Palette, Settings2,
-  Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle
+  Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle, RefreshCw
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { differenceInDays, parseISO } from "date-fns";
 
@@ -56,6 +57,13 @@ type CompanyProfile = {
   partner_commission_days: number | null;
   default_billing_message: string | null;
   default_proposal_message: string | null;
+  // Renewal config
+  renewal_auto_proposal: boolean | null;
+  renewal_whatsapp: boolean | null;
+  renewal_email: boolean | null;
+  renewal_validity_days: number | null;
+  renewal_same_plan: boolean | null;
+  renewal_template: string | null;
 };
 
 type BankAccount = {
@@ -84,6 +92,9 @@ const emptyProfile: CompanyProfile = {
   default_due_day: 10, proposal_validity_days: 15, default_late_fee_percent: 2,
   default_interest_percent: 1, partner_commission_days: 7,
   default_billing_message: null, default_proposal_message: null,
+  renewal_auto_proposal: true, renewal_whatsapp: true, renewal_email: false,
+  renewal_validity_days: 7, renewal_same_plan: true,
+  renewal_template: "Olá {cliente}, segue sua proposta de renovação: {link}",
 };
 
 const emptyBank: BankAccount = {
@@ -302,6 +313,7 @@ export default function MinhaEmpresa() {
           <TabsTrigger value="bancario" className="gap-1.5 text-xs"><Landmark className="h-3.5 w-3.5" />Bancário</TabsTrigger>
           <TabsTrigger value="visual" className="gap-1.5 text-xs"><Palette className="h-3.5 w-3.5" />Identidade Visual</TabsTrigger>
           <TabsTrigger value="parametros" className="gap-1.5 text-xs"><Settings2 className="h-3.5 w-3.5" />Parâmetros</TabsTrigger>
+          <TabsTrigger value="renovacao" className="gap-1.5 text-xs"><RefreshCw className="h-3.5 w-3.5" />Renovação</TabsTrigger>
         </TabsList>
 
         {/* DADOS GERAIS */}
@@ -640,6 +652,59 @@ export default function MinhaEmpresa() {
                 <div>
                   <Label className="text-xs">Mensagem Padrão de Proposta</Label>
                   <Textarea rows={3} placeholder="Mensagem enviada junto com a proposta..." value={form.default_proposal_message || ""} onChange={e => set("default_proposal_message", e.target.value)} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* RENOVAÇÃO */}
+        <TabsContent value="renovacao">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Configurações de Renovação</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Gerar proposta automaticamente</Label>
+                    <p className="text-xs text-muted-foreground">Ao solicitar renovação, criar proposta automaticamente</p>
+                  </div>
+                  <Switch checked={form.renewal_auto_proposal ?? true} onCheckedChange={v => set("renewal_auto_proposal" as any, v)} />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Enviar via WhatsApp</Label>
+                    <p className="text-xs text-muted-foreground">Abrir link wa.me com proposta de renovação</p>
+                  </div>
+                  <Switch checked={form.renewal_whatsapp ?? true} onCheckedChange={v => set("renewal_whatsapp" as any, v)} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Enviar via E-mail</Label>
+                    <p className="text-xs text-muted-foreground">Placeholder para integração futura</p>
+                  </div>
+                  <Switch checked={form.renewal_email ?? false} onCheckedChange={v => set("renewal_email" as any, v)} />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Renovar mesmo plano</Label>
+                    <p className="text-xs text-muted-foreground">Manter sistema, módulos e valores atuais</p>
+                  </div>
+                  <Switch checked={form.renewal_same_plan ?? true} onCheckedChange={v => set("renewal_same_plan" as any, v)} />
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs">Validade da Proposta de Renovação (dias)</Label>
+                    <Input className="h-9" type="number" min={1} max={90} value={form.renewal_validity_days ?? 7} onChange={e => set("renewal_validity_days" as any, Number(e.target.value))} />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Template de Mensagem de Renovação</Label>
+                  <Textarea rows={3} placeholder="Olá {cliente}, segue sua proposta de renovação: {link}" value={form.renewal_template || ""} onChange={e => set("renewal_template" as any, e.target.value)} />
+                  <p className="text-[11px] text-muted-foreground mt-1">Variáveis: {"{cliente}"}, {"{link}"}, {"{plano_nome}"}, {"{data_vencimento}"}, {"{nome_empresa}"}</p>
                 </div>
               </div>
             </CardContent>

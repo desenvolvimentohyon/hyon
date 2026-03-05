@@ -1135,6 +1135,12 @@ export type Database = {
           phone: string | null
           primary_color: string | null
           proposal_validity_days: number | null
+          renewal_auto_proposal: boolean | null
+          renewal_email: boolean | null
+          renewal_same_plan: boolean | null
+          renewal_template: string | null
+          renewal_validity_days: number | null
+          renewal_whatsapp: boolean | null
           secondary_color: string | null
           state_registration: string | null
           tax_regime: string | null
@@ -1176,6 +1182,12 @@ export type Database = {
           phone?: string | null
           primary_color?: string | null
           proposal_validity_days?: number | null
+          renewal_auto_proposal?: boolean | null
+          renewal_email?: boolean | null
+          renewal_same_plan?: boolean | null
+          renewal_template?: string | null
+          renewal_validity_days?: number | null
+          renewal_whatsapp?: boolean | null
           secondary_color?: string | null
           state_registration?: string | null
           tax_regime?: string | null
@@ -1217,6 +1229,12 @@ export type Database = {
           phone?: string | null
           primary_color?: string | null
           proposal_validity_days?: number | null
+          renewal_auto_proposal?: boolean | null
+          renewal_email?: boolean | null
+          renewal_same_plan?: boolean | null
+          renewal_template?: string | null
+          renewal_validity_days?: number | null
+          renewal_whatsapp?: boolean | null
           secondary_color?: string | null
           state_registration?: string | null
           tax_regime?: string | null
@@ -1806,6 +1824,73 @@ export type Database = {
           },
         ]
       }
+      plan_renewal_requests: {
+        Row: {
+          auto_generated: boolean
+          client_id: string
+          created_at: string
+          email_sent_at: string | null
+          generated_proposal_id: string | null
+          id: string
+          org_id: string
+          proposal_public_token: string | null
+          renewal_for_end_date: string
+          status: string
+          updated_at: string
+          whatsapp_sent_at: string | null
+        }
+        Insert: {
+          auto_generated?: boolean
+          client_id: string
+          created_at?: string
+          email_sent_at?: string | null
+          generated_proposal_id?: string | null
+          id?: string
+          org_id: string
+          proposal_public_token?: string | null
+          renewal_for_end_date: string
+          status?: string
+          updated_at?: string
+          whatsapp_sent_at?: string | null
+        }
+        Update: {
+          auto_generated?: boolean
+          client_id?: string
+          created_at?: string
+          email_sent_at?: string | null
+          generated_proposal_id?: string | null
+          id?: string
+          org_id?: string
+          proposal_public_token?: string | null
+          renewal_for_end_date?: string
+          status?: string
+          updated_at?: string
+          whatsapp_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_renewal_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_renewal_requests_generated_proposal_id_fkey"
+            columns: ["generated_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_renewal_requests_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           active: boolean
@@ -2169,6 +2254,8 @@ export type Database = {
           pdf_generated_at: string | null
           plan_name: string | null
           proposal_number: string
+          proposal_type: string
+          reference_end_date: string | null
           sent_at: string | null
           system_name: string | null
           updated_at: string
@@ -2212,6 +2299,8 @@ export type Database = {
           pdf_generated_at?: string | null
           plan_name?: string | null
           proposal_number: string
+          proposal_type?: string
+          reference_end_date?: string | null
           sent_at?: string | null
           system_name?: string | null
           updated_at?: string
@@ -2255,6 +2344,8 @@ export type Database = {
           pdf_generated_at?: string | null
           plan_name?: string | null
           proposal_number?: string
+          proposal_type?: string
+          reference_end_date?: string | null
           sent_at?: string | null
           system_name?: string | null
           updated_at?: string
