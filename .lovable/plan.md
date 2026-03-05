@@ -1,113 +1,69 @@
 
 
-# Plano: Módulo Gestão de Máquinas de Cartão
+# Plano: Pagamentos de Cliente + Comprovantes + Alertas de Vencimento
 
-## Visao Geral
+## 1. Banco de Dados
 
-Novo módulo completo para gestão de clientes de maquininhas (fiscal/não fiscal), propostas com link público, faturamento mensal e comissões (30%). Separado dos módulos existentes, com tabelas próprias no banco.
+### 1.1 Migração: Adicionar campos de vigência na tabela `clients`
+```sql
+ALTER TABLE clients ADD COLUMN billing_plan text DEFAULT 'mensal';
+ALTER TABLE clients ADD COLUMN plan_start_date date;
+ALTER TABLE clients ADD COLUMN plan_end_date date;
+```
 
-## 1. Banco de Dados (6 migrações)
+### 1.2 Criar tabela `payment_receipts`
+Campos: id, org_id, client_id (FK clients), payment_id (uuid nullable, referência a financial_titles), payment_type (text: parcela/plano), plan_type (text nullable: mensal/trimestral/semestral/anual), period_start (date), period_end (date), competency (text), amount (numeric), paid_at (date), method (text), notes (text), file_path (text), file_name (text), file_size (int), mime_type (text), created_at.
 
-Criar as seguintes tabelas com RLS por `org_id` usando `current_org_id()`:
+RLS: org_id = current_org_id(). INSERT/UPDATE/DELETE para admin e financeiro. SELECT para todos da org.
 
-**card_clients** — Clientes da maquininha (campos conforme spec: name, company_name, cnpj, phone, email, city, status enum, card_machine_type enum, linked_client_id nullable FK clients.id, notes, org_id, timestamps)
+### 1.3 Criar bucket de storage `payment-receipts`
+Bucket privado com RLS policies para upload/download por org.
 
-**card_fee_profiles** — Taxas negociadas por cliente (mdr_debito, mdr_credito_1x/2a6/7a12, antecipacao, prazo_repasse, aluguel_mensal, active, card_client_id FK)
+## 2. Frontend
 
-**card_proposals** — Propostas de maquininha (public_token unique, title, machine_type, commission_percent default 30, fee_profile_snapshot jsonb, validity_days, status enum draft/enviada/visualizada/aceita/recusada/expirada, sent_at, first_viewed_at, accepted_at, refused_at, accepted_by_name, card_client_id FK)
+### 2.1 Nova aba "Pagamentos" no ClienteDetalhe
+- Adicionar entrada `{ value: "pagamentos", label: "Pagamentos", icon: Wallet }` no array TABS
+- Criar `src/components/clientes/tabs/TabPagamentos.tsx`:
+  - Tabela listando payment_receipts do cliente (data, período, tipo, valor, método, status, ícone comprovante)
+  - Botão "Registrar Pagamento" abre Dialog com: tipo (parcela/plano), plano selecionado, competência ou período, valor, data, método, observações, upload de arquivo
+  - Ao salvar pagamento tipo "plano": atualizar `billing_plan`, `plan_start_date`, `plan_end_date` no cliente automaticamente
+  - Download/visualização do comprovante via storage URL
 
-**card_proposal_onboarding** — Onboarding pós-aceite (card_proposal_id FK, card_client_id FK, status enum, data_payload jsonb, requested_at, completed_at)
+### 2.2 Hook `usePaymentReceipts(clienteId)`
+- CRUD com supabase para payment_receipts
+- Upload/download de arquivo via supabase.storage
 
-**card_revenue_monthly** — Faturamento mensal manual (card_client_id FK, competency text, gross_volume numeric, notes. Unique: org_id + card_client_id + competency)
+### 2.3 Campos de vigência na aba Mensalidade
+- Adicionar campos `billing_plan`, `plan_start_date`, `plan_end_date` (read-only, calculado) na TabMensalidadeNew
+- Cálculo automático de plan_end_date ao alterar plano ou start_date
 
-**card_commissions** — Comissões calculadas (card_client_id FK, competency, gross_volume, commission_percent default 30, commission_value, status enum previsto/confirmado/pago, paid_at. Unique: org_id + card_client_id + competency)
+### 2.4 Banner de alerta no ClienteDetalhe
+- Se `plan_end_date` existe e falta <= 7 dias: exibir banner amarelo no topo "Plano vence em X dias"
 
-RLS: SELECT/INSERT/UPDATE/DELETE por org_id. Páginas públicas acessam via edge function com token.
+### 2.5 Widget no Dashboard
+- Query clientes ativos com `plan_end_date` entre hoje e hoje+7 dias
+- Card "Planos Vencendo (7 dias)" com lista top 10: nome, plano, data vencimento, dias restantes, link para abrir cliente
 
-## 2. Edge Functions
+## 3. Tipos
+- Atualizar `ClienteFull` em useClienteDetalhe.ts com os 3 novos campos
 
-**card-public-proposal** — Acesso público por token (verify_jwt=false). GET retorna dados da proposta. POST para registrar visualização/aceite/onboarding.
-
-## 3. Navegação
-
-Adicionar módulo mãe **"Cartões"** (ícone: CreditCard) no `AppSidebar.tsx` com filhos:
-- Clientes → `/cartoes/clientes`
-- Propostas → `/cartoes/propostas`
-- Faturamento → `/cartoes/faturamento`
-- Dashboard → `/cartoes`
-
-Adicionar permissões `cartoes:visualizar`, `cartoes:criar`, `cartoes:editar` em `MODULOS_PERMISSOES` e `ROTA_PERMISSAO`.
-
-## 4. Rotas (App.tsx)
-
-Dentro do `AppLayout`:
-- `/cartoes` — Dashboard do módulo
-- `/cartoes/clientes` — Lista de clientes maquininha
-- `/cartoes/clientes/:id` — Detalhe com tabs (Dados, Taxas, Propostas, Faturamento, Comissão)
-- `/cartoes/propostas` — Lista de propostas
-- `/cartoes/faturamento` — Lançamento de faturamento + comissões
-
-Rota pública (fora do AuthGate):
-- `/cartoes/proposta/:token` — Página pública da proposta
-
-## 5. Páginas e Componentes
-
-### 5.1 Dashboard Cartões (`/cartoes`)
-KPIs: Total faturamento mês, Comissão prevista, Leads sem proposta, Propostas aceitas mês, Onboarding pendente. Gráfico evolução mensal (linha). Top 10 clientes por faturamento.
-
-### 5.2 Clientes Maquininha (`/cartoes/clientes`)
-Tabela com filtros (status, tipo máquina). Ações rápidas: Criar proposta, Registrar faturamento, Vincular ao ERP. Dialog para novo cliente. Badge fiscal/não fiscal.
-
-### 5.3 Detalhe Cliente (`/cartoes/clientes/:id`)
-Tabs: Dados, Taxas (histórico de perfis), Propostas, Faturamento, Comissão. Ação "Vincular ao Cliente ERP" com busca por nome/CNPJ.
-
-### 5.4 Propostas Maquininha (`/cartoes/propostas`)
-Criar proposta: selecionar cliente, tipo máquina, carregar taxas ativas, comissão %, validade. Gerar link público + enviar WhatsApp. Tabela com status e tracking.
-
-### 5.5 Página Pública (`/cartoes/proposta/:token`)
-Design SaaS premium (mesmo padrão do PropostaPublica existente). Mostra tipo máquina, tabela de taxas, validade. Botões: Aceitar, WhatsApp, PDF. Tracking de visualização/aceite. Formulário de onboarding após aceite.
-
-### 5.6 Faturamento & Comissão (`/cartoes/faturamento`)
-Lançar por cliente + competência. Auto-calcula comissão (gross_volume * 30%). Tabs: Faturamento | Comissões. Marcar comissão como paga.
-
-## 6. Widgets no Dashboard Geral
-
-Adicionar card compacto no Dashboard principal: "Cartões — Comissão Prevista: R$ X | Leads: Y | Onboarding: Z" com link para `/cartoes`.
-
-## 7. Segurança
-
-- Todas as tabelas com RLS por org_id
-- Página pública via edge function (sem acesso direto às tabelas)
-- Permissões RBAC integradas ao sistema existente
-
-## 8. Arquivos a Criar/Editar
+## 4. Arquivos
 
 **Criar:**
-- `src/pages/cartoes/CardDashboard.tsx`
-- `src/pages/cartoes/CardClientes.tsx`
-- `src/pages/cartoes/CardClienteDetalhe.tsx`
-- `src/pages/cartoes/CardPropostas.tsx`
-- `src/pages/cartoes/CardFaturamento.tsx`
-- `src/pages/cartoes/CardPropostaPublica.tsx`
-- `src/hooks/useCardClients.ts` (CRUD com react-query)
-- `src/hooks/useCardProposals.ts`
-- `src/hooks/useCardRevenue.ts`
-- `supabase/functions/card-public-proposal/index.ts`
+- `src/components/clientes/tabs/TabPagamentos.tsx`
+- `src/hooks/usePaymentReceipts.ts`
 
 **Editar:**
-- `src/App.tsx` — Adicionar rotas
-- `src/components/layout/AppSidebar.tsx` — Adicionar módulo Cartões
-- `src/types/users.ts` — Adicionar permissões
-- `src/pages/Dashboard.tsx` — Widget de comissão
+- `src/hooks/useClienteDetalhe.ts` — adicionar campos ao tipo
+- `src/components/clientes/ClienteDetalhe.tsx` — adicionar aba + banner de alerta
+- `src/components/clientes/tabs/TabMensalidadeNew.tsx` — campos de vigência
+- `src/pages/Dashboard.tsx` — widget de planos vencendo
 
-## Ordem de Execução
-
-1. Migração DB (todas as tabelas + RLS)
-2. Edge function pública
-3. Hooks de dados (react-query)
-4. Sidebar + Rotas
-5. Páginas: Clientes → Propostas → Faturamento → Dashboard Cartões
-6. Página pública + onboarding
-7. Widget no Dashboard geral
-8. Permissões RBAC
+## 5. Ordem de Execução
+1. Migração DB (campos clients + tabela payment_receipts + bucket storage)
+2. Hook usePaymentReceipts
+3. TabPagamentos (lista + modal + upload)
+4. Integrar aba no ClienteDetalhe + banner de alerta
+5. Campos de vigência na TabMensalidadeNew
+6. Widget no Dashboard
 
