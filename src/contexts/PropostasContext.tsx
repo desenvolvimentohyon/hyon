@@ -56,14 +56,13 @@ function dbToCRMConfig(settings: any, statuses: any[]): CRMConfig {
   };
 }
 
-function gerarNumero(propostas: Proposta[]): string {
+async function gerarNumero(orgId: string): Promise<string> {
   const year = new Date().getFullYear();
-  let max = 0;
-  propostas.forEach(p => {
-    const match = p.numeroProposta.match(/PROP-\d{4}-(\d{4})/);
-    if (match) max = Math.max(max, parseInt(match[1]));
-  });
-  return `PROP-${year}-${String(max + 1).padStart(4, "0")}`;
+  const { count } = await supabase
+    .from("proposals")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId);
+  return `PROP-${year}-${String((count || 0) + 1).padStart(4, "0")}`;
 }
 
 interface PropostasState { propostas: Proposta[]; crmConfig: CRMConfig; loading: boolean; }
@@ -109,12 +108,12 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
 
   const addProposta = useCallback((p: any): Proposta => {
     if (!orgId) return {} as Proposta;
-    const numero = gerarNumero(propostas);
-    const nova: Proposta = {
-      ...p, id: "", numeroProposta: numero, linkAceite: `/aceite/${numero}`,
+    const placeholder: Proposta = {
+      ...p, id: "", numeroProposta: "...", linkAceite: "",
       historico: [], criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
     };
     (async () => {
+      const numero = await gerarNumero(orgId);
       const { data, error } = await supabase.from("proposals").insert({
         org_id: orgId, proposal_number: numero, client_id: p.clienteId || null,
         client_name_snapshot: p.clienteNomeSnapshot, system_name: p.sistema,
@@ -147,8 +146,8 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       }
       fetchAll();
     })();
-    return nova;
-  }, [orgId, propostas, fetchAll]);
+    return placeholder;
+  }, [orgId, fetchAll]);
 
   const updateProposta = useCallback(async (id: string, changes: Partial<Proposta>, _acao?: string) => {
     const upd: any = {};
@@ -271,15 +270,15 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
   const cloneProposta = useCallback((id: string): Proposta | null => {
     const original = propostas.find(p => p.id === id);
     if (!original || !orgId) return null;
-    const numero = gerarNumero(propostas);
     const cloned: Proposta = {
-      ...original, id: "", numeroProposta: numero, linkAceite: `/aceite/${numero}`,
+      ...original, id: "", numeroProposta: "...", linkAceite: "",
       statusCRM: "Rascunho", statusVisualizacao: "nao_enviado", statusAceite: "pendente",
       dataEnvio: null, dataValidade: null, pdfGeradoEm: null,
       commissionGenerated: false, commissionImplantGenerated: false,
       historico: [], criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
     };
     (async () => {
+      const numero = await gerarNumero(orgId);
       const { data, error } = await supabase.from("proposals").insert({
         org_id: orgId, proposal_number: numero, client_id: original.clienteId || null,
         client_name_snapshot: original.clienteNomeSnapshot, system_name: original.sistema,
