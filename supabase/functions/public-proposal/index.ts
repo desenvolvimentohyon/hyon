@@ -141,6 +141,46 @@ Deno.serve(async (req) => {
           })
           .eq("id", proposal.id);
 
+        // Check if this is a renewal proposal
+        const { data: fullProposal } = await supabase
+          .from("proposals")
+          .select("proposal_type, reference_end_date, client_id, org_id")
+          .eq("id", proposal.id)
+          .single();
+
+        if (fullProposal?.proposal_type === "renewal" && fullProposal.client_id) {
+          // Update plan_renewal_requests status
+          await supabase
+            .from("plan_renewal_requests")
+            .update({ status: "concluido" })
+            .eq("generated_proposal_id", proposal.id);
+
+          // Fetch client to calculate new dates
+          const { data: client } = await supabase
+            .from("clients")
+            .select("billing_plan, plan_end_date")
+            .eq("id", fullProposal.client_id)
+            .single();
+
+          if (client) {
+            const planMonths: Record<string, number> = { mensal: 1, trimestral: 3, semestral: 6, anual: 12 };
+            const months = planMonths[client.billing_plan || "mensal"] || 1;
+            const oldEnd = client.plan_end_date ? new Date(client.plan_end_date + "T00:00:00") : new Date();
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const newStart = oldEnd >= today ? new Date(oldEnd.getTime() + 86400000) : today;
+            const newEnd = new Date(newStart);
+            newEnd.setMonth(newEnd.getMonth() + months);
+
+            await supabase
+              .from("clients")
+              .update({
+                plan_start_date: newStart.toISOString().slice(0, 10),
+                plan_end_date: newEnd.toISOString().slice(0, 10),
+              })
+              .eq("id", fullProposal.client_id);
+          }
+        }
+
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

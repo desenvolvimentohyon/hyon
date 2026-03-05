@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.card-public-proposal]
 verify_jwt = false
+
+[functions.generate-renewal-proposal]
+verify_jwt = false
