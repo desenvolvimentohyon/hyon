@@ -222,6 +222,60 @@ function IndicacoesRecebidasCard() {
   );
 }
 
+// ── Planos Vencendo Card ─────────────────────────────────────────────
+function PlanosVencendoCard() {
+  const navigate = useNavigate();
+  const { data: expiring } = useQuery({
+    queryKey: ["planos_vencendo"],
+    queryFn: async () => {
+      const today = new Date();
+      const in7 = new Date(today);
+      in7.setDate(in7.getDate() + 7);
+      const { data, error } = await supabase
+        .from("clients")
+        .select("id, name, billing_plan, plan_end_date")
+        .eq("status", "ativo")
+        .not("plan_end_date", "is", null)
+        .gte("plan_end_date", today.toISOString().slice(0, 10))
+        .lte("plan_end_date", in7.toISOString().slice(0, 10))
+        .order("plan_end_date")
+        .limit(10);
+      if (error) throw error;
+      return (data || []).map((c: any) => {
+        const end = new Date(c.plan_end_date + "T00:00:00");
+        const now = new Date(); now.setHours(0,0,0,0);
+        const days = Math.ceil((end.getTime() - now.getTime()) / (1000*60*60*24));
+        return { ...c, days_left: days };
+      });
+    },
+  });
+  if (!expiring || expiring.length === 0) return null;
+  return (
+    <Card className="neon-border border-warning/30">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          Planos Vencendo (7 dias)
+          <Badge variant="outline" className="text-[10px]">{expiring.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {expiring.map((c: any) => (
+            <div key={c.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-colors duration-150" onClick={() => navigate(`/clientes?id=${c.id}`)}>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{c.name}</p>
+                <p className="text-[11px] text-muted-foreground">{c.billing_plan} · vence {new Date(c.plan_end_date + "T00:00:00").toLocaleDateString("pt-BR")}</p>
+              </div>
+              <Badge className={`text-[10px] ${c.days_left <= 2 ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}`}>{c.days_left}d</Badge>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════════
 // MAIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════
@@ -835,8 +889,9 @@ export default function Dashboard() {
         </Card>
         )}
 
-        {/* Indicações + Executive Widgets */}
+        {/* Indicações + Planos Vencendo + Executive Widgets */}
         <IndicacoesRecebidasCard />
+        <PlanosVencendoCard />
 
         <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
           <DashboardExecutiveWidgets />

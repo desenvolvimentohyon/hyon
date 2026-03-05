@@ -76,6 +76,9 @@ export type ClienteFull = {
   billing_phone: string | null;
   // Metadata
   metadata: Record<string, any> | null;
+  billing_plan: string | null;
+  plan_start_date: string | null;
+  plan_end_date: string | null;
   created_at: string;
   updated_at: string;
 };
