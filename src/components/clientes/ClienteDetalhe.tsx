@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Paperclip, Receipt, Settings2, Boxes, Save } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Paperclip, Receipt, Settings2, Boxes, Save, Wallet, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useClienteDetalhe } from "@/hooks/useClienteDetalhe";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { useApp } from "@/contexts/AppContext";
@@ -19,6 +20,7 @@ import TabAnexos from "./tabs/TabAnexos";
 import TabCobrancas from "./tabs/TabCobrancas";
 import TabControle from "./tabs/TabControle";
 import TabModulos from "./tabs/TabModulos";
+import TabPagamentos from "./tabs/TabPagamentos";
 
 interface Props {
   clienteId: string;
@@ -35,6 +37,7 @@ const TABS = [
   { value: "cobrancas", label: "Cobranças", icon: Receipt, desc: "Contas a receber e cobranças" },
   { value: "controle", label: "Controle", icon: Settings2, desc: "Tags, observações e preferências" },
   { value: "modulos", label: "Módulos", icon: Boxes, desc: "Módulos contratados e adicionais" },
+  { value: "pagamentos", label: "Pagamentos", icon: Wallet, desc: "Pagamentos registrados e comprovantes" },
 ];
 
 export default function ClienteDetalhe({ clienteId, onBack }: Props) {
@@ -105,12 +108,32 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
   const saude = scoreSaudeLabel(cliente.health_score || 0);
   const currentTabMeta = TABS.find(t => t.value === activeTab);
 
+  // Plan expiry banner
+  const daysToExpiry = (() => {
+    if (!cliente.plan_end_date) return null;
+    const end = new Date(cliente.plan_end_date + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diff;
+  })();
+  const showExpiryBanner = daysToExpiry !== null && daysToExpiry >= 0 && daysToExpiry <= 7;
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-6rem)]">
       <div className="flex-1 space-y-4 max-w-5xl">
         <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5 -ml-2">
           <ArrowLeft className="h-4 w-4" />Voltar
         </Button>
+
+        {showExpiryBanner && (
+          <Alert className="border-warning bg-warning/10">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-sm font-medium">
+              Plano vence em {daysToExpiry} dia{daysToExpiry !== 1 ? "s" : ""} ({new Date(cliente.plan_end_date! + "T00:00:00").toLocaleDateString("pt-BR")})
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-2xl font-bold">{cliente.name}</h1>
@@ -177,6 +200,9 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
             </TabsContent>
             <TabsContent value="modulos" className="mt-0">
               <TabModulos clienteId={clienteId} />
+            </TabsContent>
+            <TabsContent value="pagamentos" className="mt-0">
+              <TabPagamentos clienteId={clienteId} />
             </TabsContent>
           </div>
         </Tabs>

@@ -19,14 +19,36 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
   const desconto = base > 0 ? Math.round((1 - final_ / base) * 100) : 0;
   const recurrence = formData.recurrence_active ?? cliente.recurrence_active;
 
+  const billingPlan = (formData as any).billing_plan ?? cliente.billing_plan ?? "mensal";
+  const planStartDate = (formData as any).plan_start_date ?? cliente.plan_start_date ?? "";
+  const planEndDate = (formData as any).plan_end_date ?? cliente.plan_end_date ?? "";
+
+  const calcEndDate = (start: string, plan: string) => {
+    if (!start) return "";
+    const d = new Date(start + "T00:00:00");
+    const months: Record<string, number> = { mensal: 1, trimestral: 3, semestral: 6, anual: 12 };
+    d.setMonth(d.getMonth() + (months[plan] || 1));
+    return d.toISOString().slice(0, 10);
+  };
+
+  const handlePlanChange = (plan: string) => {
+    const end = calcEndDate(planStartDate, plan);
+    onChange({ billing_plan: plan, plan_end_date: end || null } as any);
+  };
+
+  const handleStartChange = (date: string) => {
+    const end = calcEndDate(date, billingPlan);
+    onChange({ plan_start_date: date || null, plan_end_date: end || null } as any);
+  };
+
   return (
     <div className="space-y-8">
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Valores e Plano</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <Label>Plano</Label>
-            <Select value={meta.plano_tipo || "mensal"} onValueChange={val => setMeta("plano_tipo", val)}>
+            <Label>Plano de Cobrança</Label>
+            <Select value={billingPlan} onValueChange={handlePlanChange}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="mensal">Mensal</SelectItem>
@@ -36,6 +58,10 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
               </SelectContent>
             </Select>
           </div>
+          <div><Label>Início da Vigência</Label><Input type="date" value={planStartDate} onChange={e => handleStartChange(e.target.value)} /></div>
+          <div><Label>Fim da Vigência (calculado)</Label><Input type="date" value={planEndDate} readOnly className="bg-muted/50" /></div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Valor Base (R$)</Label><Input type="number" value={String(formData.monthly_value_base ?? cliente.monthly_value_base ?? 0)} onChange={e => onChange({ monthly_value_base: Number(e.target.value) || 0 } as any)} placeholder="0,00" /></div>
           <div><Label>Valor Final (R$)</Label><Input type="number" value={String(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)} onChange={e => onChange({ monthly_value_final: Number(e.target.value) || 0 } as any)} placeholder="0,00" /></div>
           <div><Label>Dia de Vencimento</Label><Input type="number" min="1" max="31" value={String(formData.default_due_day ?? cliente.default_due_day ?? 10)} onChange={e => onChange({ default_due_day: Number(e.target.value) || 10 } as any)} /></div>
