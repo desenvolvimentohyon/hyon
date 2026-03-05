@@ -1677,6 +1677,84 @@ export type Database = {
           },
         ]
       }
+      payment_receipts: {
+        Row: {
+          amount: number
+          client_id: string
+          competency: string | null
+          created_at: string
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          method: string
+          mime_type: string | null
+          notes: string | null
+          org_id: string
+          paid_at: string
+          payment_id: string | null
+          payment_type: string
+          period_end: string | null
+          period_start: string | null
+          plan_type: string | null
+        }
+        Insert: {
+          amount?: number
+          client_id: string
+          competency?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          method?: string
+          mime_type?: string | null
+          notes?: string | null
+          org_id: string
+          paid_at?: string
+          payment_id?: string | null
+          payment_type?: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_type?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          competency?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          method?: string
+          mime_type?: string | null
+          notes?: string | null
+          org_id?: string
+          paid_at?: string
+          payment_id?: string | null
+          payment_type?: string
+          period_end?: string | null
+          period_start?: string | null
+          plan_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_accounts: {
         Row: {
           active: boolean
