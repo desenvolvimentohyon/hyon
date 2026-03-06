@@ -2864,6 +2864,7 @@ export type Database = {
       current_org_id: { Args: never; Returns: string }
       current_role: { Args: never; Returns: string }
       get_user_permissions: { Args: { _user_id: string }; Returns: string[] }
+      has_permission: { Args: { _permission: string }; Returns: boolean }
     }
     Enums: {
       card_client_status:
