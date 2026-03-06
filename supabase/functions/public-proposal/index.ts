@@ -158,25 +158,31 @@ Deno.serve(async (req) => {
           // Fetch client to calculate new dates
           const { data: client } = await supabase
             .from("clients")
-            .select("billing_plan, plan_end_date")
+            .select("metadata")
             .eq("id", fullProposal.client_id)
             .single();
 
           if (client) {
+            const meta = (client as any).metadata || {};
+            const billingPlan = meta.billing_plan || "mensal";
+            const planEndDate = meta.plan_end_date;
             const planMonths: Record<string, number> = { mensal: 1, trimestral: 3, semestral: 6, anual: 12 };
-            const months = planMonths[client.billing_plan || "mensal"] || 1;
-            const oldEnd = client.plan_end_date ? new Date(client.plan_end_date + "T00:00:00") : new Date();
+            const months = planMonths[billingPlan] || 1;
+            const oldEnd = planEndDate ? new Date(planEndDate + "T00:00:00") : new Date();
             const today = new Date(); today.setHours(0, 0, 0, 0);
             const newStart = oldEnd >= today ? new Date(oldEnd.getTime() + 86400000) : today;
             const newEnd = new Date(newStart);
             newEnd.setMonth(newEnd.getMonth() + months);
 
+            const updatedMeta = {
+              ...meta,
+              plan_start_date: newStart.toISOString().slice(0, 10),
+              plan_end_date: newEnd.toISOString().slice(0, 10),
+            };
+
             await supabase
               .from("clients")
-              .update({
-                plan_start_date: newStart.toISOString().slice(0, 10),
-                plan_end_date: newEnd.toISOString().slice(0, 10),
-              })
+              .update({ metadata: updatedMeta })
               .eq("id", fullProposal.client_id);
           }
         }

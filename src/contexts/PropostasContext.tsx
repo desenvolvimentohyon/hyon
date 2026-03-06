@@ -331,7 +331,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
 
   const resetCRMConfig = useCallback(() => setCRMConfig({ ...DEFAULT_CRM_CONFIG }), []);
   const resetPropostas = useCallback(() => {
-    toast.info("Use a função de seed da organização para resetar propostas.");
+    toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
   const value: PropostasContextType = {

@@ -201,7 +201,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   }, [getCurrentPermissions]);
 
   const resetUsers = useCallback(() => {
-    toast.info("Use a função de seed para resetar dados de usuários.");
+    toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
   const value: UsersContextType = {
