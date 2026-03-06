@@ -27,7 +27,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // If using client_id (internal), require authentication
+    // If using client_id (internal), require authentication + org check
+    let callerOrgId: string | null = null;
     if (client_id && !portal_token) {
       const authHeader = req.headers.get("Authorization");
       if (!authHeader?.startsWith("Bearer ")) {
@@ -49,6 +50,19 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      // Look up caller's org_id to enforce cross-org isolation
+      const { data: callerProfile } = await supabase
+        .from("profiles")
+        .select("org_id")
+        .eq("id", claimsData.user.id)
+        .single();
+      if (!callerProfile) {
+        return new Response(JSON.stringify({ error: "Perfil não encontrado" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      callerOrgId = callerProfile.org_id;
     }
 
     // Resolve client
@@ -59,7 +73,7 @@ Deno.serve(async (req) => {
     if (portal_token) {
       clientQuery = clientQuery.eq("portal_token", portal_token);
     } else {
-      clientQuery = clientQuery.eq("id", client_id);
+      clientQuery = clientQuery.eq("id", client_id).eq("org_id", callerOrgId!);
     }
 
     const { data: client, error: clientErr } = await clientQuery.single();
@@ -70,7 +84,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const orgId = portal_token ? client.org_id : (bodyOrgId || client.org_id);
+    const orgId = portal_token ? client.org_id : (callerOrgId || client.org_id);
     const clientMeta = (client as any).metadata || {};
     const endDate = renewal_for_end_date || clientMeta.plan_end_date;
 

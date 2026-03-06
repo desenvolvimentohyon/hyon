@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Validate caller is authenticated
+    // Validate caller is authenticated and resolve their org
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const authClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -41,6 +41,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Restrict to caller's own org only
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("org_id, role")
+      .eq("id", userData.user.id)
+      .single();
+    if (!callerProfile || callerProfile.role !== "admin") {
+      return new Response(JSON.stringify({ error: "Acesso restrito a administradores" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerOrgId = callerProfile.org_id;
+
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);
 
@@ -48,7 +62,8 @@ Deno.serve(async (req) => {
     const { data: companies, error: compErr } = await supabase
       .from("company_profile")
       .select("org_id, trade_name, renewal_alert_enabled, renewal_alert_days, renewal_whatsapp, renewal_email, renewal_whatsapp_template, renewal_email_template, renewal_template")
-      .eq("renewal_alert_enabled", true);
+      .eq("renewal_alert_enabled", true)
+      .eq("org_id", callerOrgId);
 
     if (compErr) throw compErr;
     if (!companies || companies.length === 0) {
