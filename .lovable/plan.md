@@ -1,39 +1,90 @@
 
 
-## Problem Analysis
+## Auditoria Técnica Completa — Plano de Correções
 
-The data persists because:
-1. The `seed-org` Edge Function was invoked at 02:43 UTC today, re-inserting 32 clients and 235 financial titles
-2. The "Importar Dados para o Cloud" and "Forçar Reimportação" buttons on the Configuracoes page allow anyone with admin access to re-seed all test data
-3. Previous cleanup attempts were overwritten by subsequent seed invocations
+### Resumo dos Problemas Encontrados
 
-## Plan
+Após análise profunda do frontend, backend, Edge Functions e segurança, identifiquei **4 categorias** de problemas a corrigir:
 
-### 1. Delete all operational data (again) via SQL
+---
 
-Execute DELETE statements for org_id `ddf30680-ff6b-4941-a788-84f330d58391` in dependency order:
-- Wave 1: leaf tables (task_comments, task_history, proposal_items, bank_transactions, monthly_adjustments, support_events, notification_logs, billing_notifications, payment_receipts, client_attachments, client_contacts, contract_adjustments, portal_tickets, portal_referrals, card_commissions, card_revenue_monthly, card_proposal_onboarding, card_fee_profiles, upsell_suggestions)
-- Wave 2: intermediate tables (tasks, financial_titles, plan_renewal_requests, card_proposals)
-- Wave 3: proposals
-- Wave 4: root entities (clients, partners, card_clients)
+### 1. Bug de Console — `MrrLabel` sem `forwardRef`
 
-### 2. Remove seed import UI from Configuracoes
+O componente `MrrLabel` em `DashboardExecutiveWidgets.tsx` é usado dentro de `TooltipTrigger` com `asChild`, que tenta passar uma ref. Como é um function component simples, gera o warning no console.
 
-Remove the entire "Importar Dados para o Cloud" card from `src/pages/Configuracoes.tsx` (lines ~270-313), including the `seedLoading` state variable and the `CloudUpload` import. This prevents accidental re-seeding.
+**Correção:** Converter `MrrLabel` para usar `React.forwardRef`.
 
-### 3. Delete the seed-org Edge Function
+---
 
-Delete `supabase/functions/seed-org/index.ts` to eliminate the seed capability entirely from the backend.
+### 2. Referências Obsoletas ao Seed e Dados Falsos
 
-### 4. Remove local seed data files
+Apesar da remoção do `seed-org`, ainda restam no sistema:
 
-Delete the following files that contain hardcoded test data (they are no longer referenced after removing seed-org):
-- `src/data/seed.ts`
-- `src/data/seedFinanceiro.ts`
-- `src/data/seedParametros.ts`
-- `src/data/seedPropostas.ts`
-- `src/data/seedReceita.ts`
-- `src/data/seedUsers.ts`
+- **6 funções "reset"** que exibem toast "Use a função de seed da organização" (seed já não existe)
+- **Botão "Resetar Seed"** em `ConfiguracoesFinanceiras.tsx` (linha 296)
+- **Botão "Resetar Dados Receita"** em `Configuracoes.tsx` (linha 263)
+- **Botão "Resetar Dados"** em `Configuracoes.tsx` (linha 275)
+- **`importarExtrato()`** no `FinanceiroContext.tsx` gera **10 movimentos bancários falsos** com dados aleatórios no banco de produção (linhas 353-371)
+- **Evolução no Dashboard** (linhas 516-526) usa dados **simulados** ("6m atrás" com fator multiplicador) em vez de dados reais
+- **"Clientes em Atraso" com dias de atraso falsos** (linhas 463-468) — calcula `diasAtraso` a partir de um hash do ID do cliente, gerando números fictícios
 
-Note: `seedConfigFinanceira` from `seedFinanceiro.ts` is imported in `FinanceiroContext.tsx` as default config -- this will need to be inlined before deletion.
+**Correções:**
+- Remover todos os botões de "Resetar Seed/Dados" das telas de configuração
+- Atualizar mensagens de toast das funções reset para serem coerentes (sem referência a seed)
+- Substituir `importarExtrato()` por um placeholder que informa "Funcionalidade de importação de extrato em desenvolvimento"
+- Substituir dados de evolução simulados por dados reais (query histórica de `financial_titles` agrupada por mês)
+- Substituir cálculo falso de dias de atraso por dados reais da tabela `financial_titles` (títulos vencidos)
+
+---
+
+### 3. Edge Functions com Colunas Inexistentes
+
+As Edge Functions `send-plan-renewal-alerts`, `generate-renewal-proposal` e `public-proposal` fazem queries diretas a colunas `billing_plan` e `plan_end_date` na tabela `clients`. Essas colunas **não existem** — os dados estão em `metadata` (JSONB). Isso causa falhas silenciosas (400 errors).
+
+**Correções:**
+- `send-plan-renewal-alerts/index.ts`: Alterar query para buscar `metadata` e filtrar `billing_plan` e `plan_end_date` em memória
+- `generate-renewal-proposal/index.ts`: Mesma correção
+- `public-proposal/index.ts`: Mesma correção
+- Adicionar autenticação via header secret no `send-plan-renewal-alerts` (vulnerabilidade de segurança identificada)
+
+---
+
+### 4. Segurança — Vulnerabilidades Críticas
+
+**4a. Proposals acessíveis anonimamente** (CRÍTICO)
+A política RLS `public_select_by_token` permite que qualquer usuário anônimo leia TODAS as propostas que tenham `acceptance_link IS NOT NULL`. Correção: remover essa política RLS (o acesso público já é feito via Edge Function `public-proposal` com service role).
+
+**4b. Edge Function sem autenticação** 
+`send-plan-renewal-alerts` aceita chamadas sem autenticação. Qualquer pessoa pode disparar alertas de renovação para todos os clientes. Correção: adicionar verificação de secret header.
+
+**4c. SELECT sem restrição de role em 14 tabelas**
+Todas as tabelas sensíveis (clients, financial_titles, bank_accounts, etc.) permitem SELECT para qualquer usuário autenticado da org, independente do role. Correção: adicionar `has_permission()` nas políticas SELECT das tabelas mais críticas:
+- `financial_titles`, `bank_accounts`, `bank_transactions`, `company_bank_accounts`: requerer `financeiro:visualizar`
+- `asaas_settings`, `asaas_webhook_events`: requerer `financeiro:visualizar`
+- `proposals`, `proposal_items`: requerer `propostas:visualizar`
+- `partners`: requerer `parceiros:visualizar` (ou `comercial:visualizar`)
+
+**Nota sobre clientes:** A tabela `clients` precisa ser acessível a múltiplos roles (suporte, comercial, implantação, financeiro), então o SELECT permanecerá com `org_id = current_org_id()` sem restrição adicional, pois quase todo perfil precisa ver clientes.
+
+---
+
+### Sequência de Implementação
+
+1. **Migração SQL** — Remover política RLS `public_select_by_token` das proposals; Atualizar políticas SELECT das tabelas financeiras com `has_permission()`
+2. **Edge Functions** — Corrigir queries de `billing_plan`/`plan_end_date` nas 3 funções; Adicionar auth no `send-plan-renewal-alerts`
+3. **Frontend** — Fix `MrrLabel` forwardRef; Remover botões de reset/seed; Corrigir dados simulados no Dashboard; Corrigir `importarExtrato`
+
+### Arquivos Modificados
+
+- `src/components/DashboardExecutiveWidgets.tsx` — forwardRef fix
+- `src/pages/Dashboard.tsx` — remover dados simulados de evolução e dias de atraso falsos
+- `src/pages/Configuracoes.tsx` — remover botões de reset
+- `src/pages/financeiro/ConfiguracoesFinanceiras.tsx` — remover botão Resetar Seed
+- `src/pages/financeiro/ConciliacaoBancaria.tsx` — remover importação de extrato falso
+- `src/contexts/FinanceiroContext.tsx` — corrigir importarExtrato
+- `src/contexts/AppContext.tsx`, `ReceitaContext.tsx`, `PropostasContext.tsx`, `UsersContext.tsx`, `ParametrosContext.tsx` — atualizar mensagens de reset
+- `supabase/functions/send-plan-renewal-alerts/index.ts` — fix queries + auth
+- `supabase/functions/generate-renewal-proposal/index.ts` — fix queries
+- `supabase/functions/public-proposal/index.ts` — fix queries
+- Migração SQL para políticas RLS
 
