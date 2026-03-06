@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertTriangle, Plus, Users, TrendingUp, TrendingDown,
   Headphones, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
-  Shield, ArrowUpRight, ArrowDownRight, BarChart3, PieChart as PieChartIcon,
+  Shield, BarChart3, PieChart as PieChartIcon,
   ExternalLink, RefreshCw, Download, Clock, Zap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -555,11 +555,11 @@ export default function Dashboard() {
 
   // ── KPI card definitions ────────────────────────────────────────────
   const receitaKpis = [
-    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita, domain: "receita" as const, change: "+4.2%", up: true, spark: sparkMrr },
-    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita, domain: "receita" as const, change: "+4.2%", up: true, spark: sparkArr },
-    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita, domain: "receita" as const, change: "+1.8%", up: true, spark: sparkTicket },
-    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: `${receitaMetricas.churnRate.toFixed(1)}%`, icon: Percent, color: RECEITA_COLORS.churn, domain: "churn" as const, change: "-0.3%", up: false, spark: sparkChurn },
-    { label: "Margem", value: fmt(receitaMetricas.margem), icon: BarChart3, color: RECEITA_COLORS.margem, domain: "margem" as const, change: "+2.1%", up: true, spark: sparkMargem },
+    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkMrr },
+    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkArr },
+    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkTicket },
+    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: `${receitaMetricas.churnRate.toFixed(1)}%`, icon: Percent, color: RECEITA_COLORS.churn, domain: "churn" as const, spark: sparkChurn },
+    { label: "Margem", value: fmt(receitaMetricas.margem), icon: BarChart3, color: RECEITA_COLORS.margem, domain: "margem" as const, spark: sparkMargem },
   ];
 
   const propostasKpis = [
@@ -612,10 +612,6 @@ export default function Dashboard() {
                 <div className="flex items-end justify-between gap-2">
                   <div>
                     <p className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-none">{k.value}</p>
-                    <div className="flex items-center gap-1 mt-1.5">
-                      {k.up ? <ArrowUpRight className="h-3 w-3 text-success" /> : <ArrowDownRight className="h-3 w-3 text-warning" />}
-                      <span className={`text-[11px] font-medium ${k.up ? "text-success" : "text-warning"}`}>{k.change}</span>
-                    </div>
                   </div>
                   <Sparkline data={k.spark} color={k.color} height={28} />
                 </div>
