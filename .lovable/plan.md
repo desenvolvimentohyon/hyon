@@ -1,83 +1,54 @@
 
 
-# Plano: Alertas Automáticos de Renovação (Cron Diário)
+# Plano: Reset de Dados Operacionais (Clean Slate)
 
-## O que já existe
-- Tabela `plan_renewal_requests`, edge function `generate-renewal-proposal`, página `/renovar/:token`
-- Dashboard com widgets "Planos Vencendo" e "Renovações em Andamento"
-- Configurações de renovação em Minha Empresa (toggles WhatsApp/Email, template, validade)
+## Situação Atual
+Dados remanescentes no banco:
+- **32 clientes** de teste
+- **235 financial_titles** (contas a receber/pagar)
+- **199 bank_transactions** (movimentos bancários)
+- **63 monthly_adjustments** (ajustes mensalidade)
+- **3 partners** (parceiros)
+- Demais tabelas operacionais já estão zeradas
 
-## O que falta implementar
+## O que será feito
 
-### 1. Tabela `notification_logs` (anti-duplicidade)
-Registra cada envio de alerta para evitar duplicatas por cliente/vencimento/canal.
+### 1. Atualizar Edge Function `seed-org` para suportar `action: "reset"`
+Adicionar novo modo que limpa **apenas dados operacionais** sem tocar em configurações.
 
-```sql
-CREATE TABLE notification_logs (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL,
-  client_id uuid NOT NULL,
-  type text NOT NULL,          -- 'plan_renewal'
-  channel text NOT NULL,       -- 'whatsapp' | 'email'
-  target text,                 -- telefone ou email
-  plan_end_date date NOT NULL,
-  status text DEFAULT 'sent',  -- sent | failed
-  error_message text,
-  created_at timestamptz DEFAULT now(),
-  UNIQUE(org_id, client_id, type, channel, plan_end_date)
-);
-```
-RLS: select/insert para admin e financeiro da org.
+Tabelas que serão limpas (em ordem de dependência FK):
 
-### 2. Campos adicionais em `company_profile`
-```sql
-ALTER TABLE company_profile
-  ADD COLUMN renewal_alert_enabled boolean DEFAULT true,
-  ADD COLUMN renewal_alert_days integer DEFAULT 7,
-  ADD COLUMN renewal_whatsapp_template text DEFAULT '...',
-  ADD COLUMN renewal_email_template text DEFAULT '...';
-```
-Templates com variáveis: `{cliente_nome}`, `{plano_nome}`, `{data_vencimento}`, `{dias_restantes}`, `{valor_mensalidade}`, `{link_renovacao}`, `{nome_empresa}`.
+**Wave 1** (folhas sem dependências):
+- task_comments, task_history, proposal_items, bank_transactions
+- monthly_adjustments, support_events, notification_logs, billing_notifications
+- payment_receipts, client_attachments, client_contacts, contract_adjustments
+- asaas_webhook_events, portal_tickets, portal_referrals
+- card_commissions, card_revenue_monthly, card_proposal_onboarding, card_fee_profiles
 
-### 3. Edge Function `send-plan-renewal-alerts`
-Cron diário que:
-1. Busca todas as orgs com `renewal_alert_enabled = true`
-2. Para cada org, busca clientes ativos com `plan_end_date` entre hoje e hoje + `renewal_alert_days` dias, com `billing_plan` in (trimestral, semestral, anual)
-3. Verifica `notification_logs` para evitar duplicatas
-4. Para cada cliente sem log:
-   - Gera `link_renovacao` usando `portal_token` do cliente
-   - Monta mensagem com template
-   - Registra em `notification_logs` (WhatsApp/Email)
-   - Se WhatsApp: registra URL `wa.me/` (modo simples, sem envio automático real)
-   - Se Email: placeholder (registra log)
-5. Retorna resumo de envios
+**Wave 2** (nível intermediário):
+- tasks, financial_titles, plan_renewal_requests, card_proposals
 
-### 4. Cron Job (pg_cron)
-Agendar execução diária às 08:00 via `cron.schedule`.
+**Wave 3**: proposals
 
-### 5. UI: Configurações de Alertas
-Expandir a aba "Renovação" em MinhaEmpresa com:
-- Toggle "Ativar alertas automáticos"
-- Campo "Dias de antecedência" (default 7)
-- Template WhatsApp (com variáveis expandidas)
-- Template Email (com variáveis expandidas)
+**Wave 4**: clients, partners, card_clients
 
-### 6. UI: Dashboard - Histórico de Alertas
-Adicionar ao widget RenovacoesCard uma seção mostrando alertas enviados recentes (últimos 10 do `notification_logs`).
+### Tabelas PRESERVADAS (não tocadas):
+- organizations, profiles (usuários)
+- company_profile, company_bank_accounts (Minha Empresa)
+- plans, payment_methods (configurações)
+- systems_catalog, system_modules (sistemas/módulos)
+- crm_statuses, custom_roles (CRM/permissões)
+- plan_accounts, bank_accounts (plano de contas)
+- billing_rules, asaas_settings, proposal_settings
 
-## Arquivos
+### 2. Deploy e execução
+- Deploy da edge function atualizada
+- Chamar `POST /seed-org` com `{ "action": "reset" }`
 
-**Criar:**
-- `supabase/functions/send-plan-renewal-alerts/index.ts`
+### 3. Verificação
+- Query de contagem em todas as tabelas operacionais = 0
+- Navegar no dashboard para confirmar indicadores zerados
 
-**Editar:**
-- `src/components/configuracoes/MinhaEmpresa.tsx` — seção alertas expandida
-- `src/pages/Dashboard.tsx` — integrar logs de alertas
-- `supabase/config.toml` — registrar nova edge function
-
-## Ordem
-1. Migração DB (notification_logs + campos company_profile)
-2. Edge function send-plan-renewal-alerts
-3. Cron job pg_cron
-4. UI configurações + dashboard
+## Arquivos editados
+- `supabase/functions/seed-org/index.ts` — adicionar bloco `action === "reset"`
 
