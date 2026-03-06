@@ -38,27 +38,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile(data as Profile | null);
   }, []);
 
-  const seedOrg = useCallback(async () => {
-    try {
-      await supabase.functions.invoke("seed-org");
-    } catch {
-      // ignore seed errors silently
-    }
-  }, []);
-
   useEffect(() => {
     // Set up auth listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      async (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
           // Use setTimeout to avoid Supabase client deadlock
           setTimeout(() => {
             fetchProfile(newSession.user.id);
-            if (event === "SIGNED_IN") {
-              seedOrg();
-            }
           }, 0);
         } else {
           setProfile(null);
