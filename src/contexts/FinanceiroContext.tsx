@@ -5,7 +5,19 @@ import { toast } from "sonner";
 import {
   ContaBancaria, PlanoContas, TituloFinanceiro, MovimentoBancario, ConfigFinanceira,
 } from "@/types/financeiro";
-import { seedConfigFinanceira } from "@/data/seedFinanceiro";
+const defaultConfigFinanceira: ConfigFinanceira = {
+  diasAlerta: 7,
+  diasSuspensao: 30,
+  contaBancariaPadraoId: "",
+  periodoPadraoRelatorio: "12m",
+  custoPorSistema: {
+    "PDV+": 0,
+    "LinkPro": 0,
+    "Torge": 0,
+    "Emissor Fiscal": 0,
+    "Hyon Hospede": 0,
+  },
+};
 
 // ===== Mappers =====
 function dbToConta(r: any): ContaBancaria {
@@ -94,7 +106,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   const [planoContas, setPlanoContas] = useState<PlanoContas[]>([]);
   const [titulos, setTitulos] = useState<TituloFinanceiro[]>([]);
   const [movimentos, setMovimentos] = useState<MovimentoBancario[]>([]);
-  const [config, setConfig] = useState<ConfigFinanceira>(seedConfigFinanceira);
+  const [config, setConfig] = useState<ConfigFinanceira>(defaultConfigFinanceira);
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
