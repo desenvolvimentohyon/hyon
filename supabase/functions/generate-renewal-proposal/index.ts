@@ -183,7 +183,8 @@ Deno.serve(async (req) => {
       .single();
 
     if (proposalErr || !proposal) {
-      return new Response(JSON.stringify({ error: "Erro ao criar proposta", detail: proposalErr?.message }), {
+      console.error("proposal insert error:", proposalErr);
+      return new Response(JSON.stringify({ error: "Erro ao criar proposta" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
