@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
       const { data: proposal, error } = await supabase
         .from("proposals")
         .select(
-          "id, proposal_number, client_name_snapshot, system_name, plan_name, monthly_value, implementation_value, implementation_flow, implementation_installments, valid_days, valid_until, acceptance_status, view_status, additional_info, notes_internal, first_viewed_at, views_count, accepted_at, accepted_by_name, created_at, sent_at"
+          "id, proposal_number, client_name_snapshot, system_name, plan_name, monthly_value, implementation_value, implementation_flow, implementation_installments, valid_days, valid_until, acceptance_status, view_status, additional_info, first_viewed_at, views_count, accepted_at, accepted_by_name, created_at, sent_at"
         )
         .eq("acceptance_link", token)
         .single();
