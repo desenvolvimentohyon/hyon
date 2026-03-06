@@ -217,7 +217,7 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
               <TabEvolucao clienteId={clienteId} />
             </TabsContent>
             <TabsContent value="anexos" className="mt-0">
-              <TabAnexos clienteId={clienteId} attachments={attachments} onAdd={addAttachment} onDelete={deleteAttachment} />
+              <TabAnexos clienteId={clienteId} orgId={cliente?.org_id || ""} attachments={attachments} onAdd={addAttachment} onDelete={deleteAttachment} />
             </TabsContent>
             <TabsContent value="cobrancas" className="mt-0">
               <TabCobrancas clienteId={clienteId} />

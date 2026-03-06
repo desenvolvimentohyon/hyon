@@ -21,12 +21,13 @@ const FILE_TYPES = [
 
 interface Props {
   clienteId: string;
+  orgId: string;
   attachments: ClienteAttachment[];
   onAdd: (att: { file_path: string; file_type: string; description?: string }) => Promise<void>;
   onDelete: (id: string, filePath: string) => Promise<void>;
 }
 
-export default function TabAnexos({ clienteId, attachments, onAdd, onDelete }: Props) {
+export default function TabAnexos({ clienteId, orgId, attachments, onAdd, onDelete }: Props) {
   const [uploading, setUploading] = useState(false);
   const [fileType, setFileType] = useState("outros");
   const [description, setDescription] = useState("");
@@ -39,7 +40,7 @@ export default function TabAnexos({ clienteId, attachments, onAdd, onDelete }: P
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `${clienteId}/${Date.now()}.${ext}`;
+      const path = `${orgId}/${clienteId}/${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("client-attachments").upload(path, file);
       if (error) throw error;
       await onAdd({ file_path: path, file_type: fileType, description: description || undefined });
