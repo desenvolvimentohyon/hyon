@@ -233,20 +233,21 @@ function PlanosVencendoCard() {
       in7.setDate(in7.getDate() + 7);
       const { data, error } = await supabase
         .from("clients")
-        .select("id, name, billing_plan, plan_end_date")
+        .select("id, name, plan_id, metadata")
         .eq("status", "ativo")
-        .not("plan_end_date", "is", null)
-        .gte("plan_end_date", today.toISOString().slice(0, 10))
-        .lte("plan_end_date", in7.toISOString().slice(0, 10))
-        .order("plan_end_date")
+        .not("metadata->plan_end_date", "is", null)
+        .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
       return (data || []).map((c: any) => {
-        const end = new Date(c.plan_end_date + "T00:00:00");
+        const planEndDate = c.metadata?.plan_end_date;
+        if (!planEndDate) return null;
+        const end = new Date(planEndDate + "T00:00:00");
         const now = new Date(); now.setHours(0,0,0,0);
         const days = Math.ceil((end.getTime() - now.getTime()) / (1000*60*60*24));
-        return { ...c, days_left: days };
-      });
+        if (days < 0 || days > 7) return null;
+        return { ...c, plan_end_date: planEndDate, billing_plan: c.metadata?.billing_plan || "—", days_left: days };
+      }).filter(Boolean);
     },
   });
   if (!expiring || expiring.length === 0) return null;
