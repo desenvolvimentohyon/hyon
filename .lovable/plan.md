@@ -1,54 +1,39 @@
 
 
-# Plano: Reset de Dados Operacionais (Clean Slate)
+## Problem Analysis
 
-## Situação Atual
-Dados remanescentes no banco:
-- **32 clientes** de teste
-- **235 financial_titles** (contas a receber/pagar)
-- **199 bank_transactions** (movimentos bancários)
-- **63 monthly_adjustments** (ajustes mensalidade)
-- **3 partners** (parceiros)
-- Demais tabelas operacionais já estão zeradas
+The data persists because:
+1. The `seed-org` Edge Function was invoked at 02:43 UTC today, re-inserting 32 clients and 235 financial titles
+2. The "Importar Dados para o Cloud" and "Forçar Reimportação" buttons on the Configuracoes page allow anyone with admin access to re-seed all test data
+3. Previous cleanup attempts were overwritten by subsequent seed invocations
 
-## O que será feito
+## Plan
 
-### 1. Atualizar Edge Function `seed-org` para suportar `action: "reset"`
-Adicionar novo modo que limpa **apenas dados operacionais** sem tocar em configurações.
+### 1. Delete all operational data (again) via SQL
 
-Tabelas que serão limpas (em ordem de dependência FK):
+Execute DELETE statements for org_id `ddf30680-ff6b-4941-a788-84f330d58391` in dependency order:
+- Wave 1: leaf tables (task_comments, task_history, proposal_items, bank_transactions, monthly_adjustments, support_events, notification_logs, billing_notifications, payment_receipts, client_attachments, client_contacts, contract_adjustments, portal_tickets, portal_referrals, card_commissions, card_revenue_monthly, card_proposal_onboarding, card_fee_profiles, upsell_suggestions)
+- Wave 2: intermediate tables (tasks, financial_titles, plan_renewal_requests, card_proposals)
+- Wave 3: proposals
+- Wave 4: root entities (clients, partners, card_clients)
 
-**Wave 1** (folhas sem dependências):
-- task_comments, task_history, proposal_items, bank_transactions
-- monthly_adjustments, support_events, notification_logs, billing_notifications
-- payment_receipts, client_attachments, client_contacts, contract_adjustments
-- asaas_webhook_events, portal_tickets, portal_referrals
-- card_commissions, card_revenue_monthly, card_proposal_onboarding, card_fee_profiles
+### 2. Remove seed import UI from Configuracoes
 
-**Wave 2** (nível intermediário):
-- tasks, financial_titles, plan_renewal_requests, card_proposals
+Remove the entire "Importar Dados para o Cloud" card from `src/pages/Configuracoes.tsx` (lines ~270-313), including the `seedLoading` state variable and the `CloudUpload` import. This prevents accidental re-seeding.
 
-**Wave 3**: proposals
+### 3. Delete the seed-org Edge Function
 
-**Wave 4**: clients, partners, card_clients
+Delete `supabase/functions/seed-org/index.ts` to eliminate the seed capability entirely from the backend.
 
-### Tabelas PRESERVADAS (não tocadas):
-- organizations, profiles (usuários)
-- company_profile, company_bank_accounts (Minha Empresa)
-- plans, payment_methods (configurações)
-- systems_catalog, system_modules (sistemas/módulos)
-- crm_statuses, custom_roles (CRM/permissões)
-- plan_accounts, bank_accounts (plano de contas)
-- billing_rules, asaas_settings, proposal_settings
+### 4. Remove local seed data files
 
-### 2. Deploy e execução
-- Deploy da edge function atualizada
-- Chamar `POST /seed-org` com `{ "action": "reset" }`
+Delete the following files that contain hardcoded test data (they are no longer referenced after removing seed-org):
+- `src/data/seed.ts`
+- `src/data/seedFinanceiro.ts`
+- `src/data/seedParametros.ts`
+- `src/data/seedPropostas.ts`
+- `src/data/seedReceita.ts`
+- `src/data/seedUsers.ts`
 
-### 3. Verificação
-- Query de contagem em todas as tabelas operacionais = 0
-- Navegar no dashboard para confirmar indicadores zerados
-
-## Arquivos editados
-- `supabase/functions/seed-org/index.ts` — adicionar bloco `action === "reset"`
+Note: `seedConfigFinanceira` from `seedFinanceiro.ts` is imported in `FinanceiroContext.tsx` as default config -- this will need to be inlined before deletion.
 
