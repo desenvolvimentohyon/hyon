@@ -12,6 +12,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const cronSecret = req.headers.get("x-cron-secret");
+    if (cronSecret !== Deno.env.get("CRON_SECRET")) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -88,7 +96,7 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("health-score-cron error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
+    return new Response(JSON.stringify({ error: "Erro interno" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

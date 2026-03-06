@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const orgId = bodyOrgId || client.org_id;
+    const orgId = portal_token ? client.org_id : (bodyOrgId || client.org_id);
     const clientMeta = (client as any).metadata || {};
     const endDate = renewal_for_end_date || clientMeta.plan_end_date;
 
@@ -234,7 +234,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: "Erro interno", detail: (e as Error).message }), {
+    console.error("generate-renewal-proposal error:", e);
+    return new Response(JSON.stringify({ error: "Erro interno" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
