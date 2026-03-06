@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     // Resolve client
     let clientQuery = supabase
       .from("clients")
-      .select("id, org_id, name, trade_name, system_name, plan_id, billing_plan, plan_end_date, monthly_value_final, monthly_value_base, phone, email, portal_token");
+      .select("id, org_id, name, trade_name, system_name, plan_id, metadata, monthly_value_final, monthly_value_base, phone, email, portal_token");
 
     if (portal_token) {
       clientQuery = clientQuery.eq("portal_token", portal_token);
@@ -71,7 +71,8 @@ Deno.serve(async (req) => {
     }
 
     const orgId = bodyOrgId || client.org_id;
-    const endDate = renewal_for_end_date || client.plan_end_date;
+    const clientMeta = (client as any).metadata || {};
+    const endDate = renewal_for_end_date || clientMeta.plan_end_date;
 
     if (!endDate) {
       return new Response(JSON.stringify({ error: "Cliente não possui data de vencimento do plano" }), {
@@ -114,7 +115,7 @@ Deno.serve(async (req) => {
     const validDays = company?.renewal_validity_days || 7;
 
     // Get plan name
-    let planName = client.billing_plan || "mensal";
+    let planName = clientMeta.billing_plan || "mensal";
     if (client.plan_id) {
       const { data: plan } = await supabase
         .from("plans")

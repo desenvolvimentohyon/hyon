@@ -351,31 +351,15 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   }, [fetchAll]);
 
   const importarExtrato = useCallback(async () => {
-    if (!orgId) return;
-    const descs = ["PIX Recebido", "TED Recebida", "Pagamento cartão", "Débito automático", "Transferência", "Tarifa bancária"];
-    const conta = contasBancarias[0];
-    if (!conta) { toast.error("Nenhuma conta bancária cadastrada"); return; }
-    const newMovs = Array.from({ length: 10 }, () => {
-      const isCredit = Math.random() > 0.4;
-      return {
-        org_id: orgId, bank_account_id: conta.id,
-        date: new Date(Date.now() - Math.random() * 30 * 86400000).toISOString().split("T")[0],
-        description: descs[Math.floor(Math.random() * descs.length)],
-        value: isCredit ? Math.round((100 + Math.random() * 3000) * 100) / 100 : -Math.round((20 + Math.random() * 500) * 100) / 100,
-        type: isCredit ? "credito" : "debito",
-        reconciled: false,
-      };
-    });
-    await supabase.from("bank_transactions").insert(newMovs);
-    fetchAll();
-  }, [orgId, contasBancarias, fetchAll]);
+    toast.info("Funcionalidade de importação de extrato bancário em desenvolvimento.");
+  }, []);
 
   const updateConfig = useCallback((c: Partial<ConfigFinanceira>) => {
     setConfig(prev => ({ ...prev, ...c }));
   }, []);
 
   const resetFinanceiro = useCallback(() => {
-    toast.info("Use a função de seed da organização para resetar dados financeiros.");
+    toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
   const exportFinanceiro = useCallback(() => {

@@ -260,7 +260,6 @@ export default function Configuracoes() {
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={saveMetricas}>Salvar Métricas</Button>
-                  <Button size="sm" variant="outline" onClick={() => { resetReceita(); toast({ title: "Dados de receita resetados!" }); }}>Resetar Dados Receita</Button>
                 </div>
               </CardContent>
             </Card>
@@ -272,7 +271,6 @@ export default function Configuracoes() {
               <CardContent className="space-y-4">
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5"><Download className="h-3.5 w-3.5" />Exportar JSON</Button>
-                  <Button variant="destructive" size="sm" onClick={handleReset} className="gap-1.5"><RotateCcw className="h-3.5 w-3.5" />Resetar Dados</Button>
                 </div>
                 <Separator />
                 <div className="space-y-2">

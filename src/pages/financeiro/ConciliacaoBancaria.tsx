@@ -56,7 +56,6 @@ export default function ConciliacaoBancaria() {
 
   const handleImportar = () => {
     importarExtrato();
-    toast.success("Extrato importado com 10 novos movimentos!");
   };
 
   if (loading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-96" /></div>;

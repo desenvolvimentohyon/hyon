@@ -293,7 +293,6 @@ export default function ConfiguracoesFinanceiras() {
         <Button onClick={handleSave}><Save className="h-4 w-4 mr-1" /> Salvar Configurações</Button>
         <Button variant="outline" onClick={handleExport}><Download className="h-4 w-4 mr-1" /> Exportar JSON</Button>
         <Button variant="outline" onClick={handleImport}><Upload className="h-4 w-4 mr-1" /> Importar JSON</Button>
-        <Button variant="destructive" onClick={handleReset}><RotateCcw className="h-4 w-4 mr-1" /> Resetar Seed</Button>
       </div>
     </div>
   );

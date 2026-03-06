@@ -378,7 +378,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [configuracoes, user?.id, orgId]);
 
   const resetDados = useCallback(() => {
-    toast.info("Use a função de seed da organização para resetar dados.");
+    toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
   const exportJSON = useCallback(() => {

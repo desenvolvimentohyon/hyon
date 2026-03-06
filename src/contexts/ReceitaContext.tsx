@@ -156,7 +156,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const resetReceita = useCallback(() => {
-    toast.info("Use a função de seed da organização para resetar dados de receita.");
+    toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
   const getClienteReceita = useCallback((id: string) => clientesReceita.find(c => c.id === id), [clientesReceita]);

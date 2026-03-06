@@ -6,23 +6,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-function MrrLabel({ children }: { children: string }) {
+import React from "react";
+
+const MrrLabel = React.forwardRef<HTMLSpanElement, { children: string }>(({ children, ...props }, ref) => {
   const tooltips: Record<string, string> = {
     "MRR Atual": "MRR — Monthly Recurring Revenue\nReceita recorrente mensal dos clientes ativos.",
     "Crescimento MRR": "Crescimento MRR\nVariação percentual do MRR em relação ao mês anterior.",
     "Reajuste Este Mês": "Reajuste contratual\nImpacto dos reajustes aplicados no mês corrente.",
   };
   const tip = tooltips[children];
-  if (!tip) return <span>{children}</span>;
+  if (!tip) return <span ref={ref} {...props}>{children}</span>;
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="border-b border-dashed border-muted-foreground/40 cursor-help">{children}</span>
+        <span ref={ref} {...props} className="border-b border-dashed border-muted-foreground/40 cursor-help">{children}</span>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs whitespace-pre-line text-xs">{tip}</TooltipContent>
     </Tooltip>
   );
-}
+});
+MrrLabel.displayName = "MrrLabel";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 

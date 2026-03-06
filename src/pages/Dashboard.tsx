@@ -462,9 +462,7 @@ export default function Dashboard() {
     const margem = mrr - custos;
     const emAtraso = clientesReceita.filter(c => c.statusCliente === "atraso");
     const emAtrasoComDias = emAtraso.map(c => {
-      const hash = c.id.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-      const diasAtraso = 3 + (hash % 55);
-      return { ...c, diasAtraso };
+      return { ...c, diasAtraso: 0 };
     }).sort((a, b) => b.diasAtraso - a.diasAtraso);
     const alertaCritico30 = emAtrasoComDias.filter(c => c.diasAtraso > 30);
     const alertaCritico7 = emAtrasoComDias.filter(c => c.diasAtraso > 7 && c.diasAtraso <= 30);
@@ -512,18 +510,40 @@ export default function Dashboard() {
       .slice(0, 10);
   }, [suporteEventos, clientesReceita]);
 
-  // ── Evolution chart data (simulated last 6 months) ──────────────────
+  // ── Evolution chart data (from financial_titles) ──────────────────
+  const { data: evolutionRaw } = useQuery({
+    queryKey: ["dashboard_evolution"],
+    queryFn: async () => {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
+      const { data, error } = await supabase
+        .from("financial_titles")
+        .select("type, value_original, competency, status")
+        .gte("competency", sixMonthsAgo.toISOString().slice(0, 7))
+        .in("status", ["pago", "aberto", "vencido"]);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const evolutionData = useMemo(() => {
-    const months = ["6m atrás", "5m atrás", "4m atrás", "3m atrás", "2m atrás", "Mês atual"];
-    const baseMrr = receitaMetricas.mrr;
-    const baseCustos = receitaMetricas.custos;
-    return months.map((m, i) => {
-      const factor = 0.7 + (i * 0.06);
-      const mrr = Math.round(baseMrr * factor);
-      const custos = Math.round(baseCustos * (0.8 + i * 0.04));
-      return { name: m, MRR: mrr, Custos: custos, Margem: mrr - custos };
+    const now = new Date();
+    const months: { key: string; label: string }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+        label: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }),
+      });
+    }
+    return months.map(m => {
+      const items = (evolutionRaw || []).filter((t: any) => t.competency === m.key);
+      const receita = items.filter((t: any) => t.type === "receber").reduce((s: number, t: any) => s + Number(t.value_original), 0);
+      const despesa = items.filter((t: any) => t.type === "pagar").reduce((s: number, t: any) => s + Number(t.value_original), 0);
+      return { name: m.label, MRR: receita, Custos: despesa, Margem: receita - despesa };
     });
-  }, [receitaMetricas.mrr, receitaMetricas.custos]);
+  }, [evolutionRaw]);
 
   // ── Sparkline data for KPIs ─────────────────────────────────────────
   const sparkMrr = useMemo(() => evolutionData.map(d => d.MRR), [evolutionData]);

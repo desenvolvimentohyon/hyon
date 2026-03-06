@@ -210,7 +210,7 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
   }, [planos]);
 
   const resetParametros = useCallback(() => {
-    toast.info("Use a função de seed da organização para resetar parâmetros.");
+    toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
   const value: ParametrosContextType = {
