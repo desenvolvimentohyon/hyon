@@ -53,7 +53,53 @@ serve(async (req) => {
 
     const orgId = profile.org_id;
     const body = await req.json().catch(() => ({}));
+    const action = body.action || "seed";
     const force = body.force === true;
+
+    // ===== RESET MODE =====
+    if (action === "reset") {
+      // Wave 1: leaf tables
+      await Promise.all([
+        supabase.from("task_comments").delete().eq("org_id", orgId),
+        supabase.from("task_history").delete().eq("org_id", orgId),
+        supabase.from("proposal_items").delete().eq("org_id", orgId),
+        supabase.from("bank_transactions").delete().eq("org_id", orgId),
+        supabase.from("monthly_adjustments").delete().eq("org_id", orgId),
+        supabase.from("support_events").delete().eq("org_id", orgId),
+        supabase.from("notification_logs").delete().eq("org_id", orgId),
+        supabase.from("billing_notifications").delete().eq("org_id", orgId),
+        supabase.from("payment_receipts").delete().eq("org_id", orgId),
+        supabase.from("client_attachments").delete().eq("org_id", orgId),
+        supabase.from("client_contacts").delete().eq("org_id", orgId),
+        supabase.from("contract_adjustments").delete().eq("org_id", orgId),
+        supabase.from("asaas_webhook_events").delete().eq("org_id", orgId),
+        supabase.from("portal_tickets").delete().eq("org_id", orgId),
+        supabase.from("portal_referrals").delete().eq("org_id", orgId),
+        supabase.from("card_commissions").delete().eq("org_id", orgId),
+        supabase.from("card_revenue_monthly").delete().eq("org_id", orgId),
+        supabase.from("card_proposal_onboarding").delete().eq("org_id", orgId),
+        supabase.from("card_fee_profiles").delete().eq("org_id", orgId),
+      ]);
+      // Wave 2: intermediate
+      await Promise.all([
+        supabase.from("tasks").delete().eq("org_id", orgId),
+        supabase.from("financial_titles").delete().eq("org_id", orgId),
+        supabase.from("plan_renewal_requests").delete().eq("org_id", orgId),
+        supabase.from("card_proposals").delete().eq("org_id", orgId),
+      ]);
+      // Wave 3: proposals
+      await supabase.from("proposals").delete().eq("org_id", orgId);
+      // Wave 4: root entities
+      await Promise.all([
+        supabase.from("clients").delete().eq("org_id", orgId),
+        supabase.from("partners").delete().eq("org_id", orgId),
+        supabase.from("card_clients").delete().eq("org_id", orgId),
+      ]);
+
+      return new Response(JSON.stringify({ ok: true, action: "reset", message: "Dados operacionais limpos com sucesso." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Check if already seeded
     const { data: existingClients } = await supabase.from("clients").select("id").eq("org_id", orgId).limit(1);
