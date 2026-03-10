@@ -13,8 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import {
   Building2, MapPin, FileText, Landmark, Palette, Settings2,
-  Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle, RefreshCw
+  Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle, RefreshCw, Search
 } from "lucide-react";
+import { validateCNPJ, maskDocument } from "@/lib/cnpjUtils";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { differenceInDays, parseISO } from "date-fns";
@@ -197,16 +198,25 @@ export default function MinhaEmpresa() {
   // CNPJ lookup
   const lookupCnpj = async () => {
     const raw = form.cnpj?.replace(/\D/g, "");
-    if (!raw || raw.length !== 14) return;
+    if (!raw || raw.length !== 14) {
+      toast({ title: "CNPJ inválido.", description: "Digite um CNPJ com 14 dígitos.", variant: "destructive" });
+      return;
+    }
+    if (!validateCNPJ(raw)) {
+      toast({ title: "CNPJ inválido.", description: "O CNPJ informado não passou na validação.", variant: "destructive" });
+      return;
+    }
     setCnpjLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("cnpj-lookup", { body: { cnpj: raw } });
       if (error) throw error;
-      if (data) {
+      if (data?.error) {
+        toast({ title: "Não foi possível consultar o CNPJ.", description: data.error, variant: "destructive" });
+      } else if (data) {
         setForm(prev => ({
           ...prev,
-          legal_name: data.razao_social || prev.legal_name,
-          trade_name: data.nome_fantasia || prev.trade_name,
+          legal_name: data.nome || prev.legal_name,
+          trade_name: data.fantasia || prev.trade_name,
           phone: data.telefone || prev.phone,
           email: data.email || prev.email,
           address_cep: data.cep || prev.address_cep,
@@ -216,12 +226,11 @@ export default function MinhaEmpresa() {
           address_neighborhood: data.bairro || prev.address_neighborhood,
           address_city: data.municipio || prev.address_city,
           address_uf: data.uf || prev.address_uf,
-          cnae: data.cnae_fiscal?.toString() || prev.cnae,
         }));
         toast({ title: "Dados do CNPJ carregados!" });
       }
     } catch {
-      toast({ title: "Erro ao buscar CNPJ", variant: "destructive" });
+      toast({ title: "Não foi possível consultar o CNPJ.", description: "Verifique o número digitado.", variant: "destructive" });
     }
     setCnpjLoading(false);
   };
@@ -333,10 +342,10 @@ export default function MinhaEmpresa() {
                 <div className="md:col-span-2">
                   <Label className="text-xs">CNPJ</Label>
                   <div className="flex gap-2">
-                    <Input className="h-9" placeholder="00.000.000/0000-00" value={form.cnpj || ""} onChange={e => set("cnpj", e.target.value)} />
-                    <Button size="sm" variant="outline" onClick={lookupCnpj} disabled={cnpjLoading} className="shrink-0">
-                      {cnpjLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Buscar"}
-                    </Button>
+                     <Input className="h-9" placeholder="00.000.000/0000-00" value={form.cnpj || ""} onChange={e => set("cnpj", maskDocument(e.target.value))} />
+                     <Button size="sm" variant="outline" onClick={lookupCnpj} disabled={cnpjLoading} className="shrink-0 gap-1.5">
+                       {cnpjLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Search className="h-3.5 w-3.5" />Buscar</>}
+                     </Button>
                   </div>
                 </div>
                 <div className="md:col-span-2">

@@ -1,36 +1,54 @@
 
 
-## Plan: Reorganize Config Tabs + Fix CNPJ Lookup
+## Glassmorphism Login Redesign
 
-### File 1: `src/pages/Configuracoes.tsx`
+### Overview
+Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
 
-**Tab order change**: Swap the tab order so "Minha Empresa" appears first, and set `defaultValue="empresa"` instead of `"geral"`.
+### Changes (single file: `src/pages/Auth.tsx`)
 
-- Move the "Minha Empresa" `TabsTrigger` before "Configurações Gerais"
-- Change `defaultValue` from `"geral"` to `"empresa"`
-- Remove the `isAdmin` guard on the "Minha Empresa" tab trigger and content (or keep it but make it first when visible)
+**1. Background Layer**
+- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
+- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
+- Subtle noise/grid overlay kept but refined
 
-### File 2: `src/components/configuracoes/MinhaEmpresa.tsx`
+**2. Glass Card**
+- Replace `glass-surface` with custom inline glass styles:
+  - `background: rgba(255,255,255,0.03)` (dark glass)
+  - `backdrop-filter: blur(24px) saturate(1.2)`
+  - `border: 1px solid rgba(255,255,255,0.08)`
+  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
+  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
+- Rounded corners `rounded-2xl`, generous padding
 
-**Fix CNPJ lookup field mapping** -- the edge function returns fields named `nome`, `fantasia`, `logradouro`, etc. but the component incorrectly maps them as `data.razao_social`, `data.nome_fantasia`, `data.cnae_fiscal`.
+**3. Inputs with Icons**
+- Wrap each input in a relative container
+- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
+- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
+- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
 
-Corrected mapping (lines 207-220):
-- `data.nome` (not `data.razao_social`) -> `legal_name`
-- `data.fantasia` (not `data.nome_fantasia`) -> `trade_name`
-- `data.telefone` -> `phone`
-- `data.email` -> `email`
-- `data.cep` -> `address_cep`
-- `data.logradouro` -> `address_street`
-- `data.numero` -> `address_number`
-- `data.complemento` -> `address_complement`
-- `data.bairro` -> `address_neighborhood`
-- `data.municipio` -> `address_city`
-- `data.uf` -> `address_uf`
-- Remove `cnae_fiscal` mapping (not returned by API)
+**4. Primary Button**
+- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
+- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
+- Transition 150ms
 
-**Add CNPJ validation before lookup**: Import `validateCNPJ` and `maskDocument` from `@/lib/cnpjUtils`, validate before calling the edge function, and show appropriate error toast if invalid.
+**5. Social Buttons**
+- Glass style: `bg-white/[0.04] border-white/[0.08]`
+- Hover: `bg-white/[0.08]`
 
-**Add CNPJ mask**: Apply `maskDocument` on the CNPJ input's `onChange` handler so it auto-formats as the user types.
+**6. Floating Orbs (Background Decoration)**
+- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
+- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
+- Slow CSS animation (translate + scale) for organic movement
+- Hidden on mobile via `hidden md:block` for performance
 
-**Improve error messages**: Show specific toast messages for invalid CNPJ vs API failure.
+**7. Responsive**
+- Mobile: card full-width with margin, orbs hidden, simpler background
+- Desktop: centered card with full visual effects
+
+### Technical Notes
+- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
+- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
+- Imports added: `Mail`, `Lock` from lucide-react
+- Zero changes to auth logic, handlers, or component structure
 
