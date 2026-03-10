@@ -245,12 +245,12 @@ export default function PropostaDetalhe() {
           <CardContent className="space-y-3">
             <div>
               <Label className="text-xs">Sistema</Label>
-              <Select value={form.sistema || "HYON"} onValueChange={v => set("sistema", v)}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <Select value={form.sistema || ""} onValueChange={v => set("sistema", v)}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="HYON">HYON</SelectItem>
-                  <SelectItem value="LINKPRO">LINKPRO</SelectItem>
-                  <SelectItem value="OUTRO">OUTRO</SelectItem>
+                  {sistemasAtivos.map(s => (
+                    <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

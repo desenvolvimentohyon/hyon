@@ -228,8 +228,9 @@ export default function Tarefas() {
           <SelectTrigger className="w-[130px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Sistema</SelectItem>
-            <SelectItem value="hyon">Hyon</SelectItem>
-            <SelectItem value="linkpro">LinkPro</SelectItem>
+            {sistemasAtivos.map(s => (
+              <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>

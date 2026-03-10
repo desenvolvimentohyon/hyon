@@ -178,11 +178,16 @@ export default function Comercial() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Sistema</Label>
-                <Select value={sistemaRel} onValueChange={v => setSistemaRel(v as "hyon" | "linkpro")}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={sistemaRel} onValueChange={v => {
+                  setSistemaRel(v);
+                  const sys = sistemas.find(s => s.nome === v);
+                  if (sys && sys.valorVenda > 0 && !valorProposta) setValorProposta(String(sys.valorVenda));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="hyon">Hyon</SelectItem>
-                    <SelectItem value="linkpro">LinkPro</SelectItem>
+                    {sistemasAtivos.map(s => (
+                      <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
