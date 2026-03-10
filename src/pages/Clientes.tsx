@@ -26,6 +26,8 @@ import { Users } from "lucide-react";
 
 export default function Clientes() {
   const { clientes, addCliente, tarefas } = useApp();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
