@@ -174,9 +174,9 @@ export function AppSidebar() {
       <SidebarHeader className="p-4 pb-2">
         <div className="flex items-center justify-center">
           {collapsed ? (
-            <img src={logoHyon} alt="Hyon" className="h-8 w-8 object-contain" />
+            <img src={logoHyon} alt="Hyon" className="h-10 w-10 object-contain" />
           ) : (
-            <img src={logoHyonVertical} alt="Hyon" className="h-16 w-auto object-contain" />
+            <img src={logoHyonVertical} alt="Hyon" className="h-20 w-auto object-contain" />
           )}
         </div>
       </SidebarHeader>
