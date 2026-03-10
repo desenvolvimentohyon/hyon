@@ -16,6 +16,8 @@ interface Props {
 }
 
 export default function TabCustos({ cliente, onSave }: Props) {
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [editing, setEditing] = useState(false);
   const meta = (cliente.metadata || {}) as any;
   const [form, setForm] = useState({
