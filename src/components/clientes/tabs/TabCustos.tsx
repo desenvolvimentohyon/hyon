@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save } from "lucide-react";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 interface Props {
   cliente: ClienteFull;
