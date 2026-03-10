@@ -8,7 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { lovable } from "@/integrations/lovable/index";
-import logoHyon from "@/assets/logo-hyon.png";
+import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 
 export default function Auth() {
   const { signIn, signUp } = useAuth();
