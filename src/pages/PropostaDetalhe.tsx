@@ -441,7 +441,7 @@ export default function PropostaDetalhe() {
             <div key={item.id} className="flex gap-2 items-end">
               <div className="flex-1"><Input className="h-8" placeholder="Descrição" value={item.descricao} onChange={e => updateItem(item.id, "descricao", e.target.value)} /></div>
               <div className="w-16"><Input className="h-8" type="number" value={item.quantidade} onChange={e => updateItem(item.id, "quantidade", Number(e.target.value))} /></div>
-              <div className="w-24"><Input className="h-8" type="number" value={item.valor} onChange={e => updateItem(item.id, "valor", Number(e.target.value))} /></div>
+              <div className="w-24"><CurrencyInput className="h-8" value={item.valor} onValueChange={v => updateItem(item.id, "valor", v)} /></div>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeItem(item.id)}><Trash2 className="h-3 w-3" /></Button>
             </div>
           ))}

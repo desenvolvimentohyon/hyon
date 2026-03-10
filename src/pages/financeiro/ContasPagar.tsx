@@ -228,7 +228,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   return (
     <div className="space-y-3">
       <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-      <div><Label>Valor total *</Label><Input type="number" value={valor} onChange={e => setValor(e.target.value)} /></div>
+      <div><Label>Valor total *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
       <div><Label>Parcelas</Label><Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} /></div>
       <div><Label>Vencimento 1ª parcela</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
       <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>

@@ -183,7 +183,7 @@ export default function Comercial() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Valor proposta (R$/mês)</Label><Input type="number" value={valorProposta} onChange={e => setValorProposta(e.target.value)} /></div>
+              <div><Label>Valor proposta (R$/mês)</Label><CurrencyInput value={Number(valorProposta) || 0} onValueChange={v => setValorProposta(String(v))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

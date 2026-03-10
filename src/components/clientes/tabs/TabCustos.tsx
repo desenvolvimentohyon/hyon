@@ -80,10 +80,10 @@ export default function TabCustos({ cliente, onSave }: Props) {
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Sistema de custo</Label><Input value={form.cost_system_name} onChange={e => setForm(p => ({ ...p, cost_system_name: e.target.value }))} /></div>
-          <div><Label>Custo repasse/franquia (R$)</Label><Input type="number" value={form.monthly_cost_value} onChange={e => setForm(p => ({ ...p, monthly_cost_value: e.target.value }))} /></div>
-          <div><Label>Custo módulos (R$)</Label><Input type="number" value={form.custoModulos} onChange={e => setForm(p => ({ ...p, custoModulos: e.target.value }))} /></div>
-          <div><Label>Custo cloud/infra (R$)</Label><Input type="number" value={form.custoCloud} onChange={e => setForm(p => ({ ...p, custoCloud: e.target.value }))} /></div>
-          <div><Label>Outros custos (R$)</Label><Input type="number" value={form.outrosCustos} onChange={e => setForm(p => ({ ...p, outrosCustos: e.target.value }))} /></div>
+          <div><Label>Custo repasse/franquia (R$)</Label><CurrencyInput value={Number(form.monthly_cost_value) || 0} onValueChange={v => setForm(p => ({ ...p, monthly_cost_value: String(v) }))} /></div>
+          <div><Label>Custo módulos (R$)</Label><CurrencyInput value={Number(form.custoModulos) || 0} onValueChange={v => setForm(p => ({ ...p, custoModulos: String(v) }))} /></div>
+          <div><Label>Custo cloud/infra (R$)</Label><CurrencyInput value={Number(form.custoCloud) || 0} onValueChange={v => setForm(p => ({ ...p, custoCloud: String(v) }))} /></div>
+          <div><Label>Outros custos (R$)</Label><CurrencyInput value={Number(form.outrosCustos) || 0} onValueChange={v => setForm(p => ({ ...p, outrosCustos: String(v) }))} /></div>
         </div>
         <div className="text-sm text-muted-foreground">
           Total: R$ {((Number(form.monthly_cost_value)||0)+(Number(form.custoModulos)||0)+(Number(form.custoCloud)||0)+(Number(form.outrosCustos)||0)).toFixed(2)} | 

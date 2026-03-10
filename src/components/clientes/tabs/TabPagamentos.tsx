@@ -217,7 +217,7 @@ export default function TabPagamentos({ clienteId }: Props) {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div><Label>Valor (R$)</Label><Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0,00" /></div>
+              <div><Label>Valor (R$)</Label><CurrencyInput value={Number(amount) || 0} onValueChange={v => setAmount(String(v))} /></div>
               <div><Label>Data do Pagamento</Label><Input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} /></div>
             </div>
 

@@ -328,9 +328,9 @@ export default function Clientes() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Mensalidade (R$)</Label><Input type="number" value={form.valorMensalidade} onChange={e => setForm(f => ({ ...f, valorMensalidade: e.target.value }))} /></div>
+              <div><Label>Mensalidade (R$)</Label><CurrencyInput value={Number(form.valorMensalidade) || 0} onValueChange={v => setForm(f => ({ ...f, valorMensalidade: String(v) }))} /></div>
             </div>
-            <div><Label>Custo Mensal (R$)</Label><Input type="number" value={form.valorCustoMensal} onChange={e => setForm(f => ({ ...f, valorCustoMensal: e.target.value }))} /></div>
+            <div><Label>Custo Mensal (R$)</Label><CurrencyInput value={Number(form.valorCustoMensal) || 0} onValueChange={v => setForm(f => ({ ...f, valorCustoMensal: String(v) }))} /></div>
             <div><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
           </div>
           <DialogFooter>

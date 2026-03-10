@@ -274,7 +274,7 @@ function NovoTituloModal({ open, onClose, tipo }: { open: boolean; onClose: () =
         <DialogHeader><DialogTitle>Novo Título - {tipo === "receber" ? "A Receber" : "A Pagar"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-          <div><Label>Valor *</Label><Input type="number" value={valor} onChange={e => setValor(e.target.value)} /></div>
+          <div><Label>Valor *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
           <div><Label>Vencimento</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
           {tipo === "receber" ? (
             <div><Label>Cliente</Label>

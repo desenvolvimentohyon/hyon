@@ -226,8 +226,8 @@ export default function Parametros() {
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Custo</Label><Input type="number" value={fModulo.valorCusto} onChange={e => setFModulo(p => ({ ...p, valorCusto: Number(e.target.value) }))} /></div>
-              <div><Label>Valor Venda</Label><Input type="number" value={fModulo.valorVenda} onChange={e => setFModulo(p => ({ ...p, valorVenda: Number(e.target.value) }))} /></div>
+              <div><Label>Valor Custo</Label><CurrencyInput value={fModulo.valorCusto} onValueChange={v => setFModulo(p => ({ ...p, valorCusto: v }))} /></div>
+              <div><Label>Valor Venda</Label><CurrencyInput value={fModulo.valorVenda} onValueChange={v => setFModulo(p => ({ ...p, valorVenda: v }))} /></div>
             </div>
             <div className="flex items-center gap-2"><Switch checked={fModulo.ativo} onCheckedChange={v => setFModulo(p => ({ ...p, ativo: v }))} /><Label>Ativo</Label></div>
           </div>

@@ -149,7 +149,7 @@ function TransferenciaForm({ contasBancarias, addMovimento }: any) {
               <SelectContent>{contasBancarias.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div><Label>Valor</Label><Input type="number" value={valor} onChange={e => setValor(e.target.value)} /></div>
+          <div><Label>Valor</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
         </div>
         <Button onClick={handleTransferir}><RefreshCw className="h-4 w-4 mr-1" /> Transferir</Button>
       </CardContent>

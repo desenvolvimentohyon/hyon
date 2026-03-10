@@ -36,10 +36,10 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
             <Label>Sistema de custo</Label>
             <Input value={(formData.cost_system_name ?? cliente.cost_system_name ?? "") as string} onChange={e => onChange({ cost_system_name: e.target.value } as any)} placeholder="Ex: PDV+, Hyon" />
           </div>
-          <div><Label>Custo repasse/franquia (R$)</Label><Input type="number" value={String(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0)} onChange={e => onChange({ monthly_cost_value: Number(e.target.value) || 0 } as any)} placeholder="0,00" /></div>
-          <div><Label>Custo módulos (R$)</Label><Input type="number" value={String(custoModulos)} onChange={e => setMeta("custoModulos", Number(e.target.value) || 0)} placeholder="0,00" /></div>
-          <div><Label>Custo cloud/infra (R$)</Label><Input type="number" value={String(custoCloud)} onChange={e => setMeta("custoCloud", Number(e.target.value) || 0)} placeholder="0,00" /></div>
-          <div><Label>Outros custos (R$)</Label><Input type="number" value={String(outrosCustos)} onChange={e => setMeta("outrosCustos", Number(e.target.value) || 0)} placeholder="0,00" /></div>
+          <div><Label>Custo repasse/franquia (R$)</Label><CurrencyInput value={Number(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0)} onValueChange={v => onChange({ monthly_cost_value: v } as any)} /></div>
+          <div><Label>Custo módulos (R$)</Label><CurrencyInput value={custoModulos} onValueChange={v => setMeta("custoModulos", v)} /></div>
+          <div><Label>Custo cloud/infra (R$)</Label><CurrencyInput value={custoCloud} onValueChange={v => setMeta("custoCloud", v)} /></div>
+          <div><Label>Outros custos (R$)</Label><CurrencyInput value={outrosCustos} onValueChange={v => setMeta("outrosCustos", v)} /></div>
         </div>
       </section>
 

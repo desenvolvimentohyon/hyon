@@ -65,8 +65,8 @@ export default function TabMensalidade({ cliente, onSave }: Props) {
       <CardContent className="pt-6 space-y-4">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Editar Mensalidade</p>
         <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Valor Base (R$)</Label><Input type="number" value={form.monthly_value_base} onChange={e => setForm(p => ({ ...p, monthly_value_base: e.target.value }))} /></div>
-          <div><Label>Valor Final (R$)</Label><Input type="number" value={form.monthly_value_final} onChange={e => setForm(p => ({ ...p, monthly_value_final: e.target.value }))} /></div>
+          <div><Label>Valor Base (R$)</Label><CurrencyInput value={Number(form.monthly_value_base) || 0} onValueChange={v => setForm(p => ({ ...p, monthly_value_base: String(v) }))} /></div>
+          <div><Label>Valor Final (R$)</Label><CurrencyInput value={Number(form.monthly_value_final) || 0} onValueChange={v => setForm(p => ({ ...p, monthly_value_final: String(v) }))} /></div>
           <div><Label>Dia Vencimento</Label><Input type="number" min="1" max="31" value={form.default_due_day} onChange={e => setForm(p => ({ ...p, default_due_day: e.target.value }))} /></div>
           <div>
             <Label>Status Financeiro</Label>
