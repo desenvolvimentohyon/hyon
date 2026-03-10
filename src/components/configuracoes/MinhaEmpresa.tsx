@@ -342,10 +342,10 @@ export default function MinhaEmpresa() {
                 <div className="md:col-span-2">
                   <Label className="text-xs">CNPJ</Label>
                   <div className="flex gap-2">
-                    <Input className="h-9" placeholder="00.000.000/0000-00" value={form.cnpj || ""} onChange={e => set("cnpj", e.target.value)} />
-                    <Button size="sm" variant="outline" onClick={lookupCnpj} disabled={cnpjLoading} className="shrink-0">
-                      {cnpjLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Buscar"}
-                    </Button>
+                     <Input className="h-9" placeholder="00.000.000/0000-00" value={form.cnpj || ""} onChange={e => set("cnpj", maskDocument(e.target.value))} />
+                     <Button size="sm" variant="outline" onClick={lookupCnpj} disabled={cnpjLoading} className="shrink-0 gap-1.5">
+                       {cnpjLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Search className="h-3.5 w-3.5" />Buscar</>}
+                     </Button>
                   </div>
                 </div>
                 <div className="md:col-span-2">
