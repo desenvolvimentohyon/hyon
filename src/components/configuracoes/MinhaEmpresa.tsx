@@ -209,8 +209,15 @@ export default function MinhaEmpresa() {
     setCnpjLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("cnpj-lookup", { body: { cnpj: raw } });
-      if (error) throw error;
-      if (data?.error) {
+      if (error) {
+        // Try to parse error context from FunctionsHttpError
+        let msg = "Verifique o número digitado.";
+        try {
+          const ctx = error.context ? await error.context.json() : null;
+          if (ctx?.error) msg = ctx.error;
+        } catch { /* ignore parse errors */ }
+        toast({ title: "Não foi possível consultar o CNPJ.", description: msg, variant: "destructive" });
+      } else if (data?.error) {
         toast({ title: "Não foi possível consultar o CNPJ.", description: data.error, variant: "destructive" });
       } else if (data) {
         setForm(prev => ({
@@ -229,8 +236,8 @@ export default function MinhaEmpresa() {
         }));
         toast({ title: "Dados do CNPJ carregados!" });
       }
-    } catch {
-      toast({ title: "Não foi possível consultar o CNPJ.", description: "Verifique o número digitado.", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Não foi possível consultar o CNPJ.", description: e?.message || "Verifique o número digitado.", variant: "destructive" });
     }
     setCnpjLoading(false);
   };
