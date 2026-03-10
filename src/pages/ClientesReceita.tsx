@@ -86,7 +86,7 @@ export default function Clientes() {
   // Form state
   const [form, setForm] = useState({
     nome: "", documento: "", telefone: "", email: "", cidade: "",
-    sistemaPrincipal: "PDV+" as SistemaPrincipal,
+    sistemaPrincipal: "",
     valorMensalidade: "", valorCustoMensal: "", observacoes: "",
   });
 
