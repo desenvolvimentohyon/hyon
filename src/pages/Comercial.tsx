@@ -18,6 +18,8 @@ import { useParametros } from "@/contexts/ParametrosContext";
 
 export default function Comercial() {
   const { tarefas, addTarefa, updateTarefa, addCliente, tecnicos, tecnicoAtualId } = useApp();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
   const [showNovoLead, setShowNovoLead] = useState(false);
 
@@ -28,7 +30,7 @@ export default function Comercial() {
   const [tipoPlano, setTipoPlano] = useState("Básico");
   const [origemLead, setOrigemLead] = useState("Indicação");
   const [dataPrevisao, setDataPrevisao] = useState("");
-  const [sistemaRel, setSistemaRel] = useState<"hyon" | "linkpro">("hyon");
+  const [sistemaRel, setSistemaRel] = useState(sistemasAtivos[0]?.nome || "");
   const [responsavel, setResponsavel] = useState(tecnicoAtualId);
 
   const comerciais = useMemo(() =>
