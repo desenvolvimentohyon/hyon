@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Save } from "lucide-react";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 interface Props {
   cliente: ClienteFull;
