@@ -215,7 +215,7 @@ export default function ContasReceber() {
               <p className="text-lg font-bold">{fmt(modalBaixa.valorOriginal)}</p>
               <div className="space-y-2">
                 <Label>Valor recebido (deixe vazio para valor total)</Label>
-                <Input type="number" value={valorBaixa} onChange={e => setValorBaixa(e.target.value)} placeholder={String(modalBaixa.valorOriginal)} />
+                <CurrencyInput value={Number(valorBaixa) || 0} onValueChange={v => setValorBaixa(String(v))} />
               </div>
               <div className="space-y-2">
                 <Label>Conta bancária</Label>
