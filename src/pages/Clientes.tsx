@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { PerfilCliente, SistemaRelacionado, StatusFinanceiro } from "@/types";
 import { validateCNPJ, cleanCNPJ, maskDocument, CnpjLookupResult } from "@/lib/cnpjUtils";
+import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { PageHeader } from "@/components/ui/page-header";
