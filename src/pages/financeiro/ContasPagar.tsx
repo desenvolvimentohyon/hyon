@@ -163,7 +163,7 @@ export default function ContasPagar() {
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">{modalBaixa.descricao}</p>
               <p className="text-lg font-bold">{fmt(modalBaixa.valorOriginal)}</p>
-              <div><Label>Valor pago (vazio = total)</Label><Input type="number" value={valorBaixa} onChange={e => setValorBaixa(e.target.value)} /></div>
+              <div><Label>Valor pago (vazio = total)</Label><CurrencyInput value={Number(valorBaixa) || 0} onValueChange={v => setValorBaixa(String(v))} /></div>
               <div><Label>Conta bancária</Label>
                 <Select value={contaBaixaId} onValueChange={setContaBaixaId}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
