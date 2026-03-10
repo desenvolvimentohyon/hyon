@@ -3,8 +3,8 @@ import {
   LayoutDashboard, Users, TrendingUp, Headphones, BarChart3, FileText, Kanban,
   DollarSign, Landmark, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2,
   SlidersHorizontal, Shield, Settings, Wrench, Rocket, Handshake, ShoppingCart,
-  ChevronDown, Receipt, GraduationCap, FileBarChart, Settings2, ListTodo
-} from "lucide-react";
+  ChevronDown, Receipt, GraduationCap, FileBarChart, Settings2, ListTodo } from
+"lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -12,8 +12,8 @@ import { useUsers } from "@/contexts/UsersContext";
 import { ROTA_PERMISSAO } from "@/types/users";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar
-} from "@/components/ui/sidebar";
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar } from
+"@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -34,92 +34,92 @@ interface ParentModule {
 }
 
 const modules: ParentModule[] = [
-  {
-    id: "dashboard",
-    title: "Dashboard",
-    icon: LayoutDashboard,
-    directUrl: "/",
-    children: [
-      { title: "Visão Geral", url: "/", icon: LayoutDashboard },
-      { title: "Painel Executivo", url: "/executivo", icon: BarChart3 },
-    ],
-  },
-  {
-    id: "clientes",
-    title: "Clientes",
-    icon: Users,
-    children: [
-      { title: "Cadastro de Clientes", url: "/clientes", icon: Users },
-      { title: "Receita / MRR", url: "/receita", icon: DollarSign },
-      { title: "Checkout Interno", url: "/checkout-interno", icon: ShoppingCart },
-    ],
-  },
-  {
-    id: "comercial",
-    title: "Comercial",
-    icon: TrendingUp,
-    children: [
-      { title: "Propostas", url: "/propostas", icon: FileText },
-      { title: "CRM", url: "/crm", icon: Kanban },
-      { title: "Comercial", url: "/comercial", icon: TrendingUp },
-      { title: "Parceiros", url: "/parceiros", icon: Handshake },
-    ],
-  },
-  {
-    id: "financeiro",
-    title: "Financeiro",
-    icon: Landmark,
-    children: [
-      { title: "Visão Geral", url: "/financeiro", icon: Landmark },
-      { title: "Contas a Receber", url: "/financeiro/contas-a-receber", icon: TrendingUp },
-      { title: "Contas a Pagar", url: "/financeiro/contas-a-pagar", icon: CreditCard },
-      { title: "Lançamentos", url: "/financeiro/lancamentos", icon: BookOpen },
-      { title: "Plano de Contas", url: "/financeiro/plano-de-contas", icon: FolderTree },
-      { title: "Conciliação", url: "/financeiro/conciliacao-bancaria", icon: ArrowLeftRight },
-      { title: "Relatórios", url: "/financeiro/relatorios", icon: BarChart2 },
-      { title: "Configurações", url: "/financeiro/configuracoes", icon: SlidersHorizontal },
-    ],
-  },
-  {
-    id: "operacional",
-    title: "Operacional",
-    icon: ListTodo,
-    children: [
-      { title: "Tarefas", url: "/tarefas", icon: ListTodo },
-      { title: "Implantação", url: "/implantacao", icon: Rocket },
-      { title: "Técnicos", url: "/tecnicos", icon: Wrench },
-    ],
-  },
-  {
-    id: "suporte",
-    title: "Suporte",
-    icon: Headphones,
-    children: [
-      { title: "Suporte", url: "/suporte", icon: Headphones },
-    ],
-  },
-  {
-    id: "cartoes",
-    title: "Cartões",
-    icon: CreditCard,
-    children: [
-      { title: "Dashboard", url: "/cartoes", icon: BarChart3 },
-      { title: "Clientes", url: "/cartoes/clientes", icon: Users },
-      { title: "Propostas", url: "/cartoes/propostas", icon: FileText },
-      { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign },
-    ],
-  },
-  {
-    id: "configuracoes",
-    title: "Configurações",
-    icon: Settings,
-    children: [
-      { title: "Minha Empresa", url: "/configuracoes", icon: Settings },
-      { title: "Usuários", url: "/usuarios", icon: Shield },
-      { title: "Parâmetros", url: "/parametros", icon: Settings2 },
-    ],
-  },
-];
+{
+  id: "dashboard",
+  title: "Dashboard",
+  icon: LayoutDashboard,
+  directUrl: "/",
+  children: [
+  { title: "Visão Geral", url: "/", icon: LayoutDashboard },
+  { title: "Painel Executivo", url: "/executivo", icon: BarChart3 }]
+
+},
+{
+  id: "clientes",
+  title: "Clientes",
+  icon: Users,
+  children: [
+  { title: "Cadastro de Clientes", url: "/clientes", icon: Users },
+  { title: "Receita / MRR", url: "/receita", icon: DollarSign },
+  { title: "Checkout Interno", url: "/checkout-interno", icon: ShoppingCart }]
+
+},
+{
+  id: "comercial",
+  title: "Comercial",
+  icon: TrendingUp,
+  children: [
+  { title: "Propostas", url: "/propostas", icon: FileText },
+  { title: "CRM", url: "/crm", icon: Kanban },
+  { title: "Comercial", url: "/comercial", icon: TrendingUp },
+  { title: "Parceiros", url: "/parceiros", icon: Handshake }]
+
+},
+{
+  id: "financeiro",
+  title: "Financeiro",
+  icon: Landmark,
+  children: [
+  { title: "Visão Geral", url: "/financeiro", icon: Landmark },
+  { title: "Contas a Receber", url: "/financeiro/contas-a-receber", icon: TrendingUp },
+  { title: "Contas a Pagar", url: "/financeiro/contas-a-pagar", icon: CreditCard },
+  { title: "Lançamentos", url: "/financeiro/lancamentos", icon: BookOpen },
+  { title: "Plano de Contas", url: "/financeiro/plano-de-contas", icon: FolderTree },
+  { title: "Conciliação", url: "/financeiro/conciliacao-bancaria", icon: ArrowLeftRight },
+  { title: "Relatórios", url: "/financeiro/relatorios", icon: BarChart2 },
+  { title: "Configurações", url: "/financeiro/configuracoes", icon: SlidersHorizontal }]
+
+},
+{
+  id: "operacional",
+  title: "Operacional",
+  icon: ListTodo,
+  children: [
+  { title: "Tarefas", url: "/tarefas", icon: ListTodo },
+  { title: "Implantação", url: "/implantacao", icon: Rocket },
+  { title: "Técnicos", url: "/tecnicos", icon: Wrench }]
+
+},
+{
+  id: "suporte",
+  title: "Suporte",
+  icon: Headphones,
+  children: [
+  { title: "Suporte", url: "/suporte", icon: Headphones }]
+
+},
+{
+  id: "cartoes",
+  title: "Cartões",
+  icon: CreditCard,
+  children: [
+  { title: "Dashboard", url: "/cartoes", icon: BarChart3 },
+  { title: "Clientes", url: "/cartoes/clientes", icon: Users },
+  { title: "Propostas", url: "/cartoes/propostas", icon: FileText },
+  { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign }]
+
+},
+{
+  id: "configuracoes",
+  title: "Configurações",
+  icon: Settings,
+  children: [
+  { title: "Minha Empresa", url: "/configuracoes", icon: Settings },
+  { title: "Usuários", url: "/usuarios", icon: Shield },
+  { title: "Parâmetros", url: "/parametros", icon: Settings2 }]
+
+}];
+
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -142,7 +142,7 @@ export function AppSidebar() {
 
   // Determine which parent module contains the active route
   const activeParentId = modules.find((m) =>
-    m.children.some((c) => isActive(c.url))
+  m.children.some((c) => isActive(c.url))
   )?.id;
 
   const [openModules, setOpenModules] = useState<Set<string>>(new Set());
@@ -162,8 +162,8 @@ export function AppSidebar() {
   const toggleModule = (id: string) => {
     setOpenModules((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id);else
+      next.add(id);
       return next;
     });
   };
@@ -172,11 +172,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 pb-2">
         <div className="flex items-center gap-3">
-          <img
-            src={logoHyon}
-            alt="Hyon Tech"
-            className={`${collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"} transition-all`}
-          />
+          
+
+
+
+          
         </div>
       </SidebarHeader>
 
@@ -205,21 +205,21 @@ export function AppSidebar() {
                           end={targetUrl === "/"}
                           className={cn(
                             "relative transition-all duration-150 rounded-lg mx-1",
-                            isParentActive
-                              ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold"
-                              : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                            isParentActive ?
+                            "bg-sidebar-primary/15 text-sidebar-primary font-semibold" :
+                            "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                           )}
                           style={isParentActive ? { boxShadow: "-2px 0 10px hsl(221 83% 58% / 0.2)" } : undefined}
-                          activeClassName=""
-                        >
-                          {isParentActive && (
-                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary shadow-[0_0_6px_hsl(221_83%_58%/0.5)]" />
-                          )}
+                          activeClassName="">
+                          
+                          {isParentActive &&
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary shadow-[0_0_6px_hsl(221_83%_58%/0.5)]" />
+                          }
                           <mod.icon className={cn("h-4 w-4", isParentActive && "text-sidebar-primary")} />
                         </NavLink>
                       </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
+                    </SidebarMenuItem>);
+
                 }
 
                 // Expanded sidebar: show parent + collapsible children
@@ -231,23 +231,23 @@ export function AppSidebar() {
                         onClick={() => toggleModule(mod.id)}
                         className={cn(
                           "flex items-center w-full gap-2 px-3 py-2 rounded-lg mx-1 text-left transition-all duration-150 group",
-                          isParentActive
-                            ? "bg-sidebar-primary/10 text-sidebar-primary font-semibold"
-                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                          isParentActive ?
+                          "bg-sidebar-primary/10 text-sidebar-primary font-semibold" :
+                          "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                         )}
-                        style={isParentActive ? { boxShadow: "-2px 0 10px hsl(221 83% 58% / 0.15)" } : undefined}
-                      >
-                        {isParentActive && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary shadow-[0_0_6px_hsl(221_83%_58%/0.5)]" />
-                        )}
+                        style={isParentActive ? { boxShadow: "-2px 0 10px hsl(221 83% 58% / 0.15)" } : undefined}>
+                        
+                        {isParentActive &&
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary shadow-[0_0_6px_hsl(221_83%_58%/0.5)]" />
+                        }
                         <mod.icon className={cn("h-4 w-4 shrink-0", isParentActive && "text-sidebar-primary")} />
                         <span className="text-[13px] flex-1">{mod.title}</span>
                         <ChevronDown
                           className={cn(
                             "h-3.5 w-3.5 shrink-0 text-sidebar-foreground/40 transition-transform duration-200",
                             isOpen && "rotate-180"
-                          )}
-                        />
+                          )} />
+                        
                       </button>
                     </SidebarMenuItem>
 
@@ -256,8 +256,8 @@ export function AppSidebar() {
                       className={cn(
                         "overflow-hidden transition-all duration-200",
                         isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-                      )}
-                    >
+                      )}>
+                      
                       <div className="ml-4 pl-3 border-l border-sidebar-border/30 mt-0.5 mb-1 space-y-0.5">
                         {visibleChildren.map((child) => {
                           const childActive = isActive(child.url);
@@ -269,23 +269,23 @@ export function AppSidebar() {
                                   end={child.url === "/" || child.url === "/financeiro"}
                                   className={cn(
                                     "relative flex items-center gap-2 px-2 py-1.5 rounded-md transition-all duration-150 text-[12.5px]",
-                                    childActive
-                                      ? "bg-sidebar-primary/15 text-sidebar-primary font-medium"
-                                      : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
+                                    childActive ?
+                                    "bg-sidebar-primary/15 text-sidebar-primary font-medium" :
+                                    "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
                                   )}
-                                  activeClassName=""
-                                >
+                                  activeClassName="">
+                                  
                                   <child.icon className={cn("h-3.5 w-3.5 shrink-0", childActive && "text-sidebar-primary")} />
                                   <span>{child.title}</span>
                                 </NavLink>
                               </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          );
+                            </SidebarMenuItem>);
+
                         })}
                       </div>
                     </div>
-                  </div>
-                );
+                  </div>);
+
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -293,10 +293,10 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        {!collapsed && (
-          <p className="text-[10px] text-sidebar-foreground/25 text-center font-medium">© 2025 Hyon Tech</p>
-        )}
+        {!collapsed &&
+        <p className="text-[10px] text-sidebar-foreground/25 text-center font-medium">© 2025 Hyon Tech</p>
+        }
       </SidebarFooter>
-    </Sidebar>
-  );
+    </Sidebar>);
+
 }
