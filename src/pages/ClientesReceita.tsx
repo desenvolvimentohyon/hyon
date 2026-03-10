@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useReceita } from "@/contexts/ReceitaContext";
+import { useParametros } from "@/contexts/ParametrosContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,7 @@ function PortalLinkButton({ clientId }: { clientId: string }) {
   );
 }
 
-const SISTEMAS: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
+// SISTEMAS now comes from useParametros (dynamic catalog)
 const STATUSES: StatusCliente[] = ["ativo", "atraso", "suspenso", "cancelado"];
 const STATUS_LABELS: Record<StatusCliente, string> = { ativo: "Ativo", atraso: "Em Atraso", suspenso: "Suspenso", cancelado: "Cancelado" };
 const STATUS_COLORS: Record<StatusCliente, string> = {
@@ -70,6 +71,8 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 
 export default function Clientes() {
   const { clientesReceita, suporteEventos, addClienteReceita, updateClienteReceita, deleteClienteReceita, addMensalidadeAjuste, getAjustesCliente, loading } = useReceita();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
@@ -83,7 +86,7 @@ export default function Clientes() {
   // Form state
   const [form, setForm] = useState({
     nome: "", documento: "", telefone: "", email: "", cidade: "",
-    sistemaPrincipal: "PDV+" as SistemaPrincipal,
+    sistemaPrincipal: "",
     valorMensalidade: "", valorCustoMensal: "", observacoes: "",
   });
 
@@ -94,7 +97,7 @@ export default function Clientes() {
   const cnpjLookupRef = useRef<string>("");
 
   const resetForm = () => {
-    setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "PDV+", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
+    setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
     setCnpjLookupData(null);
   };
 
@@ -163,7 +166,7 @@ export default function Clientes() {
       telefone: form.telefone || undefined,
       email: form.email || undefined,
       cidade: form.cidade || undefined,
-      sistemaPrincipal: form.sistemaPrincipal,
+      sistemaPrincipal: form.sistemaPrincipal as any,
       statusCliente: "ativo",
       mensalidadeAtiva: true,
       valorMensalidade: Number(form.valorMensalidade) || 0,
@@ -173,7 +176,7 @@ export default function Clientes() {
       observacoes: form.observacoes || undefined,
       custoAtivo: true,
       valorCustoMensal: Number(form.valorCustoMensal) || 0,
-      sistemaCusto: form.sistemaPrincipal,
+      sistemaCusto: form.sistemaPrincipal as any,
     });
     toast({ title: "Cliente cadastrado!" });
     setShowNovo(false);
@@ -235,7 +238,7 @@ export default function Clientes() {
           <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="Sistema" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos Sistemas</SelectItem>
-            {SISTEMAS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {sistemasAtivos.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filtroMensalidade} onValueChange={setFiltroMensalidade}>
@@ -321,10 +324,13 @@ export default function Clientes() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Sistema</Label>
-                <Select value={form.sistemaPrincipal} onValueChange={v => setForm(f => ({ ...f, sistemaPrincipal: v as SistemaPrincipal }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={form.sistemaPrincipal} onValueChange={v => {
+                  const sys = sistemas.find(s => s.nome === v);
+                  setForm(f => ({ ...f, sistemaPrincipal: v, ...(sys && sys.valorVenda > 0 ? { valorMensalidade: String(sys.valorVenda) } : {}) }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                   <SelectContent>
-                    {SISTEMAS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {sistemasAtivos.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
