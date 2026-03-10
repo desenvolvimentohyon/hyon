@@ -131,7 +131,21 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Sistema</Label><Input value={v("system_name")} onChange={e => set("system_name", e.target.value)} placeholder="Ex: PDV+, Hyon" /></div>
+          <div>
+            <Label>Sistema</Label>
+            <Select value={v("system_name")} onValueChange={val => {
+              set("system_name", val);
+              const sys = sistemas.find(s => s.nome === val);
+              if (sys && sys.valorVenda > 0) onChange({ system_name: val, monthly_value_base: sys.valorVenda } as any);
+            }}>
+              <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+              <SelectContent>
+                {sistemasAtivos.map(s => (
+                  <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </section>
 
