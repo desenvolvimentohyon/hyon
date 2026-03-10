@@ -172,12 +172,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 pb-2">
-        <div className="flex items-center gap-3">
-          
-
-
-
-          
+        <div className="flex items-center justify-center">
+          {collapsed ? (
+            <img src={logoHyon} alt="Hyon" className="h-8 w-8 object-contain" />
+          ) : (
+            <img src={logoHyonVertical} alt="Hyon" className="h-16 w-auto object-contain" />
+          )}
         </div>
       </SidebarHeader>
 
