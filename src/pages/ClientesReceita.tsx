@@ -57,7 +57,7 @@ function PortalLinkButton({ clientId }: { clientId: string }) {
   );
 }
 
-const SISTEMAS: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
+// SISTEMAS now comes from useParametros (dynamic catalog)
 const STATUSES: StatusCliente[] = ["ativo", "atraso", "suspenso", "cancelado"];
 const STATUS_LABELS: Record<StatusCliente, string> = { ativo: "Ativo", atraso: "Em Atraso", suspenso: "Suspenso", cancelado: "Cancelado" };
 const STATUS_COLORS: Record<StatusCliente, string> = {
