@@ -198,16 +198,25 @@ export default function MinhaEmpresa() {
   // CNPJ lookup
   const lookupCnpj = async () => {
     const raw = form.cnpj?.replace(/\D/g, "");
-    if (!raw || raw.length !== 14) return;
+    if (!raw || raw.length !== 14) {
+      toast({ title: "CNPJ inválido.", description: "Digite um CNPJ com 14 dígitos.", variant: "destructive" });
+      return;
+    }
+    if (!validateCNPJ(raw)) {
+      toast({ title: "CNPJ inválido.", description: "O CNPJ informado não passou na validação.", variant: "destructive" });
+      return;
+    }
     setCnpjLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("cnpj-lookup", { body: { cnpj: raw } });
       if (error) throw error;
-      if (data) {
+      if (data?.error) {
+        toast({ title: "Não foi possível consultar o CNPJ.", description: data.error, variant: "destructive" });
+      } else if (data) {
         setForm(prev => ({
           ...prev,
-          legal_name: data.razao_social || prev.legal_name,
-          trade_name: data.nome_fantasia || prev.trade_name,
+          legal_name: data.nome || prev.legal_name,
+          trade_name: data.fantasia || prev.trade_name,
           phone: data.telefone || prev.phone,
           email: data.email || prev.email,
           address_cep: data.cep || prev.address_cep,
@@ -217,12 +226,11 @@ export default function MinhaEmpresa() {
           address_neighborhood: data.bairro || prev.address_neighborhood,
           address_city: data.municipio || prev.address_city,
           address_uf: data.uf || prev.address_uf,
-          cnae: data.cnae_fiscal?.toString() || prev.cnae,
         }));
         toast({ title: "Dados do CNPJ carregados!" });
       }
     } catch {
-      toast({ title: "Erro ao buscar CNPJ", variant: "destructive" });
+      toast({ title: "Não foi possível consultar o CNPJ.", description: "Verifique o número digitado.", variant: "destructive" });
     }
     setCnpjLoading(false);
   };
