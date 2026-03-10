@@ -97,7 +97,7 @@ export default function Clientes() {
   const cnpjLookupRef = useRef<string>("");
 
   const resetForm = () => {
-    setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "PDV+", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
+    setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
     setCnpjLookupData(null);
   };
 
