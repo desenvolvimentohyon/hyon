@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Plus, TrendingUp, DollarSign, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 export default function Comercial() {
   const { tarefas, addTarefa, updateTarefa, addCliente, tecnicos, tecnicoAtualId } = useApp();
