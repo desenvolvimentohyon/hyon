@@ -26,7 +26,6 @@ function validateCNPJ(cnpj: string): boolean {
   if (cleaned.length !== 14) return false;
   if (/^(\d)\1{13}$/.test(cleaned)) return false;
 
-  // Validate check digits (modulo 11)
   const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 
@@ -43,6 +42,61 @@ function validateCNPJ(cnpj: string): boolean {
   if (parseInt(cleaned[13]) !== digit2) return false;
 
   return true;
+}
+
+async function fetchFromBrasilAPI(cnpj: string) {
+  const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`BrasilAPI returned ${res.status}: ${body}`);
+    return null;
+  }
+  const data = await res.json();
+  return {
+    nome: data.razao_social || "",
+    fantasia: data.nome_fantasia || "",
+    logradouro: data.logradouro || data.descricao_tipo_de_logradouro ? `${data.descricao_tipo_de_logradouro || ""} ${data.logradouro || ""}`.trim() : "",
+    numero: data.numero || "",
+    complemento: data.complemento || "",
+    bairro: data.bairro || "",
+    municipio: data.municipio || "",
+    uf: data.uf || "",
+    cep: (data.cep || "").toString().replace(/\D/g, ""),
+    situacao: data.descricao_situacao_cadastral || "",
+    abertura: data.data_inicio_atividade || "",
+    natureza_juridica: data.natureza_juridica || "",
+    email: data.email || "",
+    telefone: data.ddd_telefone_1 || "",
+  };
+}
+
+async function fetchFromReceitaWS(cnpj: string) {
+  const res = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cnpj}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`ReceitaWS returned ${res.status}: ${body}`);
+    return null;
+  }
+  const data = await res.json();
+  if (data.status === "ERROR") return null;
+  return {
+    nome: data.nome || "",
+    fantasia: data.fantasia || "",
+    logradouro: data.logradouro || "",
+    numero: data.numero || "",
+    complemento: data.complemento || "",
+    bairro: data.bairro || "",
+    municipio: data.municipio || "",
+    uf: data.uf || "",
+    cep: (data.cep || "").replace(/\D/g, ""),
+    situacao: data.situacao || "",
+    abertura: data.abertura || "",
+    natureza_juridica: data.natureza_juridica || "",
+    email: data.email || "",
+    telefone: data.telefone || "",
+  };
 }
 
 serve(async (req) => {
@@ -66,19 +120,16 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
-
     // Rate limit
-    if (!checkRateLimit(userId)) {
+    if (!checkRateLimit(user.id)) {
       return new Response(JSON.stringify({ error: "Muitas consultas. Aguarde 1 minuto." }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -95,46 +146,19 @@ serve(async (req) => {
       });
     }
 
-    // Call ReceitaWS public API
-    const apiUrl = `https://www.receitaws.com.br/v1/cnpj/${cnpjRaw}`;
-    const apiRes = await fetch(apiUrl, {
-      headers: { Accept: "application/json" },
-    });
-
-    if (!apiRes.ok) {
-      console.error(`ReceitaWS returned status ${apiRes.status}`);
-      return new Response(JSON.stringify({ error: "Erro ao consultar CNPJ. Tente novamente." }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Try BrasilAPI first (free, no auth needed), fallback to ReceitaWS
+    let result = await fetchFromBrasilAPI(cnpjRaw);
+    if (!result) {
+      console.log("BrasilAPI failed, trying ReceitaWS...");
+      result = await fetchFromReceitaWS(cnpjRaw);
     }
 
-    const data = await apiRes.json();
-
-    if (data.status === "ERROR") {
-      return new Response(JSON.stringify({ error: "Empresa não encontrada" }), {
+    if (!result) {
+      return new Response(JSON.stringify({ error: "Empresa não encontrada. Verifique o CNPJ digitado." }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    // Return standardized response
-    const result = {
-      nome: data.nome || "",
-      fantasia: data.fantasia || "",
-      logradouro: data.logradouro || "",
-      numero: data.numero || "",
-      complemento: data.complemento || "",
-      bairro: data.bairro || "",
-      municipio: data.municipio || "",
-      uf: data.uf || "",
-      cep: (data.cep || "").replace(/\D/g, ""),
-      situacao: data.situacao || "",
-      abertura: data.abertura || "",
-      natureza_juridica: data.natureza_juridica || "",
-      email: data.email || "",
-      telefone: data.telefone || "",
-    };
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
