@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { PerfilCliente, SistemaRelacionado, StatusFinanceiro } from "@/types";
 import { validateCNPJ, cleanCNPJ, maskDocument, CnpjLookupResult } from "@/lib/cnpjUtils";
+import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { PageHeader } from "@/components/ui/page-header";
@@ -25,6 +26,8 @@ import { Users } from "lucide-react";
 
 export default function Clientes() {
   const { clientes, addCliente, tarefas } = useApp();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
@@ -37,7 +40,7 @@ export default function Clientes() {
   const [email, setEmail] = useState("");
   const [documento, setDocumento] = useState("");
   const [obs, setObs] = useState("");
-  const [sistemaUsado, setSistemaUsado] = useState<SistemaRelacionado>("hyon");
+  const [sistemaUsado, setSistemaUsado] = useState<SistemaRelacionado>("");
   const [tipoNegocio, setTipoNegocio] = useState("");
   const [perfilCliente, setPerfilCliente] = useState<PerfilCliente>("estrategico");
   const [mensalidade, setMensalidade] = useState("");
@@ -205,11 +208,16 @@ export default function Clientes() {
               </div>
               <div>
                 <Label>Sistema</Label>
-                <Select value={sistemaUsado} onValueChange={v => setSistemaUsado(v as SistemaRelacionado)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={sistemaUsado} onValueChange={v => {
+                  setSistemaUsado(v);
+                  const sys = sistemas.find(s => s.nome === v);
+                  if (sys && sys.valorVenda > 0) setMensalidade(String(sys.valorVenda));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="hyon">Hyon</SelectItem>
-                    <SelectItem value="linkpro">LinkPro</SelectItem>
+                    {sistemasAtivos.map(s => (
+                      <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

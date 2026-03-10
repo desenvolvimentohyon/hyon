@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save } from "lucide-react";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 interface Props {
   cliente: ClienteFull;
@@ -14,6 +16,8 @@ interface Props {
 }
 
 export default function TabCustos({ cliente, onSave }: Props) {
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [editing, setEditing] = useState(false);
   const meta = (cliente.metadata || {}) as any;
   const [form, setForm] = useState({
@@ -79,7 +83,20 @@ export default function TabCustos({ cliente, onSave }: Props) {
           <Label>Custo ativo</Label>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Sistema de custo</Label><Input value={form.cost_system_name} onChange={e => setForm(p => ({ ...p, cost_system_name: e.target.value }))} /></div>
+          <div>
+            <Label>Sistema de custo</Label>
+            <Select value={form.cost_system_name} onValueChange={v => {
+              const sys = sistemas.find(s => s.nome === v);
+              setForm(p => ({ ...p, cost_system_name: v, ...(sys && sys.valorCusto > 0 ? { monthly_cost_value: String(sys.valorCusto) } : {}) }));
+            }}>
+              <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+              <SelectContent>
+                {sistemasAtivos.map(s => (
+                  <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div><Label>Custo repasse/franquia (R$)</Label><CurrencyInput value={Number(form.monthly_cost_value) || 0} onValueChange={v => setForm(p => ({ ...p, monthly_cost_value: String(v) }))} /></div>
           <div><Label>Custo módulos (R$)</Label><CurrencyInput value={Number(form.custoModulos) || 0} onValueChange={v => setForm(p => ({ ...p, custoModulos: String(v) }))} /></div>
           <div><Label>Custo cloud/infra (R$)</Label><CurrencyInput value={Number(form.custoCloud) || 0} onValueChange={v => setForm(p => ({ ...p, custoCloud: String(v) }))} /></div>

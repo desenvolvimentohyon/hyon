@@ -2,7 +2,9 @@ import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 interface Props {
   cliente: ClienteFull;
@@ -11,6 +13,8 @@ interface Props {
 }
 
 export default function TabCusto({ cliente, formData, onChange }: Props) {
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const meta = { ...(cliente.metadata || {}), ...(formData.metadata || {}) } as any;
   const setMeta = (key: string, val: any) => onChange({ metadata: { ...meta, [key]: val } } as any);
 
@@ -34,7 +38,17 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <Label>Sistema de custo</Label>
-            <Input value={(formData.cost_system_name ?? cliente.cost_system_name ?? "") as string} onChange={e => onChange({ cost_system_name: e.target.value } as any)} placeholder="Ex: PDV+, Hyon" />
+            <Select value={(formData.cost_system_name ?? cliente.cost_system_name ?? "") as string} onValueChange={val => {
+              const sys = sistemas.find(s => s.nome === val);
+              onChange({ cost_system_name: val, ...(sys && sys.valorCusto > 0 ? { monthly_cost_value: sys.valorCusto } : {}) } as any);
+            }}>
+              <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+              <SelectContent>
+                {sistemasAtivos.map(s => (
+                  <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div><Label>Custo repasse/franquia (R$)</Label><CurrencyInput value={Number(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0)} onValueChange={v => onChange({ monthly_cost_value: v } as any)} /></div>
           <div><Label>Custo módulos (R$)</Label><CurrencyInput value={custoModulos} onValueChange={v => setMeta("custoModulos", v)} /></div>

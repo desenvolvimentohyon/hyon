@@ -12,6 +12,7 @@ import { Search, Loader2, Plus, Pencil, Trash2, Star } from "lucide-react";
 import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
 
@@ -37,6 +38,8 @@ interface Props {
 }
 
 export default function TabDados({ cliente, formData, onChange, contacts, onAddContact, onUpdateContact, onDeleteContact }: Props) {
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [cepLoading, setCepLoading] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
@@ -128,7 +131,21 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Sistema</Label><Input value={v("system_name")} onChange={e => set("system_name", e.target.value)} placeholder="Ex: PDV+, Hyon" /></div>
+          <div>
+            <Label>Sistema</Label>
+            <Select value={v("system_name")} onValueChange={val => {
+              set("system_name", val);
+              const sys = sistemas.find(s => s.nome === val);
+              if (sys && sys.valorVenda > 0) onChange({ system_name: val, monthly_value_base: sys.valorVenda } as any);
+            }}>
+              <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+              <SelectContent>
+                {sistemasAtivos.map(s => (
+                  <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </section>
 

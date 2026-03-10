@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Save } from "lucide-react";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 interface Props {
   cliente: ClienteFull;
@@ -16,6 +17,8 @@ interface Props {
 }
 
 export default function TabGeral({ cliente, onSave }: Props) {
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     name: cliente.name,
@@ -130,7 +133,17 @@ export default function TabGeral({ cliente, onSave }: Props) {
           </div>
           <div><Label>Email</Label><Input value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} /></div>
           <div><Label>Telefone</Label><Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} /></div>
-          <div><Label>Sistema</Label><Input value={form.system_name} onChange={e => setForm(p => ({ ...p, system_name: e.target.value }))} /></div>
+          <div>
+            <Label>Sistema</Label>
+            <Select value={form.system_name} onValueChange={v => setForm(p => ({ ...p, system_name: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+              <SelectContent>
+                {sistemasAtivos.map(s => (
+                  <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <Label>Tipo Suporte</Label>
             <Select value={form.support_type} onValueChange={v => setForm(p => ({ ...p, support_type: v }))}>

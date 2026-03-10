@@ -1,7 +1,7 @@
 export type Prioridade = "baixa" | "media" | "alta" | "urgente";
 export type StatusTarefa = "backlog" | "a_fazer" | "em_andamento" | "aguardando_cliente" | "concluida" | "cancelada";
 export type TipoOperacional = "comercial" | "implantacao" | "suporte" | "treinamento" | "financeiro" | "interno";
-export type SistemaRelacionado = "hyon" | "linkpro";
+export type SistemaRelacionado = string;
 export type ModuloRelacionado = "estoque" | "fiscal" | "financeiro" | "relatorios";
 export type StatusComercial = "lead" | "proposta_enviada" | "em_negociacao" | "fechado" | "perdido";
 export type SetorTreinamento = "venda" | "comercial" | "administrativo";
