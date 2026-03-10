@@ -18,6 +18,7 @@ import { gerarPDFProposta } from "@/lib/pdfGenerator";
 import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Clock, Handshake, MessageCircle } from "lucide-react";
 import { Proposta, SistemaProposta, FluxoPagamento, StatusVisualizacao, StatusAceite, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 import { supabase } from "@/integrations/supabase/client";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
