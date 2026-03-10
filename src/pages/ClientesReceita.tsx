@@ -238,7 +238,7 @@ export default function Clientes() {
           <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="Sistema" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos Sistemas</SelectItem>
-            {SISTEMAS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {sistemasAtivos.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filtroMensalidade} onValueChange={setFiltroMensalidade}>
