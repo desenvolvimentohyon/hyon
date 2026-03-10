@@ -324,10 +324,13 @@ export default function Clientes() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Sistema</Label>
-                <Select value={form.sistemaPrincipal} onValueChange={v => setForm(f => ({ ...f, sistemaPrincipal: v as SistemaPrincipal }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={form.sistemaPrincipal} onValueChange={v => {
+                  const sys = sistemas.find(s => s.nome === v);
+                  setForm(f => ({ ...f, sistemaPrincipal: v, ...(sys && sys.valorVenda > 0 ? { valorMensalidade: String(sys.valorVenda) } : {}) }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                   <SelectContent>
-                    {SISTEMAS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {sistemasAtivos.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
