@@ -266,13 +266,13 @@ export default function PropostaDetalhe() {
           <CardContent className="space-y-3">
             <div>
               <Label className="text-xs">Mensalidade (R$)</Label>
-              <Input type="number" className="h-9" value={form.valorMensalidade || 0} onChange={e => set("valorMensalidade", Number(e.target.value))} />
+              <CurrencyInput className="h-9" value={form.valorMensalidade || 0} onValueChange={v => set("valorMensalidade", v)} />
             </div>
             <div>
               <Label className="text-xs">Implantação (R$)</Label>
-              <Input type="number" className="h-9" value={form.valorImplantacao || 0} onChange={e => {
-                if (form.partnerId) recalcImplantCommission(Number(e.target.value));
-                else set("valorImplantacao", Number(e.target.value));
+              <CurrencyInput className="h-9" value={form.valorImplantacao || 0} onValueChange={v => {
+                if (form.partnerId) recalcImplantCommission(v);
+                else set("valorImplantacao", v);
               }} />
             </div>
             <div className="grid grid-cols-2 gap-2">
