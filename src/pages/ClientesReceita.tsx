@@ -166,7 +166,7 @@ export default function Clientes() {
       telefone: form.telefone || undefined,
       email: form.email || undefined,
       cidade: form.cidade || undefined,
-      sistemaPrincipal: form.sistemaPrincipal,
+      sistemaPrincipal: form.sistemaPrincipal as any,
       statusCliente: "ativo",
       mensalidadeAtiva: true,
       valorMensalidade: Number(form.valorMensalidade) || 0,
