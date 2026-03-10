@@ -115,10 +115,10 @@ export default function Configuracoes() {
     <div className="space-y-6 max-w-3xl">
       <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
 
-      <Tabs defaultValue="geral" className="w-full">
+      <Tabs defaultValue="empresa" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="geral" className="gap-1.5"><Settings className="h-4 w-4" />Configurações Gerais</TabsTrigger>
           {isAdmin && <TabsTrigger value="empresa" className="gap-1.5"><Building2 className="h-4 w-4" />Minha Empresa</TabsTrigger>}
+          <TabsTrigger value="geral" className="gap-1.5"><Settings className="h-4 w-4" />Configurações Gerais</TabsTrigger>
         </TabsList>
 
         <TabsContent value="geral">

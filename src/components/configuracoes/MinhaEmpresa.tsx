@@ -13,8 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import {
   Building2, MapPin, FileText, Landmark, Palette, Settings2,
-  Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle, RefreshCw
+  Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle, RefreshCw, Search
 } from "lucide-react";
+import { validateCNPJ, maskDocument } from "@/lib/cnpjUtils";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { differenceInDays, parseISO } from "date-fns";
