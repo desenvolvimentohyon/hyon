@@ -17,6 +17,8 @@ interface Props {
 }
 
 export default function TabGeral({ cliente, onSave }: Props) {
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     name: cliente.name,
