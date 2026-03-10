@@ -12,6 +12,7 @@ import { Search, Loader2, Plus, Pencil, Trash2, Star } from "lucide-react";
 import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
 
