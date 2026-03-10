@@ -8,7 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { lovable } from "@/integrations/lovable/index";
-import logoHyon from "@/assets/logo-hyon.png";
+import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 
 export default function Auth() {
   const { signIn, signUp } = useAuth();
@@ -123,7 +123,7 @@ export default function Auth() {
           {/* Header */}
           <div className="text-center pt-8 pb-2 px-8">
             <div className="flex justify-center mb-6">
-              <img src={logoHyon} alt="Hyon Tech" className="h-24 w-auto drop-shadow-lg" />
+              <img src={logoHyonVertical} alt="Hyon Tech" className="h-20 w-auto drop-shadow-lg" />
             </div>
             <h1 className="text-2xl font-bold text-white">{isLogin ? "Entrar na plataforma" : "Criar Conta"}</h1>
             <p className="text-sm text-white/50 mt-1">
