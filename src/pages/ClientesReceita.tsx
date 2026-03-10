@@ -176,7 +176,7 @@ export default function Clientes() {
       observacoes: form.observacoes || undefined,
       custoAtivo: true,
       valorCustoMensal: Number(form.valorCustoMensal) || 0,
-      sistemaCusto: form.sistemaPrincipal,
+      sistemaCusto: form.sistemaPrincipal as any,
     });
     toast({ title: "Cliente cadastrado!" });
     setShowNovo(false);
