@@ -3,6 +3,7 @@ import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -228,7 +229,7 @@ export default function Clientes() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Mensalidade (R$)</Label><Input type="number" value={mensalidade} onChange={e => setMensalidade(e.target.value)} /></div>
+              <div><Label>Mensalidade (R$)</Label><CurrencyInput value={Number(mensalidade) || 0} onValueChange={v => setMensalidade(String(v))} /></div>
             </div>
             <div><Label>Observações</Label><Textarea value={obs} onChange={e => setObs(e.target.value)} rows={2} /></div>
           </div>

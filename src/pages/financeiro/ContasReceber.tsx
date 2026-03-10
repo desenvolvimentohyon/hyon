@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -214,7 +215,7 @@ export default function ContasReceber() {
               <p className="text-lg font-bold">{fmt(modalBaixa.valorOriginal)}</p>
               <div className="space-y-2">
                 <Label>Valor recebido (deixe vazio para valor total)</Label>
-                <Input type="number" value={valorBaixa} onChange={e => setValorBaixa(e.target.value)} placeholder={String(modalBaixa.valorOriginal)} />
+                <CurrencyInput value={Number(valorBaixa) || 0} onValueChange={v => setValorBaixa(String(v))} />
               </div>
               <div className="space-y-2">
                 <Label>Conta bancária</Label>
@@ -273,7 +274,7 @@ function NovoTituloModal({ open, onClose, tipo }: { open: boolean; onClose: () =
         <DialogHeader><DialogTitle>Novo Título - {tipo === "receber" ? "A Receber" : "A Pagar"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-          <div><Label>Valor *</Label><Input type="number" value={valor} onChange={e => setValor(e.target.value)} /></div>
+          <div><Label>Valor *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
           <div><Label>Vencimento</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
           {tipo === "receber" ? (
             <div><Label>Cliente</Label>

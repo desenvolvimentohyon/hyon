@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -216,7 +217,7 @@ export default function TabPagamentos({ clienteId }: Props) {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div><Label>Valor (R$)</Label><Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0,00" /></div>
+              <div><Label>Valor (R$)</Label><CurrencyInput value={Number(amount) || 0} onValueChange={v => setAmount(String(v))} /></div>
               <div><Label>Data do Pagamento</Label><Input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} /></div>
             </div>
 

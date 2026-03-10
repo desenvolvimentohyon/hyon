@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -199,8 +200,8 @@ export default function Parametros() {
             <div><Label>Nome *</Label><Input value={fSistema.nome} onChange={e => setFSistema(p => ({ ...p, nome: e.target.value }))} /></div>
             <div><Label>Descrição</Label><Input value={fSistema.descricao} onChange={e => setFSistema(p => ({ ...p, descricao: e.target.value }))} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Custo</Label><Input type="number" value={fSistema.valorCusto} onChange={e => setFSistema(p => ({ ...p, valorCusto: Number(e.target.value) }))} /></div>
-              <div><Label>Valor Venda</Label><Input type="number" value={fSistema.valorVenda} onChange={e => setFSistema(p => ({ ...p, valorVenda: Number(e.target.value) }))} /></div>
+              <div><Label>Valor Custo</Label><CurrencyInput value={fSistema.valorCusto} onValueChange={v => setFSistema(p => ({ ...p, valorCusto: v }))} /></div>
+              <div><Label>Valor Venda</Label><CurrencyInput value={fSistema.valorVenda} onValueChange={v => setFSistema(p => ({ ...p, valorVenda: v }))} /></div>
             </div>
             <div className="flex items-center gap-2"><Switch checked={fSistema.ativo} onCheckedChange={v => setFSistema(p => ({ ...p, ativo: v }))} /><Label>Ativo</Label></div>
           </div>
@@ -225,8 +226,8 @@ export default function Parametros() {
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Custo</Label><Input type="number" value={fModulo.valorCusto} onChange={e => setFModulo(p => ({ ...p, valorCusto: Number(e.target.value) }))} /></div>
-              <div><Label>Valor Venda</Label><Input type="number" value={fModulo.valorVenda} onChange={e => setFModulo(p => ({ ...p, valorVenda: Number(e.target.value) }))} /></div>
+              <div><Label>Valor Custo</Label><CurrencyInput value={fModulo.valorCusto} onValueChange={v => setFModulo(p => ({ ...p, valorCusto: v }))} /></div>
+              <div><Label>Valor Venda</Label><CurrencyInput value={fModulo.valorVenda} onValueChange={v => setFModulo(p => ({ ...p, valorVenda: v }))} /></div>
             </div>
             <div className="flex items-center gap-2"><Switch checked={fModulo.ativo} onCheckedChange={v => setFModulo(p => ({ ...p, ativo: v }))} /><Label>Ativo</Label></div>
           </div>

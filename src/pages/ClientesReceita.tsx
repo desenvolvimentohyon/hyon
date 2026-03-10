@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -327,9 +328,9 @@ export default function Clientes() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Mensalidade (R$)</Label><Input type="number" value={form.valorMensalidade} onChange={e => setForm(f => ({ ...f, valorMensalidade: e.target.value }))} /></div>
+              <div><Label>Mensalidade (R$)</Label><CurrencyInput value={Number(form.valorMensalidade) || 0} onValueChange={v => setForm(f => ({ ...f, valorMensalidade: String(v) }))} /></div>
             </div>
-            <div><Label>Custo Mensal (R$)</Label><Input type="number" value={form.valorCustoMensal} onChange={e => setForm(f => ({ ...f, valorCustoMensal: e.target.value }))} /></div>
+            <div><Label>Custo Mensal (R$)</Label><CurrencyInput value={Number(form.valorCustoMensal) || 0} onValueChange={v => setForm(f => ({ ...f, valorCustoMensal: String(v) }))} /></div>
             <div><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
           </div>
           <DialogFooter>

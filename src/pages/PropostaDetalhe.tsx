@@ -5,6 +5,7 @@ import { useApp } from "@/contexts/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -265,13 +266,13 @@ export default function PropostaDetalhe() {
           <CardContent className="space-y-3">
             <div>
               <Label className="text-xs">Mensalidade (R$)</Label>
-              <Input type="number" className="h-9" value={form.valorMensalidade || 0} onChange={e => set("valorMensalidade", Number(e.target.value))} />
+              <CurrencyInput className="h-9" value={form.valorMensalidade || 0} onValueChange={v => set("valorMensalidade", v)} />
             </div>
             <div>
               <Label className="text-xs">Implantação (R$)</Label>
-              <Input type="number" className="h-9" value={form.valorImplantacao || 0} onChange={e => {
-                if (form.partnerId) recalcImplantCommission(Number(e.target.value));
-                else set("valorImplantacao", Number(e.target.value));
+              <CurrencyInput className="h-9" value={form.valorImplantacao || 0} onValueChange={v => {
+                if (form.partnerId) recalcImplantCommission(v);
+                else set("valorImplantacao", v);
               }} />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -440,7 +441,7 @@ export default function PropostaDetalhe() {
             <div key={item.id} className="flex gap-2 items-end">
               <div className="flex-1"><Input className="h-8" placeholder="Descrição" value={item.descricao} onChange={e => updateItem(item.id, "descricao", e.target.value)} /></div>
               <div className="w-16"><Input className="h-8" type="number" value={item.quantidade} onChange={e => updateItem(item.id, "quantidade", Number(e.target.value))} /></div>
-              <div className="w-24"><Input className="h-8" type="number" value={item.valor} onChange={e => updateItem(item.id, "valor", Number(e.target.value))} /></div>
+              <div className="w-24"><CurrencyInput className="h-8" value={item.valor} onValueChange={v => updateItem(item.id, "valor", v)} /></div>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeItem(item.id)}><Trash2 className="h-3 w-3" /></Button>
             </div>
           ))}

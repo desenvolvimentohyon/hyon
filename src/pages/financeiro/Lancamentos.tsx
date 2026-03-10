@@ -4,6 +4,7 @@ import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,7 +80,7 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-          <div><Label>Valor *</Label><Input type="number" value={valor} onChange={e => setValor(e.target.value)} /></div>
+          <div><Label>Valor *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
           <div><Label>Vencimento</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
           <div><Label>Categoria</Label>
             <Select value={catId} onValueChange={setCatId}>
@@ -148,7 +149,7 @@ function TransferenciaForm({ contasBancarias, addMovimento }: any) {
               <SelectContent>{contasBancarias.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div><Label>Valor</Label><Input type="number" value={valor} onChange={e => setValor(e.target.value)} /></div>
+          <div><Label>Valor</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
         </div>
         <Button onClick={handleTransferir}><RefreshCw className="h-4 w-4 mr-1" /> Transferir</Button>
       </CardContent>

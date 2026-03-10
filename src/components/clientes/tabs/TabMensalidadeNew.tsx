@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -62,8 +63,8 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
           <div><Label>Fim da Vigência (calculado)</Label><Input type="date" value={planEndDate} readOnly className="bg-muted/50" /></div>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Valor Base (R$)</Label><Input type="number" value={String(formData.monthly_value_base ?? cliente.monthly_value_base ?? 0)} onChange={e => onChange({ monthly_value_base: Number(e.target.value) || 0 } as any)} placeholder="0,00" /></div>
-          <div><Label>Valor Final (R$)</Label><Input type="number" value={String(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)} onChange={e => onChange({ monthly_value_final: Number(e.target.value) || 0 } as any)} placeholder="0,00" /></div>
+          <div><Label>Valor Base (R$)</Label><CurrencyInput value={Number(formData.monthly_value_base ?? cliente.monthly_value_base ?? 0)} onValueChange={v => onChange({ monthly_value_base: v } as any)} /></div>
+          <div><Label>Valor Final (R$)</Label><CurrencyInput value={Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)} onValueChange={v => onChange({ monthly_value_final: v } as any)} /></div>
           <div><Label>Dia de Vencimento</Label><Input type="number" min="1" max="31" value={String(formData.default_due_day ?? cliente.default_due_day ?? 10)} onChange={e => onChange({ default_due_day: Number(e.target.value) || 10 } as any)} /></div>
           <div>
             <Label>Status Financeiro</Label>

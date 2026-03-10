@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -162,7 +163,7 @@ export default function ContasPagar() {
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">{modalBaixa.descricao}</p>
               <p className="text-lg font-bold">{fmt(modalBaixa.valorOriginal)}</p>
-              <div><Label>Valor pago (vazio = total)</Label><Input type="number" value={valorBaixa} onChange={e => setValorBaixa(e.target.value)} /></div>
+              <div><Label>Valor pago (vazio = total)</Label><CurrencyInput value={Number(valorBaixa) || 0} onValueChange={v => setValorBaixa(String(v))} /></div>
               <div><Label>Conta bancária</Label>
                 <Select value={contaBaixaId} onValueChange={setContaBaixaId}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -227,7 +228,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   return (
     <div className="space-y-3">
       <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-      <div><Label>Valor total *</Label><Input type="number" value={valor} onChange={e => setValor(e.target.value)} /></div>
+      <div><Label>Valor total *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
       <div><Label>Parcelas</Label><Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} /></div>
       <div><Label>Vencimento 1ª parcela</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
       <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
