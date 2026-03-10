@@ -18,6 +18,7 @@ import { gerarPDFProposta } from "@/lib/pdfGenerator";
 import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Clock, Handshake, MessageCircle } from "lucide-react";
 import { Proposta, SistemaProposta, FluxoPagamento, StatusVisualizacao, StatusAceite, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 import { supabase } from "@/integrations/supabase/client";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -43,6 +44,8 @@ export default function PropostaDetalhe() {
   const navigate = useNavigate();
   const { propostas, crmConfig, loading, updateProposta, cloneProposta, getProposta } = usePropostas();
   const { clientes } = useApp();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
 
   const [form, setForm] = useState<Partial<Proposta>>({});
   const [enviarOpen, setEnviarOpen] = useState(false);
@@ -244,12 +247,12 @@ export default function PropostaDetalhe() {
           <CardContent className="space-y-3">
             <div>
               <Label className="text-xs">Sistema</Label>
-              <Select value={form.sistema || "HYON"} onValueChange={v => set("sistema", v)}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <Select value={form.sistema || ""} onValueChange={v => set("sistema", v)}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="HYON">HYON</SelectItem>
-                  <SelectItem value="LINKPRO">LINKPRO</SelectItem>
-                  <SelectItem value="OUTRO">OUTRO</SelectItem>
+                  {sistemasAtivos.map(s => (
+                    <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

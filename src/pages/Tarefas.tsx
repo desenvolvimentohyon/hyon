@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { LayoutGrid, List, Plus, Search, GripVertical } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
+import { useParametros } from "@/contexts/ParametrosContext";
 
 function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
@@ -93,6 +94,8 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
 
 export default function Tarefas() {
   const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -227,8 +230,9 @@ export default function Tarefas() {
           <SelectTrigger className="w-[130px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Sistema</SelectItem>
-            <SelectItem value="hyon">Hyon</SelectItem>
-            <SelectItem value="linkpro">LinkPro</SelectItem>
+            {sistemasAtivos.map(s => (
+              <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>
