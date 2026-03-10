@@ -94,6 +94,8 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
 
 export default function Tarefas() {
   const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 

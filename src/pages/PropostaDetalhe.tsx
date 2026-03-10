@@ -44,6 +44,8 @@ export default function PropostaDetalhe() {
   const navigate = useNavigate();
   const { propostas, crmConfig, loading, updateProposta, cloneProposta, getProposta } = usePropostas();
   const { clientes } = useApp();
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
 
   const [form, setForm] = useState<Partial<Proposta>>({});
   const [enviarOpen, setEnviarOpen] = useState(false);
