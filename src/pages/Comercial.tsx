@@ -87,7 +87,7 @@ export default function Comercial() {
     // Create client
     const clienteNome = tarefa.titulo.replace(/^(Lead|Proposta|Negociação|Fechado|Perdido)\s*-?\s*/i, "").trim();
     addCliente({
-      nome: clienteNome, sistemaUsado: tarefa.sistemaRelacionado as "hyon" | "linkpro" || "hyon",
+      nome: clienteNome, sistemaUsado: tarefa.sistemaRelacionado || "",
       tipoNegocio: "Novo cliente", perfilCliente: "estrategico",
       mensalidadeAtual: tarefa.valorProposta || 0, statusFinanceiro: "em_dia",
     });
