@@ -6,6 +6,7 @@ import {
   ChevronDown, Receipt, GraduationCap, FileBarChart, Settings2, ListTodo } from
 "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
+import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUsers } from "@/contexts/UsersContext";
@@ -171,12 +172,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 pb-2">
-        <div className="flex items-center gap-3">
-          
-
-
-
-          
+        <div className="flex items-center justify-center">
+          {collapsed ? (
+            <img src={logoHyon} alt="Hyon" className="h-8 w-8 object-contain" />
+          ) : (
+            <img src={logoHyonVertical} alt="Hyon" className="h-16 w-auto object-contain" />
+          )}
         </div>
       </SidebarHeader>
 
