@@ -40,7 +40,7 @@ export default function Clientes() {
   const [email, setEmail] = useState("");
   const [documento, setDocumento] = useState("");
   const [obs, setObs] = useState("");
-  const [sistemaUsado, setSistemaUsado] = useState<SistemaRelacionado>("hyon");
+  const [sistemaUsado, setSistemaUsado] = useState<SistemaRelacionado>("");
   const [tipoNegocio, setTipoNegocio] = useState("");
   const [perfilCliente, setPerfilCliente] = useState<PerfilCliente>("estrategico");
   const [mensalidade, setMensalidade] = useState("");
