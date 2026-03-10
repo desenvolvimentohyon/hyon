@@ -6,6 +6,7 @@ import {
   ChevronDown, Receipt, GraduationCap, FileBarChart, Settings2, ListTodo } from
 "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
+import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUsers } from "@/contexts/UsersContext";
