@@ -13,6 +13,8 @@ interface Props {
 }
 
 export default function TabCusto({ cliente, formData, onChange }: Props) {
+  const { sistemas } = useParametros();
+  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const meta = { ...(cliente.metadata || {}), ...(formData.metadata || {}) } as any;
   const setMeta = (key: string, val: any) => onChange({ metadata: { ...meta, [key]: val } } as any);
 
