@@ -104,6 +104,7 @@ function AuthGate() {
                     <Route path="/suporte" element={<Suporte />} />
                     <Route path="/executivo" element={<Executivo />} />
                     <Route path="/propostas" element={<Propostas />} />
+                    <Route path="/propostas/nova" element={<PropostaInteligente />} />
                     <Route path="/propostas/:id" element={<PropostaDetalhe />} />
                     <Route path="/crm" element={<CRM />} />
                     <Route path="/usuarios" element={<UsuariosConfig />} />
