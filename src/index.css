@@ -172,9 +172,23 @@
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight font-semibold;
   }
+
+  /* Smooth transitions on interactive elements */
+  a, button, [role="button"] {
+    @apply transition-colors duration-150;
+  }
 }
 
 @layer utilities {
+  /* Section header utility */
+  .section-header {
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+
+  /* Stat value for KPIs */
+  .stat-value {
+    @apply text-2xl font-bold tracking-tight;
+  }
   .glass-card {
     @apply bg-card/80 backdrop-blur-sm border shadow-sm;
   }

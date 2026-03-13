@@ -224,7 +224,7 @@ export function AppSidebar() {
 
                 // Expanded sidebar: show parent + collapsible children
                 return (
-                  <div key={mod.id} className="mb-0.5">
+                  <div key={mod.id} className="mb-1">
                     {/* Parent module button */}
                     <SidebarMenuItem>
                       <button

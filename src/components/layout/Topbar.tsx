@@ -319,8 +319,8 @@ export function Topbar() {
 
         <Select value={currentUserId} onValueChange={setCurrentUser}>
           <SelectTrigger className="w-[180px] h-9 text-sm rounded-lg border-0 bg-muted/40 hover:bg-muted/60 transition-colors">
-            <div className="flex items-center gap-1.5">
-              <div className="h-6 w-6 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary">
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-bold text-primary ring-2 ring-primary/10">
                 {userInitials}
               </div>
               <SelectValue placeholder="Usuário" />
