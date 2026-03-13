@@ -28,6 +28,7 @@ import Suporte from "./pages/Suporte";
 import Executivo from "./pages/Executivo";
 import Propostas from "./pages/Propostas";
 import PropostaDetalhe from "./pages/PropostaDetalhe";
+import PropostaInteligente from "./pages/PropostaInteligente";
 import CRM from "./pages/CRM";
 import AceiteProposta from "./pages/AceiteProposta";
 import PropostaPublica from "./pages/PropostaPublica";
@@ -103,6 +104,7 @@ function AuthGate() {
                     <Route path="/suporte" element={<Suporte />} />
                     <Route path="/executivo" element={<Executivo />} />
                     <Route path="/propostas" element={<Propostas />} />
+                    <Route path="/propostas/nova" element={<PropostaInteligente />} />
                     <Route path="/propostas/:id" element={<PropostaDetalhe />} />
                     <Route path="/crm" element={<CRM />} />
                     <Route path="/usuarios" element={<UsuariosConfig />} />
