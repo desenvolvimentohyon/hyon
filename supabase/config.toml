@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.send-plan-renewal-alerts]
 verify_jwt = false
+
+[functions.parse-certificate]
+verify_jwt = false

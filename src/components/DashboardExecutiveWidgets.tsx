@@ -180,7 +180,20 @@ export default function DashboardExecutiveWidgets() {
         setCommissions({ totalAPagar, totalPago, geradoMes, recorrentePrevista: 0, ranking });
       }
 
-      // 7. Upsell suggestions
+      // 7. Company certificate alert
+      const { data: companyProfile } = await supabase
+        .from("company_profile")
+        .select("certificate_expiration")
+        .maybeSingle();
+
+      if (companyProfile?.certificate_expiration) {
+        const daysRemaining = Math.ceil((new Date(companyProfile.certificate_expiration).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysRemaining <= 30) {
+          setCompanyCertAlert({ days_remaining: daysRemaining });
+        }
+      }
+
+      // 8. Upsell suggestions
       const { data: upsells } = await supabase
         .from("upsell_suggestions")
         .select("client_id, suggested_module_id, status")
