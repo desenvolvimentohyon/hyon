@@ -1,7 +1,7 @@
-import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, Users, ChevronRight, Shield, LogOut, Wifi, WifiOff } from "lucide-react";
+import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, ChevronRight, LogOut, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -11,7 +11,7 @@ import {
   Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useApp } from "@/contexts/AppContext";
-import { useUsers } from "@/contexts/UsersContext";
+
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,7 +32,7 @@ interface Notificacao {
 
 export function Topbar() {
   const { tecnicos, tecnicoAtualId, setTecnicoAtual, tarefas, clientes } = useApp();
-  const { users, currentUserId, setCurrentUser, getCurrentUser, getRole } = useUsers();
+  
   const { signOut } = useAuth();
   const { titulos } = useFinanceiro();
   const { propostas } = usePropostas();
@@ -43,15 +43,6 @@ export function Topbar() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
 
-  const currentUser = getCurrentUser();
-  const currentRole = currentUser ? getRole(currentUser.roleId) : null;
-
-  const userInitials = useMemo(() => {
-    if (!currentUser) return "?";
-    const parts = currentUser.nome.split(" ").filter(Boolean);
-    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    return parts[0]?.[0]?.toUpperCase() || "?";
-  }, [currentUser]);
 
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
@@ -343,32 +334,6 @@ export function Topbar() {
             </ScrollArea>
           </PopoverContent>
         </Popover>
-
-        <Separator orientation="vertical" className="h-6 mx-1" />
-
-        <Select value={currentUserId} onValueChange={setCurrentUser}>
-          <SelectTrigger className="w-[180px] h-9 text-sm rounded-lg border-0 bg-muted/40 hover:bg-muted/60 transition-colors">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-bold text-primary ring-2 ring-primary/10">
-                {userInitials}
-              </div>
-              <SelectValue placeholder="Usuário" />
-            </div>
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            {users.filter(u => u.ativo).map(u => {
-              const role = getRole(u.roleId);
-              return (
-                <SelectItem key={u.id} value={u.id}>
-                  <div className="flex items-center gap-2">
-                    <span>{u.nome}</span>
-                    <Badge variant="outline" className="text-[9px] ml-1 rounded-full">{role?.nome}</Badge>
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
 
         <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5 rounded-lg shadow-sm">
           <Plus className="h-4 w-4" />
