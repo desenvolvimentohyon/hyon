@@ -32,7 +32,6 @@ import {
 const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
 
-const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
