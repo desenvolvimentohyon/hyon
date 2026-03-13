@@ -253,10 +253,11 @@ export default function Suporte() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+        }
+      />
 
       {/* KPIs */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {kpis.map(k => (
           <Card key={k.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
