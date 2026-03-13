@@ -43,15 +43,6 @@ export function Topbar() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
 
-  const currentUser = getCurrentUser();
-  const currentRole = currentUser ? getRole(currentUser.roleId) : null;
-
-  const userInitials = useMemo(() => {
-    if (!currentUser) return "?";
-    const parts = currentUser.nome.split(" ").filter(Boolean);
-    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    return parts[0]?.[0]?.toUpperCase() || "?";
-  }, [currentUser]);
 
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
