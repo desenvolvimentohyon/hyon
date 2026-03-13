@@ -15,6 +15,7 @@ import {
   BarChart3, PieChartIcon, FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { gerarRelatorioPDF } from "@/lib/pdfRelatorioReceita";
 import { toast } from "sonner";
 
