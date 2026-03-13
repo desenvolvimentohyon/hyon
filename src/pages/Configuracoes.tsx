@@ -28,6 +28,7 @@ import {
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
   FileText, BarChart3, Palette, Database, Rocket
 } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
