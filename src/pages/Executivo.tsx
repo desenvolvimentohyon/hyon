@@ -8,6 +8,7 @@ import { BarChart3, Users, Rocket, Headphones, AlertTriangle, DollarSign, Trendi
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { RECEITA_COLORS } from "@/types/receita";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart, Area } from "recharts";
+import { PageHeader } from "@/components/ui/page-header";
 
 const CHART_COLORS = [
   "hsl(224, 60%, 45%)",
