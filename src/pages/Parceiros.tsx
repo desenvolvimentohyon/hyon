@@ -177,13 +177,13 @@ export default function Parceiros() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2"><Handshake className="h-6 w-6 text-primary" /> Parceiros Indicadores</h1>
-          <p className="text-muted-foreground text-sm">Gerencie parceiros e comissões de indicação</p>
-        </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro</Button>
-      </div>
+      <PageHeader
+        icon={Handshake}
+        iconClassName="text-amber-600"
+        title="Parceiros Indicadores"
+        subtitle="Gerencie parceiros e comissões de indicação"
+        actions={<Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro</Button>}
+      />
 
       <div className="flex gap-3 flex-wrap">
         <Input placeholder="Buscar parceiro..." value={busca} onChange={e => setBusca(e.target.value)} className="w-56" />
