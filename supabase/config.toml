@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.parse-certificate]
 verify_jwt = false
+
+[functions.ai-consultant]
+verify_jwt = false
