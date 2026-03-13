@@ -148,11 +148,13 @@ export default function Propostas() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Propostas</h1>
-        <Button onClick={handleNova} className="gap-1.5"><Plus className="h-4 w-4" />Nova Proposta</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={FileText}
+        iconClassName="text-primary"
+        title="Propostas"
+        actions={<Button onClick={handleNova} className="gap-1.5"><Plus className="h-4 w-4" />Nova Proposta</Button>}
+      />
 
       <Card>
         <CardContent className="pt-4 space-y-3">
