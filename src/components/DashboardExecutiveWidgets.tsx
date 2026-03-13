@@ -45,6 +45,7 @@ export default function DashboardExecutiveWidgets() {
   const [mrrAdjusted, setMrrAdjusted] = useState(0);
   const [mrrGrowth, setMrrGrowth] = useState({ current: 0, previous: 0 });
   const [commissions, setCommissions] = useState<CommissionStats>({ totalAPagar: 0, totalPago: 0, geradoMes: 0, recorrentePrevista: 0, ranking: [] });
+  const [companyCertAlert, setCompanyCertAlert] = useState<CompanyCertAlert | null>(null);
 
   useEffect(() => {
     loadData();
