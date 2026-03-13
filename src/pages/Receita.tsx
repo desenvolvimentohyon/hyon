@@ -170,8 +170,11 @@ export default function Receita() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Receita Recorrente</h1>
+      <PageHeader
+        icon={DollarSign}
+        iconClassName="text-primary"
+        title="Receita Recorrente"
+        actions={
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
