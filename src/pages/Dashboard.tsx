@@ -632,7 +632,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-end justify-between gap-2">
                   <div>
-                    <p className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-none">{k.value}</p>
+                    <p className="text-lg lg:text-xl font-bold tracking-tight leading-none">{k.value}</p>
                   </div>
                   <Sparkline data={k.spark} color={k.color} height={28} />
                 </div>
@@ -835,17 +835,17 @@ export default function Dashboard() {
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/comercial")}>
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  <div className="flex-1"><p className="text-xs text-muted-foreground">Leads Ativos</p><p className="text-xl font-bold">{leadsAtivos}</p></div>
+                  <div className="flex-1"><p className="text-xs text-muted-foreground">Leads Ativos</p><p className="text-base font-semibold">{leadsAtivos}</p></div>
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/implantacao")}>
                   <Activity className="h-5 w-5 text-purple" />
-                  <div className="flex-1"><p className="text-xs text-muted-foreground">Implantações</p><p className="text-xl font-bold">{implantacoesAtivas}</p></div>
+                  <div className="flex-1"><p className="text-xs text-muted-foreground">Implantações</p><p className="text-base font-semibold">{implantacoesAtivas}</p></div>
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/suporte")}>
                   <Headphones className="h-5 w-5 text-warning" />
-                  <div className="flex-1"><p className="text-xs text-muted-foreground">Chamados</p><p className="text-xl font-bold">{chamadosAbertos}</p></div>
+                  <div className="flex-1"><p className="text-xs text-muted-foreground">Chamados</p><p className="text-base font-semibold">{chamadosAbertos}</p></div>
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               </div>
