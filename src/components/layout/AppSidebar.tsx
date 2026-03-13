@@ -317,14 +317,38 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 pt-2">
+      <SidebarFooter className="p-3 pt-2">
+        <Separator className="mb-2 bg-sidebar-border/30" />
         {!collapsed ? (
-          <div className="text-center space-y-0.5">
-            <p className="text-[10px] text-sidebar-foreground/25 font-medium">© 2025 Hyon Tech</p>
-            <p className="text-[9px] text-sidebar-foreground/15 font-mono">v1.0</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 px-1">
+              <div className="h-8 w-8 rounded-full bg-sidebar-primary/15 flex items-center justify-center shrink-0">
+                <span className="text-[11px] font-semibold text-sidebar-primary">
+                  {(currentUser?.nome || profile?.full_name || "U").split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-medium text-sidebar-foreground/80 truncate">
+                  {currentUser?.nome || profile?.full_name || "Usuário"}
+                </p>
+                <p className="text-[10px] text-sidebar-foreground/40 capitalize truncate">
+                  {profile?.role || "usuário"}
+                </p>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-[9px] text-sidebar-foreground/20 font-mono">© 2025 Hyon Tech · v1.0</p>
+            </div>
           </div>
         ) : (
-          <p className="text-[9px] text-sidebar-foreground/15 font-mono text-center">v1</p>
+          <div className="flex flex-col items-center gap-1">
+            <div className="h-7 w-7 rounded-full bg-sidebar-primary/15 flex items-center justify-center">
+              <span className="text-[10px] font-semibold text-sidebar-primary">
+                {(currentUser?.nome || profile?.full_name || "U").split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+              </span>
+            </div>
+            <p className="text-[8px] text-sidebar-foreground/15 font-mono">v1</p>
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>
