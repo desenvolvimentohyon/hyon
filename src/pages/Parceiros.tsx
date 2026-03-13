@@ -214,7 +214,7 @@ export default function Parceiros() {
             </TableHeader>
             <TableBody>
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum parceiro encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="p-0"><EmptyState icon={Handshake} title="Nenhum parceiro encontrado" description="Cadastre um parceiro indicador" actionLabel="Novo Parceiro" onAction={openNew} /></TableCell></TableRow>
               )}
               {filtered.map(p => (
                 <TableRow key={p.id}>

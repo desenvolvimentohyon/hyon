@@ -105,21 +105,23 @@ export default function Financeiro() {
 
   return (
     <div className="p-6 space-y-6 chart-container">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[28px] lg:text-[32px] font-bold tracking-tight">Financeiro</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Visão geral financeira</p>
-        </div>
-        <Select value={periodo} onValueChange={setPeriodo}>
-          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">7 dias</SelectItem>
-            <SelectItem value="30d">30 dias</SelectItem>
-            <SelectItem value="90d">90 dias</SelectItem>
-            <SelectItem value="12m">12 meses</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <PageHeader
+        icon={Landmark}
+        iconClassName="text-success"
+        title="Financeiro"
+        subtitle="Visão geral financeira"
+        actions={
+          <Select value={periodo} onValueChange={setPeriodo}>
+            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">7 dias</SelectItem>
+              <SelectItem value="30d">30 dias</SelectItem>
+              <SelectItem value="90d">90 dias</SelectItem>
+              <SelectItem value="12m">12 meses</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+      />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">

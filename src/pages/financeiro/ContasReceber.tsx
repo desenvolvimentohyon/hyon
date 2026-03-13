@@ -92,13 +92,13 @@ export default function ContasReceber() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Contas a Receber</h1>
-          <p className="text-muted-foreground text-sm">Gestão de recebíveis</p>
-        </div>
-        <Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Novo Título</Button>
-      </div>
+      <PageHeader
+        icon={ArrowUpRight}
+        iconClassName="text-success"
+        title="Contas a Receber"
+        subtitle="Gestão de recebíveis"
+        actions={<Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Novo Título</Button>}
+      />
 
       {/* Alertas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

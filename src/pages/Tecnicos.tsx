@@ -50,11 +50,13 @@ export default function Tecnicos() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Técnicos</h1>
-        <Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" />Novo Técnico</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={Wrench}
+        iconClassName="text-primary"
+        title="Técnicos"
+        actions={<Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" />Novo Técnico</Button>}
+      />
 
       <div className="rounded-lg border overflow-hidden">
         <Table>

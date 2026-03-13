@@ -68,13 +68,13 @@ export default function ContasPagar() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Contas a Pagar</h1>
-          <p className="text-muted-foreground text-sm">Gestão de despesas e repasses</p>
-        </div>
-        <Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Lançar Despesa</Button>
-      </div>
+      <PageHeader
+        icon={ArrowDownRight}
+        iconClassName="text-destructive"
+        title="Contas a Pagar"
+        subtitle="Gestão de despesas e repasses"
+        actions={<Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Lançar Despesa</Button>}
+      />
 
       {vencidos.length > 0 && (
         <Card className="border-destructive/50">

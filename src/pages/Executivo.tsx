@@ -140,10 +140,7 @@ export default function Executivo() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <BarChart3 className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Painel Executivo</h1>
-      </div>
+      <PageHeader icon={BarChart3} iconClassName="text-primary" title="Painel Executivo" />
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {kpis.map(k => (

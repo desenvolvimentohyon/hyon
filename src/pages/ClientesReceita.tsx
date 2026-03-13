@@ -217,11 +217,13 @@ export default function Clientes() {
 
   // List view
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Clientes & Receita</h1>
-        <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={Users}
+        iconClassName="text-primary"
+        title="Clientes & Receita"
+        actions={<Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
+      />
 
       <div className="flex flex-wrap gap-3 items-end">
         <div className="relative flex-1 min-w-[200px] max-w-sm">

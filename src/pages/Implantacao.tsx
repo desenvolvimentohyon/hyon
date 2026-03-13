@@ -121,9 +121,8 @@ export default function Implantacao() {
           );
         })}
         {implantacoes.length === 0 && (
-          <div className="col-span-full text-center py-12 text-muted-foreground">
-            <Rocket className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Nenhuma implantação em andamento</p>
+          <div className="col-span-full">
+            <EmptyState icon={Rocket} title="Nenhuma implantação em andamento" description="Crie uma nova implantação para começar" actionLabel="Nova Implantação" onAction={() => setShowNova(true)} />
           </div>
         )}
       </div>

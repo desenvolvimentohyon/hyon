@@ -59,10 +59,7 @@ export default function Parametros() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Settings2 className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">Parâmetros do Sistema</h1>
-      </div>
+      <PageHeader icon={Settings2} iconClassName="text-muted-foreground" title="Parâmetros do Sistema" />
 
       <Tabs defaultValue="sistemas">
         <TabsList className="flex-wrap">

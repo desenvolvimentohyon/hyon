@@ -197,10 +197,11 @@ export default function Receita() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+        }
+      />
 
       {/* KPIs */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {kpis.map(k => (
           <Card key={k.label} className="domain-border-left transition-all duration-200 hover:-translate-y-0.5 shadow-card hover:shadow-card-hover" style={{ borderLeftColor: k.color }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
