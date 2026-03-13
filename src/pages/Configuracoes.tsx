@@ -178,7 +178,7 @@ export default function Configuracoes() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
+      <PageHeader icon={Settings} iconClassName="text-muted-foreground" title="Configurações" />
 
       <Tabs defaultValue="empresa" className="w-full">
         <TabsList className="mb-4">
