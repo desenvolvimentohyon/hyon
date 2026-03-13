@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Plus, CheckCircle, AlertTriangle, Clock } from "lucide-react";
+import { Plus, CheckCircle, AlertTriangle, Clock, ArrowDownRight } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { STATUS_TITULO_LABELS, TituloFinanceiro } from "@/types/financeiro";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
