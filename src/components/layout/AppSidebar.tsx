@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Star, ChevronDown } from "lucide-react";
+import { Search, Star, ChevronDown, User } from "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
 import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUsers } from "@/contexts/UsersContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ROTA_PERMISSAO } from "@/types/users";
 import { modules } from "@/lib/sidebarModules";
 import {
