@@ -69,14 +69,13 @@ export default function Implantacao() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Rocket className="h-6 w-6 text-purple-600" />
-          <h1 className="text-2xl font-bold tracking-tight">Implantações</h1>
-        </div>
-        <Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5"><Plus className="h-4 w-4" />Nova Implantação</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={Rocket}
+        iconClassName="text-violet-500"
+        title="Implantações"
+        actions={<Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5"><Plus className="h-4 w-4" />Nova Implantação</Button>}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {implantacoes.map(imp => {
