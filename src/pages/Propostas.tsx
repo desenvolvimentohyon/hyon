@@ -50,25 +50,7 @@ export default function Propostas() {
   }, [propostas, busca, filtroStatusCRM, filtroVisualizacao, filtroAceite, filtroSistema]);
 
   const handleNova = () => {
-    const nova = addProposta({
-      clienteId: null, clienteNomeSnapshot: "",
-      sistema: "HYON", planoNome: "",
-      valorMensalidade: 0, valorImplantacao: 0,
-      fluxoPagamentoImplantacao: "a_vista", parcelasImplantacao: null,
-      dataEnvio: null, validadeDias: crmConfig.validadePadraoDias, dataValidade: null,
-      statusCRM: crmConfig.statusKanban[0] || "Rascunho",
-      statusVisualizacao: "nao_enviado", statusAceite: "pendente",
-      pdfGeradoEm: null, observacoesInternas: "",
-      informacoesAdicionais: crmConfig.informacoesAdicionaisPadrao,
-      itens: [],
-      partnerId: null, partnerCommissionPercent: null, partnerCommissionValue: null, commissionGenerated: false,
-      partnerCommissionImplantPercent: null, partnerCommissionImplantValue: null,
-      partnerCommissionRecurPercent: null, partnerCommissionRecurMonths: null, partnerCommissionRecurApplyOn: null,
-      commissionImplantGenerated: false,
-      whatsappSentAt: null, whatsappSendCount: 0,
-    });
-    toast({ title: "Proposta criada!" });
-    navigate(`/propostas/${nova.id}`);
+    navigate("/propostas/nova");
   };
 
   const handleClone = (id: string) => {

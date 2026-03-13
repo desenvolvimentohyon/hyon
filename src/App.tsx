@@ -28,6 +28,7 @@ import Suporte from "./pages/Suporte";
 import Executivo from "./pages/Executivo";
 import Propostas from "./pages/Propostas";
 import PropostaDetalhe from "./pages/PropostaDetalhe";
+import PropostaInteligente from "./pages/PropostaInteligente";
 import CRM from "./pages/CRM";
 import AceiteProposta from "./pages/AceiteProposta";
 import PropostaPublica from "./pages/PropostaPublica";
