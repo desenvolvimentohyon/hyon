@@ -22,10 +22,15 @@ import { FormaEnvio } from "@/types/propostas";
 import { MetricasConfig } from "@/types/receita";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
+import { SubtabGrid, type SubtabItem } from "@/components/configuracoes/SubtabGrid";
 import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
-  Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle
+  Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
+  FileText, BarChart3, Palette, Database, Rocket
 } from "lucide-react";
+
+const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
+const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
 
 const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 
