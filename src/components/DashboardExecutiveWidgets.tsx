@@ -34,6 +34,7 @@ interface CertExpiring { name: string; days_remaining: number }
 interface HealthClient { name: string; health_score: number; health_status: string }
 interface UpsellItem { client_name: string; module_name: string; status: string }
 interface CommissionStats { totalAPagar: number; totalPago: number; geradoMes: number; recorrentePrevista: number; ranking: { name: string; total: number }[] }
+interface CompanyCertAlert { days_remaining: number }
 
 export default function DashboardExecutiveWidgets() {
   const [loading, setLoading] = useState(true);
