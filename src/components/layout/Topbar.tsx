@@ -7,14 +7,18 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { findBreadcrumb } from "@/lib/sidebarModules";
 
 interface Notificacao {
   id: string;
@@ -33,6 +37,7 @@ export function Topbar() {
   const { titulos } = useFinanceiro();
   const { propostas } = usePropostas();
   const navigate = useNavigate();
+  const location = useLocation();
   const [busca, setBusca] = useState("");
   const { theme, setTheme } = useTheme();
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -41,7 +46,6 @@ export function Topbar() {
   const currentUser = getCurrentUser();
   const currentRole = currentUser ? getRole(currentUser.roleId) : null;
 
-  // Get user initials for avatar
   const userInitials = useMemo(() => {
     if (!currentUser) return "?";
     const parts = currentUser.nome.split(" ").filter(Boolean);
@@ -49,7 +53,6 @@ export function Topbar() {
     return parts[0]?.[0]?.toUpperCase() || "?";
   }, [currentUser]);
 
-  // Online/offline listener
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
     const goOffline = () => setIsOnline(false);
@@ -57,6 +60,9 @@ export function Topbar() {
     window.addEventListener("offline", goOffline);
     return () => { window.removeEventListener("online", goOnline); window.removeEventListener("offline", goOffline); };
   }, []);
+
+  // Breadcrumb
+  const breadcrumb = useMemo(() => findBreadcrumb(location.pathname), [location.pathname]);
 
   const notificacoes = useMemo<Notificacao[]>(() => {
     const items: Notificacao[] = [];
@@ -224,7 +230,31 @@ export function Topbar() {
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-background/80 backdrop-blur-md px-4" style={{ borderBottom: "1px solid hsl(var(--border) / 0.5)" }}>
       <SidebarTrigger className="shrink-0" />
 
-      <form onSubmit={handleSearch} className="flex-1 max-w-xl">
+      {/* Breadcrumb */}
+      {breadcrumb && (
+        <>
+          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to={breadcrumb.parent.directUrl || breadcrumb.parent.children[0]?.url || "/"} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    {breadcrumb.parent.title}
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-xs font-medium">
+                  {breadcrumb.child.title}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </>
+      )}
+
+      <form onSubmit={handleSearch} className="flex-1 max-w-xl ml-auto">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
@@ -233,11 +263,10 @@ export function Topbar() {
             onChange={e => setBusca(e.target.value)}
             className="pl-10 pr-16 h-10 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all focus-glow"
           />
-          {/* kbd hint removed for cleaner look */}
         </div>
       </form>
 
-      <div className="flex items-center gap-1.5 ml-auto">
+      <div className="flex items-center gap-1.5">
         {/* Online/Offline indicator */}
         {!isOnline && (
           <div className="flex items-center gap-1.5 text-destructive mr-1">
