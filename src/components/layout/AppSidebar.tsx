@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, TrendingUp, Headphones, BarChart3, FileText, Kanban,
   DollarSign, Landmark, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2,
   SlidersHorizontal, Shield, Settings, Wrench, Rocket, Handshake, ShoppingCart,
-  ChevronDown, Receipt, GraduationCap, FileBarChart, Settings2, ListTodo } from
+  ChevronDown, Receipt, GraduationCap, FileBarChart, ListTodo } from
 "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
 import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
