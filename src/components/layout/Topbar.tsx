@@ -335,32 +335,6 @@ export function Topbar() {
           </PopoverContent>
         </Popover>
 
-        <Separator orientation="vertical" className="h-6 mx-1" />
-
-        <Select value={currentUserId} onValueChange={setCurrentUser}>
-          <SelectTrigger className="w-[180px] h-9 text-sm rounded-lg border-0 bg-muted/40 hover:bg-muted/60 transition-colors">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-bold text-primary ring-2 ring-primary/10">
-                {userInitials}
-              </div>
-              <SelectValue placeholder="Usuário" />
-            </div>
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            {users.filter(u => u.ativo).map(u => {
-              const role = getRole(u.roleId);
-              return (
-                <SelectItem key={u.id} value={u.id}>
-                  <div className="flex items-center gap-2">
-                    <span>{u.nome}</span>
-                    <Badge variant="outline" className="text-[9px] ml-1 rounded-full">{role?.nome}</Badge>
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
-
         <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5 rounded-lg shadow-sm">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Nova Tarefa</span>
