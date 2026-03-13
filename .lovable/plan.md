@@ -1,54 +1,81 @@
 
 
-## Glassmorphism Login Redesign
+## Plano: IA Consultora Comercial
 
-### Overview
-Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
+### Abordagem
 
-### Changes (single file: `src/pages/Auth.tsx`)
+Criar uma **edge function** que usa Lovable AI (Gemini Flash) para gerar análises comerciais contextuais, e um **componente de painel** que se integra na página de Proposta Inteligente existente. A IA recebe os dados da proposta (valores, margens, plano, módulos, distância, comissão) e retorna recomendações estruturadas via tool calling.
 
-**1. Background Layer**
-- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
-- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
-- Subtle noise/grid overlay kept but refined
+Além disso, criar um **score comercial client-side** (0-100) baseado em regras determinísticas — margem, desconto, plano, comissão — para feedback instantâneo sem depender de chamada de API.
 
-**2. Glass Card**
-- Replace `glass-surface` with custom inline glass styles:
-  - `background: rgba(255,255,255,0.03)` (dark glass)
-  - `backdrop-filter: blur(24px) saturate(1.2)`
-  - `border: 1px solid rgba(255,255,255,0.08)`
-  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
-  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
-- Rounded corners `rounded-2xl`, generous padding
+### Arquivos a criar/editar
 
-**3. Inputs with Icons**
-- Wrap each input in a relative container
-- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
-- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
-- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
+| Arquivo | Ação |
+|---------|------|
+| `supabase/functions/ai-consultant/index.ts` | **Criar** — edge function que chama Lovable AI com dados da proposta e retorna análise estruturada |
+| `src/components/propostas/ConsultoraComercialIA.tsx` | **Criar** — painel lateral/card com score, alertas, recomendações da IA e sugestões de upsell/retenção |
+| `src/pages/PropostaInteligente.tsx` | **Editar** — integrar o painel ConsultoraComercialIA no layout (sidebar direita, abaixo do resumo) |
+| `supabase/config.toml` | **Editar** — registrar a nova function |
 
-**4. Primary Button**
-- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
-- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
-- Transition 150ms
+### Edge Function (`ai-consultant`)
 
-**5. Social Buttons**
-- Glass style: `bg-white/[0.04] border-white/[0.08]`
-- Hover: `bg-white/[0.08]`
+Recebe payload com dados da proposta, monta prompt de sistema instruindo a IA a agir como consultora comercial, e usa **tool calling** para retornar output estruturado:
 
-**6. Floating Orbs (Background Decoration)**
-- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
-- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
-- Slow CSS animation (translate + scale) for organic movement
-- Hidden on mobile via `hidden md:block` for performance
+```typescript
+// Tool schema retornado:
+{
+  score_fechamento: number,        // 0-100
+  classificacao: "baixa" | "media" | "alta",
+  recomendacao_principal: string,
+  alertas: [{ tipo: "risco" | "atencao" | "oportunidade", mensagem: string }],
+  sugestao_plano: string | null,
+  sugestao_desconto: string | null,
+  sugestao_modulos: string | null,
+  sugestao_implantacao: string | null,
+  sugestao_upsell: string[],
+  sugestao_retencao: string[],
+  margem_avaliacao: "baixa" | "ideal" | "alta",
+  cenario_recomendado: string | null
+}
+```
 
-**7. Responsive**
-- Mobile: card full-width with margin, orbs hidden, simpler background
-- Desktop: centered card with full visual effects
+Modelo: `google/gemini-3-flash-preview` (rápido, bom raciocínio).
 
-### Technical Notes
-- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
-- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
-- Imports added: `Mail`, `Lock` from lucide-react
-- Zero changes to auth logic, handlers, or component structure
+### Score Comercial (client-side, instantâneo)
+
+Calculado em tempo real sem chamada de API, baseado em regras:
+- **Margem** (peso 40%): `(mensalidade - custo) / mensalidade` → quanto maior, melhor score
+- **Plano** (peso 20%): plano anual = 100, trimestral = 70, mensal = 40
+- **Desconto** (peso 15%): até 10% = 100, 10-20% = 70, >20% = 40
+- **Comissão** (peso 15%): comissão < 15% do total = 100, 15-25% = 60, >25% = 30
+- **Módulos** (peso 10%): mais módulos = maior valor percebido = melhor score
+
+Resultado visual: gauge circular com cor (verde/amarelo/vermelho) + classificação textual.
+
+### Componente ConsultoraComercialIA
+
+Painel com:
+1. **Score de Fechamento** — gauge circular com número 0-100 (client-side, tempo real)
+2. **Classificação** — badge colorida (Alta/Média/Baixa chance)
+3. **Alertas** — lista com ícones coloridos (vermelho risco, laranja atenção, azul oportunidade)
+4. **Recomendação principal** — texto da IA
+5. **Sugestões** — cards compactos para plano, desconto, módulos, implantação
+6. **Upsell** — lista de oportunidades de aumento de ticket
+7. **Retenção** — sugestões se score baixo
+8. **Botão "Consultar IA"** — dispara a edge function (não automático, para controlar uso)
+
+Cores: verde (oportunidade), laranja (atenção), vermelho (risco), azul (recomendação) — conforme solicitado.
+
+### Layout na PropostaInteligente
+
+O painel da IA será posicionado na **sidebar direita**, abaixo do `PropostaResumoLateral` existente. No mobile, aparece como card inline após o formulário. O score client-side atualiza em tempo real; a análise da IA é disparada por botão.
+
+### O que NÃO será alterado
+- Banco de dados (zero migrações)
+- Lógica existente de CRM/financeiro
+- Fluxo de criação de proposta
+- Geração de PDF / WhatsApp
+
+### Integração com dashboard e configurações
+Serão fases futuras — esta entrega foca no painel da IA dentro da proposta inteligente, que é o ponto de maior impacto.
 
