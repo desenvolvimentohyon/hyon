@@ -116,8 +116,7 @@ const modules: ParentModule[] = [
   icon: Settings,
   children: [
   { title: "Minha Empresa", url: "/configuracoes", icon: Settings },
-  { title: "Usuários", url: "/usuarios", icon: Shield },
-  { title: "Parâmetros", url: "/parametros", icon: Settings2 }]
+  { title: "Usuários", url: "/usuarios", icon: Shield }]
 
 }];
 

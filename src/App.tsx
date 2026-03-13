@@ -106,7 +106,7 @@ function AuthGate() {
                     <Route path="/propostas/:id" element={<PropostaDetalhe />} />
                     <Route path="/crm" element={<CRM />} />
                     <Route path="/usuarios" element={<UsuariosConfig />} />
-                    <Route path="/parametros" element={<Parametros />} />
+                    <Route path="/parametros" element={<Navigate to="/configuracoes" replace />} />
                     <Route path="/acesso-negado" element={<AcessoNegado />} />
                     <Route path="/parceiros" element={<Parceiros />} />
                     <Route path="/checkout-interno" element={<CheckoutInterno />} />
