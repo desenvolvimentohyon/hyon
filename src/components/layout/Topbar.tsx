@@ -11,7 +11,7 @@ import {
   Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useApp } from "@/contexts/AppContext";
-import { useUsers } from "@/contexts/UsersContext";
+
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useAuth } from "@/contexts/AuthContext";
