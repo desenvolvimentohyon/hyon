@@ -124,7 +124,7 @@ export default function Financeiro() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {kpiCards.map(k => (
           <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5">
             <CardContent className="p-4">
