@@ -68,7 +68,7 @@ export const modules: ParentModule[] = [
   },
   {
     id: "operacional",
-    title: "Suporte & Operacional",
+    title: "Suporte e Operacional",
     icon: Headphones,
     children: [
       { title: "Suporte", url: "/suporte", icon: Headphones },
