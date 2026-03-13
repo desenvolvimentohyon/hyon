@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw } from "lucide-react";
+import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw, ArrowUpRight } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { TituloFinanceiro, STATUS_TITULO_LABELS, FORMA_PAGAMENTO_LABELS, ORIGEM_TITULO_LABELS, FINANCEIRO_COLORS } from "@/types/financeiro";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
