@@ -1131,6 +1131,9 @@ export type Database = {
           fiscal_notes: string | null
           footer_text: string | null
           id: string
+          impl_cost_per_km: number
+          impl_daily_rate: number
+          impl_default_days: number
           institutional_text: string | null
           legal_name: string | null
           logo_dark_path: string | null
@@ -1188,6 +1191,9 @@ export type Database = {
           fiscal_notes?: string | null
           footer_text?: string | null
           id?: string
+          impl_cost_per_km?: number
+          impl_daily_rate?: number
+          impl_default_days?: number
           institutional_text?: string | null
           legal_name?: string | null
           logo_dark_path?: string | null
@@ -1245,6 +1251,9 @@ export type Database = {
           fiscal_notes?: string | null
           footer_text?: string | null
           id?: string
+          impl_cost_per_km?: number
+          impl_daily_rate?: number
+          impl_default_days?: number
           institutional_text?: string | null
           legal_name?: string | null
           logo_dark_path?: string | null
@@ -1403,6 +1412,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "custom_roles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deployment_regions: {
+        Row: {
+          active: boolean
+          additional_fee: number
+          base_value: number
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          additional_fee?: number
+          base_value?: number
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          additional_fee?: number
+          base_value?: number
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployment_regions_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
