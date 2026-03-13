@@ -32,7 +32,7 @@ interface Notificacao {
 
 export function Topbar() {
   const { tecnicos, tecnicoAtualId, setTecnicoAtual, tarefas, clientes } = useApp();
-  const { users, currentUserId, setCurrentUser, getCurrentUser, getRole } = useUsers();
+  const { } = useUsers();
   const { signOut } = useAuth();
   const { titulos } = useFinanceiro();
   const { propostas } = usePropostas();
