@@ -44,8 +44,10 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
-  const { hasPermission } = useUsers();
+  const { hasPermission, getCurrentUser } = useUsers();
+  const { profile } = useAuth();
   const { favorites, toggle: toggleFavorite } = useFavorites();
+  const currentUser = getCurrentUser();
   const [search, setSearch] = useState("");
 
   const isActive = (path: string) => {
