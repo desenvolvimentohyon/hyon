@@ -233,7 +233,7 @@ export function Topbar() {
             onChange={e => setBusca(e.target.value)}
             className="pl-10 pr-16 h-10 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all focus-glow"
           />
-          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/40 bg-muted/60 px-1.5 py-0.5 rounded font-mono pointer-events-none hidden sm:inline">⌘K</kbd>
+          {/* kbd hint removed for cleaner look */}
         </div>
       </form>
 
