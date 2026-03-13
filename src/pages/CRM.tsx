@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
+import { PageHeader } from "@/components/ui/page-header";
+import { Kanban } from "lucide-react";
 
 export default function CRM() {
   const { propostas, crmConfig, loading, updateProposta } = usePropostas();
