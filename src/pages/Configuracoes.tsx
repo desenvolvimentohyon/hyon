@@ -186,18 +186,10 @@ export default function Configuracoes() {
         </TabsList>
 
         <TabsContent value="geral">
+          <SubtabGrid items={subtabItems} value={geralSubtab} onChange={setGeralSubtab} />
+
           <Tabs value={geralSubtab} onValueChange={setGeralSubtab} className="w-full">
-            <TabsList className="flex-wrap mb-4">
-              <TabsTrigger value="sistemas" className="gap-1.5"><Monitor className="h-3.5 w-3.5" />Sistemas</TabsTrigger>
-              <TabsTrigger value="modulos" className="gap-1.5"><Puzzle className="h-3.5 w-3.5" />Módulos</TabsTrigger>
-              <TabsTrigger value="pagamento" className="gap-1.5"><CreditCard className="h-3.5 w-3.5" />Formas de Pagamento</TabsTrigger>
-              <TabsTrigger value="planos" className="gap-1.5"><Tag className="h-3.5 w-3.5" />Planos e Descontos</TabsTrigger>
-              <TabsTrigger value="propostas" className="gap-1.5">Propostas / CRM</TabsTrigger>
-              <TabsTrigger value="metricas" className="gap-1.5">Métricas</TabsTrigger>
-              <TabsTrigger value="labels" className="gap-1.5">Labels</TabsTrigger>
-              <TabsTrigger value="alertas" className="gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Alertas</TabsTrigger>
-              <TabsTrigger value="dados" className="gap-1.5">Dados</TabsTrigger>
-            </TabsList>
+            <TabsList className="hidden" />
 
             {/* ── Sistemas ── */}
             <TabsContent value="sistemas" className="space-y-4">
