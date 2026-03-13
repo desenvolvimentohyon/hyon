@@ -256,6 +256,24 @@ export default function DashboardExecutiveWidgets() {
         </div>
       </TooltipProvider>
 
+      {/* Company certificate alert */}
+      {companyCertAlert && (
+        <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+          companyCertAlert.days_remaining <= 0
+            ? "bg-destructive/10 text-destructive"
+            : companyCertAlert.days_remaining <= 7
+            ? "bg-destructive/10 text-destructive"
+            : companyCertAlert.days_remaining <= 15
+            ? "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+            : "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400"
+        }`}>
+          <Shield className="h-4 w-4 shrink-0" />
+          {companyCertAlert.days_remaining <= 0
+            ? "O certificado digital da empresa está VENCIDO!"
+            : `O certificado digital da empresa vence em ${companyCertAlert.days_remaining} dia(s).`}
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Overdue 7+ */}
         {overdueClients.length > 0 && (
