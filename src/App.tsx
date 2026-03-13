@@ -32,7 +32,7 @@ import CRM from "./pages/CRM";
 import AceiteProposta from "./pages/AceiteProposta";
 import PropostaPublica from "./pages/PropostaPublica";
 import UsuariosConfig from "./pages/UsuariosConfig";
-import Parametros from "./pages/Parametros";
+
 import AcessoNegado from "./pages/AcessoNegado";
 import NotFound from "./pages/NotFound";
 import PortalCliente from "./pages/PortalCliente";
