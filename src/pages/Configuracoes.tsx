@@ -22,12 +22,16 @@ import { FormaEnvio } from "@/types/propostas";
 import { MetricasConfig } from "@/types/receita";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
+import { SubtabGrid, type SubtabItem } from "@/components/configuracoes/SubtabGrid";
 import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
-  Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle
+  Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
+  FileText, BarChart3, Palette, Database, Rocket
 } from "lucide-react";
 
 const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
+const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
+
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -74,6 +78,20 @@ export default function Configuracoes() {
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
   const [fPlano, setFPlano] = useState({ nomePlano: "", descontoPercentual: 0, validadeMeses: 1, ativo: true });
   const [alertaDias, setAlertaDias] = useState(alertaCertificadoDias);
+
+  // Subtab grid items
+  const subtabItems: SubtabItem[] = [
+    { value: "sistemas", label: "Sistemas", description: "Cadastro de sistemas", icon: Monitor, colorClass: "text-primary", bgClass: "bg-primary/10", borderClass: "border-primary/30" },
+    { value: "modulos", label: "Módulos", description: "Módulos vinculados", icon: Puzzle, colorClass: "text-purple-500", bgClass: "bg-purple-500/10", borderClass: "border-purple-500/30" },
+    { value: "pagamento", label: "Formas de Pagamento", description: "Meios de cobrança", icon: CreditCard, colorClass: "text-emerald-500", bgClass: "bg-emerald-500/10", borderClass: "border-emerald-500/30" },
+    { value: "planos", label: "Planos e Descontos", description: "Vigência e desconto", icon: Tag, colorClass: "text-amber-500", bgClass: "bg-amber-500/10", borderClass: "border-amber-500/30" },
+    { value: "implantacao", label: "Implantação", description: "Custos de deploy", icon: Rocket, colorClass: "text-violet-500", bgClass: "bg-violet-500/10", borderClass: "border-violet-500/30" },
+    { value: "propostas", label: "Propostas / CRM", description: "Pipeline e envio", icon: FileText, colorClass: "text-indigo-500", bgClass: "bg-indigo-500/10", borderClass: "border-indigo-500/30" },
+    { value: "metricas", label: "Métricas", description: "Dashboard e receita", icon: BarChart3, colorClass: "text-teal-500", bgClass: "bg-teal-500/10", borderClass: "border-teal-500/30" },
+    { value: "labels", label: "Labels", description: "Nomenclaturas", icon: Palette, colorClass: "text-slate-500", bgClass: "bg-slate-500/10", borderClass: "border-slate-500/30" },
+    { value: "alertas", label: "Alertas", description: "Notificações", icon: AlertTriangle, colorClass: "text-red-500", bgClass: "bg-red-500/10", borderClass: "border-red-500/30" },
+    { value: "dados", label: "Dados", description: "Importar / Exportar", icon: Database, colorClass: "text-sky-500", bgClass: "bg-sky-500/10", borderClass: "border-sky-500/30" },
+  ];
 
   // Subtab state for "Configurações Gerais"
   const [geralSubtab, setGeralSubtab] = useState("sistemas");
@@ -168,18 +186,10 @@ export default function Configuracoes() {
         </TabsList>
 
         <TabsContent value="geral">
+          <SubtabGrid items={subtabItems} value={geralSubtab} onChange={setGeralSubtab} />
+
           <Tabs value={geralSubtab} onValueChange={setGeralSubtab} className="w-full">
-            <TabsList className="flex-wrap mb-4">
-              <TabsTrigger value="sistemas" className="gap-1.5"><Monitor className="h-3.5 w-3.5" />Sistemas</TabsTrigger>
-              <TabsTrigger value="modulos" className="gap-1.5"><Puzzle className="h-3.5 w-3.5" />Módulos</TabsTrigger>
-              <TabsTrigger value="pagamento" className="gap-1.5"><CreditCard className="h-3.5 w-3.5" />Formas de Pagamento</TabsTrigger>
-              <TabsTrigger value="planos" className="gap-1.5"><Tag className="h-3.5 w-3.5" />Planos e Descontos</TabsTrigger>
-              <TabsTrigger value="propostas" className="gap-1.5">Propostas / CRM</TabsTrigger>
-              <TabsTrigger value="metricas" className="gap-1.5">Métricas</TabsTrigger>
-              <TabsTrigger value="labels" className="gap-1.5">Labels</TabsTrigger>
-              <TabsTrigger value="alertas" className="gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Alertas</TabsTrigger>
-              <TabsTrigger value="dados" className="gap-1.5">Dados</TabsTrigger>
-            </TabsList>
+            <TabsList className="hidden" />
 
             {/* ── Sistemas ── */}
             <TabsContent value="sistemas" className="space-y-4">
@@ -280,6 +290,13 @@ export default function Configuracoes() {
                   </Card>
                 ))}
               </div>
+            </TabsContent>
+
+            {/* ── Implantação ── */}
+            <TabsContent value="implantacao" className="space-y-4">
+              <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+                <TabImplantacao />
+              </Suspense>
             </TabsContent>
 
             {/* ── Propostas / CRM ── */}

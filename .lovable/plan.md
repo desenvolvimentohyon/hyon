@@ -1,90 +1,54 @@
 
 
-## Plano: Redesign das subtabs de Parametrização + Aba Implantação
+## Glassmorphism Login Redesign
 
-### 1. Redesign visual das subtabs (Configuracoes.tsx)
+### Overview
+Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
 
-**Substituir** a `TabsList` padrão das subtabs por um **grid de cards navegáveis** (3 colunas no desktop, 1 no mobile). Cada card terá:
-- Ícone colorido por categoria (usando as cores do domínio)
-- Nome da subtab
-- Descrição curta
-- Hover com elevação e borda colorida
-- Estado ativo com borda lateral colorida + background sutil
+### Changes (single file: `src/pages/Auth.tsx`)
 
-**Mapeamento de cores:**
-| Subtab | Cor | Ícone |
-|--------|-----|-------|
-| Sistemas | blue (primary) | Monitor |
-| Módulos | purple | Puzzle |
-| Formas de Pagamento | emerald | CreditCard |
-| Planos e Descontos | orange/amber | Tag |
-| Propostas / CRM | indigo | FileText |
-| Métricas | teal | BarChart3 |
-| Labels | slate | Palette |
-| Alertas | red | AlertTriangle |
-| Implantação | violet | Rocket |
-| Dados | sky | Database |
+**1. Background Layer**
+- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
+- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
+- Subtle noise/grid overlay kept but refined
 
-**Implementação:** Substituir o `<TabsList>` interno por um grid de botões customizados (`grid grid-cols-3 gap-3`) que controlam o `geralSubtab` via `onClick`. O conteúdo continua renderizado condicionalmente abaixo do grid.
+**2. Glass Card**
+- Replace `glass-surface` with custom inline glass styles:
+  - `background: rgba(255,255,255,0.03)` (dark glass)
+  - `backdrop-filter: blur(24px) saturate(1.2)`
+  - `border: 1px solid rgba(255,255,255,0.08)`
+  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
+  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
+- Rounded corners `rounded-2xl`, generous padding
 
-### 2. Nova subtab: Implantação (dentro de Configurações Gerais)
+**3. Inputs with Icons**
+- Wrap each input in a relative container
+- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
+- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
+- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
 
-Adicionar subtab "Implantação" com formulários para parametrizar custos:
+**4. Primary Button**
+- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
+- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
+- Transition 150ms
 
-**Seções dentro da subtab:**
+**5. Social Buttons**
+- Glass style: `bg-white/[0.04] border-white/[0.08]`
+- Hover: `bg-white/[0.08]`
 
-**A. Custo por KM**
-- Campo: Valor por KM (R$/km) — `CurrencyInput`
-- Armazenado em `company_profile` (nova coluna `impl_cost_per_km`)
+**6. Floating Orbs (Background Decoration)**
+- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
+- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
+- Slow CSS animation (translate + scale) for organic movement
+- Hidden on mobile via `hidden md:block` for performance
 
-**B. Regiões de Implantação**
-- Tabela CRUD: Nome da região, Valor Base, Taxa Adicional
-- Nova tabela `deployment_regions` no banco
+**7. Responsive**
+- Mobile: card full-width with margin, orbs hidden, simpler background
+- Desktop: centered card with full visual effects
 
-**C. Custo por Diária**
-- Campo: Valor da diária (R$) — `CurrencyInput`
-- Campo: Dias estimados padrão (number)
-- Armazenado em `company_profile` (colunas `impl_daily_rate`, `impl_default_days`)
-
-**D. Calculadora (preview)**
-- Campos: Distância (km), Região (select), Dias
-- Resultado: `(km × custo_km) + valor_base_região + taxa_região + (dias × diária)` = **Valor da Implantação**
-- Read-only, para simular o cálculo antes de usar em propostas
-
-### 3. Migração de banco
-
-```sql
--- Colunas na company_profile
-ALTER TABLE company_profile
-  ADD COLUMN IF NOT EXISTS impl_cost_per_km numeric DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS impl_daily_rate numeric DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS impl_default_days integer DEFAULT 1;
-
--- Nova tabela para regiões
-CREATE TABLE deployment_regions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL,
-  name text NOT NULL,
-  base_value numeric NOT NULL DEFAULT 0,
-  additional_fee numeric NOT NULL DEFAULT 0,
-  active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE deployment_regions ENABLE ROW LEVEL SECURITY;
--- RLS policies (select/insert/update/delete por org)
-```
-
-### 4. Arquivos a criar/editar
-
-| Arquivo | Ação |
-|---------|------|
-| `src/pages/Configuracoes.tsx` | Redesign completo das subtabs + adicionar subtab Implantação |
-| Migração SQL | Criar colunas + tabela `deployment_regions` |
-
-### Regras
-- Nenhuma lógica existente alterada
-- Todas as rotas mantidas
-- Dados existentes preservados
-- Apenas UI e nova parametrização de implantação
+### Technical Notes
+- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
+- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
+- Imports added: `Mail`, `Lock` from lucide-react
+- Zero changes to auth logic, handlers, or component structure
 
