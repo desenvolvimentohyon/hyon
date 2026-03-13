@@ -1,60 +1,54 @@
 
 
-## Plano: Unificar Parâmetros + Configurações Gerais
+## Glassmorphism Login Redesign
 
-### Resumo
+### Overview
+Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
 
-Mover todo o conteúdo da página `Parametros.tsx` para dentro da aba "Configurações Gerais" em `Configuracoes.tsx`, usando subtabs internas para organizar o conteúdo. Remover a rota `/parametros` e o item de sidebar correspondente, adicionando um redirect para compatibilidade.
+### Changes (single file: `src/pages/Auth.tsx`)
 
-### Alterações
+**1. Background Layer**
+- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
+- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
+- Subtle noise/grid overlay kept but refined
 
-**1. `src/pages/Configuracoes.tsx`** — Reestruturar a aba "Configurações Gerais"
+**2. Glass Card**
+- Replace `glass-surface` with custom inline glass styles:
+  - `background: rgba(255,255,255,0.03)` (dark glass)
+  - `backdrop-filter: blur(24px) saturate(1.2)`
+  - `border: 1px solid rgba(255,255,255,0.08)`
+  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
+  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
+- Rounded corners `rounded-2xl`, generous padding
 
-- Importar `useParametros` e toda a lógica de CRUD de sistemas, módulos, formas de pagamento, planos e alertas (atualmente em `Parametros.tsx`)
-- Substituir o conteúdo da `TabsContent value="geral"` por subtabs internas:
-  - **Sistemas** — tabela de sistemas (conteúdo atual de Parametros tab "sistemas")
-  - **Módulos** — tabela de módulos
-  - **Formas de Pagamento** — tabela de formas de pagamento
-  - **Planos e Descontos** — cards de planos
-  - **Propostas / CRM** — config de pipeline (já existente em Configurações Gerais)
-  - **Métricas** — config de métricas e receita (já existente)
-  - **Labels e Aparência** — labels de status/prioridade + modo compacto (já existente)
-  - **Alertas** — config de alertas de certificado
-  - **Dados** — export/import JSON (já existente)
-- Mover todos os modais (Dialog) de Parametros para dentro de Configuracoes
-- Remover `max-w-3xl` do container para acomodar tabelas mais largas
+**3. Inputs with Icons**
+- Wrap each input in a relative container
+- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
+- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
+- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
 
-**2. `src/components/layout/AppSidebar.tsx`** — Remover item "Parâmetros"
+**4. Primary Button**
+- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
+- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
+- Transition 150ms
 
-- Remover `{ title: "Parâmetros", url: "/parametros", icon: Settings2 }` do grupo Configurações
+**5. Social Buttons**
+- Glass style: `bg-white/[0.04] border-white/[0.08]`
+- Hover: `bg-white/[0.08]`
 
-**3. `src/App.tsx`** — Redirect e limpeza
+**6. Floating Orbs (Background Decoration)**
+- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
+- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
+- Slow CSS animation (translate + scale) for organic movement
+- Hidden on mobile via `hidden md:block` for performance
 
-- Substituir `<Route path="/parametros" element={<Parametros />} />` por `<Route path="/parametros" element={<Navigate to="/configuracoes" replace />} />`
-- Remover import de `Parametros`
+**7. Responsive**
+- Mobile: card full-width with margin, orbs hidden, simpler background
+- Desktop: centered card with full visual effects
 
-**4. `src/pages/Parametros.tsx`** — Manter arquivo mas ele não será mais acessado diretamente (redirect cuida)
-
-### Estrutura visual da nova aba
-
-```text
-Configurações
-├── [Minha Empresa]  (admin only, default)
-└── [Configurações Gerais]
-    ├── Subtab: Sistemas
-    ├── Subtab: Módulos
-    ├── Subtab: Formas de Pagamento
-    ├── Subtab: Planos e Descontos
-    ├── Subtab: Propostas / CRM
-    ├── Subtab: Métricas
-    ├── Subtab: Labels
-    ├── Subtab: Alertas
-    └── Subtab: Dados
-```
-
-### Impacto
-
-- Nenhum dado é perdido — apenas reorganização de UI
-- Todas as funções de salvar/CRUD continuam iguais
-- Links antigos para `/parametros` redirecionam automaticamente para `/configuracoes`
+### Technical Notes
+- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
+- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
+- Imports added: `Mail`, `Lock` from lucide-react
+- Zero changes to auth logic, handlers, or component structure
 
