@@ -224,7 +224,7 @@ export function AppSidebar() {
 
                 // Expanded sidebar: show parent + collapsible children
                 return (
-                  <div key={mod.id} className="mb-0.5">
+                  <div key={mod.id} className="mb-1">
                     {/* Parent module button */}
                     <SidebarMenuItem>
                       <button
@@ -258,7 +258,7 @@ export function AppSidebar() {
                         isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
                       )}>
                       
-                      <div className="ml-4 pl-3 border-l border-sidebar-border/30 mt-0.5 mb-1 space-y-0.5">
+                      <div className="ml-4 pl-3 border-l border-sidebar-border/30 mt-1 mb-1.5 space-y-0.5">
                         {visibleChildren.map((child) => {
                           const childActive = isActive(child.url);
                           return (
@@ -292,10 +292,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
-        {!collapsed &&
-        <p className="text-[10px] text-sidebar-foreground/25 text-center font-medium">© 2025 Hyon Tech</p>
-        }
+      <SidebarFooter className="p-4 pt-2">
+        {!collapsed ? (
+          <div className="text-center space-y-0.5">
+            <p className="text-[10px] text-sidebar-foreground/25 font-medium">© 2025 Hyon Tech</p>
+            <p className="text-[9px] text-sidebar-foreground/15 font-mono">v1.0</p>
+          </div>
+        ) : (
+          <p className="text-[9px] text-sidebar-foreground/15 font-mono text-center">v1</p>
+        )}
       </SidebarFooter>
     </Sidebar>);
 

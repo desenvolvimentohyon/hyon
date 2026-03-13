@@ -49,15 +49,15 @@
     --purple: 271 81% 56%;
     --purple-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
+    --border: 220 13% 93%;
     --input: 220 13% 91%;
     --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
-    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.04), 0 1px 2px -1px hsl(0 0% 0% / 0.04);
-    --shadow-card-hover: 0 4px 12px -2px hsl(0 0% 0% / 0.08), 0 2px 6px -2px hsl(0 0% 0% / 0.04);
-    --shadow-elevated: 0 8px 24px -4px hsl(0 0% 0% / 0.12), 0 4px 8px -4px hsl(0 0% 0% / 0.06);
+    --shadow-card: 0 1px 2px 0 hsl(0 0% 0% / 0.03), 0 1px 3px -1px hsl(0 0% 0% / 0.03);
+    --shadow-card-hover: 0 4px 12px -3px hsl(0 0% 0% / 0.07), 0 2px 4px -2px hsl(0 0% 0% / 0.03);
+    --shadow-elevated: 0 8px 24px -6px hsl(0 0% 0% / 0.1), 0 4px 8px -4px hsl(0 0% 0% / 0.05);
 
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 220 20% 80%;
@@ -172,9 +172,23 @@
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight font-semibold;
   }
+
+  /* Smooth transitions on interactive elements */
+  a, button, [role="button"] {
+    @apply transition-colors duration-150;
+  }
 }
 
 @layer utilities {
+  /* Section header utility */
+  .section-header {
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+
+  /* Stat value for KPIs */
+  .stat-value {
+    @apply text-2xl font-bold tracking-tight;
+  }
   .glass-card {
     @apply bg-card/80 backdrop-blur-sm border shadow-sm;
   }
