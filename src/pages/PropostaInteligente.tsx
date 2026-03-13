@@ -20,6 +20,7 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { PropostaResumoLateral } from "@/components/propostas/PropostaResumoLateral";
 import { PropostaComparador } from "@/components/propostas/PropostaComparador";
 import { PropostaSugestoes } from "@/components/propostas/PropostaSugestoes";
+import { ConsultoraComercialIA } from "@/components/propostas/ConsultoraComercialIA";
 
 import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText } from "lucide-react";
 
