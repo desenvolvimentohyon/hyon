@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, TrendingUp, DollarSign, UserPlus } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
