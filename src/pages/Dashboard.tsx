@@ -632,7 +632,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-end justify-between gap-2">
                   <div>
-                    <p className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-none">{k.value}</p>
+                    <p className="text-lg lg:text-xl font-bold tracking-tight leading-none">{k.value}</p>
                   </div>
                   <Sparkline data={k.spark} color={k.color} height={28} />
                 </div>
