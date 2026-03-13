@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2 } from "lucide-react";
+import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { toast } from "@/hooks/use-toast";
 import { ClienteReceita, SistemaPrincipal, StatusCliente, RECEITA_COLORS } from "@/types/receita";
