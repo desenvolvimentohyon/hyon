@@ -1110,6 +1110,12 @@ export type Database = {
           address_number: string | null
           address_street: string | null
           address_uf: string | null
+          cert_cn: string | null
+          cert_cnpj: string | null
+          cert_file_path: string | null
+          cert_issuer: string | null
+          cert_valid_from: string | null
+          cert_valid_to: string | null
           certificate_expiration: string | null
           certificate_number: string | null
           cnae: string | null
@@ -1161,6 +1167,12 @@ export type Database = {
           address_number?: string | null
           address_street?: string | null
           address_uf?: string | null
+          cert_cn?: string | null
+          cert_cnpj?: string | null
+          cert_file_path?: string | null
+          cert_issuer?: string | null
+          cert_valid_from?: string | null
+          cert_valid_to?: string | null
           certificate_expiration?: string | null
           certificate_number?: string | null
           cnae?: string | null
@@ -1212,6 +1224,12 @@ export type Database = {
           address_number?: string | null
           address_street?: string | null
           address_uf?: string | null
+          cert_cn?: string | null
+          cert_cnpj?: string | null
+          cert_file_path?: string | null
+          cert_issuer?: string | null
+          cert_valid_from?: string | null
+          cert_valid_to?: string | null
           certificate_expiration?: string | null
           certificate_number?: string | null
           cnae?: string | null
