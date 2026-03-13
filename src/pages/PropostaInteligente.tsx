@@ -443,8 +443,29 @@ export default function PropostaInteligente() {
         </div>
 
         {/* Right sidebar */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block space-y-4">
           <PropostaResumoLateral data={resumoData} onGerarProposta={handleGerarProposta} gerando={gerando} />
+          <ConsultoraComercialIA
+            sistemaValor={calc.sistemaValor}
+            modulosValor={calc.modulosValor}
+            modulosCount={moduloIds.length}
+            modulosDisponiveis={modulosDoSistema.length}
+            mensalidadeBase={calc.mensalidadeBase}
+            mensalidadeFinal={calc.mensalidadeFinal}
+            implantacaoTotal={calc.implantacaoTotal}
+            descontoPercent={calc.descontoPercent}
+            comissaoImpl={calc.comissaoImpl}
+            comissaoRecur={calc.comissaoRecur}
+            distanciaKm={distanciaKm}
+            dias={dias}
+            regiaoNome={regiao?.name || ""}
+            parceiroNome={parceiro?.name || ""}
+            planoNome={plano?.nomePlano || ""}
+            sistemaName={sistema?.nome || ""}
+            fluxoImplantacao={fluxoImplantacao}
+            parcelasImplantacao={parcelasImplantacao}
+            planosDisponiveis={planosAtivos.map(p => ({ nome: p.nomePlano, desconto: p.descontoPercentual, meses: p.validadeMeses }))}
+          />
         </div>
       </div>
 
