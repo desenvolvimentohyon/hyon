@@ -19,6 +19,7 @@ import { validateCNPJ, maskDocument } from "@/lib/cnpjUtils";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { differenceInDays, parseISO } from "date-fns";
+import CertificadoDigitalUpload from "./CertificadoDigitalUpload";
 
 type CompanyProfile = {
   id?: string;
