@@ -19,6 +19,7 @@ import { validateCNPJ, maskDocument } from "@/lib/cnpjUtils";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { differenceInDays, parseISO } from "date-fns";
+import CertificadoDigitalUpload from "./CertificadoDigitalUpload";
 
 type CompanyProfile = {
   id?: string;
@@ -441,14 +442,6 @@ export default function MinhaEmpresa() {
           <Card>
             <CardHeader><CardTitle className="text-base">Dados Fiscais</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              {certDaysLeft !== null && certDaysLeft <= 15 && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-                  <AlertTriangle className="h-4 w-4" />
-                  {certDaysLeft <= 0
-                    ? "Certificado digital VENCIDO!"
-                    : `Certificado digital vence em ${certDaysLeft} dia(s)!`}
-                </div>
-              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-xs">Regime Tributário</Label>
@@ -475,19 +468,25 @@ export default function MinhaEmpresa() {
                     }}><Copy className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
-                <div>
-                  <Label className="text-xs">Vencimento do Certificado Digital</Label>
-                  <Input className="h-9" type="date" value={form.certificate_expiration || ""} onChange={e => set("certificate_expiration", e.target.value)} />
-                </div>
-                <div>
-                  <Label className="text-xs">Número do Certificado</Label>
-                  <Input className="h-9" placeholder="Número" value={form.certificate_number || ""} onChange={e => set("certificate_number", e.target.value)} />
-                </div>
                 <div className="md:col-span-2">
                   <Label className="text-xs">Observações Fiscais</Label>
                   <Textarea rows={3} placeholder="Observações internas sobre questões fiscais..." value={form.fiscal_notes || ""} onChange={e => set("fiscal_notes", e.target.value)} />
                 </div>
               </div>
+
+              <Separator className="my-4" />
+
+              <CertificadoDigitalUpload
+                certInfo={{
+                  cert_cn: (profileData as any)?.cert_cn ?? null,
+                  cert_cnpj: (profileData as any)?.cert_cnpj ?? null,
+                  cert_issuer: (profileData as any)?.cert_issuer ?? null,
+                  cert_valid_from: (profileData as any)?.cert_valid_from ?? null,
+                  cert_valid_to: (profileData as any)?.cert_valid_to ?? form.certificate_expiration ?? null,
+                  cert_file_path: (profileData as any)?.cert_file_path ?? null,
+                }}
+                onCertUpdated={() => queryClient.invalidateQueries({ queryKey: ["company-profile"] })}
+              />
             </CardContent>
           </Card>
         </TabsContent>

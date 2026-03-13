@@ -34,6 +34,7 @@ interface CertExpiring { name: string; days_remaining: number }
 interface HealthClient { name: string; health_score: number; health_status: string }
 interface UpsellItem { client_name: string; module_name: string; status: string }
 interface CommissionStats { totalAPagar: number; totalPago: number; geradoMes: number; recorrentePrevista: number; ranking: { name: string; total: number }[] }
+interface CompanyCertAlert { days_remaining: number }
 
 export default function DashboardExecutiveWidgets() {
   const [loading, setLoading] = useState(true);
@@ -44,6 +45,7 @@ export default function DashboardExecutiveWidgets() {
   const [mrrAdjusted, setMrrAdjusted] = useState(0);
   const [mrrGrowth, setMrrGrowth] = useState({ current: 0, previous: 0 });
   const [commissions, setCommissions] = useState<CommissionStats>({ totalAPagar: 0, totalPago: 0, geradoMes: 0, recorrentePrevista: 0, ranking: [] });
+  const [companyCertAlert, setCompanyCertAlert] = useState<CompanyCertAlert | null>(null);
 
   useEffect(() => {
     loadData();
@@ -178,7 +180,20 @@ export default function DashboardExecutiveWidgets() {
         setCommissions({ totalAPagar, totalPago, geradoMes, recorrentePrevista: 0, ranking });
       }
 
-      // 7. Upsell suggestions
+      // 7. Company certificate alert
+      const { data: companyProfile } = await supabase
+        .from("company_profile")
+        .select("certificate_expiration")
+        .maybeSingle();
+
+      if (companyProfile?.certificate_expiration) {
+        const daysRemaining = Math.ceil((new Date(companyProfile.certificate_expiration).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysRemaining <= 30) {
+          setCompanyCertAlert({ days_remaining: daysRemaining });
+        }
+      }
+
+      // 8. Upsell suggestions
       const { data: upsells } = await supabase
         .from("upsell_suggestions")
         .select("client_id, suggested_module_id, status")
@@ -240,6 +255,24 @@ export default function DashboardExecutiveWidgets() {
           </Card>
         </div>
       </TooltipProvider>
+
+      {/* Company certificate alert */}
+      {companyCertAlert && (
+        <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+          companyCertAlert.days_remaining <= 0
+            ? "bg-destructive/10 text-destructive"
+            : companyCertAlert.days_remaining <= 7
+            ? "bg-destructive/10 text-destructive"
+            : companyCertAlert.days_remaining <= 15
+            ? "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+            : "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400"
+        }`}>
+          <Shield className="h-4 w-4 shrink-0" />
+          {companyCertAlert.days_remaining <= 0
+            ? "O certificado digital da empresa está VENCIDO!"
+            : `O certificado digital da empresa vence em ${companyCertAlert.days_remaining} dia(s).`}
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Overdue 7+ */}
