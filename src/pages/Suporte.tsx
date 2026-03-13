@@ -207,11 +207,11 @@ export default function Suporte() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <Headphones className="h-6 w-6 text-orange-600" />
-          <h1 className="text-2xl font-bold tracking-tight">Suporte Técnico</h1>
-        </div>
+      <PageHeader
+        icon={Headphones}
+        iconClassName="text-orange-600"
+        title="Suporte Técnico"
+        actions={
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => {
             const periodoLabel = periodo === "todos" ? "Todos os períodos" : `Últimos ${periodo} dias`;
