@@ -292,6 +292,13 @@ export default function Configuracoes() {
               </div>
             </TabsContent>
 
+            {/* ── Implantação ── */}
+            <TabsContent value="implantacao" className="space-y-4">
+              <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+                <TabImplantacao />
+              </Suspense>
+            </TabsContent>
+
             {/* ── Propostas / CRM ── */}
             <TabsContent value="propostas" className="space-y-4">
               <Card>
