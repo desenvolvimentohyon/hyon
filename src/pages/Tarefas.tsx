@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, GripVertical } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
