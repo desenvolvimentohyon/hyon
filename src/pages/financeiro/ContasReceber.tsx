@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw } from "lucide-react";
+import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw, ArrowUpRight } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { TituloFinanceiro, STATUS_TITULO_LABELS, FORMA_PAGAMENTO_LABELS, ORIGEM_TITULO_LABELS, FINANCEIRO_COLORS } from "@/types/financeiro";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -91,13 +92,13 @@ export default function ContasReceber() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Contas a Receber</h1>
-          <p className="text-muted-foreground text-sm">Gestão de recebíveis</p>
-        </div>
-        <Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Novo Título</Button>
-      </div>
+      <PageHeader
+        icon={ArrowUpRight}
+        iconClassName="text-success"
+        title="Contas a Receber"
+        subtitle="Gestão de recebíveis"
+        actions={<Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Novo Título</Button>}
+      />
 
       {/* Alertas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

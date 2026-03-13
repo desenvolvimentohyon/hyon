@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from "recharts";
 import { FINANCEIRO_COLORS } from "@/types/financeiro";
 
@@ -104,24 +105,26 @@ export default function Financeiro() {
 
   return (
     <div className="p-6 space-y-6 chart-container">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[28px] lg:text-[32px] font-bold tracking-tight">Financeiro</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Visão geral financeira</p>
-        </div>
-        <Select value={periodo} onValueChange={setPeriodo}>
-          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">7 dias</SelectItem>
-            <SelectItem value="30d">30 dias</SelectItem>
-            <SelectItem value="90d">90 dias</SelectItem>
-            <SelectItem value="12m">12 meses</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <PageHeader
+        icon={Landmark}
+        iconClassName="text-success"
+        title="Financeiro"
+        subtitle="Visão geral financeira"
+        actions={
+          <Select value={periodo} onValueChange={setPeriodo}>
+            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">7 dias</SelectItem>
+              <SelectItem value="30d">30 dias</SelectItem>
+              <SelectItem value="90d">90 dias</SelectItem>
+              <SelectItem value="12m">12 meses</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+      />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {kpiCards.map(k => (
           <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5">
             <CardContent className="p-4">

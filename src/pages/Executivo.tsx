@@ -8,6 +8,7 @@ import { BarChart3, Users, Rocket, Headphones, AlertTriangle, DollarSign, Trendi
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { RECEITA_COLORS } from "@/types/receita";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart, Area } from "recharts";
+import { PageHeader } from "@/components/ui/page-header";
 
 const CHART_COLORS = [
   "hsl(224, 60%, 45%)",
@@ -139,12 +140,9 @@ export default function Executivo() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <BarChart3 className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Painel Executivo</h1>
-      </div>
+      <PageHeader icon={BarChart3} iconClassName="text-primary" title="Painel Executivo" />
 
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {kpis.map(k => (
           <Card key={k.label} className="hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">

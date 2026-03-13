@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, TrendingUp, DollarSign, UserPlus } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
@@ -96,14 +97,13 @@ export default function Comercial() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold tracking-tight">Pipeline Comercial</h1>
-        </div>
-        <Button size="sm" onClick={() => setShowNovoLead(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Lead</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={TrendingUp}
+        iconClassName="text-indigo-600"
+        title="Pipeline Comercial"
+        actions={<Button size="sm" onClick={() => setShowNovoLead(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Lead</Button>}
+      />
 
       {/* Kanban */}
       <div className="flex gap-4 overflow-x-auto pb-4">

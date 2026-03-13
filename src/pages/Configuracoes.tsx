@@ -28,6 +28,7 @@ import {
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
   FileText, BarChart3, Palette, Database, Rocket
 } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
@@ -177,7 +178,7 @@ export default function Configuracoes() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
+      <PageHeader icon={Settings} iconClassName="text-muted-foreground" title="Configurações" />
 
       <Tabs defaultValue="empresa" className="w-full">
         <TabsList className="mb-4">

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Settings2, Monitor, Puzzle, CreditCard, Tag, Plus, Pencil, Trash2, Percent, AlertTriangle } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -58,10 +59,7 @@ export default function Parametros() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Settings2 className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">Parâmetros do Sistema</h1>
-      </div>
+      <PageHeader icon={Settings2} iconClassName="text-muted-foreground" title="Parâmetros do Sistema" />
 
       <Tabs defaultValue="sistemas">
         <TabsList className="flex-wrap">

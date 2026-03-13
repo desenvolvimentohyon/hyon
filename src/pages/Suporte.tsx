@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench, Filter, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { exportSLAPDF } from "@/lib/pdfRelatorioSLA";
 import { toast } from "sonner";
 
@@ -207,11 +208,11 @@ export default function Suporte() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <Headphones className="h-6 w-6 text-orange-600" />
-          <h1 className="text-2xl font-bold tracking-tight">Suporte Técnico</h1>
-        </div>
+      <PageHeader
+        icon={Headphones}
+        iconClassName="text-orange-600"
+        title="Suporte Técnico"
+        actions={
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => {
             const periodoLabel = periodo === "todos" ? "Todos os períodos" : `Últimos ${periodo} dias`;
@@ -253,10 +254,11 @@ export default function Suporte() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+        }
+      />
 
       {/* KPIs */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {kpis.map(k => (
           <Card key={k.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">

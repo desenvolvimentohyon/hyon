@@ -13,6 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Pencil, Handshake } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { maskDocument } from "@/lib/cnpjUtils";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -175,13 +177,13 @@ export default function Parceiros() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2"><Handshake className="h-6 w-6 text-primary" /> Parceiros Indicadores</h1>
-          <p className="text-muted-foreground text-sm">Gerencie parceiros e comissões de indicação</p>
-        </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro</Button>
-      </div>
+      <PageHeader
+        icon={Handshake}
+        iconClassName="text-amber-600"
+        title="Parceiros Indicadores"
+        subtitle="Gerencie parceiros e comissões de indicação"
+        actions={<Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro</Button>}
+      />
 
       <div className="flex gap-3 flex-wrap">
         <Input placeholder="Buscar parceiro..." value={busca} onChange={e => setBusca(e.target.value)} className="w-56" />
@@ -212,7 +214,7 @@ export default function Parceiros() {
             </TableHeader>
             <TableBody>
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum parceiro encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="p-0"><EmptyState icon={Handshake} title="Nenhum parceiro encontrado" description="Cadastre um parceiro indicador" actionLabel="Novo Parceiro" onAction={openNew} /></TableCell></TableRow>
               )}
               {filtered.map(p => (
                 <TableRow key={p.id}>

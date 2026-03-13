@@ -1,93 +1,54 @@
 
 
-## Plano: Padronização Completa de Layout e UX
+## Glassmorphism Login Redesign
 
-### Diagnóstico de Inconsistências Identificadas
+### Overview
+Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
 
-Após análise de todas as páginas, os principais problemas são:
+### Changes (single file: `src/pages/Auth.tsx`)
 
-1. **PageHeader**: Apenas `Clientes` usa o componente `PageHeader`. Suporte, Receita, Financeiro, Tarefas, Comercial, Implantação, Parceiros e Tecnicos usam headers ad-hoc com estilos diferentes
-2. **KPIs**: Dashboard usa `grid-cols-5`, Suporte usa `grid-cols-6`, Receita não tem grid padronizado — layouts inconsistentes
-3. **Tabs**: Suporte usa `TabsList` padrão do Radix, ClienteDetalhe usa tabs com ícones e borda customizada, Configurações usa SubtabGrid — 3 estilos diferentes
-4. **Tabelas**: Clientes tem hover e RowActions, Propostas tem DropdownMenu custom, Parceiros/Tecnicos não têm hover consistente
-5. **Empty States**: Apenas Clientes usa `EmptyState` component, demais não tratam estado vazio
-6. **Espaçamento**: Páginas usam `space-y-4`, `space-y-6` e `space-y-8` inconsistentemente
+**1. Background Layer**
+- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
+- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
+- Subtle noise/grid overlay kept but refined
 
-### Abordagem
+**2. Glass Card**
+- Replace `glass-surface` with custom inline glass styles:
+  - `background: rgba(255,255,255,0.03)` (dark glass)
+  - `backdrop-filter: blur(24px) saturate(1.2)`
+  - `border: 1px solid rgba(255,255,255,0.08)`
+  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
+  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
+- Rounded corners `rounded-2xl`, generous padding
 
-Criar componentes reutilizáveis e refatorar cada página para usá-los, sem alterar lógica ou dados.
+**3. Inputs with Icons**
+- Wrap each input in a relative container
+- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
+- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
+- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
 
-### Componentes a Criar/Atualizar
+**4. Primary Button**
+- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
+- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
+- Transition 150ms
 
-| Componente | Ação |
-|-----------|------|
-| `src/components/ui/page-header.tsx` | **Editar** — adicionar prop `icon` com cor semântica do módulo |
-| `src/components/ui/kpi-grid.tsx` | **Criar** — componente padronizado para KPIs com grid `cols-5` (desktop), `cols-2` (mobile), tooltip |
-| `src/components/ui/section-tabs.tsx` | **Criar** — wrapper de Tabs com estilo padronizado (ícone + label, mesma altura/espaçamento) |
-| `src/components/ui/table.tsx` | **Editar** — adicionar hover padrão nas rows (`hover:bg-accent/40 transition-colors duration-150`) |
+**5. Social Buttons**
+- Glass style: `bg-white/[0.04] border-white/[0.08]`
+- Hover: `bg-white/[0.08]`
 
-### Páginas a Refatorar
+**6. Floating Orbs (Background Decoration)**
+- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
+- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
+- Slow CSS animation (translate + scale) for organic movement
+- Hidden on mobile via `hidden md:block` for performance
 
-| Página | Mudanças |
-|--------|----------|
-| `Suporte.tsx` | PageHeader com ícone, KpiGrid padronizado (cols-5 em vez de cols-6), SectionTabs |
-| `Receita.tsx` | PageHeader, KpiGrid padronizado |
-| `Executivo.tsx` | PageHeader |
-| `Comercial.tsx` | PageHeader |
-| `Implantacao.tsx` | PageHeader, EmptyState |
-| `Tarefas.tsx` | PageHeader |
-| `Parceiros.tsx` | PageHeader, hover em tabela, EmptyState |
-| `Tecnicos.tsx` | PageHeader, hover em tabela, EmptyState |
-| `ClientesReceita.tsx` | PageHeader |
-| `FinanceiroVisaoGeral.tsx` | PageHeader, KpiGrid padronizado |
-| `ContasReceber.tsx` | PageHeader |
-| `ContasPagar.tsx` | PageHeader |
-| `CRM.tsx` | PageHeader |
-| `ClienteDetalhe.tsx` | Padronizar tabs para usar mesmo estilo visual (altura, espaçamento uniforme) |
+**7. Responsive**
+- Mobile: card full-width with margin, orbs hidden, simpler background
+- Desktop: centered card with full visual effects
 
-### Padrões a Aplicar
-
-**PageHeader em todas as páginas:**
-```tsx
-<PageHeader icon={Headphones} iconColor="text-orange-600" title="Suporte Técnico" actions={...} />
-```
-
-**KPI Grid padronizado (5 colunas desktop, 3 tablet, 2 mobile):**
-```tsx
-<div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-```
-
-**Espaçamento raiz padronizado:**
-Todas as páginas: `<div className="space-y-6">`
-
-**Tabs padronizadas:**
-Altura fixa, ícones com 3.5, gap 1.5, rounded-md, transição 150ms. Estilo ativo: `bg-primary text-primary-foreground`.
-
-**Tabelas com hover:**
-`TableRow className="hover:bg-accent/40 transition-colors duration-150"`
-
-**Empty states:**
-Usar `EmptyState` em todas as tabelas/listas que podem estar vazias.
-
-### Cores semânticas por módulo (já existentes no design system)
-
-- Dashboard/Estrutura → `text-primary` (azul)
-- Financeiro → `text-success` (verde)
-- Suporte → `text-orange-600`
-- CRM/Comercial → `text-indigo-600`
-- Implantação → `text-violet-500`
-- Receita → `text-primary`
-- Configurações → `text-muted-foreground`
-- Parceiros → `text-amber-600`
-
-### O que NÃO será alterado
-- Nenhuma lógica de negócio
-- Nenhuma rota
-- Nenhum banco de dados
-- Nenhuma funcionalidade existente removida
-- Apenas refatoração visual e estrutural
-
-### Escopo de entrega
-
-Estimativa: ~14 arquivos editados, 2 componentes novos. Foco nos elementos de maior impacto visual: headers, KPIs, tabs e tabelas.
+### Technical Notes
+- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
+- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
+- Imports added: `Mail`, `Lock` from lucide-react
+- Zero changes to auth logic, handlers, or component structure
 

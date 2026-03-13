@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Plus, CheckCircle, AlertTriangle, Clock } from "lucide-react";
+import { Plus, CheckCircle, AlertTriangle, Clock, ArrowDownRight } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { STATUS_TITULO_LABELS, TituloFinanceiro } from "@/types/financeiro";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -67,13 +68,13 @@ export default function ContasPagar() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Contas a Pagar</h1>
-          <p className="text-muted-foreground text-sm">Gestão de despesas e repasses</p>
-        </div>
-        <Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Lançar Despesa</Button>
-      </div>
+      <PageHeader
+        icon={ArrowDownRight}
+        iconClassName="text-destructive"
+        title="Contas a Pagar"
+        subtitle="Gestão de despesas e repasses"
+        actions={<Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Lançar Despesa</Button>}
+      />
 
       {vencidos.length > 0 && (
         <Card className="border-destructive/50">

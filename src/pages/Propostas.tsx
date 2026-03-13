@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { gerarPDFProposta } from "@/lib/pdfGenerator";
 import { Plus, Search, MoreHorizontal, FileText, Copy, Download, Send, Eye, EyeOff, ThumbsUp, ThumbsDown, Trash2, ExternalLink, MessageCircle } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { StatusVisualizacao, StatusAceite, SistemaProposta, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 
 export default function Propostas() {
@@ -147,11 +148,13 @@ export default function Propostas() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Propostas</h1>
-        <Button onClick={handleNova} className="gap-1.5"><Plus className="h-4 w-4" />Nova Proposta</Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={FileText}
+        iconClassName="text-primary"
+        title="Propostas"
+        actions={<Button onClick={handleNova} className="gap-1.5"><Plus className="h-4 w-4" />Nova Proposta</Button>}
+      />
 
       <Card>
         <CardContent className="pt-4 space-y-3">

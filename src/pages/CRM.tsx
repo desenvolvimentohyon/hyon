@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
+import { PageHeader } from "@/components/ui/page-header";
+import { Kanban } from "lucide-react";
 
 export default function CRM() {
   const { propostas, crmConfig, loading, updateProposta } = usePropostas();
@@ -56,11 +58,13 @@ export default function CRM() {
   if (loading) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-[500px]" /></div>;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">CRM — Pipeline de Propostas</h1>
-        <Badge variant="outline" className="text-xs">{propostas.length} propostas</Badge>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={Kanban}
+        iconClassName="text-indigo-600"
+        title="CRM — Pipeline de Propostas"
+        actions={<Badge variant="outline" className="text-xs">{propostas.length} propostas</Badge>}
+      />
 
       <div className="flex gap-3 overflow-x-auto pb-4" style={{ minHeight: "calc(100vh - 200px)" }}>
         {columns.map(col => (
