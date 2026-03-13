@@ -840,7 +840,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/implantacao")}>
                   <Activity className="h-5 w-5 text-purple" />
-                  <div className="flex-1"><p className="text-xs text-muted-foreground">Implantações</p><p className="text-xl font-bold">{implantacoesAtivas}</p></div>
+                  <div className="flex-1"><p className="text-xs text-muted-foreground">Implantações</p><p className="text-base font-semibold">{implantacoesAtivas}</p></div>
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate("/suporte")}>
