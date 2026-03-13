@@ -258,7 +258,7 @@ export function AppSidebar() {
                         isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
                       )}>
                       
-                      <div className="ml-4 pl-3 border-l border-sidebar-border/30 mt-0.5 mb-1 space-y-0.5">
+                      <div className="ml-4 pl-3 border-l border-sidebar-border/30 mt-1 mb-1.5 space-y-0.5">
                         {visibleChildren.map((child) => {
                           const childActive = isActive(child.url);
                           return (
