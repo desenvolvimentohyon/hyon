@@ -292,10 +292,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
-        {!collapsed &&
-        <p className="text-[10px] text-sidebar-foreground/25 text-center font-medium">© 2025 Hyon Tech</p>
-        }
+      <SidebarFooter className="p-4 pt-2">
+        {!collapsed ? (
+          <div className="text-center space-y-0.5">
+            <p className="text-[10px] text-sidebar-foreground/25 font-medium">© 2025 Hyon Tech</p>
+            <p className="text-[9px] text-sidebar-foreground/15 font-mono">v1.0</p>
+          </div>
+        ) : (
+          <p className="text-[9px] text-sidebar-foreground/15 font-mono text-center">v1</p>
+        )}
       </SidebarFooter>
     </Sidebar>);
 
