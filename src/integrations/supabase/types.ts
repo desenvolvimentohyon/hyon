@@ -787,6 +787,52 @@ export type Database = {
           },
         ]
       }
+      client_modules: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          module_id: string
+          org_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          module_id: string
+          org_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          module_id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_modules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "system_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_modules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           accountant_email: string | null
