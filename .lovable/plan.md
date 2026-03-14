@@ -1,54 +1,52 @@
 
 
-## Glassmorphism Login Redesign
+## Plano: Vincular módulos ao cliente com base no sistema selecionado
 
-### Overview
-Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
+### Resumo
+Quando o usuário seleciona um sistema na aba Dados do cliente, exibir automaticamente os módulos vinculados àquele sistema como checkboxes, permitindo marcar quais módulos o cliente contratou.
 
-### Changes (single file: `src/pages/Auth.tsx`)
+### 1. Nova tabela `client_modules` (migration)
 
-**1. Background Layer**
-- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
-- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
-- Subtle noise/grid overlay kept but refined
+```sql
+CREATE TABLE public.client_modules (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id uuid NOT NULL,
+  client_id uuid NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
+  module_id uuid NOT NULL REFERENCES public.system_modules(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (client_id, module_id)
+);
 
-**2. Glass Card**
-- Replace `glass-surface` with custom inline glass styles:
-  - `background: rgba(255,255,255,0.03)` (dark glass)
-  - `backdrop-filter: blur(24px) saturate(1.2)`
-  - `border: 1px solid rgba(255,255,255,0.08)`
-  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
-  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
-- Rounded corners `rounded-2xl`, generous padding
+ALTER TABLE public.client_modules ENABLE ROW LEVEL SECURITY;
 
-**3. Inputs with Icons**
-- Wrap each input in a relative container
-- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
-- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
-- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
+CREATE POLICY "cm_select" ON public.client_modules FOR SELECT TO authenticated
+  USING (org_id = current_org_id());
 
-**4. Primary Button**
-- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
-- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
-- Transition 150ms
+CREATE POLICY "cm_insert" ON public.client_modules FOR INSERT TO authenticated
+  WITH CHECK (org_id = current_org_id() AND current_role() = ANY(ARRAY['admin','comercial','suporte','implantacao']));
 
-**5. Social Buttons**
-- Glass style: `bg-white/[0.04] border-white/[0.08]`
-- Hover: `bg-white/[0.08]`
+CREATE POLICY "cm_delete" ON public.client_modules FOR DELETE TO authenticated
+  USING (org_id = current_org_id() AND current_role() = ANY(ARRAY['admin','comercial','suporte','implantacao']));
+```
 
-**6. Floating Orbs (Background Decoration)**
-- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
-- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
-- Slow CSS animation (translate + scale) for organic movement
-- Hidden on mobile via `hidden md:block` for performance
+### 2. Atualizar `TabDados.tsx`
 
-**7. Responsive**
-- Mobile: card full-width with margin, orbs hidden, simpler background
-- Desktop: centered card with full visual effects
+- Importar `supabase` e `useAuth` para obter `org_id`
+- Carregar os módulos do catálogo filtrados pelo `system_id` do sistema selecionado (usando `useParametros().modulos`)
+- Carregar os módulos já vinculados ao cliente da tabela `client_modules`
+- Quando o sistema muda, atualizar a lista de módulos disponíveis
+- Renderizar uma seção "Módulos do Sistema" logo abaixo do campo Sistema, com checkboxes para cada módulo ativo
+- Ao marcar/desmarcar, inserir/deletar na tabela `client_modules` imediatamente (sem depender do botão Salvar, pois é uma relação N:N separada)
 
-### Technical Notes
-- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
-- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
-- Imports added: `Mail`, `Lock` from lucide-react
-- Zero changes to auth logic, handlers, or component structure
+### 3. Atualizar `TabModulos.tsx`
+
+- Filtrar para mostrar apenas os módulos vinculados ao cliente (da tabela `client_modules`) em vez de todos os módulos do catálogo
+
+### Arquivos a editar
+
+| Arquivo | Mudança |
+|---------|---------|
+| Migration SQL | Criar tabela `client_modules` com RLS |
+| `src/components/clientes/tabs/TabDados.tsx` | Adicionar seção de módulos com checkboxes filtrados por sistema |
+| `src/components/clientes/tabs/TabModulos.tsx` | Mostrar apenas módulos vinculados ao cliente |
 
