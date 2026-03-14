@@ -213,7 +213,9 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
             ))}
           </div>
         </section>
-      )
+      )}
+
+      {/* Endereço */}
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Endereço</h3>
         <div className="grid gap-4 md:grid-cols-3">
