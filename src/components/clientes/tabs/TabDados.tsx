@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,8 @@ import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
 
@@ -38,16 +40,55 @@ interface Props {
 }
 
 export default function TabDados({ cliente, formData, onChange, contacts, onAddContact, onUpdateContact, onDeleteContact }: Props) {
-  const { sistemas } = useParametros();
+  const { sistemas, modulos } = useParametros();
+  const { profile } = useAuth();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [cepLoading, setCepLoading] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
   const [contactForm, setContactForm] = useState({ name: "", phone: "", email: "", roles: [] as string[], is_billing_preferred: false, is_support_preferred: false });
+  const [linkedModuleIds, setLinkedModuleIds] = useState<string[]>([]);
+  const [modulesLoading, setModulesLoading] = useState(false);
 
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
+
+  // Current system name (from form or persisted)
+  const currentSystemName = v("system_name");
+  const currentSystem = sistemas.find(s => s.nome === currentSystemName);
+  const systemModules = modulos.filter(m => m.ativo && m.sistemaId === currentSystem?.id);
+
+  // Load linked modules for this client
+  useEffect(() => {
+    const loadLinkedModules = async () => {
+      if (!cliente.id) return;
+      const { data } = await supabase
+        .from("client_modules")
+        .select("module_id")
+        .eq("client_id", cliente.id);
+      if (data) setLinkedModuleIds(data.map((d: any) => d.module_id));
+    };
+    loadLinkedModules();
+  }, [cliente.id]);
+
+  const toggleModule = useCallback(async (moduleId: string, checked: boolean) => {
+    if (!profile?.org_id || !cliente.id) return;
+    setModulesLoading(true);
+    try {
+      if (checked) {
+        await supabase.from("client_modules").insert({ org_id: profile.org_id, client_id: cliente.id, module_id: moduleId });
+        setLinkedModuleIds(prev => [...prev, moduleId]);
+      } else {
+        await supabase.from("client_modules").delete().eq("client_id", cliente.id).eq("module_id", moduleId);
+        setLinkedModuleIds(prev => prev.filter(id => id !== moduleId));
+      }
+    } catch {
+      toast({ title: "Erro ao atualizar módulo", variant: "destructive" });
+    } finally {
+      setModulesLoading(false);
+    }
+  }, [profile?.org_id, cliente.id]);
 
   const buscarCep = async () => {
     const cep = v("address_cep").replace(/\D/g, "");
@@ -148,6 +189,31 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           </div>
         </div>
       </section>
+
+      {/* Módulos do Sistema */}
+      {systemModules.length > 0 && (
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">
+            Módulos do Sistema ({systemModules.length})
+          </h3>
+          <div className="grid gap-2 md:grid-cols-2">
+            {systemModules.map(m => (
+              <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
+                <Checkbox
+                  checked={linkedModuleIds.includes(m.id)}
+                  onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
+                  disabled={modulesLoading}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{m.nome}</p>
+                  {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
+                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Endereço */}
       <section className="space-y-4">
