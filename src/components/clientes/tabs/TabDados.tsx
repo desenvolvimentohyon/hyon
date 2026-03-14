@@ -195,27 +195,36 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
       </section>
 
       {/* Módulos do Sistema */}
-      {systemModules.length > 0 && (
+      {currentSystem && (
         <section className="space-y-4">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">
-            Módulos do Sistema ({systemModules.length})
-          </h3>
-          <div className="grid gap-2 md:grid-cols-2">
-            {systemModules.map(m => (
-              <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
-                <Checkbox
-                  checked={linkedModuleIds.includes(m.id)}
-                  onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
-                  disabled={modulesLoading}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{m.nome}</p>
-                  {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
-              </label>
-            ))}
+          <div className="flex justify-between items-center border-b border-border pb-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Módulos do Sistema {systemModules.length > 0 && `(${systemModules.length})`}
+            </h3>
+            <Button size="sm" variant="outline" onClick={() => { setNewModuleForm({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0 }); setShowNewModuleDialog(true); }} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" />Novo Módulo
+            </Button>
           </div>
+          {systemModules.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Nenhum módulo cadastrado para <strong>{currentSystem.nome}</strong>.</p>
+          ) : (
+            <div className="grid gap-2 md:grid-cols-2">
+              {systemModules.map(m => (
+                <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
+                  <Checkbox
+                    checked={linkedModuleIds.includes(m.id)}
+                    onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
+                    disabled={modulesLoading}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{m.nome}</p>
+                    {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
