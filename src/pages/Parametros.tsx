@@ -33,7 +33,7 @@ export default function Parametros() {
   // Sistema form
   const [fSistema, setFSistema] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true });
   // Modulo form
-  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "" });
+  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" });
   // Forma form
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
   // Plano form
@@ -45,9 +45,9 @@ export default function Parametros() {
   const openEditSistema = (id: string) => { const s = sistemas.find(x => x.id === id); if (s) { setFSistema(s); setModal({ type: "sistema", editing: id }); } };
   const saveSistema = () => { if (!fSistema.nome.trim()) { toast.error("Nome obrigatório"); return; } modal?.editing ? updateSistema(modal.editing, fSistema) : addSistema(fSistema); setModal(null); toast.success("Sistema salvo!"); };
 
-  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "" }); setModal({ type: "modulo", editing: null }); };
-  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "" }); setModal({ type: "modulo", editing: id }); } };
-  const saveModulo = () => { if (!fModulo.nome.trim()) { toast.error("Nome obrigatório"); return; } modal?.editing ? updateModulo(modal.editing, fModulo) : addModulo(fModulo); setModal(null); toast.success("Módulo salvo!"); };
+  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" }); setModal({ type: "modulo", editing: null }); };
+  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "none" }); setModal({ type: "modulo", editing: id }); } };
+  const saveModulo = () => { if (!fModulo.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fModulo, sistemaId: fModulo.sistemaId === "none" ? "" : fModulo.sistemaId }; modal?.editing ? updateModulo(modal.editing, data) : addModulo(data); setModal(null); toast.success("Módulo salvo!"); };
 
   const openNewForma = () => { setFForma({ nome: "", ativo: true, observacao: "" }); setModal({ type: "forma", editing: null }); };
   const openEditForma = (id: string) => { const f = formasPagamento.find(x => x.id === id); if (f) { setFForma({ nome: f.nome, ativo: f.ativo, observacao: f.observacao || "" }); setModal({ type: "forma", editing: id }); } };
@@ -218,7 +218,7 @@ export default function Parametros() {
               <Select value={fModulo.sistemaId} onValueChange={v => setFModulo(p => ({ ...p, sistemaId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {sistemas.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
