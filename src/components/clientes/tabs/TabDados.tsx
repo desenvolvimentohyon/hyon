@@ -13,6 +13,8 @@ import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
 
