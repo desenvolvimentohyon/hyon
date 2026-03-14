@@ -41,7 +41,7 @@ interface Props {
 }
 
 export default function TabDados({ cliente, formData, onChange, contacts, onAddContact, onUpdateContact, onDeleteContact }: Props) {
-  const { sistemas, modulos } = useParametros();
+  const { sistemas, modulos, addModulo } = useParametros();
   const { profile } = useAuth();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [cepLoading, setCepLoading] = useState(false);
@@ -51,6 +51,9 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const [contactForm, setContactForm] = useState({ name: "", phone: "", email: "", roles: [] as string[], is_billing_preferred: false, is_support_preferred: false });
   const [linkedModuleIds, setLinkedModuleIds] = useState<string[]>([]);
   const [modulesLoading, setModulesLoading] = useState(false);
+  const [showNewModuleDialog, setShowNewModuleDialog] = useState(false);
+  const [newModuleForm, setNewModuleForm] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0 });
+  const [savingModule, setSavingModule] = useState(false);
 
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
