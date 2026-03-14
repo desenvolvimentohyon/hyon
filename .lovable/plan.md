@@ -1,54 +1,24 @@
 
 
-## Glassmorphism Login Redesign
+## Plano: Corrigir modal "Novo Módulo" que não abre
 
-### Overview
-Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
+### Causa raiz
 
-### Changes (single file: `src/pages/Auth.tsx`)
+O componente `SelectItem` do Radix UI **não aceita `value=""`** (string vazia). Quando o Dialog tenta renderizar o Select de "Sistema vinculado" com `<SelectItem value="">Nenhum</SelectItem>`, o componente quebra silenciosamente e o modal não aparece.
 
-**1. Background Layer**
-- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
-- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
-- Subtle noise/grid overlay kept but refined
+O bug existe em dois arquivos:
+- `src/pages/Configuracoes.tsx` (linha 521)
+- `src/pages/Parametros.tsx` (linha 221)
 
-**2. Glass Card**
-- Replace `glass-surface` with custom inline glass styles:
-  - `background: rgba(255,255,255,0.03)` (dark glass)
-  - `backdrop-filter: blur(24px) saturate(1.2)`
-  - `border: 1px solid rgba(255,255,255,0.08)`
-  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
-  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
-- Rounded corners `rounded-2xl`, generous padding
+### Correção
 
-**3. Inputs with Icons**
-- Wrap each input in a relative container
-- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
-- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
-- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
+| Arquivo | Mudança |
+|---------|---------|
+| `src/pages/Configuracoes.tsx` | Trocar `value=""` por `value="none"` no SelectItem + ajustar lógica de `sistemaId` |
+| `src/pages/Parametros.tsx` | Mesma correção |
 
-**4. Primary Button**
-- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
-- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
-- Transition 150ms
-
-**5. Social Buttons**
-- Glass style: `bg-white/[0.04] border-white/[0.08]`
-- Hover: `bg-white/[0.08]`
-
-**6. Floating Orbs (Background Decoration)**
-- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
-- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
-- Slow CSS animation (translate + scale) for organic movement
-- Hidden on mobile via `hidden md:block` for performance
-
-**7. Responsive**
-- Mobile: card full-width with margin, orbs hidden, simpler background
-- Desktop: centered card with full visual effects
-
-### Technical Notes
-- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
-- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
-- Imports added: `Mail`, `Lock` from lucide-react
-- Zero changes to auth logic, handlers, or component structure
+Em ambos os arquivos:
+1. `<SelectItem value="">` → `<SelectItem value="none">`
+2. No `openNewModulo`, inicializar `sistemaId: "none"` em vez de `""`
+3. No `saveModulo`, converter `sistemaId === "none"` para `""` antes de salvar
 
