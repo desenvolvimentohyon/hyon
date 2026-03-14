@@ -33,7 +33,7 @@ export default function Parametros() {
   // Sistema form
   const [fSistema, setFSistema] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true });
   // Modulo form
-  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "" });
+  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" });
   // Forma form
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
   // Plano form
