@@ -13,6 +13,7 @@ import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
