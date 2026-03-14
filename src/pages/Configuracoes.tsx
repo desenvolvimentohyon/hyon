@@ -75,7 +75,7 @@ export default function Configuracoes() {
   // Parametros modal state
   const [modal, setModal] = useState<{ type: string; editing: string | null } | null>(null);
   const [fSistema, setFSistema] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true });
-  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "" });
+  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" });
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
   const [fPlano, setFPlano] = useState({ nomePlano: "", descontoPercentual: 0, validadeMeses: 1, ativo: true });
   const [alertaDias, setAlertaDias] = useState(alertaCertificadoDias);
