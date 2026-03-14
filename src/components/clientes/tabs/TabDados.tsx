@@ -386,6 +386,40 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* New Module Dialog */}
+      <Dialog open={showNewModuleDialog} onOpenChange={setShowNewModuleDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Novo Módulo — {currentSystem?.nome}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div><Label>Nome *</Label><Input value={newModuleForm.nome} onChange={e => setNewModuleForm(p => ({ ...p, nome: e.target.value }))} placeholder="Nome do módulo" /></div>
+            <div><Label>Descrição</Label><Input value={newModuleForm.descricao} onChange={e => setNewModuleForm(p => ({ ...p, descricao: e.target.value }))} placeholder="Descrição opcional" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Valor Custo</Label><CurrencyInput value={newModuleForm.valorCusto} onValueChange={v => setNewModuleForm(p => ({ ...p, valorCusto: v }))} /></div>
+              <div><Label>Valor Venda</Label><CurrencyInput value={newModuleForm.valorVenda} onValueChange={v => setNewModuleForm(p => ({ ...p, valorVenda: v }))} /></div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewModuleDialog(false)}>Cancelar</Button>
+            <Button disabled={savingModule || !newModuleForm.nome.trim()} onClick={async () => {
+              if (!currentSystem) return;
+              setSavingModule(true);
+              try {
+                await addModulo({ nome: newModuleForm.nome, descricao: newModuleForm.descricao, valorCusto: newModuleForm.valorCusto, valorVenda: newModuleForm.valorVenda, ativo: true, sistemaId: currentSystem.id });
+                setShowNewModuleDialog(false);
+                toast({ title: "Módulo criado com sucesso" });
+              } catch {
+                toast({ title: "Erro ao criar módulo", variant: "destructive" });
+              } finally {
+                setSavingModule(false);
+              }
+            }}>
+              {savingModule ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Criar Módulo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
