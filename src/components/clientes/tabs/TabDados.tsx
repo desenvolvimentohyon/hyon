@@ -40,16 +40,55 @@ interface Props {
 }
 
 export default function TabDados({ cliente, formData, onChange, contacts, onAddContact, onUpdateContact, onDeleteContact }: Props) {
-  const { sistemas } = useParametros();
+  const { sistemas, modulos } = useParametros();
+  const { profile } = useAuth();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [cepLoading, setCepLoading] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
   const [contactForm, setContactForm] = useState({ name: "", phone: "", email: "", roles: [] as string[], is_billing_preferred: false, is_support_preferred: false });
+  const [linkedModuleIds, setLinkedModuleIds] = useState<string[]>([]);
+  const [modulesLoading, setModulesLoading] = useState(false);
 
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
+
+  // Current system name (from form or persisted)
+  const currentSystemName = v("system_name");
+  const currentSystem = sistemas.find(s => s.nome === currentSystemName);
+  const systemModules = modulos.filter(m => m.ativo && m.sistemaId === currentSystem?.id);
+
+  // Load linked modules for this client
+  useEffect(() => {
+    const loadLinkedModules = async () => {
+      if (!cliente.id) return;
+      const { data } = await supabase
+        .from("client_modules")
+        .select("module_id")
+        .eq("client_id", cliente.id);
+      if (data) setLinkedModuleIds(data.map((d: any) => d.module_id));
+    };
+    loadLinkedModules();
+  }, [cliente.id]);
+
+  const toggleModule = useCallback(async (moduleId: string, checked: boolean) => {
+    if (!profile?.org_id || !cliente.id) return;
+    setModulesLoading(true);
+    try {
+      if (checked) {
+        await supabase.from("client_modules").insert({ org_id: profile.org_id, client_id: cliente.id, module_id: moduleId });
+        setLinkedModuleIds(prev => [...prev, moduleId]);
+      } else {
+        await supabase.from("client_modules").delete().eq("client_id", cliente.id).eq("module_id", moduleId);
+        setLinkedModuleIds(prev => prev.filter(id => id !== moduleId));
+      }
+    } catch {
+      toast({ title: "Erro ao atualizar módulo", variant: "destructive" });
+    } finally {
+      setModulesLoading(false);
+    }
+  }, [profile?.org_id, cliente.id]);
 
   const buscarCep = async () => {
     const cep = v("address_cep").replace(/\D/g, "");
