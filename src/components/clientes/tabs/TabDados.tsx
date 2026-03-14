@@ -13,6 +13,7 @@ import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,7 +41,7 @@ interface Props {
 }
 
 export default function TabDados({ cliente, formData, onChange, contacts, onAddContact, onUpdateContact, onDeleteContact }: Props) {
-  const { sistemas, modulos } = useParametros();
+  const { sistemas, modulos, addModulo } = useParametros();
   const { profile } = useAuth();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [cepLoading, setCepLoading] = useState(false);
@@ -50,6 +51,9 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const [contactForm, setContactForm] = useState({ name: "", phone: "", email: "", roles: [] as string[], is_billing_preferred: false, is_support_preferred: false });
   const [linkedModuleIds, setLinkedModuleIds] = useState<string[]>([]);
   const [modulesLoading, setModulesLoading] = useState(false);
+  const [showNewModuleDialog, setShowNewModuleDialog] = useState(false);
+  const [newModuleForm, setNewModuleForm] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0 });
+  const [savingModule, setSavingModule] = useState(false);
 
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
@@ -191,27 +195,36 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
       </section>
 
       {/* Módulos do Sistema */}
-      {systemModules.length > 0 && (
+      {currentSystem && (
         <section className="space-y-4">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">
-            Módulos do Sistema ({systemModules.length})
-          </h3>
-          <div className="grid gap-2 md:grid-cols-2">
-            {systemModules.map(m => (
-              <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
-                <Checkbox
-                  checked={linkedModuleIds.includes(m.id)}
-                  onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
-                  disabled={modulesLoading}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{m.nome}</p>
-                  {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
-              </label>
-            ))}
+          <div className="flex justify-between items-center border-b border-border pb-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Módulos do Sistema {systemModules.length > 0 && `(${systemModules.length})`}
+            </h3>
+            <Button size="sm" variant="outline" onClick={() => { setNewModuleForm({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0 }); setShowNewModuleDialog(true); }} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" />Novo Módulo
+            </Button>
           </div>
+          {systemModules.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Nenhum módulo cadastrado para <strong>{currentSystem.nome}</strong>.</p>
+          ) : (
+            <div className="grid gap-2 md:grid-cols-2">
+              {systemModules.map(m => (
+                <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
+                  <Checkbox
+                    checked={linkedModuleIds.includes(m.id)}
+                    onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
+                    disabled={modulesLoading}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{m.nome}</p>
+                    {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -373,6 +386,40 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* New Module Dialog */}
+      <Dialog open={showNewModuleDialog} onOpenChange={setShowNewModuleDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Novo Módulo — {currentSystem?.nome}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div><Label>Nome *</Label><Input value={newModuleForm.nome} onChange={e => setNewModuleForm(p => ({ ...p, nome: e.target.value }))} placeholder="Nome do módulo" /></div>
+            <div><Label>Descrição</Label><Input value={newModuleForm.descricao} onChange={e => setNewModuleForm(p => ({ ...p, descricao: e.target.value }))} placeholder="Descrição opcional" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Valor Custo</Label><CurrencyInput value={newModuleForm.valorCusto} onValueChange={v => setNewModuleForm(p => ({ ...p, valorCusto: v }))} /></div>
+              <div><Label>Valor Venda</Label><CurrencyInput value={newModuleForm.valorVenda} onValueChange={v => setNewModuleForm(p => ({ ...p, valorVenda: v }))} /></div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewModuleDialog(false)}>Cancelar</Button>
+            <Button disabled={savingModule || !newModuleForm.nome.trim()} onClick={async () => {
+              if (!currentSystem) return;
+              setSavingModule(true);
+              try {
+                await addModulo({ nome: newModuleForm.nome, descricao: newModuleForm.descricao, valorCusto: newModuleForm.valorCusto, valorVenda: newModuleForm.valorVenda, ativo: true, sistemaId: currentSystem.id });
+                setShowNewModuleDialog(false);
+                toast({ title: "Módulo criado com sucesso" });
+              } catch {
+                toast({ title: "Erro ao criar módulo", variant: "destructive" });
+              } finally {
+                setSavingModule(false);
+              }
+            }}>
+              {savingModule ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Criar Módulo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
