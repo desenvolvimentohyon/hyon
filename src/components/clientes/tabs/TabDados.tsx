@@ -190,7 +190,30 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
         </div>
       </section>
 
-      {/* Endereço */}
+      {/* Módulos do Sistema */}
+      {systemModules.length > 0 && (
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">
+            Módulos do Sistema ({systemModules.length})
+          </h3>
+          <div className="grid gap-2 md:grid-cols-2">
+            {systemModules.map(m => (
+              <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
+                <Checkbox
+                  checked={linkedModuleIds.includes(m.id)}
+                  onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
+                  disabled={modulesLoading}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{m.nome}</p>
+                  {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
+                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
+              </label>
+            ))}
+          </div>
+        </section>
+      )
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Endereço</h3>
         <div className="grid gap-4 md:grid-cols-3">
