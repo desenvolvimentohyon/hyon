@@ -437,7 +437,12 @@ export default function Suporte() {
         {/* ── Tab: Chamados ── */}
         <TabsContent value="chamados">
           <Card>
-            <CardHeader><CardTitle className="text-lg">Chamados Abertos</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Chamados Abertos</CardTitle>
+              <Button size="sm" onClick={() => navigate("/tarefas?nova=1&tipo=suporte")}>
+                <Plus className="h-4 w-4 mr-1" /> Novo Chamado
+              </Button>
+            </CardHeader>
             <CardContent>
               <div className="rounded-lg border overflow-hidden">
                 <Table>
@@ -447,6 +452,7 @@ export default function Suporte() {
                       <TableHead>Cliente</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>SLA</TableHead>
+                      <TableHead>Ticket</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -466,10 +472,17 @@ export default function Suporte() {
                           <TableCell className="text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : "—"}</TableCell>
                           <TableCell><Badge variant="outline" className="text-[10px]">{getStatusLabel(t.status)}</Badge></TableCell>
                           <TableCell>{sla && <Badge className={`text-[10px] ${sla.class}`}>{sla.label}</Badge>}</TableCell>
+                          <TableCell>
+                            {t.linkedTicketId ? (
+                              <Badge variant="secondary" className="text-[9px] gap-1">
+                                <Link2 className="h-3 w-3" /> Vinculado
+                              </Badge>
+                            ) : "—"}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
-                    {abertos.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhum chamado aberto 🎉</TableCell></TableRow>}
+                    {abertos.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum chamado aberto 🎉</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
