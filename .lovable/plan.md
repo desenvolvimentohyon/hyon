@@ -1,54 +1,51 @@
 
 
-## Glassmorphism Login Redesign
+## Plano: Vincular Tarefas ao Suporte (Tickets ↔ Tarefas)
 
-### Overview
-Pure visual redesign of `src/pages/Auth.tsx` -- no auth logic, routes, or state changes. Only the JSX/CSS styling changes.
+### Resumo
+Criar vinculação bidirecional entre tickets do portal e tarefas de suporte, permitindo criar tarefas a partir de tickets, listar/criar tarefas na aba Chamados, e associar tickets a tarefas existentes.
 
-### Changes (single file: `src/pages/Auth.tsx`)
+### 1. Migração: adicionar coluna de vínculo
 
-**1. Background Layer**
-- Multi-layer radial gradient: deep navy (#030712) base with two colored orbs (blue at top-left, teal/cyan at bottom-right)
-- Animated floating glow orbs using CSS `@keyframes` via inline styles (slow drift animation, 8-15s)
-- Subtle noise/grid overlay kept but refined
+Adicionar `linked_ticket_id` na tabela `tasks` (nullable, FK para `portal_tickets`) e `linked_task_id` na tabela `portal_tickets` (nullable, FK para `tasks`).
 
-**2. Glass Card**
-- Replace `glass-surface` with custom inline glass styles:
-  - `background: rgba(255,255,255,0.03)` (dark glass)
-  - `backdrop-filter: blur(24px) saturate(1.2)`
-  - `border: 1px solid rgba(255,255,255,0.08)`
-  - Top highlight: `border-top: 1px solid rgba(255,255,255,0.12)` for light refraction effect
-  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
-- Rounded corners `rounded-2xl`, generous padding
+```sql
+ALTER TABLE public.tasks ADD COLUMN linked_ticket_id uuid REFERENCES public.portal_tickets(id) ON DELETE SET NULL;
+ALTER TABLE public.portal_tickets ADD COLUMN linked_task_id uuid REFERENCES public.tasks(id) ON DELETE SET NULL;
+```
 
-**3. Inputs with Icons**
-- Wrap each input in a relative container
-- Add `Mail` and `Lock` icons from lucide-react (positioned absolute left)
-- Input styling: `bg-white/[0.04]`, `border-white/[0.08]`, `pl-10` for icon space
-- Focus state: blue glow ring `focus:border-blue-500/50 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]`
+### 2. Atualizar o mapeamento de dados
 
-**4. Primary Button**
-- Gradient background: `bg-gradient-to-r from-blue-600 to-blue-500`
-- Hover: brighter gradient + elevated shadow `hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]`
-- Transition 150ms
+**`src/contexts/AppContext.tsx`**
+- No `dbToTarefa`, mapear `r.linked_ticket_id`
+- No `tarefaToDb`, incluir `linked_ticket_id`
+- Adicionar `linkedTicketId` ao tipo `Tarefa` em `src/types/index.ts`
 
-**5. Social Buttons**
-- Glass style: `bg-white/[0.04] border-white/[0.08]`
-- Hover: `bg-white/[0.08]`
+### 3. Tab Portal Tickets — botão "Criar Tarefa"
 
-**6. Floating Orbs (Background Decoration)**
-- 3 absolutely positioned divs with large blur radius (`blur-[120px]`)
-- Colors: blue, cyan/teal, purple -- low opacity (0.15-0.2)
-- Slow CSS animation (translate + scale) for organic movement
-- Hidden on mobile via `hidden md:block` for performance
+**`src/pages/Suporte.tsx` — `PortalTicketsTab`**
+- Ao visualizar um ticket, exibir botão **"Criar Tarefa de Suporte"** que:
+  - Cria tarefa com `tipoOperacional: "suporte"`, `clienteId` do ticket, título prefixado "[Ticket] ..."
+  - Grava `linked_ticket_id` na tarefa e `linked_task_id` no ticket
+- Se já existir tarefa vinculada, mostrar badge com link para a tarefa
 
-**7. Responsive**
-- Mobile: card full-width with margin, orbs hidden, simpler background
-- Desktop: centered card with full visual effects
+### 4. Tab Portal Tickets — botão "Vincular a Tarefa Existente"
 
-### Technical Notes
-- All changes confined to `Auth.tsx` -- uses inline styles + Tailwind classes only
-- No new CSS classes in `index.css` needed (inline keyframes via `style` tags)
-- Imports added: `Mail`, `Lock` from lucide-react
-- Zero changes to auth logic, handlers, or component structure
+- Adicionar botão **"Vincular Tarefa"** que abre um Dialog/Select com tarefas de suporte sem vínculo
+- Ao selecionar, atualiza ambos os lados do vínculo
+
+### 5. Tab Chamados — botão "Nova Tarefa de Suporte"
+
+**`src/pages/Suporte.tsx` — TabsContent "chamados"**
+- Adicionar botão **"+ Novo Chamado"** no header da tabela que navega para `/tarefas?nova=1&tipo=suporte`
+- Na listagem de chamados abertos, exibir badge se o chamado tem ticket vinculado
+
+### Arquivos editados
+
+| Arquivo | Mudança |
+|---------|---------|
+| Migração SQL | Adicionar `linked_ticket_id` em tasks e `linked_task_id` em portal_tickets |
+| `src/types/index.ts` | Adicionar `linkedTicketId?: string` à interface Tarefa |
+| `src/contexts/AppContext.tsx` | Mapear linked_ticket_id no dbToTarefa/tarefaToDb |
+| `src/pages/Suporte.tsx` | Botões "Criar Tarefa", "Vincular Tarefa", "+ Novo Chamado", badges de vínculo |
 
