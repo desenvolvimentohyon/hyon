@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench, Filter, Download } from "lucide-react";
+import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench, Filter, Download, Plus, Link2, ExternalLink } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -436,7 +437,12 @@ export default function Suporte() {
         {/* ── Tab: Chamados ── */}
         <TabsContent value="chamados">
           <Card>
-            <CardHeader><CardTitle className="text-lg">Chamados Abertos</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Chamados Abertos</CardTitle>
+              <Button size="sm" onClick={() => navigate("/tarefas?nova=1&tipo=suporte")}>
+                <Plus className="h-4 w-4 mr-1" /> Novo Chamado
+              </Button>
+            </CardHeader>
             <CardContent>
               <div className="rounded-lg border overflow-hidden">
                 <Table>
@@ -446,6 +452,7 @@ export default function Suporte() {
                       <TableHead>Cliente</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>SLA</TableHead>
+                      <TableHead>Ticket</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -465,10 +472,17 @@ export default function Suporte() {
                           <TableCell className="text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : "—"}</TableCell>
                           <TableCell><Badge variant="outline" className="text-[10px]">{getStatusLabel(t.status)}</Badge></TableCell>
                           <TableCell>{sla && <Badge className={`text-[10px] ${sla.class}`}>{sla.label}</Badge>}</TableCell>
+                          <TableCell>
+                            {t.linkedTicketId ? (
+                              <Badge variant="secondary" className="text-[9px] gap-1">
+                                <Link2 className="h-3 w-3" /> Vinculado
+                              </Badge>
+                            ) : "—"}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
-                    {abertos.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhum chamado aberto 🎉</TableCell></TableRow>}
+                    {abertos.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum chamado aberto 🎉</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </div>
@@ -635,12 +649,23 @@ export default function Suporte() {
 }
 
 function PortalTicketsTab() {
+  const queryClient = useQueryClient();
+  const { getCliente, tarefas, addTarefa } = useApp();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reply, setReply] = useState("");
+  const [newStatus, setNewStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [linkingTicketId, setLinkingTicketId] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string>("");
+
   const { data: tickets, isLoading, refetch } = useQuery({
     queryKey: ["portal_tickets_admin"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("portal_tickets")
-        .select("id, title, description, status, created_at, updated_at, client_id")
+        .select("id, title, description, status, created_at, updated_at, client_id, linked_task_id")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -660,25 +685,81 @@ function PortalTicketsTab() {
     },
   });
 
-  const { getCliente } = useApp();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [reply, setReply] = useState("");
-  const [newStatus, setNewStatus] = useState("");
-  const [saving, setSaving] = useState(false);
-
   const selected = tickets?.find(t => t.id === selectedId);
   const ticketMsgs = messages?.filter(m => m.ticket_id === selectedId) || [];
+
+  // Support tasks without a linked ticket (for linking dialog)
+  const unlinkedSupportTasks = useMemo(() =>
+    tarefas.filter(t => t.tipoOperacional === "suporte" && !t.linkedTicketId),
+    [tarefas]
+  );
+
+  const handleCreateTaskFromTicket = async (ticket: any) => {
+    if (!profile?.org_id) return;
+    setSaving(true);
+    try {
+      // Create the task
+      const dbData = {
+        org_id: profile.org_id,
+        title: `[Ticket] ${ticket.title}`,
+        description: ticket.description || "",
+        client_id: ticket.client_id || null,
+        priority: "media",
+        status: "a_fazer",
+        tipo_operacional: "suporte",
+        linked_ticket_id: ticket.id,
+        tags: ["ticket-portal"],
+        metadata: {},
+      };
+      const { data: newTask, error } = await supabase.from("tasks").insert(dbData).select("id").single();
+      if (error) throw error;
+
+      // Update ticket with linked_task_id
+      await supabase.from("portal_tickets").update({ linked_task_id: newTask.id }).eq("id", ticket.id);
+
+      // Add history
+      await supabase.from("task_history").insert({
+        org_id: profile.org_id, task_id: newTask.id,
+        action: "Criação", details: "Tarefa criada a partir de ticket do portal",
+      });
+
+      toast.success("Tarefa de suporte criada com sucesso!");
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ["portal_tickets_admin"] });
+    } catch (err: any) {
+      toast.error("Erro ao criar tarefa: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLinkTask = async (ticketId: string, taskId: string) => {
+    if (!taskId) return;
+    setSaving(true);
+    try {
+      await supabase.from("tasks").update({ linked_ticket_id: ticketId }).eq("id", taskId);
+      await supabase.from("portal_tickets").update({ linked_task_id: taskId }).eq("id", ticketId);
+      toast.success("Tarefa vinculada ao ticket!");
+      setLinkingTicketId(null);
+      setSelectedTaskId("");
+      refetch();
+    } catch {
+      toast.error("Erro ao vincular tarefa");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleReply = async () => {
     if (!reply.trim() || !selected) return;
     setSaving(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", (await supabase.auth.getUser()).data.user?.id || "").single();
+      const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", (await supabase.auth.getUser()).data.user?.id || "").single();
       await supabase.from("portal_ticket_messages").insert({
         ticket_id: selected.id,
         org_id: (await supabase.from("portal_tickets").select("org_id").eq("id", selected.id).single()).data?.org_id || "",
         sender_type: "staff",
-        sender_name: profile?.full_name || "Equipe",
+        sender_name: prof?.full_name || "Equipe",
         message: reply.trim(),
       });
       setReply("");
@@ -695,6 +776,7 @@ function PortalTicketsTab() {
   if (isLoading) return <div className="py-8 text-center text-muted-foreground text-sm">Carregando tickets...</div>;
 
   if (selected) {
+    const linkedTask = selected.linked_task_id ? tarefas.find(t => t.id === selected.linked_task_id) : null;
     return (
       <div className="space-y-4">
         <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)}>← Voltar</Button>
@@ -715,6 +797,42 @@ function PortalTicketsTab() {
             <CardDescription>Cliente: {getCliente(selected.client_id)?.nome || selected.client_id} · {new Date(selected.created_at).toLocaleDateString("pt-BR")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            {/* Linked task info or action buttons */}
+            {linkedTask ? (
+              <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/30">
+                <Link2 className="h-4 w-4 text-primary" />
+                <span className="text-sm flex-1">Vinculado à tarefa: <strong>{linkedTask.titulo}</strong></span>
+                <Button variant="outline" size="sm" onClick={() => navigate(`/tarefas/${linkedTask.id}`)}>
+                  <ExternalLink className="h-3 w-3 mr-1" /> Ver Tarefa
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => handleCreateTaskFromTicket(selected)} disabled={saving}>
+                  <Plus className="h-3 w-3 mr-1" /> Criar Tarefa
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setLinkingTicketId(selected.id)} disabled={saving}>
+                  <Link2 className="h-3 w-3 mr-1" /> Vincular Tarefa Existente
+                </Button>
+              </div>
+            )}
+
+            {/* Link existing task dialog */}
+            {linkingTicketId === selected.id && (
+              <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/20">
+                <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
+                  <SelectTrigger className="flex-1 h-8"><SelectValue placeholder="Selecione uma tarefa..." /></SelectTrigger>
+                  <SelectContent>
+                    {unlinkedSupportTasks.map(t => (
+                      <SelectItem key={t.id} value={t.id}>{t.titulo}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button size="sm" onClick={() => handleLinkTask(selected.id, selectedTaskId)} disabled={!selectedTaskId || saving}>Vincular</Button>
+                <Button size="sm" variant="ghost" onClick={() => { setLinkingTicketId(null); setSelectedTaskId(""); }}>Cancelar</Button>
+              </div>
+            )}
+
             <div className="space-y-2 max-h-72 overflow-y-auto">
               {ticketMsgs.map(m => (
                 <div key={m.id} className={`p-3 rounded-lg text-sm ${m.sender_type === "client" ? "bg-muted mr-4" : "bg-primary/5 ml-4"}`}>
@@ -745,6 +863,11 @@ function PortalTicketsTab() {
               <p className="text-sm font-medium truncate">{t.title}</p>
               <p className="text-xs text-muted-foreground">{getCliente(t.client_id)?.nome || "Cliente"} · {new Date(t.created_at).toLocaleDateString("pt-BR")}</p>
             </div>
+            {t.linked_task_id && (
+              <Badge variant="secondary" className="text-[9px] gap-1 shrink-0">
+                <Link2 className="h-3 w-3" /> Tarefa
+              </Badge>
+            )}
             <Badge variant={t.status === "aberto" ? "outline" : t.status === "finalizado" ? "secondary" : "default"}>{t.status}</Badge>
           </CardContent>
         </Card>

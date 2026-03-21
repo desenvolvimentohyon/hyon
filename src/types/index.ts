@@ -109,6 +109,7 @@ export interface Tarefa {
   valorTreinamentoExtra?: number;
   // Implantação parent
   implantacaoId?: string; // links subtasks to parent
+  linkedTicketId?: string; // links to portal_tickets
 }
 
 export interface TemplateImplantacao {

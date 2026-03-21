@@ -67,6 +67,7 @@ function dbToTarefa(r: any): Tarefa {
     setorTreinamento: m.setorTreinamento, horasMinistradas: m.horasMinistradas,
     participantes: m.participantes, treinamentoExtraCobrado: m.treinamentoExtraCobrado,
     valorTreinamentoExtra: m.valorTreinamentoExtra, implantacaoId: m.implantacaoId,
+    linkedTicketId: r.linked_ticket_id || undefined,
   };
 }
 
@@ -78,6 +79,7 @@ function tarefaToDb(t: any, orgId: string) {
     due_at: t.prazoDataHora || null, tags: t.tags || [],
     tipo_operacional: t.tipoOperacional || "interno",
     sistema_relacionado: t.sistemaRelacionado || null,
+    linked_ticket_id: t.linkedTicketId || null,
     metadata: {
       checklist: t.checklist || [], anexosFake: t.anexosFake || [],
       moduloRelacionado: t.moduloRelacionado, slaHoras: t.slaHoras,
@@ -227,6 +229,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (changes.tags !== undefined) dbUpdate.tags = changes.tags;
     if (changes.tipoOperacional !== undefined) dbUpdate.tipo_operacional = changes.tipoOperacional;
     if (changes.sistemaRelacionado !== undefined) dbUpdate.sistema_relacionado = changes.sistemaRelacionado;
+    if ((changes as any).linkedTicketId !== undefined) dbUpdate.linked_ticket_id = (changes as any).linkedTicketId;
     if (changes.tempoTotalSegundos !== undefined) dbUpdate.total_seconds = changes.tempoTotalSegundos;
     if (changes.timerRodando !== undefined) dbUpdate.timer_running = changes.timerRodando;
     if (changes.timerInicioTimestamp !== undefined) {

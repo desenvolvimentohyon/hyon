@@ -2225,6 +2225,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          linked_task_id: string | null
           org_id: string
           status: string
           title: string
@@ -2235,6 +2236,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          linked_task_id?: string | null
           org_id: string
           status?: string
           title: string
@@ -2245,12 +2247,21 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          linked_task_id?: string | null
           org_id?: string
           status?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "portal_tickets_linked_task_id_fkey"
+            columns: ["linked_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -2806,6 +2817,7 @@ export type Database = {
           description: string
           due_at: string | null
           id: string
+          linked_ticket_id: string | null
           metadata: Json | null
           org_id: string
           priority: string
@@ -2826,6 +2838,7 @@ export type Database = {
           description?: string
           due_at?: string | null
           id?: string
+          linked_ticket_id?: string | null
           metadata?: Json | null
           org_id: string
           priority?: string
@@ -2846,6 +2859,7 @@ export type Database = {
           description?: string
           due_at?: string | null
           id?: string
+          linked_ticket_id?: string | null
           metadata?: Json | null
           org_id?: string
           priority?: string
@@ -2872,6 +2886,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_linked_ticket_id_fkey"
+            columns: ["linked_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "portal_tickets"
             referencedColumns: ["id"]
           },
           {
