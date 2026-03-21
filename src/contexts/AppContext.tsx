@@ -229,6 +229,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (changes.tags !== undefined) dbUpdate.tags = changes.tags;
     if (changes.tipoOperacional !== undefined) dbUpdate.tipo_operacional = changes.tipoOperacional;
     if (changes.sistemaRelacionado !== undefined) dbUpdate.sistema_relacionado = changes.sistemaRelacionado;
+    if ((changes as any).linkedTicketId !== undefined) dbUpdate.linked_ticket_id = (changes as any).linkedTicketId;
     if (changes.tempoTotalSegundos !== undefined) dbUpdate.total_seconds = changes.tempoTotalSegundos;
     if (changes.timerRodando !== undefined) dbUpdate.timer_running = changes.timerRodando;
     if (changes.timerInicioTimestamp !== undefined) {
