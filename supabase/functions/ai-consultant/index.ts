@@ -467,7 +467,7 @@ Analise e retorne o diagnóstico de crescimento usando a ferramenta. Seja direto
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: \`Bearer \${LOVABLE_API_KEY}\`,
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
