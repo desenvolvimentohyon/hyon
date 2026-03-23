@@ -61,7 +61,7 @@ export function usePushNotifications() {
       const applicationServerKey = urlBase64ToUint8Array(vapidData.vapidPublicKey);
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey,
+        applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
       });
 
       const subJson = sub.toJSON();
