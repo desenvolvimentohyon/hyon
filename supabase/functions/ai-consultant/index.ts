@@ -727,6 +727,122 @@ Responda em markdown quando útil. Seja conciso e forneça insights acionáveis.
       return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ─── COMMAND INTERPRETATION ──────────────────────────────────────
+    if (type === "command") {
+      const userText = payload.text || "";
+      const currentRoute = payload.currentRoute || "/";
+      const userPermissions = payload.permissions || [];
+
+      const commandSystemPrompt = `Você é o Jarvis, assistente de comando total de um sistema de gestão de revendas de software ERP.
+Sua função é interpretar comandos do usuário (falados ou digitados) e mapeá-los para ações do sistema.
+
+Rotas/módulos disponíveis:
+- "/" → Dashboard / Visão Geral
+- "/executivo" → Painel Executivo
+- "/radar-crescimento" → Radar de Crescimento
+- "/clientes" → Cadastro de Clientes
+- "/receita" → Receita / MRR
+- "/checkout-interno" → Checkout Interno
+- "/propostas" → Propostas
+- "/crm" → CRM / Pipeline
+- "/comercial" → Painel Comercial
+- "/parceiros" → Parceiros
+- "/financeiro" → Visão Geral Financeira
+- "/financeiro/contas-a-receber" → Contas a Receber
+- "/financeiro/contas-a-pagar" → Contas a Pagar
+- "/financeiro/lancamentos" → Lançamentos
+- "/financeiro/plano-de-contas" → Plano de Contas
+- "/financeiro/conciliacao-bancaria" → Conciliação Bancária
+- "/financeiro/relatorios" → Relatórios Financeiros
+- "/financeiro/configuracoes" → Configurações Financeiras
+- "/suporte" → Suporte
+- "/tarefas" → Tarefas
+- "/implantacao" → Implantação
+- "/tecnicos" → Técnicos
+- "/cartoes" → Dashboard Cartões
+- "/cartoes/clientes" → Clientes Cartões
+- "/cartoes/propostas" → Propostas Cartões
+- "/cartoes/faturamento" → Faturamento Cartões
+- "/configuracoes" → Configurações / Minha Empresa
+- "/usuarios" → Usuários e Permissões
+
+Rota atual: ${currentRoute}
+Permissões do usuário: ${userPermissions.length > 0 ? userPermissions.join(", ") : "todas (admin)"}
+
+Ações suportadas:
+- navigate: navegar para um módulo
+- create: abrir formulário de criação (tarefa, proposta, cliente)
+- query: pergunta sobre dados do sistema (delegar para chat)
+- action: executar ação operacional
+- unknown: comando não reconhecido
+
+Regras:
+1. Se o comando é claramente uma navegação (ex: "abrir clientes"), retorne intent=navigate com a rota.
+2. Se o comando pede criação (ex: "criar proposta"), retorne intent=create com entity_type e a rota do módulo.
+3. Se o comando é uma pergunta sobre dados (ex: "quais clientes estão em atraso?"), retorne intent=query com fallback_chat=true.
+4. Se o comando é ambíguo ou não reconhecido, retorne intent=unknown.
+5. Ações sensíveis (excluir, gerar cobrança, cancelar) devem ter requires_confirmation=true.
+6. Sempre forneça spoken_response em português natural e curto (1-2 frases).
+7. Se o usuário mencionar um nome de cliente/entidade, extraia em entity_name.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: commandSystemPrompt },
+            { role: "user", content: userText },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "jarvis_command",
+                description: "Interpreta e executa comando do usuário no sistema",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    intent: { type: "string", enum: ["navigate", "create", "query", "action", "unknown"] },
+                    route: { type: "string", description: "Rota do sistema para navegar" },
+                    entity_type: { type: "string", description: "Tipo da entidade (tarefa, proposta, cliente, etc)" },
+                    entity_name: { type: "string", description: "Nome da entidade mencionada" },
+                    params: { type: "object", description: "Parâmetros extras extraídos do comando" },
+                    requires_confirmation: { type: "boolean", description: "Se a ação exige confirmação" },
+                    confirmation_message: { type: "string", description: "Mensagem de confirmação" },
+                    spoken_response: { type: "string", description: "Resposta falada/textual do Jarvis" },
+                    fallback_chat: { type: "boolean", description: "Se true, redirecionar para chat normal" },
+                  },
+                  required: ["intent", "spoken_response"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "jarvis_command" } },
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao interpretar comando" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (!toolCall?.function?.arguments) {
+        return new Response(JSON.stringify({ intent: "unknown", spoken_response: "Não consegui interpretar o comando.", fallback_chat: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const command = JSON.parse(toolCall.function.arguments);
+      return new Response(JSON.stringify(command), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ─── CHAT CONVERSACIONAL ────────────────────────────────────────
     if (type === "chat") {
       const ctx = payload.context || {};
