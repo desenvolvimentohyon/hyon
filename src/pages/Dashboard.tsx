@@ -403,7 +403,7 @@ function RenovacoesCard() {
 // MAIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════
 export default function Dashboard() {
-  const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel, loading: appLoading } = useApp();
+  const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel, addTarefa, loading: appLoading } = useApp();
   const { propostas, crmConfig, loading: propostasLoading } = usePropostas();
   const { clientesReceita, suporteEventos, loading: receitaLoading } = useReceita();
   const navigate = useNavigate();
