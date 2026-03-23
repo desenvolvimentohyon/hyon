@@ -121,6 +121,19 @@ export default function Tarefas() {
   const [novoPrazo, setNovoPrazo] = useState("");
   const [novoTags, setNovoTags] = useState("");
   const [novoTipo, setNovoTipo] = useState<TipoOperacional>("interno");
+  const [novoSistema, setNovoSistema] = useState<string | undefined>(undefined);
+  const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
+
+  // Detect client system when client changes
+  useEffect(() => {
+    setSistemaDetectado(null);
+    setNovoSistema(undefined);
+    if (novoCliente === "null") return;
+    supabase.from("clients").select("system_name").eq("id", novoCliente).single()
+      .then(({ data }) => {
+        if (data?.system_name) setSistemaDetectado(data.system_name);
+      });
+  }, [novoCliente]);
 
   useEffect(() => {
     if (searchParams.get("nova") === "1") {
