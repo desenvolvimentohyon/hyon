@@ -60,6 +60,7 @@ export const modules: ParentModule[] = [
     id: "financeiro",
     title: "Financeiro",
     icon: Landmark,
+    directUrl: "/financeiro",
     children: [
       { title: "Visão Geral", url: "/financeiro", icon: Landmark, description: "Resumo financeiro geral" },
       { title: "Contas a Receber", url: "/financeiro/contas-a-receber", icon: TrendingUp, description: "Títulos e receitas a receber" },
