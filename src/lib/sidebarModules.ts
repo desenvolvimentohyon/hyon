@@ -83,10 +83,10 @@ export const modules: ParentModule[] = [
     title: "Cartões",
     icon: CreditCard,
     children: [
-      { title: "Dashboard", url: "/cartoes", icon: BarChart3 },
-      { title: "Clientes", url: "/cartoes/clientes", icon: Users },
-      { title: "Propostas", url: "/cartoes/propostas", icon: FileText },
-      { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign },
+      { title: "Dashboard", url: "/cartoes", icon: BarChart3, description: "Visão geral de maquininhas" },
+      { title: "Clientes", url: "/cartoes/clientes", icon: Users, description: "Clientes de maquininha" },
+      { title: "Propostas", url: "/cartoes/propostas", icon: FileText, description: "Propostas de maquininha" },
+      { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign, description: "Receita e comissões" },
     ],
   },
   {
