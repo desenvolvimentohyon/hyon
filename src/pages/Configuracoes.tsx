@@ -27,6 +27,7 @@ import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
   FileText, BarChart3, Palette, Database, Rocket
+  FileText, BarChart3, Palette, Database, Rocket, Bell
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 
