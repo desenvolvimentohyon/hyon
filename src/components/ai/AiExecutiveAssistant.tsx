@@ -350,6 +350,61 @@ export function AiExecutiveAssistant() {
                 </Collapsible>
               )}
 
+              {/* ── Comandos Rápidos ──────────────────────────────── */}
+              <Collapsible open={quickCmdsOpen} onOpenChange={setQuickCmdsOpen}>
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center gap-2 text-sm font-medium w-full hover:text-primary transition-colors">
+                    <Terminal className="h-3.5 w-3.5 text-primary" />
+                    Comandos Rápidos
+                    {quickCmdsOpen ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: "Abrir clientes", icon: Users },
+                      { label: "Criar proposta", icon: Plus },
+                      { label: "Ver financeiro", icon: DollarSign },
+                      { label: "Clientes em risco", icon: AlertTriangle },
+                      { label: "Criar tarefa", icon: CheckCircle2 },
+                      { label: "Propostas abertas", icon: FileText },
+                      { label: "Abrir suporte", icon: Headphones },
+                      { label: "Abrir dashboard", icon: Navigation },
+                    ].map(cmd => (
+                      <Button
+                        key={cmd.label}
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] px-2.5 gap-1.5"
+                        onClick={() => handleQuickCommand(cmd.label)}
+                        disabled={commands.isProcessing}
+                      >
+                        <cmd.icon className="h-3 w-3" />
+                        {cmd.label}
+                      </Button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* ── Confirmação de Comando ────────────────────────── */}
+              {commands.pendingConfirmation && (
+                <div className="p-3 rounded-lg border border-warning/30 bg-warning/5 space-y-2">
+                  <p className="text-xs font-medium text-warning">⚠️ Confirmação necessária</p>
+                  <p className="text-xs text-muted-foreground">
+                    {commands.pendingConfirmation.command.confirmation_message || commands.pendingConfirmation.command.spoken_response}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" className="h-7 text-xs" onClick={commands.confirmPending}>
+                      ✅ Confirmar
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={commands.cancelPending}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* ── Chat ─────────────────────────────────────────── */}
               <Collapsible open={chatOpen} onOpenChange={setChatOpen}>
                 <CollapsibleTrigger asChild>
