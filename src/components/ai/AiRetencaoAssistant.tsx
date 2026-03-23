@@ -103,7 +103,7 @@ export function AiRetencaoAssistant({ compact = false }: Props) {
     );
   }
 
-  const metricas = data.metricas;
+  const metricas = data.metricas || { total_risco_alto: 0, total_risco_medio: 0, churn_mes_atual: 0, retencao_pct: 100, valor_em_risco: 0 };
 
   // Compact mode for dashboard
   if (compact) {
