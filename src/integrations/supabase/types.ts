@@ -2822,6 +2822,7 @@ export type Database = {
           org_id: string
           priority: string
           sistema_relacionado: string | null
+          source: string
           status: string
           tags: string[] | null
           timer_running: boolean
@@ -2843,6 +2844,7 @@ export type Database = {
           org_id: string
           priority?: string
           sistema_relacionado?: string | null
+          source?: string
           status?: string
           tags?: string[] | null
           timer_running?: boolean
@@ -2864,6 +2866,7 @@ export type Database = {
           org_id?: string
           priority?: string
           sistema_relacionado?: string | null
+          source?: string
           status?: string
           tags?: string[] | null
           timer_running?: boolean
