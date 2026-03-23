@@ -119,7 +119,7 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
     const { error } = await supabase.from("system_modules").insert({
       org_id: orgId, name: m.nome, description: m.descricao,
       cost_value: m.valorCusto, sale_value: m.valorVenda, active: m.ativo,
-      system_id: m.sistemaId || null,
+      system_id: m.sistemaId || null, is_global: m.isGlobal || false,
     });
     if (error) { toast.error("Erro ao criar módulo"); return; }
     fetchAll();
