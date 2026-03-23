@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, TrendingUp, Headphones, BarChart3, FileText, Kanban,
   DollarSign, Landmark, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2,
   SlidersHorizontal, Shield, Settings, Wrench, Rocket, Handshake, ShoppingCart,
-  Receipt, ListTodo
+  Receipt, ListTodo, Gauge
 } from "lucide-react";
 
 export interface SubModule {
