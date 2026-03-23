@@ -37,18 +37,14 @@ export function AppLayout() {
   const hasAccess = !requiredPerm || hasPermission(requiredPerm);
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <Topbar />
-          <PushNotificationBanner />
-          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
-            {hasAccess ? <Outlet /> : <AcessoNegado />}
-          </main>
-        </div>
-      </div>
+    <div className="min-h-screen flex flex-col w-full">
+      <Topbar />
+      <ModuleNavBar />
+      <PushNotificationBanner />
+      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
+        {hasAccess ? <Outlet /> : <AcessoNegado />}
+      </main>
       <JarvisFloatingButton />
-    </SidebarProvider>
+    </div>
   );
 }

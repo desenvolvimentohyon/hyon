@@ -218,8 +218,6 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-background/80 backdrop-blur-md px-4" style={{ borderBottom: "1px solid hsl(var(--border) / 0.5)" }}>
-      <SidebarTrigger className="shrink-0" />
-
       {/* Breadcrumb */}
       {breadcrumb && (
         <>
