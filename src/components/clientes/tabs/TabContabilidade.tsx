@@ -58,7 +58,7 @@ export default function TabContabilidade({ cliente, formData, onChange }: Props)
       {/* Certificado & Regime */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 border-b border-border pb-2">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Certificado & Regime</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Certificado e Regime</h3>
           {dias !== null && dias <= 30 && (
             <Badge variant="destructive" className="text-[10px] gap-1"><AlertTriangle className="h-3 w-3" />{dias} dias para vencer</Badge>
           )}
