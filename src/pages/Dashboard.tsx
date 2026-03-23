@@ -613,6 +613,7 @@ export default function Dashboard() {
             </div>
           }
         />
+        <ModuleNavGrid moduleId="dashboard" />
 
         {/* ══ LINHA 1 — KPIs executivos (5 cards) ══════════════════ */}
         {dataLoading ? <KpisSkeleton /> : (

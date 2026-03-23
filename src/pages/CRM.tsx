@@ -66,6 +66,7 @@ export default function CRM() {
         title="CRM — Pipeline de Propostas"
         actions={<Badge variant="outline" className="text-xs">{propostas.length} propostas</Badge>}
       />
+      <ModuleNavGrid moduleId="comercial" />
 
       <div className="flex gap-3 overflow-x-auto pb-4" style={{ minHeight: "calc(100vh - 200px)" }}>
         {columns.map(col => (
