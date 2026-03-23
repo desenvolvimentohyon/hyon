@@ -82,7 +82,7 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
                         <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : "Avulsa"}</span>
+                        <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
                         <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
                       </div>
                     </CardContent>

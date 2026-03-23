@@ -238,7 +238,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dbUpdate.timer_started_at = changes.timerInicioTimestamp ? new Date(changes.timerInicioTimestamp).toISOString() : null;
     }
     // Update metadata for extended fields
-    const metaFields = ["checklist", "anexosFake", "moduloRelacionado", "slaHoras", "reincidente",
+    const metaFields = ["nomeClienteAvulso", "checklist", "anexosFake", "moduloRelacionado", "slaHoras", "reincidente",
       "geraCobrancaExtra", "valorCobrancaExtra", "etapaImplantacao", "riscoCancelamento",
       "valorProposta", "tipoPlano", "dataPrevisaoFechamento", "origemLead", "statusComercial",
       "motivoPerda", "objecoes", "setorTreinamento", "horasMinistradas", "participantes",
