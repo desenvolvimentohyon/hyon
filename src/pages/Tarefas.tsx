@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X, ImagePlus, Trash2 } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X, ImagePlus, Trash2, Clock } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { AiTaskAssistant } from "@/components/tarefas/AiTaskAssistant";
@@ -20,6 +20,30 @@ import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
+
+function LiveTimer({ tempoTotalSegundos, timerRodando, timerInicioTimestamp }: { tempoTotalSegundos: number; timerRodando: boolean; timerInicioTimestamp?: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!timerRodando) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [timerRodando]);
+
+  const elapsed = timerRodando && timerInicioTimestamp ? Math.floor((now - timerInicioTimestamp) / 1000) : 0;
+  const total = tempoTotalSegundos + elapsed;
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const formatted = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-mono tabular-nums">
+      {timerRodando && <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />}
+      <Clock className="h-3 w-3 text-muted-foreground" />
+      {formatted}
+    </span>
+  );
+}
 
 function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
@@ -84,6 +108,9 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
                         <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
+                      </div>
+                      <div className="pt-1 border-t border-border/30">
+                        <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
                       </div>
                     </CardContent>
                   </Card>
@@ -341,6 +368,7 @@ export default function Tarefas() {
                 <TableHead className="hidden md:table-cell">Cliente</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Prioridade</TableHead>
+                <TableHead>Tempo</TableHead>
                 <TableHead className="hidden lg:table-cell">Responsável</TableHead>
                 <TableHead className="hidden lg:table-cell">Prazo</TableHead>
               </TableRow>
@@ -360,6 +388,9 @@ export default function Tarefas() {
                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : (t.nomeClienteAvulso || "Avulsa")}</TableCell>
                     <TableCell><Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge></TableCell>
                     <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
+                    </TableCell>
                     <TableCell className="hidden lg:table-cell text-sm">{getTecnico(t.responsavelId)?.nome}</TableCell>
                     <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                       {t.prazoDataHora ? new Date(t.prazoDataHora).toLocaleDateString("pt-BR") : "—"}
@@ -368,7 +399,7 @@ export default function Tarefas() {
                 );
               })}
               {filteredTarefas.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa encontrada</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">Nenhuma tarefa encontrada</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
