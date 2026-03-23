@@ -2227,8 +2227,10 @@ export type Database = {
           id: string
           linked_task_id: string | null
           org_id: string
+          protocol_number: string | null
           status: string
           title: string
+          tracking_token: string | null
           updated_at: string
         }
         Insert: {
@@ -2238,8 +2240,10 @@ export type Database = {
           id?: string
           linked_task_id?: string | null
           org_id: string
+          protocol_number?: string | null
           status?: string
           title: string
+          tracking_token?: string | null
           updated_at?: string
         }
         Update: {
@@ -2249,8 +2253,10 @@ export type Database = {
           id?: string
           linked_task_id?: string | null
           org_id?: string
+          protocol_number?: string | null
           status?: string
           title?: string
+          tracking_token?: string | null
           updated_at?: string
         }
         Relationships: [

@@ -667,7 +667,7 @@ function PortalTicketsTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("portal_tickets")
-        .select("id, title, description, status, created_at, updated_at, client_id, linked_task_id")
+        .select("id, title, description, status, created_at, updated_at, client_id, linked_task_id, protocol_number, tracking_token")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -696,14 +696,38 @@ function PortalTicketsTab() {
     [tarefas]
   );
 
+  const generateProtocol = () => {
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+    const seq = String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0");
+    return `SUP-${dateStr}-${seq}`;
+  };
+
+  const getTrackingUrl = (trackingToken: string) => {
+    return `${window.location.origin}/acompanhamento?token=${trackingToken}`;
+  };
+
+  const copyTrackingLink = (trackingToken: string) => {
+    navigator.clipboard.writeText(getTrackingUrl(trackingToken));
+    toast.success("Link de acompanhamento copiado!");
+  };
+
   const handleCreateTaskFromTicket = async (ticket: any) => {
     if (!profile?.org_id) return;
     setSaving(true);
     try {
+      // Generate protocol if ticket doesn't have one
+      const protocol = ticket.protocol_number || generateProtocol();
+
+      // Update ticket with protocol if missing
+      if (!ticket.protocol_number) {
+        await supabase.from("portal_tickets").update({ protocol_number: protocol }).eq("id", ticket.id);
+      }
+
       // Create the task
       const dbData = {
         org_id: profile.org_id,
-        title: `[Ticket] ${ticket.title}`,
+        title: `[${protocol}] ${ticket.title}`,
         description: ticket.description || "",
         client_id: ticket.client_id || null,
         priority: "media",
@@ -722,10 +746,15 @@ function PortalTicketsTab() {
       // Add history
       await supabase.from("task_history").insert({
         org_id: profile.org_id, task_id: newTask.id,
-        action: "Criação", details: "Tarefa criada a partir de ticket do portal",
+        action: "Criação", details: `Tarefa criada a partir de ticket do portal — Protocolo: ${protocol}`,
       });
 
-      toast.success("Tarefa de suporte criada com sucesso!");
+      // Copy tracking link
+      if (ticket.tracking_token) {
+        copyTrackingLink(ticket.tracking_token);
+      }
+
+      toast.success("Tarefa criada! Link de acompanhamento copiado.");
       refetch();
       queryClient.invalidateQueries({ queryKey: ["portal_tickets_admin"] });
     } catch (err: any) {
@@ -797,6 +826,16 @@ function PortalTicketsTab() {
               </Select>
             </div>
             <CardDescription>Cliente: {getCliente(selected.client_id)?.nome || selected.client_id} · {new Date(selected.created_at).toLocaleDateString("pt-BR")}</CardDescription>
+            {selected.protocol_number && (
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="outline" className="text-xs font-mono">{selected.protocol_number}</Badge>
+                {selected.tracking_token && (
+                  <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => copyTrackingLink(selected.tracking_token)}>
+                    <ExternalLink className="h-3 w-3 mr-1" /> Copiar Link
+                  </Button>
+                )}
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-3">
             {/* Linked task info or action buttons */}
@@ -863,7 +902,10 @@ function PortalTicketsTab() {
             <Headphones className="h-4 w-4 text-muted-foreground shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{t.title}</p>
-              <p className="text-xs text-muted-foreground">{getCliente(t.client_id)?.nome || "Cliente"} · {new Date(t.created_at).toLocaleDateString("pt-BR")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t.protocol_number && <span className="font-mono mr-1">{t.protocol_number} ·</span>}
+                {getCliente(t.client_id)?.nome || "Cliente"} · {new Date(t.created_at).toLocaleDateString("pt-BR")}
+              </p>
             </div>
             {t.linked_task_id && (
               <Badge variant="secondary" className="text-[9px] gap-1 shrink-0">
