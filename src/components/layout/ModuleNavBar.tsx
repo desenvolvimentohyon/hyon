@@ -43,7 +43,7 @@ export function ModuleNavBar() {
                 <button
                   onClick={() => navigate(mod.directUrl || mod.children[0]?.url || "/")}
                   className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[72px] group",
+                    "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-300 min-w-[72px] group",
                     "hover:scale-105",
                     active
                       ? cn("border", palette.border, palette.activeBg, "shadow-sm")
@@ -52,18 +52,19 @@ export function ModuleNavBar() {
                 >
                   <div
                     className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
+                      "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300",
                       active
                         ? cn(palette.bg, palette.border, palette.color)
-                        : "bg-muted/50 border-border/40 text-muted-foreground group-hover:border-border"
+                        : cn("bg-muted/50 border-border/40", palette.inactiveColor, "group-hover:border-border", `group-hover:${palette.color}`)
                     )}
+                    style={active ? { boxShadow: palette.glow } : undefined}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                   </div>
                   <span
                     className={cn(
-                      "text-[11px] font-medium leading-tight text-center truncate max-w-[80px]",
-                      active ? "text-foreground" : "text-muted-foreground"
+                      "text-[11px] font-medium leading-tight text-center truncate max-w-[80px] transition-colors duration-300",
+                      active ? palette.color : cn(palette.inactiveColor, "group-hover:" + palette.color.replace("text-", "text-"))
                     )}
                   >
                     {mod.title}
