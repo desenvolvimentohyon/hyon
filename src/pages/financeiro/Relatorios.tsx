@@ -35,6 +35,7 @@ export default function Relatorios() {
         <h1 className="text-2xl font-bold text-foreground">Relatórios Financeiros</h1>
         <p className="text-muted-foreground text-sm">DRE, MRR, lucratividade e projeções</p>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       <Tabs defaultValue="dre" className="space-y-4">
         <TabsList className="flex-wrap">

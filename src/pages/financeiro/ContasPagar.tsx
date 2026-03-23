@@ -76,6 +76,7 @@ export default function ContasPagar() {
         subtitle="Gestão de despesas e repasses"
         actions={<Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Lançar Despesa</Button>}
       />
+      <ModuleNavGrid moduleId="financeiro" />
 
       {vencidos.length > 0 && (
         <Card className="border-destructive/50">

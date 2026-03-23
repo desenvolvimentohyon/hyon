@@ -25,6 +25,7 @@ export default function Lancamentos() {
         <h1 className="text-2xl font-bold text-foreground">Lançamentos</h1>
         <p className="text-muted-foreground text-sm">Registros rápidos de receitas, despesas e transferências</p>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       <Tabs defaultValue="receita" className="space-y-4">
         <TabsList>

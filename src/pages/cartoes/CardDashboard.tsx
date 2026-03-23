@@ -81,6 +81,7 @@ export default function CardDashboard() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Dashboard — Cartões" subtitle={`${ativos} clientes ativos · ${(clients || []).length} total`} />
+      <ModuleNavGrid moduleId="cartoes" />
 
       {/* KPIs */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">

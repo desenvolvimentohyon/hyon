@@ -100,6 +100,7 @@ export default function ContasReceber() {
         subtitle="Gestão de recebíveis"
         actions={<Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Novo Título</Button>}
       />
+      <ModuleNavGrid moduleId="financeiro" />
 
       {/* Alertas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

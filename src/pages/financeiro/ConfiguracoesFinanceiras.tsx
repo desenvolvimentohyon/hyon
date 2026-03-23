@@ -166,6 +166,7 @@ export default function ConfiguracoesFinanceiras() {
         <h1 className="text-2xl font-bold text-foreground">Configurações Financeiras</h1>
         <p className="text-muted-foreground text-sm">Parâmetros e regras do módulo financeiro</p>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       {/* Régua de Cobrança */}
       <Card>

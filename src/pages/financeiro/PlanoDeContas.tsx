@@ -109,6 +109,7 @@ export default function PlanoDeContas() {
           </Button>
         </div>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       <Card>
         <CardHeader>

@@ -64,6 +64,7 @@ export default function CardFaturamento() {
           <Plus className="h-4 w-4" /> Lançar Faturamento
         </Button>
       } />
+      <ModuleNavGrid moduleId="cartoes" />
 
       {/* KPIs */}
       <div className="grid gap-4 grid-cols-2">

@@ -83,6 +83,7 @@ export default function CardPropostas() {
           <Plus className="h-4 w-4" /> Nova Proposta
         </Button>
       } />
+      <ModuleNavGrid moduleId="cartoes" />
 
       <Card className="neon-border">
         <CardContent className="p-0">
