@@ -93,6 +93,7 @@ export default function Configuracoes() {
     { value: "metricas", label: "Métricas", description: "Dashboard e receita", icon: BarChart3, colorClass: "text-teal-500", bgClass: "bg-teal-500/10", borderClass: "border-teal-500/30" },
     { value: "labels", label: "Labels", description: "Nomenclaturas", icon: Palette, colorClass: "text-slate-500", bgClass: "bg-slate-500/10", borderClass: "border-slate-500/30" },
     { value: "alertas", label: "Alertas", description: "Notificações", icon: AlertTriangle, colorClass: "text-red-500", bgClass: "bg-red-500/10", borderClass: "border-red-500/30" },
+    { value: "push", label: "Push", description: "Notificações push", icon: Bell, colorClass: "text-orange-500", bgClass: "bg-orange-500/10", borderClass: "border-orange-500/30" },
     { value: "dados", label: "Dados", description: "Importar / Exportar", icon: Database, colorClass: "text-sky-500", bgClass: "bg-sky-500/10", borderClass: "border-sky-500/30" },
   ];
 
