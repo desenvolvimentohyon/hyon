@@ -365,6 +365,7 @@ export default function Tarefas() {
                 <TableHead className="hidden md:table-cell">Cliente</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Prioridade</TableHead>
+                <TableHead>Tempo</TableHead>
                 <TableHead className="hidden lg:table-cell">Responsável</TableHead>
                 <TableHead className="hidden lg:table-cell">Prazo</TableHead>
               </TableRow>
