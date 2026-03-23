@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Link2, Unlink, Upload, CheckCircle2, AlertCircle } from "lucide-react";
 import { FINANCEIRO_COLORS, MovimentoBancario } from "@/types/financeiro";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
