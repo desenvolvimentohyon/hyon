@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { gerarRelatorioPDF } from "@/lib/pdfRelatorioReceita";
 import { toast } from "sonner";
 
