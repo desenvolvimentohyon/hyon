@@ -48,6 +48,7 @@ import CardPropostas from "./pages/cartoes/CardPropostas";
 import CardFaturamento from "./pages/cartoes/CardFaturamento";
 import CardPropostaPublica from "./pages/cartoes/CardPropostaPublica";
 import RenovarPlano from "./pages/RenovarPlano";
+import Cockpit from "./pages/Cockpit";
 // Financeiro
 import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
 import ContasReceber from "./pages/financeiro/ContasReceber";
@@ -94,6 +95,7 @@ function AuthGate() {
                 <Routes>
                   <Route element={<AppLayout />}>
                     <Route path="/" element={<Dashboard />} />
+                    <Route path="/cockpit" element={<Cockpit />} />
                     <Route path="/tarefas" element={<Tarefas />} />
                     <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
                     <Route path="/clientes" element={<ClientesReceita />} />
