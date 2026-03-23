@@ -902,7 +902,10 @@ function PortalTicketsTab() {
             <Headphones className="h-4 w-4 text-muted-foreground shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{t.title}</p>
-              <p className="text-xs text-muted-foreground">{getCliente(t.client_id)?.nome || "Cliente"} · {new Date(t.created_at).toLocaleDateString("pt-BR")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t.protocol_number && <span className="font-mono mr-1">{t.protocol_number} ·</span>}
+                {getCliente(t.client_id)?.nome || "Cliente"} · {new Date(t.created_at).toLocaleDateString("pt-BR")}
+              </p>
             </div>
             {t.linked_task_id && (
               <Badge variant="secondary" className="text-[9px] gap-1 shrink-0">
