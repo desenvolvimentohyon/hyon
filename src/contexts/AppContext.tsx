@@ -161,7 +161,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Fetch all data
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
-    setLoading(true);
+    if (!initialLoaded) setLoading(true);
     try {
       const [clientsRes, profilesRes, tasksRes, settingsRes] = await Promise.all([
         supabase.from("clients").select("*"),
