@@ -100,6 +100,7 @@ export const modules: ParentModule[] = [
     id: "configuracoes",
     title: "Configurações",
     icon: Settings,
+    directUrl: "/configuracoes",
     children: [
       { title: "Minha Empresa", url: "/configuracoes", icon: Settings, description: "Dados e identidade da empresa" },
       { title: "Usuários", url: "/usuarios", icon: Shield, description: "Permissões e acessos" },

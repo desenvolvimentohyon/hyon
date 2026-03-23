@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Star, ChevronDown } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Search, Star } from "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
 import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 import { NavLink } from "@/components/NavLink";
@@ -77,48 +77,13 @@ export function AppSidebar() {
     m.children.some((c) => isActive(c.url))
   )?.id;
 
-  const [openModules, setOpenModules] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (activeParentId) {
-      setOpenModules((prev) => {
-        if (prev.has(activeParentId)) return prev;
-        const next = new Set(prev);
-        next.add(activeParentId);
-        return next;
-      });
-    }
-  }, [activeParentId]);
-
-  const toggleModule = (id: string) => {
-    setOpenModules((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
   const lowerSearch = search.toLowerCase().trim();
   const filteredModules = useMemo(() => {
     if (!lowerSearch) return modules;
-    return modules
-      .map((mod) => {
-        const parentMatch = mod.title.toLowerCase().includes(lowerSearch);
-        const matchedChildren = mod.children.filter((c) =>
-          c.title.toLowerCase().includes(lowerSearch)
-        );
-        if (parentMatch) return mod;
-        if (matchedChildren.length > 0) return { ...mod, children: matchedChildren };
-        return null;
-      })
-      .filter(Boolean) as typeof modules;
+    return modules.filter((mod) =>
+      mod.title.toLowerCase().includes(lowerSearch)
+    );
   }, [lowerSearch]);
-
-  useEffect(() => {
-    if (lowerSearch) {
-      setOpenModules(new Set(filteredModules.map((m) => m.id)));
-    }
-  }, [lowerSearch, filteredModules]);
 
   const favoriteItems = useMemo(() => {
     const items: { title: string; url: string; icon: React.ElementType }[] = [];
