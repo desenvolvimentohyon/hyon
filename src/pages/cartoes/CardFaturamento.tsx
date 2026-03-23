@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCardRevenue } from "@/hooks/useCardRevenue";
 import { useCardClients } from "@/hooks/useCardClients";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
