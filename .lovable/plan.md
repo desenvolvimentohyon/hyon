@@ -1,30 +1,26 @@
 
 
-## Plano: Colorir tarefas por status
+## Plano: Ao concluir tarefa, forçar status e prioridade para "concluída/baixa"
 
 ### Resumo
-Aplicar cor de fundo sutil em cada tarefa (linha da tabela e card do kanban) de acordo com o status, facilitando a identificação visual imediata.
+Quando o status de uma tarefa mudar para `concluida` (seja manualmente, pelo checklist automático, ou drag-and-drop), o sistema automaticamente seta a prioridade para `baixa` e garante que o status fique `concluida`. Também para o timer se estiver rodando.
 
-### Editar: `src/pages/Tarefas.tsx`
+### Editar: `src/contexts/AppContext.tsx` — Lógica dentro de `updateTarefa`
 
-**1. Criar função `statusRowColor`** que retorna classes de fundo sutil para cada status:
+Após a linha 241 (merge das changes), adicionar verificação:
 
-| Status | Cor |
-|--------|-----|
-| `concluida` | Verde claro (`bg-emerald-50 dark:bg-emerald-950/30`) |
-| `em_andamento` | Azul claro (`bg-blue-50 dark:bg-blue-950/30`) |
-| `aguardando_cliente` | Amarelo claro (`bg-amber-50 dark:bg-amber-950/30`) |
-| `a_fazer` | Cinza claro (`bg-slate-50 dark:bg-slate-900/30`) |
-| `cancelada` | Vermelho claro (`bg-red-50 dark:bg-red-950/20`) |
-| `backlog` | Neutro (sem cor extra) |
+```text
+Se o status final for "concluida":
+  - Forçar prioridade = "baixa"
+  - Parar timer se estiver rodando (calcular elapsed, setar timer_running=false)
+  - Registrar no histórico: "Tarefa concluída — prioridade e timer ajustados automaticamente"
+```
 
-**2. Tabela** — Adicionar a classe de cor na `TableRow` (linha 380), junto com borda lateral colorida (`border-l-4`).
-
-**3. Kanban** — Adicionar a classe de cor no `Card` de cada tarefa (linha 92-97), com borda lateral colorida.
+Isso será aplicado antes de montar o `dbUpdate`, garantindo que qualquer caminho que conclua a tarefa (checklist 100%, drag kanban, mudança manual) passe pela mesma lógica.
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/pages/Tarefas.tsx` | Função `statusRowColor` + aplicar nas rows da tabela e cards do kanban |
+| `src/contexts/AppContext.tsx` | Auto-setar prioridade=baixa e parar timer ao concluir tarefa |
 
