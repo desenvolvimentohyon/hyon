@@ -667,7 +667,7 @@ function PortalTicketsTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("portal_tickets")
-        .select("id, title, description, status, created_at, updated_at, client_id, linked_task_id")
+        .select("id, title, description, status, created_at, updated_at, client_id, linked_task_id, protocol_number, tracking_token")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
