@@ -221,7 +221,7 @@ export default function Clientes() {
       <PageHeader
         icon={Users}
         iconClassName="text-primary"
-        title="Clientes & Receita"
+        title="Clientes e Receita"
         actions={<Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
       />
 
