@@ -69,6 +69,8 @@ function dbToTarefa(r: any): Tarefa {
     participantes: m.participantes, treinamentoExtraCobrado: m.treinamentoExtraCobrado,
     valorTreinamentoExtra: m.valorTreinamentoExtra, implantacaoId: m.implantacaoId,
     linkedTicketId: r.linked_ticket_id || undefined,
+    observacoes: m.observacoes || undefined,
+    fotos: m.fotos || [],
   };
 }
 
@@ -94,6 +96,7 @@ function tarefaToDb(t: any, orgId: string) {
       setorTreinamento: t.setorTreinamento, horasMinistradas: t.horasMinistradas,
       participantes: t.participantes, treinamentoExtraCobrado: t.treinamentoExtraCobrado,
       valorTreinamentoExtra: t.valorTreinamentoExtra, implantacaoId: t.implantacaoId,
+      observacoes: t.observacoes, fotos: t.fotos,
     },
   };
 }
@@ -242,7 +245,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       "geraCobrancaExtra", "valorCobrancaExtra", "etapaImplantacao", "riscoCancelamento",
       "valorProposta", "tipoPlano", "dataPrevisaoFechamento", "origemLead", "statusComercial",
       "motivoPerda", "objecoes", "setorTreinamento", "horasMinistradas", "participantes",
-      "treinamentoExtraCobrado", "valorTreinamentoExtra", "implantacaoId"];
+      "treinamentoExtraCobrado", "valorTreinamentoExtra", "implantacaoId", "observacoes", "fotos"];
     const existingMeta = (existing as any).metadata || {};
     const newMeta = { ...existingMeta };
     let metaChanged = false;

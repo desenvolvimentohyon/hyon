@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X, ImagePlus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { AiTaskAssistant } from "@/components/tarefas/AiTaskAssistant";
@@ -126,6 +126,10 @@ export default function Tarefas() {
   const [novoSistema, setNovoSistema] = useState<string | undefined>(undefined);
   const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
   const [nomeClienteAvulso, setNomeClienteAvulso] = useState("");
+  const [novoObservacoes, setNovoObservacoes] = useState("");
+  const [fotosFiles, setFotosFiles] = useState<File[]>([]);
+  const [fotosPreview, setFotosPreview] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   // Detect client system when client changes
   useEffect(() => {
@@ -176,8 +180,26 @@ export default function Tarefas() {
     }).sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
   }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
 
-  const handleCriar = () => {
+  const handleCriar = async () => {
     if (!novoTitulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
+    setUploading(true);
+
+    // Upload photos
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const orgId = currentUser ? (await supabase.from("profiles").select("org_id").eq("id", currentUser.id).single()).data?.org_id : null;
+    let fotosArr: { id: string; url: string; nome: string }[] = [];
+    if (orgId && fotosFiles.length > 0) {
+      for (const file of fotosFiles) {
+        const fileId = Math.random().toString(36).slice(2);
+        const filePath = `${orgId}/${fileId}-${file.name}`;
+        const { error: upErr } = await supabase.storage.from("task-attachments").upload(filePath, file);
+        if (!upErr) {
+          const { data: urlData } = supabase.storage.from("task-attachments").getPublicUrl(filePath);
+          fotosArr.push({ id: fileId, url: filePath, nome: file.name });
+        }
+      }
+    }
+
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
       clienteId: novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente,
@@ -188,11 +210,31 @@ export default function Tarefas() {
       checklist: [], anexosFake: [], comentarios: [],
       tipoOperacional: novoTipo,
       sistemaRelacionado: novoSistema || undefined,
+      observacoes: novoObservacoes.trim() || undefined,
+      fotos: fotosArr.length > 0 ? fotosArr : undefined,
     });
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
     setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
+    setNovoObservacoes(""); setFotosFiles([]); setFotosPreview([]);
+    setUploading(false);
+  };
+
+  const handleFotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setFotosFiles(prev => [...prev, ...files]);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => setFotosPreview(prev => [...prev, ev.target?.result as string]);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeFoto = (idx: number) => {
+    setFotosFiles(prev => prev.filter((_, i) => i !== idx));
+    setFotosPreview(prev => prev.filter((_, i) => i !== idx));
   };
 
   const prioridadeColor = (p: string) => {
@@ -424,10 +466,36 @@ export default function Tarefas() {
               <div><Label>Prazo</Label><Input type="datetime-local" value={novoPrazo} onChange={e => setNovoPrazo(e.target.value)} /></div>
               <div><Label>Tags (vírgula)</Label><Input value={novoTags} onChange={e => setNovoTags(e.target.value)} placeholder="rede, hardware" /></div>
             </div>
+            <div>
+              <Label>Observações</Label>
+              <Textarea value={novoObservacoes} onChange={e => setNovoObservacoes(e.target.value)} rows={2} placeholder="Anotações adicionais..." />
+            </div>
+            <div>
+              <Label>Fotos</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-dashed border-muted-foreground/30 cursor-pointer hover:bg-accent/50 transition-colors text-sm text-muted-foreground">
+                  <ImagePlus className="h-4 w-4" />
+                  Adicionar fotos
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleFotoSelect} />
+                </label>
+              </div>
+              {fotosPreview.length > 0 && (
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {fotosPreview.map((src, idx) => (
+                    <div key={idx} className="relative group">
+                      <img src={src} alt={`Foto ${idx + 1}`} className="h-16 w-16 rounded-md object-cover border" />
+                      <button type="button" onClick={() => removeFoto(idx)} className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNova(false)}>Cancelar</Button>
-            <Button onClick={handleCriar}>Criar Tarefa</Button>
+            <Button onClick={handleCriar} disabled={uploading}>{uploading ? "Enviando..." : "Criar Tarefa"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

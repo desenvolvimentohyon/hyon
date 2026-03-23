@@ -111,6 +111,8 @@ export interface Tarefa {
   // Implantação parent
   implantacaoId?: string; // links subtasks to parent
   linkedTicketId?: string; // links to portal_tickets
+  observacoes?: string;
+  fotos?: { id: string; url: string; nome: string }[];
 }
 
 export interface TemplateImplantacao {
