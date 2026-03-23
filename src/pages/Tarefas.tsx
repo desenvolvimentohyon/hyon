@@ -125,6 +125,7 @@ export default function Tarefas() {
   const [novoTipo, setNovoTipo] = useState<TipoOperacional>("interno");
   const [novoSistema, setNovoSistema] = useState<string | undefined>(undefined);
   const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
+  const [nomeClienteAvulso, setNomeClienteAvulso] = useState("");
 
   // Detect client system when client changes
   useEffect(() => {
