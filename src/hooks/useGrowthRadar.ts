@@ -176,14 +176,14 @@ export function useGrowthRadar(enabled = true) {
       }));
 
       const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
-      const propostasArr = proposals || [];
-      const propostasEsquecidas = propostasArr.filter(p => {
-        if (p.visualizada_em) return false;
-        if (!p.data_envio) return false;
-        return new Date(p.data_envio) < sevenDaysAgo;
+      const propostasArr = (proposals || []) as any[];
+      const propostasEsquecidas = propostasArr.filter((p: any) => {
+        if (p.first_viewed_at) return false;
+        if (!p.sent_at) return false;
+        return new Date(p.sent_at) < sevenDaysAgo;
       }).length;
 
-      const valorFunil = propostasArr.reduce((s, p) => s + Number(p.valor_mensal || 0), 0);
+      const valorFunil = propostasArr.reduce((s: number, p: any) => s + Number(p.monthly_value || 0), 0);
 
       return {
         mrr, arr, ticketMedio, clientesAtivos: clients.length,
