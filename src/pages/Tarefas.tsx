@@ -12,14 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X, Brain, Zap, Loader2 } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
-import { TaskAIModal } from "@/components/tarefas/TaskAIModal";
-import { TaskAISuggestions } from "@/components/tarefas/TaskAISuggestions";
 
 function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
@@ -113,8 +111,6 @@ export default function Tarefas() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroSistema, setFiltroSistema] = useState<string>("todos");
   const [showNova, setShowNova] = useState(false);
-  const [showAIModal, setShowAIModal] = useState(false);
-  const [generatingDaily, setGeneratingDaily] = useState(false);
 
   // Form state
   const [novoTitulo, setNovoTitulo] = useState("");
@@ -195,48 +191,6 @@ export default function Tarefas() {
     setNovoSistema(undefined); setSistemaDetectado(null);
   };
 
-  const handleAICreate = (task: { titulo: string; descricao: string; prioridade: string; tipoOperacional: string; prazoSugerido?: string; tags?: string[] }) => {
-    addTarefa({
-      titulo: task.titulo, descricao: task.descricao,
-      clienteId: null, responsavelId: tecnicoAtualId,
-      prioridade: (task.prioridade as Prioridade) || "media",
-      status: "a_fazer", prazoDataHora: task.prazoSugerido || undefined,
-      tags: task.tags || [], checklist: [], anexosFake: [], comentarios: [],
-      tipoOperacional: (task.tipoOperacional as TipoOperacional) || "interno",
-      source: "ai",
-    });
-    toast({ title: "Tarefa criada pela IA!" });
-  };
-
-  const handleGenerateDaily = async () => {
-    setGeneratingDaily(true);
-    try {
-      const [clientsRes, titlesRes] = await Promise.all([
-        supabase.from("clients").select("id, name, status").eq("status", "ativo").limit(50),
-        supabase.from("financial_titles").select("id, due_at, status, value_final").eq("status", "aberto").eq("type", "receber").limit(30),
-      ]);
-      const overdue = (titlesRes.data || []).filter(t => t.due_at && new Date(t.due_at) < new Date());
-      const context = { totalClientes: clientsRes.data?.length || 0, titulosVencidos: overdue.length, valorVencido: overdue.reduce((s, t) => s + Number(t.value_final), 0) };
-      const { data, error } = await supabase.functions.invoke("ai-task-assistant", { body: { type: "daily", context } });
-      if (error) throw error;
-      if (data?.error) { toast({ title: data.error, variant: "destructive" }); return; }
-      const tasks = data.result?.suggestions || [];
-      for (const t of tasks) {
-        addTarefa({
-          titulo: t.titulo, descricao: t.descricao, clienteId: null, responsavelId: tecnicoAtualId,
-          prioridade: t.prioridade || "media", status: "a_fazer", tags: t.tags || [],
-          checklist: [], anexosFake: [], comentarios: [],
-          tipoOperacional: t.tipoOperacional || "interno", source: "system",
-        });
-      }
-      toast({ title: `${tasks.length} tarefas do dia criadas!` });
-    } catch (e: any) {
-      toast({ title: e.message || "Erro ao gerar tarefas", variant: "destructive" });
-    } finally {
-      setGeneratingDaily(false);
-    }
-  };
-
   const prioridadeColor = (p: string) => {
     switch (p) {
       case "urgente": return "bg-destructive text-destructive-foreground";
@@ -266,18 +220,10 @@ export default function Tarefas() {
           <div className="flex items-center gap-2">
             <Button variant={viewMode === "table" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}><List className="h-4 w-4" /></Button>
             <Button variant={viewMode === "kanban" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("kanban")}><LayoutGrid className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => setShowAIModal(true)} className="gap-1.5"><Brain className="h-4 w-4" />Criar com IA</Button>
-            <Button variant="outline" size="sm" onClick={handleGenerateDaily} disabled={generatingDaily} className="gap-1.5">
-              {generatingDaily ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              Tarefas do Dia
-            </Button>
             <Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5"><Plus className="h-4 w-4" />Nova Tarefa</Button>
           </div>
         }
       />
-
-      {/* AI Suggestions */}
-      <TaskAISuggestions onCreateTask={handleAICreate} />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
@@ -475,8 +421,6 @@ export default function Tarefas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <TaskAIModal open={showAIModal} onOpenChange={setShowAIModal} onCreateTask={handleAICreate} />
     </div>
   );
 }

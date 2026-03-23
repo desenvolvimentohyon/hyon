@@ -24,8 +24,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { StatusTarefa } from "@/types";
-import { TaskAISuggestions } from "@/components/tarefas/TaskAISuggestions";
-import { toast } from "@/hooks/use-toast";
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
 
@@ -403,7 +401,7 @@ function RenovacoesCard() {
 // MAIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════
 export default function Dashboard() {
-  const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel, addTarefa, loading: appLoading } = useApp();
+  const { tarefas, tecnicoAtualId, getTecnico, getCliente, getStatusLabel, getPrioridadeLabel, loading: appLoading } = useApp();
   const { propostas, crmConfig, loading: propostasLoading } = usePropostas();
   const { clientesReceita, suporteEventos, loading: receitaLoading } = useReceita();
   const navigate = useNavigate();
@@ -984,17 +982,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-
-        {/* Sugestões da IA */}
-        <TaskAISuggestions compact onCreateTask={(task) => {
-          addTarefa({
-            titulo: task.titulo, descricao: task.descricao, clienteId: null,
-            responsavelId: tecnicoAtualId, prioridade: (task.prioridade as any) || "media",
-            status: "a_fazer", tags: task.tags || [], checklist: [], anexosFake: [], comentarios: [],
-            tipoOperacional: (task.tipoOperacional as any) || "interno", source: "ai",
-          });
-          toast({ title: "Tarefa criada!" });
-        }} onNavigate={() => navigate("/tarefas")} />
 
         {/* Minhas Tarefas */}
         {appLoading ? <TasksSkeleton /> : (
