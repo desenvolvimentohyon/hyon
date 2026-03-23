@@ -82,6 +82,7 @@ function tarefaToDb(t: any, orgId: string) {
     sistema_relacionado: t.sistemaRelacionado || null,
     linked_ticket_id: t.linkedTicketId || null,
     metadata: {
+      nomeClienteAvulso: t.nomeClienteAvulso || undefined,
       checklist: t.checklist || [], anexosFake: t.anexosFake || [],
       moduloRelacionado: t.moduloRelacionado, slaHoras: t.slaHoras,
       reincidente: t.reincidente, geraCobrancaExtra: t.geraCobrancaExtra,
