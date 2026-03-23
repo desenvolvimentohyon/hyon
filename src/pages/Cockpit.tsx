@@ -4,6 +4,7 @@ import { useJarvisVoice } from "@/hooks/useJarvisVoice";
 import { useJarvisCommands } from "@/hooks/useJarvisCommands";
 import { useGrowthRadar } from "@/hooks/useGrowthRadar";
 import { useChurnAnalysis } from "@/hooks/useChurnAnalysis";
+import { useCockpitCharts } from "@/hooks/useCockpitCharts";
 import { JarvisAvatar } from "@/components/ai/JarvisAvatar";
 import { JarvisVoiceControls } from "@/components/ai/JarvisVoiceControls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/ui/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +23,7 @@ import {
   Send, Sparkles, CheckCircle2, RefreshCw, MessageSquare,
   FileText, Headphones, Zap, ChevronRight, Play,
 } from "lucide-react";
+import { LineChart, Line, BarChart, Bar, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 /* ── KPI Mini Card ────────────────────────────────── */
 function KpiPill({ label, value, color }: { label: string; value: string | number; color?: string }) {
