@@ -983,6 +983,17 @@ export default function Dashboard() {
           </Card>
         )}
 
+        {/* Sugestões da IA */}
+        <TaskAISuggestions compact onCreateTask={(task) => {
+          addTarefa({
+            titulo: task.titulo, descricao: task.descricao, clienteId: null,
+            responsavelId: tecnicoAtualId, prioridade: (task.prioridade as any) || "media",
+            status: "a_fazer", tags: task.tags || [], checklist: [], anexosFake: [], comentarios: [],
+            tipoOperacional: (task.tipoOperacional as any) || "interno", source: "ai",
+          });
+          toast({ title: "Tarefa criada!" });
+        }} onNavigate={() => navigate("/tarefas")} />
+
         {/* Minhas Tarefas */}
         {appLoading ? <TasksSkeleton /> : (
         <Card className="neon-border">
