@@ -370,6 +370,28 @@ export default function Tarefas() {
                 </Select>
               </div>
             </div>
+            {/* System detection banner */}
+            {sistemaDetectado && !novoSistema && (
+              <Alert className="border-info/30 bg-info/5">
+                <Monitor className="h-4 w-4 text-info" />
+                <AlertDescription className="flex items-center justify-between gap-2">
+                  <span className="text-sm">Este cliente usa <strong>{sistemaDetectado}</strong>. Deseja vincular à tarefa?</span>
+                  <Button size="sm" variant="outline" className="shrink-0 gap-1.5 h-7 text-xs" onClick={() => setNovoSistema(sistemaDetectado)}>
+                    <Link2 className="h-3 w-3" />Vincular
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            {novoSistema && (
+              <div className="flex items-center gap-2">
+                <Badge variant="info" className="gap-1">
+                  <Monitor className="h-3 w-3" />{novoSistema}
+                </Badge>
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setNovoSistema(undefined)}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Responsável</Label>
