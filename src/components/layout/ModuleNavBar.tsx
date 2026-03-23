@@ -3,14 +3,14 @@ import { modules } from "@/lib/sidebarModules";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const MODULE_COLORS: Record<string, { color: string; bg: string; border: string; activeBg: string }> = {
-  dashboard: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/40", activeBg: "bg-primary/15" },
-  clientes: { color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/40", activeBg: "bg-emerald-500/15" },
-  comercial: { color: "text-indigo-500", bg: "bg-indigo-500/10", border: "border-indigo-500/40", activeBg: "bg-indigo-500/15" },
-  financeiro: { color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/40", activeBg: "bg-green-500/15" },
-  operacional: { color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/40", activeBg: "bg-orange-500/15" },
-  cartoes: { color: "text-purple-500", bg: "bg-purple-500/10", border: "border-purple-500/40", activeBg: "bg-purple-500/15" },
-  configuracoes: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/40", activeBg: "bg-primary/15" },
+const MODULE_COLORS: Record<string, { color: string; inactiveColor: string; bg: string; border: string; activeBg: string; glow: string }> = {
+  dashboard:     { color: "text-primary",     inactiveColor: "text-primary/50",     bg: "bg-primary/10",     border: "border-primary/40",     activeBg: "bg-primary/15",     glow: "0 0 14px hsla(var(--primary),.35)" },
+  clientes:      { color: "text-emerald-500", inactiveColor: "text-emerald-500/50", bg: "bg-emerald-500/10", border: "border-emerald-500/40", activeBg: "bg-emerald-500/15", glow: "0 0 14px rgba(16,185,129,.35)" },
+  comercial:     { color: "text-indigo-500",  inactiveColor: "text-indigo-500/50",  bg: "bg-indigo-500/10",  border: "border-indigo-500/40",  activeBg: "bg-indigo-500/15",  glow: "0 0 14px rgba(99,102,241,.35)" },
+  financeiro:    { color: "text-green-500",   inactiveColor: "text-green-500/50",   bg: "bg-green-500/10",   border: "border-green-500/40",   activeBg: "bg-green-500/15",   glow: "0 0 14px rgba(34,197,94,.35)" },
+  operacional:   { color: "text-orange-500",  inactiveColor: "text-orange-500/50",  bg: "bg-orange-500/10",  border: "border-orange-500/40",  activeBg: "bg-orange-500/15",  glow: "0 0 14px rgba(249,115,22,.35)" },
+  cartoes:       { color: "text-purple-500",  inactiveColor: "text-purple-500/50",  bg: "bg-purple-500/10",  border: "border-purple-500/40",  activeBg: "bg-purple-500/15",  glow: "0 0 14px rgba(168,85,247,.35)" },
+  configuracoes: { color: "text-primary",     inactiveColor: "text-primary/50",     bg: "bg-primary/10",     border: "border-primary/40",     activeBg: "bg-primary/15",     glow: "0 0 14px hsla(var(--primary),.35)" },
 };
 
 function isModuleActive(moduleId: string, pathname: string): boolean {
