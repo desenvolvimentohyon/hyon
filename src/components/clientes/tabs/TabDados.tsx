@@ -228,21 +228,36 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           {systemModules.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Nenhum módulo cadastrado para <strong>{currentSystem.nome}</strong>.</p>
           ) : (
-            <div className="grid gap-2 md:grid-cols-2">
-              {systemModules.map(m => (
-                <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
-                  <Checkbox
-                    checked={linkedModuleIds.includes(m.id)}
-                    onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
-                    disabled={modulesLoading}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{m.nome}</p>
-                    {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
-                  </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
-                </label>
-              ))}
+            <div className="space-y-3">
+              <div className="grid gap-2 md:grid-cols-2">
+                {systemModules.map(m => (
+                  <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
+                    <Checkbox
+                      checked={linkedModuleIds.includes(m.id)}
+                      onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
+                      disabled={modulesLoading}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium">{m.nome}</p>
+                        {m.isGlobal && <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Global</Badge>}
+                      </div>
+                      {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-medium whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
+                      <p className="text-[10px] text-muted-foreground">Custo: R$ {m.valorCusto.toFixed(2)}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              {linkedModuleIds.length > 0 && (
+                <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border border-border text-sm">
+                  <span className="text-muted-foreground">Módulos ativos: <strong className="text-foreground">{linkedModuleIds.length}</strong></span>
+                  <span className="text-muted-foreground">Total Venda: <strong className="text-foreground">R$ {moduleTotals.totalVenda.toFixed(2)}</strong></span>
+                  <span className="text-muted-foreground">Total Custo: <strong className="text-foreground">R$ {moduleTotals.totalCusto.toFixed(2)}</strong></span>
+                </div>
+              )}
             </div>
           )}
         </section>
