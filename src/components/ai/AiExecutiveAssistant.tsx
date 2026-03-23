@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useExecutiveBriefing, type BriefingAlerta, type BriefingSugestao } from "@/hooks/useExecutiveBriefing";
 import { useJarvisVoice } from "@/hooks/useJarvisVoice";
+import { useJarvisCommands } from "@/hooks/useJarvisCommands";
 import { JarvisVoiceControls } from "@/components/ai/JarvisVoiceControls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ import {
   AlertTriangle, AlertCircle, Info, CheckCircle2,
   Send, Sparkles, Users, DollarSign, Headphones,
   FileText, TrendingUp, MessageSquare, Lightbulb,
-  Zap, Clock, X,
+  Zap, Clock, X, Terminal, Navigation, Plus, Search,
 } from "lucide-react";
 
 const PRIORIDADE_CONFIG = {
