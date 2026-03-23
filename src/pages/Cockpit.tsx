@@ -301,7 +301,7 @@ export default function Cockpit() {
                             c.classificacao === "medio" ? "border-amber-500/30 text-amber-500" :
                             "border-primary/30 text-primary"
                           )}>
-                            {c.scoreChurn}%
+                            {c.score_churn}%
                           </Badge>
                         </div>
                       </div>
