@@ -11,8 +11,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { JarvisAvatar } from "@/components/ai/JarvisAvatar";
 import {
-  Brain, RefreshCw, ChevronDown, ChevronUp,
+  RefreshCw, ChevronDown, ChevronUp,
   AlertTriangle, AlertCircle, Info, CheckCircle2,
   Send, Sparkles, Users, DollarSign, Headphones,
   FileText, TrendingUp, MessageSquare, Lightbulb,
