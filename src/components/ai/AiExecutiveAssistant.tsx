@@ -1,5 +1,7 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useExecutiveBriefing, type BriefingAlerta, type BriefingSugestao } from "@/hooks/useExecutiveBriefing";
+import { useJarvisVoice } from "@/hooks/useJarvisVoice";
+import { JarvisVoiceControls } from "@/components/ai/JarvisVoiceControls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,6 +67,44 @@ export function AiExecutiveAssistant() {
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [placeholderIdx] = useState(Math.floor(Math.random() * PLACEHOLDER_QUESTIONS.length));
+  const welcomePlayedRef = useRef(false);
+
+  // Voice: speech result goes to chat input and auto-sends
+  const handleSpeechResult = useCallback((text: string) => {
+    setChatInput(text);
+    setChatOpen(true);
+    // trigger send after state update
+    setTimeout(() => {
+      const btn = document.getElementById("jarvis-chat-send");
+      if (btn) btn.click();
+    }, 100);
+  }, []);
+
+  const voice = useJarvisVoice(handleSpeechResult);
+
+  // Auto-welcome once per session
+  useEffect(() => {
+    if (
+      !welcomePlayedRef.current &&
+      briefing &&
+      !isLoading &&
+      voice.config.voiceEnabled &&
+      voice.config.autoWelcome &&
+      voice.ttsSupported
+    ) {
+      const alreadyPlayed = sessionStorage.getItem("jarvis_welcomed");
+      if (!alreadyPlayed) {
+        welcomePlayedRef.current = true;
+        sessionStorage.setItem("jarvis_welcomed", "1");
+        // small delay so page renders first
+        setTimeout(() => {
+          voice.speak(`${briefing.saudacao}. ${briefing.resumoDia}`);
+        }, 1200);
+      } else {
+        welcomePlayedRef.current = true;
+      }
+    }
+  }, [briefing, isLoading, voice.config.voiceEnabled, voice.config.autoWelcome, voice.ttsSupported]);
 
   const handleChat = useCallback(async () => {
     if (!chatInput.trim() || chatLoading) return;
@@ -83,14 +123,25 @@ export function AiExecutiveAssistant() {
         },
       });
       if (error) throw error;
-      setChatMessages(prev => [...prev, { role: "assistant", content: data.content }]);
+      const responseText = data.content;
+      setChatMessages(prev => [...prev, { role: "assistant", content: responseText }]);
+      // Speak response if enabled
+      if (voice.config.voiceEnabled && voice.config.voiceResponses) {
+        voice.speak(responseText);
+      }
     } catch {
       toast.error("Erro ao processar sua pergunta.");
     } finally {
       setChatLoading(false);
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
-  }, [chatInput, chatLoading, chatMessages, context]);
+  }, [chatInput, chatLoading, chatMessages, context, voice]);
+
+  const handleReadBriefing = useCallback(() => {
+    if (briefing) {
+      voice.speak(`${briefing.saudacao}. ${briefing.resumoDia}`);
+    }
+  }, [briefing, voice]);
 
   const dismissAlert = (idx: number) => setDismissedAlerts(prev => new Set(prev).add(String(idx)));
   const dismissSuggestion = (idx: number) => setDismissedSuggestions(prev => new Set(prev).add(String(idx)));
@@ -102,18 +153,33 @@ export function AiExecutiveAssistant() {
 
   return (
     <TooltipProvider>
-      <Card className="neon-border border-primary/20 bg-gradient-to-br from-card via-card to-primary/[0.02]">
+      <Card className={`neon-border border-primary/20 bg-gradient-to-br from-card via-card to-primary/[0.02] ${voice.isSpeaking ? "jarvis-speaking-glow" : ""}`}>
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className={`h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center ${voice.isSpeaking ? "jarvis-speaking-glow" : ""}`}>
                   <Brain className="h-4 w-4 text-primary" />
                 </div>
                 Central de Inteligência IA
                 <Badge variant="outline" className="text-[10px] font-normal">Assistente Executivo</Badge>
               </CardTitle>
               <div className="flex items-center gap-1">
+                <JarvisVoiceControls
+                  isSpeaking={voice.isSpeaking}
+                  isListening={voice.isListening}
+                  transcript={voice.transcript}
+                  ttsSupported={voice.ttsSupported}
+                  sttSupported={voice.sttSupported}
+                  voiceEnabled={voice.config.voiceEnabled}
+                  onToggleVoice={() => voice.updateConfig({ voiceEnabled: !voice.config.voiceEnabled })}
+                  onReadBriefing={handleReadBriefing}
+                  onStartListening={voice.startListening}
+                  onStopListening={voice.stopListening}
+                  onStopSpeaking={voice.stopSpeaking}
+                  onPauseSpeaking={voice.pauseSpeaking}
+                  onResumeSpeaking={voice.resumeSpeaking}
+                />
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => refetch()}>
@@ -306,7 +372,7 @@ export function AiExecutiveAssistant() {
                       disabled={chatLoading}
                       className="text-xs h-8"
                     />
-                    <Button size="sm" className="h-8 px-3" onClick={handleChat} disabled={chatLoading || !chatInput.trim()}>
+                    <Button id="jarvis-chat-send" size="sm" className="h-8 px-3" onClick={handleChat} disabled={chatLoading || !chatInput.trim()}>
                       <Send className="h-3.5 w-3.5" />
                     </Button>
                   </div>
