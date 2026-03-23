@@ -49,12 +49,13 @@ async function fetchSystemContext() {
     supabase.from("clients").select("monthly_value_final").eq("status", "ativo").eq("recurrence_active", true),
   ]);
 
-  const [titulosVencidosRes, propostasAbertasRes, propostasSemViewRes, propostasAceitasMesRes, tarefasPendentesRes] = await Promise.all([
+  const propostasAbertasRes = await supabase.from("proposals" as any).select("id", { count: "exact", head: true }).in("status_aceite", ["pendente", "enviada"]);
+  const propostasSemViewRes = await supabase.from("proposals" as any).select("id", { count: "exact", head: true }).is("first_viewed_at", null).in("status_aceite", ["pendente", "enviada"]);
+  const propostasAceitasMesRes = await supabase.from("proposals" as any).select("id", { count: "exact", head: true }).eq("status_aceite", "aceitou").gte("created_at", startOfMonth);
+
+  const [titulosVencidosRes, tarefasPendentesRes] = await Promise.all([
     supabase.from("financial_titles").select("id, value_final", { count: "exact" }).eq("type", "receber").eq("status", "aberto").lt("due_at", todayStr),
-    supabase.from("proposals").select("id", { count: "exact", head: true }).in("status_aceite", ["pendente", "enviada"]),
-    supabase.from("proposals").select("id", { count: "exact", head: true }).is("first_viewed_at", null).in("status_aceite", ["pendente", "enviada"]),
-    supabase.from("proposals").select("id", { count: "exact", head: true }).eq("status_aceite", "aceitou").gte("created_at", startOfMonth),
-    supabase.from("tasks").select("id", { count: "exact", head: true }).in("status", ["pendente", "em_andamento"]),
+    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).in("status", ["pendente", "em_andamento"]),
   ]);
 
   const [tarefasUrgentesRes, tarefasAtrasadasRes, ticketsAbertosRes, planosVencendoRes, comissoesPendentesRes] = await Promise.all([
