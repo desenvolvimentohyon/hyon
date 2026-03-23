@@ -2,6 +2,7 @@ import { useCardClients } from "@/hooks/useCardClients";
 import { useCardProposals, useCardOnboarding } from "@/hooks/useCardProposals";
 import { useCardRevenue } from "@/hooks/useCardRevenue";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
