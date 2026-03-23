@@ -15,6 +15,7 @@ import {
   Building2, MapPin, FileText, Landmark, Palette, Settings2,
   Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle, RefreshCw, Search
 } from "lucide-react";
+import { SubtabGrid, type SubtabItem } from "./SubtabGrid";
 import { validateCNPJ, maskDocument } from "@/lib/cnpjUtils";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -125,6 +126,7 @@ export default function MinhaEmpresa() {
   const [cepLoading, setCepLoading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoDarkUploading, setLogoDarkUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("dados");
 
   // Fetch company profile
   const { data: profileData, isLoading } = useQuery({
@@ -324,21 +326,33 @@ export default function MinhaEmpresa() {
     ? differenceInDays(parseISO(form.certificate_expiration), new Date())
     : null;
 
+  const empresaSubtabs: SubtabItem[] = [
+    { value: "dados", label: "Dados Gerais", description: "CNPJ, razão social e contato", icon: Building2, colorClass: "text-primary", bgClass: "bg-primary/10", borderClass: "border-primary/30" },
+    { value: "endereco", label: "Endereço", description: "Localização da empresa", icon: MapPin, colorClass: "text-info", bgClass: "bg-info/10", borderClass: "border-info/30" },
+    { value: "fiscal", label: "Fiscal", description: "Regime tributário e certificado", icon: FileText, colorClass: "text-warning", bgClass: "bg-warning/10", borderClass: "border-warning/30" },
+    { value: "bancario", label: "Bancário", description: "Contas e dados de pagamento", icon: Landmark, colorClass: "text-success", bgClass: "bg-success/10", borderClass: "border-success/30" },
+    { value: "visual", label: "Identidade Visual", description: "Logo, cores e textos", icon: Palette, colorClass: "text-purple", bgClass: "bg-purple/10", borderClass: "border-purple/30" },
+    { value: "parametros", label: "Parâmetros", description: "Prazos, juros e multas", icon: Settings2, colorClass: "text-muted-foreground", bgClass: "bg-muted/30", borderClass: "border-muted-foreground/30" },
+    { value: "renovacao", label: "Renovação", description: "Alertas e propostas automáticas", icon: RefreshCw, colorClass: "text-destructive", bgClass: "bg-destructive/10", borderClass: "border-destructive/30" },
+  ];
+
+
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
 
   return (
     <div className="space-y-4">
-      <Tabs defaultValue="dados" className="w-full">
-        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1">
-          <TabsTrigger value="dados" className="gap-1.5 text-xs"><Building2 className="h-3.5 w-3.5" />Dados Gerais</TabsTrigger>
-          <TabsTrigger value="endereco" className="gap-1.5 text-xs"><MapPin className="h-3.5 w-3.5" />Endereço</TabsTrigger>
-          <TabsTrigger value="fiscal" className="gap-1.5 text-xs"><FileText className="h-3.5 w-3.5" />Fiscal</TabsTrigger>
-          <TabsTrigger value="bancario" className="gap-1.5 text-xs"><Landmark className="h-3.5 w-3.5" />Bancário</TabsTrigger>
-          <TabsTrigger value="visual" className="gap-1.5 text-xs"><Palette className="h-3.5 w-3.5" />Identidade Visual</TabsTrigger>
-          <TabsTrigger value="parametros" className="gap-1.5 text-xs"><Settings2 className="h-3.5 w-3.5" />Parâmetros</TabsTrigger>
-          <TabsTrigger value="renovacao" className="gap-1.5 text-xs"><RefreshCw className="h-3.5 w-3.5" />Renovação</TabsTrigger>
+      <SubtabGrid items={empresaSubtabs} value={activeTab} onChange={setActiveTab} />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="hidden">
+          <TabsTrigger value="dados" />
+          <TabsTrigger value="endereco" />
+          <TabsTrigger value="fiscal" />
+          <TabsTrigger value="bancario" />
+          <TabsTrigger value="visual" />
+          <TabsTrigger value="parametros" />
+          <TabsTrigger value="renovacao" />
         </TabsList>
 
         {/* DADOS GERAIS */}
