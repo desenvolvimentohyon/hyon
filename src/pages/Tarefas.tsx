@@ -11,11 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { supabase } from "@/integrations/supabase/client";
 
 function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
