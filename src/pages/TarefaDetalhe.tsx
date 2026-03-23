@@ -36,6 +36,10 @@ export default function TarefaDetalhe() {
   const [novoComentario, setNovoComentario] = useState("");
   const [timerDisplay, setTimerDisplay] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const [editObservacoes, setEditObservacoes] = useState(false);
+  const [observacoesText, setObservacoesText] = useState("");
+  const [uploadingFoto, setUploadingFoto] = useState(false);
+  const [fotoModal, setFotoModal] = useState<string | null>(null);
 
   useEffect(() => {
     if (!tarefa) return;
