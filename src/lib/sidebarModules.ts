@@ -48,6 +48,7 @@ export const modules: ParentModule[] = [
     id: "comercial",
     title: "Comercial",
     icon: TrendingUp,
+    directUrl: "/propostas",
     children: [
       { title: "Propostas", url: "/propostas", icon: FileText, description: "Criação e envio de propostas" },
       { title: "CRM", url: "/crm", icon: Kanban, description: "Pipeline e funil de vendas" },
