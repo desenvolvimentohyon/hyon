@@ -1,0 +1,1 @@
+ALTER TABLE public.system_modules ADD COLUMN is_global boolean NOT NULL DEFAULT false;

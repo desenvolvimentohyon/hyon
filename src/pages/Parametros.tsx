@@ -33,7 +33,7 @@ export default function Parametros() {
   // Sistema form
   const [fSistema, setFSistema] = useState({ nome: "", descricao: "", ativo: true });
   // Modulo form
-  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" });
+  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none", isGlobal: false });
   // Forma form
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
   // Plano form
@@ -45,9 +45,9 @@ export default function Parametros() {
   const openEditSistema = (id: string) => { const s = sistemas.find(x => x.id === id); if (s) { setFSistema(s); setModal({ type: "sistema", editing: id }); } };
   const saveSistema = () => { if (!fSistema.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fSistema, valorCusto: 0, valorVenda: 0 }; modal?.editing ? updateSistema(modal.editing, data) : addSistema(data); setModal(null); toast.success("Sistema salvo!"); };
 
-  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" }); setModal({ type: "modulo", editing: null }); };
-  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "none" }); setModal({ type: "modulo", editing: id }); } };
-  const saveModulo = () => { if (!fModulo.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fModulo, sistemaId: fModulo.sistemaId === "none" ? "" : fModulo.sistemaId }; modal?.editing ? updateModulo(modal.editing, data) : addModulo(data); setModal(null); toast.success("Módulo salvo!"); };
+  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none", isGlobal: false }); setModal({ type: "modulo", editing: null }); };
+  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "none", isGlobal: m.isGlobal || false }); setModal({ type: "modulo", editing: id }); } };
+  const saveModulo = () => { if (!fModulo.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fModulo, sistemaId: fModulo.isGlobal ? "" : (fModulo.sistemaId === "none" ? "" : fModulo.sistemaId) }; modal?.editing ? updateModulo(modal.editing, data) : addModulo(data); setModal(null); toast.success("Módulo salvo!"); };
 
   const openNewForma = () => { setFForma({ nome: "", ativo: true, observacao: "" }); setModal({ type: "forma", editing: null }); };
   const openEditForma = (id: string) => { const f = formasPagamento.find(x => x.id === id); if (f) { setFForma({ nome: f.nome, ativo: f.ativo, observacao: f.observacao || "" }); setModal({ type: "forma", editing: id }); } };
@@ -101,7 +101,7 @@ export default function Parametros() {
                 {modulos.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-medium">{m.nome}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{sistemas.find(s => s.id === m.sistemaId)?.nome || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{m.isGlobal ? <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge> : (sistemas.find(s => s.id === m.sistemaId)?.nome || "—")}</TableCell>
                     <TableCell className="text-right text-sm">{fmt(m.valorCusto)}</TableCell>
                     <TableCell className="text-right text-sm font-medium">{fmt(m.valorVenda)}</TableCell>
                     <TableCell>{m.ativo ? <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</TableCell>
@@ -208,15 +208,18 @@ export default function Parametros() {
           <div className="space-y-3">
             <div><Label>Nome *</Label><Input value={fModulo.nome} onChange={e => setFModulo(p => ({ ...p, nome: e.target.value }))} /></div>
             <div><Label>Descrição</Label><Input value={fModulo.descricao} onChange={e => setFModulo(p => ({ ...p, descricao: e.target.value }))} /></div>
-            <div><Label>Sistema vinculado</Label>
-              <Select value={fModulo.sistemaId} onValueChange={v => setFModulo(p => ({ ...p, sistemaId: v }))}>
-                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {sistemas.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="flex items-center gap-2"><Switch checked={fModulo.isGlobal} onCheckedChange={v => setFModulo(p => ({ ...p, isGlobal: v, sistemaId: v ? "none" : p.sistemaId }))} /><Label>Módulo Global</Label></div>
+            {!fModulo.isGlobal && (
+              <div><Label>Sistema vinculado</Label>
+                <Select value={fModulo.sistemaId} onValueChange={v => setFModulo(p => ({ ...p, sistemaId: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {sistemas.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor Custo</Label><CurrencyInput value={fModulo.valorCusto} onValueChange={v => setFModulo(p => ({ ...p, valorCusto: v }))} /></div>
               <div><Label>Valor Venda</Label><CurrencyInput value={fModulo.valorVenda} onValueChange={v => setFModulo(p => ({ ...p, valorVenda: v }))} /></div>
