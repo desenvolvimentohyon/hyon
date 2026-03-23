@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useExecutiveBriefing, type BriefingAlerta, type BriefingSugestao } from "@/hooks/useExecutiveBriefing";
 import { useJarvisVoice } from "@/hooks/useJarvisVoice";
+import { useJarvisCommands } from "@/hooks/useJarvisCommands";
 import { JarvisVoiceControls } from "@/components/ai/JarvisVoiceControls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ import {
   AlertTriangle, AlertCircle, Info, CheckCircle2,
   Send, Sparkles, Users, DollarSign, Headphones,
   FileText, TrendingUp, MessageSquare, Lightbulb,
-  Zap, Clock, X,
+  Zap, Clock, X, Terminal, Navigation, Plus, Search,
 } from "lucide-react";
 
 const PRIORIDADE_CONFIG = {
@@ -57,10 +58,12 @@ const PLACEHOLDER_QUESTIONS = [
 
 export function AiExecutiveAssistant() {
   const { briefing, context, isLoading, refetch } = useExecutiveBriefing();
+  const commands = useJarvisCommands();
   const [isOpen, setIsOpen] = useState(true);
   const [alertsOpen, setAlertsOpen] = useState(true);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [quickCmdsOpen, setQuickCmdsOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
@@ -109,26 +112,36 @@ export function AiExecutiveAssistant() {
 
   const handleChat = useCallback(async () => {
     if (!chatInput.trim() || chatLoading) return;
-    const userMsg: ChatMessage = { role: "user", content: chatInput.trim() };
+    const inputText = chatInput.trim();
+    const userMsg: ChatMessage = { role: "user", content: inputText };
     const newMessages = [...chatMessages, userMsg];
     setChatMessages(newMessages);
     setChatInput("");
     setChatLoading(true);
+    setChatOpen(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-consultant", {
-        body: {
-          type: "chat",
-          context: context || {},
-          messages: newMessages,
-        },
-      });
-      if (error) throw error;
-      const responseText = data.content;
-      setChatMessages(prev => [...prev, { role: "assistant", content: responseText }]);
-      // Speak response if enabled
-      if (voice.config.voiceEnabled && voice.config.voiceResponses) {
-        voice.speak(responseText);
+      // Try command interpretation first
+      const cmd = await commands.interpretCommand(inputText);
+
+      if (cmd && cmd.intent !== "unknown" && !cmd.fallback_chat) {
+        // It's a command — execute it
+        setChatMessages(prev => [...prev, { role: "assistant", content: `🤖 ${cmd.spoken_response}` }]);
+        commands.executeCommand(cmd, inputText);
+        if (voice.config.voiceEnabled && voice.config.voiceResponses) {
+          voice.speak(cmd.spoken_response);
+        }
+      } else {
+        // Fallback to regular chat
+        const { data, error } = await supabase.functions.invoke("ai-consultant", {
+          body: { type: "chat", context: context || {}, messages: newMessages },
+        });
+        if (error) throw error;
+        const responseText = data.content;
+        setChatMessages(prev => [...prev, { role: "assistant", content: responseText }]);
+        if (voice.config.voiceEnabled && voice.config.voiceResponses) {
+          voice.speak(responseText);
+        }
       }
     } catch {
       toast.error("Erro ao processar sua pergunta.");
@@ -136,7 +149,16 @@ export function AiExecutiveAssistant() {
       setChatLoading(false);
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
-  }, [chatInput, chatLoading, chatMessages, context, voice]);
+  }, [chatInput, chatLoading, chatMessages, context, voice, commands]);
+
+  const handleQuickCommand = useCallback((text: string) => {
+    setChatInput(text);
+    setChatOpen(true);
+    setTimeout(() => {
+      const btn = document.getElementById("jarvis-chat-send");
+      if (btn) btn.click();
+    }, 100);
+  }, []);
 
   const handleReadBriefing = useCallback(() => {
     if (briefing) {
@@ -326,6 +348,61 @@ export function AiExecutiveAssistant() {
                     })}
                   </CollapsibleContent>
                 </Collapsible>
+              )}
+
+              {/* ── Comandos Rápidos ──────────────────────────────── */}
+              <Collapsible open={quickCmdsOpen} onOpenChange={setQuickCmdsOpen}>
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center gap-2 text-sm font-medium w-full hover:text-primary transition-colors">
+                    <Terminal className="h-3.5 w-3.5 text-primary" />
+                    Comandos Rápidos
+                    {quickCmdsOpen ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: "Abrir clientes", icon: Users },
+                      { label: "Criar proposta", icon: Plus },
+                      { label: "Ver financeiro", icon: DollarSign },
+                      { label: "Clientes em risco", icon: AlertTriangle },
+                      { label: "Criar tarefa", icon: CheckCircle2 },
+                      { label: "Propostas abertas", icon: FileText },
+                      { label: "Abrir suporte", icon: Headphones },
+                      { label: "Abrir dashboard", icon: Navigation },
+                    ].map(cmd => (
+                      <Button
+                        key={cmd.label}
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] px-2.5 gap-1.5"
+                        onClick={() => handleQuickCommand(cmd.label)}
+                        disabled={commands.isProcessing}
+                      >
+                        <cmd.icon className="h-3 w-3" />
+                        {cmd.label}
+                      </Button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* ── Confirmação de Comando ────────────────────────── */}
+              {commands.pendingConfirmation && (
+                <div className="p-3 rounded-lg border border-warning/30 bg-warning/5 space-y-2">
+                  <p className="text-xs font-medium text-warning">⚠️ Confirmação necessária</p>
+                  <p className="text-xs text-muted-foreground">
+                    {commands.pendingConfirmation.command.confirmation_message || commands.pendingConfirmation.command.spoken_response}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" className="h-7 text-xs" onClick={commands.confirmPending}>
+                      ✅ Confirmar
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={commands.cancelPending}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
               )}
 
               {/* ── Chat ─────────────────────────────────────────── */}
