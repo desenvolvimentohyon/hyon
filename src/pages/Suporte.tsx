@@ -826,6 +826,16 @@ function PortalTicketsTab() {
               </Select>
             </div>
             <CardDescription>Cliente: {getCliente(selected.client_id)?.nome || selected.client_id} · {new Date(selected.created_at).toLocaleDateString("pt-BR")}</CardDescription>
+            {selected.protocol_number && (
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="outline" className="text-xs font-mono">{selected.protocol_number}</Badge>
+                {selected.tracking_token && (
+                  <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => copyTrackingLink(selected.tracking_token)}>
+                    <ExternalLink className="h-3 w-3 mr-1" /> Copiar Link
+                  </Button>
+                )}
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-3">
             {/* Linked task info or action buttons */}
