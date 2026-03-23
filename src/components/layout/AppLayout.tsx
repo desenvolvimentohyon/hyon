@@ -1,6 +1,5 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Topbar } from "@/components/layout/Topbar";
+import { ModuleNavBar } from "@/components/layout/ModuleNavBar";
 import { Outlet, useLocation } from "react-router-dom";
 import { JarvisFloatingButton } from "@/components/ai/JarvisFloatingButton";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
