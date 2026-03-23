@@ -74,6 +74,7 @@ export default function ConciliacaoBancaria() {
           <Button disabled={!selectedMov || !selectedTitulo} onClick={handleConciliar}><Link2 className="h-4 w-4 mr-1" /> Conciliar</Button>
         </div>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       {/* Conta e progresso */}
       <div className="flex gap-4 items-center">

@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, ArrowDownLeft, ArrowUpRight, RefreshCw } from "lucide-react";
 import { OrigemTitulo, CentroCusto, TipoTitulo } from "@/types/financeiro";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 export default function Lancamentos() {
   const { addTitulo, addMovimento, planoContas, contasBancarias, loading } = useFinanceiro();
