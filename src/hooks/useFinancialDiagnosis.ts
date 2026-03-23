@@ -56,28 +56,32 @@ async function fetchFinancialContext() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   })();
 
-  const [clientsRes, titlesCurrentRes, titlesPrevRes, titlesOverdueRes, proposalsRes] = await Promise.all([
-    supabase
-      .from("clients")
-      .select("id, name, monthly_value_final, monthly_cost_value, cost_active, status, system_name, health_score")
-      .eq("status", "ativo") as any,
-    supabase
-      .from("financial_titles")
-      .select("type, value_original, origin, status")
-      .eq("competency", mesAtual) as any,
-    supabase
-      .from("financial_titles")
-      .select("type, value_original, status")
-      .eq("competency", mesAnterior) as any,
-    supabase
-      .from("financial_titles")
-      .select("id, value_original, interest, fine, client_id")
-      .eq("type", "receber")
-      .eq("status", "vencido") as any,
-    supabase
-      .from("proposals")
-      .select("id, valor_mensal, desconto_percent, status_aceite")
-      .in("status_aceite", ["pendente", "visualizou"]) as any,
+  const clientsQuery = supabase
+    .from("clients")
+    .select("id, name, monthly_value_final, monthly_cost_value, cost_active, status, system_name, health_score")
+    .eq("status", "ativo");
+
+  const titlesCurrentQuery = supabase
+    .from("financial_titles")
+    .select("type, value_original, origin, status")
+    .eq("competency", mesAtual);
+
+  const titlesPrevQuery = supabase
+    .from("financial_titles")
+    .select("type, value_original, status")
+    .eq("competency", mesAnterior);
+
+  const titlesOverdueQuery = supabase
+    .from("financial_titles")
+    .select("id, value_original, interest, fine, client_id")
+    .eq("type", "receber")
+    .eq("status", "vencido");
+
+  const [clientsRes, titlesCurrentRes, titlesPrevRes, titlesOverdueRes] = await Promise.all([
+    clientsQuery as any,
+    titlesCurrentQuery as any,
+    titlesPrevQuery as any,
+    titlesOverdueQuery as any,
   ]);
 
   const clients = (clientsRes.data || []) as any[];
