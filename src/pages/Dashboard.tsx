@@ -617,6 +617,7 @@ export default function Dashboard() {
         />
         <ModuleNavGrid moduleId="dashboard" />
         <AiExecutiveAssistant />
+        <AiFinanceiroAssistant compact />
 
         {/* ══ LINHA 1 — KPIs executivos (5 cards) ══════════════════ */}
         {dataLoading ? <KpisSkeleton /> : (
