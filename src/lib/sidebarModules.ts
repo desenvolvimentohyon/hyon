@@ -88,6 +88,7 @@ export const modules: ParentModule[] = [
     id: "cartoes",
     title: "Cartões",
     icon: CreditCard,
+    directUrl: "/cartoes",
     children: [
       { title: "Dashboard", url: "/cartoes", icon: BarChart3, description: "Visão geral de maquininhas" },
       { title: "Clientes", url: "/cartoes/clientes", icon: Users, description: "Clientes de maquininha" },
