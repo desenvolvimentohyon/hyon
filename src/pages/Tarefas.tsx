@@ -266,10 +266,18 @@ export default function Tarefas() {
           <div className="flex items-center gap-2">
             <Button variant={viewMode === "table" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}><List className="h-4 w-4" /></Button>
             <Button variant={viewMode === "kanban" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("kanban")}><LayoutGrid className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setShowAIModal(true)} className="gap-1.5"><Brain className="h-4 w-4" />Criar com IA</Button>
+            <Button variant="outline" size="sm" onClick={handleGenerateDaily} disabled={generatingDaily} className="gap-1.5">
+              {generatingDaily ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+              Tarefas do Dia
+            </Button>
             <Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5"><Plus className="h-4 w-4" />Nova Tarefa</Button>
           </div>
         }
       />
+
+      {/* AI Suggestions */}
+      <TaskAISuggestions onCreateTask={handleAICreate} />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
