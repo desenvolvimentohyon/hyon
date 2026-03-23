@@ -188,6 +188,100 @@ export default function TarefaDetalhe() {
             <CardHeader><CardTitle className="text-sm">Descrição</CardTitle></CardHeader>
             <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{tarefa.descricao || "Sem descrição"}</p></CardContent>
           </Card>
+
+          {/* Observações */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm">Observações</CardTitle>
+              {!editObservacoes && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditObservacoes(true)}>Editar</Button>
+              )}
+            </CardHeader>
+            <CardContent>
+              {editObservacoes ? (
+                <div className="space-y-2">
+                  <Textarea value={observacoesText} onChange={e => setObservacoesText(e.target.value)} rows={3} placeholder="Anotações adicionais..." />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => {
+                      updateTarefa(tarefa.id, { observacoes: observacoesText.trim() || undefined }, "Observações atualizadas");
+                      setEditObservacoes(false);
+                      toast({ title: "Observações salvas" });
+                    }}>Salvar</Button>
+                    <Button size="sm" variant="outline" onClick={() => { setObservacoesText(tarefa.observacoes || ""); setEditObservacoes(false); }}>Cancelar</Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{tarefa.observacoes || "Sem observações"}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Fotos */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm">Fotos</CardTitle>
+              <label className="flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer hover:bg-accent/50 transition-colors text-xs text-muted-foreground">
+                <ImagePlus className="h-3.5 w-3.5" />
+                {uploadingFoto ? "Enviando..." : "Adicionar"}
+                <input type="file" accept="image/*" multiple className="hidden" disabled={uploadingFoto} onChange={async (e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (files.length === 0) return;
+                  setUploadingFoto(true);
+                  const { data: { user: currentUser } } = await supabase.auth.getUser();
+                  const orgId = currentUser ? (await supabase.from("profiles").select("org_id").eq("id", currentUser.id).single()).data?.org_id : null;
+                  if (!orgId) { setUploadingFoto(false); return; }
+                  const newFotos = [...(tarefa.fotos || [])];
+                  for (const file of files) {
+                    const fileId = Math.random().toString(36).slice(2);
+                    const filePath = `${orgId}/${fileId}-${file.name}`;
+                    const { error } = await supabase.storage.from("task-attachments").upload(filePath, file);
+                    if (!error) {
+                      newFotos.push({ id: fileId, url: filePath, nome: file.name });
+                    }
+                  }
+                  updateTarefa(tarefa.id, { fotos: newFotos }, "Fotos adicionadas");
+                  setUploadingFoto(false);
+                  toast({ title: "Fotos adicionadas" });
+                  e.target.value = "";
+                }} />
+              </label>
+            </CardHeader>
+            <CardContent>
+              {(!tarefa.fotos || tarefa.fotos.length === 0) ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma foto anexada</p>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {tarefa.fotos.map((foto) => {
+                    const { data: urlData } = supabase.storage.from("task-attachments").getPublicUrl(foto.url);
+                    const signedUrl = urlData?.publicUrl;
+                    return (
+                      <div key={foto.id} className="relative group">
+                        <img
+                          src={signedUrl}
+                          alt={foto.nome}
+                          className="h-20 w-20 rounded-md object-cover border cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => setFotoModal(signedUrl)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newFotos = (tarefa.fotos || []).filter(f => f.id !== foto.id);
+                            updateTarefa(tarefa.id, { fotos: newFotos }, "Foto removida");
+                            supabase.storage.from("task-attachments").remove([foto.url]);
+                          }}
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate w-20">{foto.nome}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {tarefa.tags.length > 0 && (
             <div className="flex gap-1.5 flex-wrap">
               {tarefa.tags.map(tag => <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>)}
