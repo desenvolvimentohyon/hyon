@@ -95,6 +95,7 @@ function AuthGate() {
                 <Routes>
                   <Route element={<AppLayout />}>
                     <Route path="/" element={<Dashboard />} />
+                    <Route path="/cockpit" element={<Cockpit />} />
                     <Route path="/tarefas" element={<Tarefas />} />
                     <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
                     <Route path="/clientes" element={<ClientesReceita />} />
