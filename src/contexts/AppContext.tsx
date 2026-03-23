@@ -81,6 +81,7 @@ function tarefaToDb(t: any, orgId: string) {
     tipo_operacional: t.tipoOperacional || "interno",
     sistema_relacionado: t.sistemaRelacionado || null,
     linked_ticket_id: t.linkedTicketId || null,
+    source: t.source || "manual",
     metadata: {
       checklist: t.checklist || [], anexosFake: t.anexosFake || [],
       moduloRelacionado: t.moduloRelacionado, slaHoras: t.slaHoras,
