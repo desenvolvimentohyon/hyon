@@ -1,39 +1,40 @@
 
 
-## Plano: Fotos e Observações em Tarefas
+## Plano: Auto-iniciar cronômetro ao criar tarefa + exibir tempo na listagem
 
 ### Resumo
-Adicionar a possibilidade de anexar fotos (upload real para Storage) e campo de observações dentro de tarefas, tanto na criação quanto na edição/detalhe.
+Quando uma tarefa for criada, o cronômetro será automaticamente iniciado. Na tela de tarefas (tabela e kanban), cada tarefa exibirá o tempo decorrido em tempo real.
 
-### 1. Criar bucket de Storage: `task-attachments`
-- Migration SQL para criar bucket `task-attachments` (privado) com RLS policies permitindo upload/leitura por usuários autenticados da mesma org.
+### 1. Editar: `src/contexts/AppContext.tsx` — Auto-start timer on task creation
 
-### 2. Editar: `src/types/index.ts`
-- Adicionar campo `observacoes?: string` na interface `Tarefa`
-- Adicionar campo `fotos?: { id: string; url: string; nome: string }[]` na interface `Tarefa`
+Na função `addTarefa`, após o insert no banco, chamar `startTimer` automaticamente com o ID da tarefa recém-criada.
 
-### 3. Editar: `src/contexts/AppContext.tsx`
-- Em `tarefaToDb`: incluir `observacoes` e `fotos` no `metadata`
-- Em `dbToTarefa`: ler `observacoes` e `fotos` do metadata
+- Após o `supabase.from("tasks").insert(...)`, usar o `data.id` retornado para fazer um update imediato setando `timer_running: true` e `timer_started_at: now()`.
+- Isso respeita a regra existente de parar qualquer outro timer ativo antes.
 
-### 4. Editar: `src/pages/Tarefas.tsx` (Modal Nova Tarefa)
-- Adicionar campo `Textarea` para "Observações" (opcional)
-- Adicionar input de upload de fotos (múltiplas, aceita imagem/*) com preview em miniatura
-- Upload via `supabase.storage.from('task-attachments')` ao criar a tarefa
-- Salvar array de fotos no metadata
+### 2. Editar: `src/pages/Tarefas.tsx` — Exibir tempo em cada tarefa
 
-### 5. Editar: `src/pages/TarefaDetalhe.tsx`
-- Na aba "Resumo": exibir observações abaixo da descrição
-- Na aba "Resumo": exibir galeria de fotos com thumbnails clicáveis
-- Permitir adicionar novas fotos e editar observações no detalhe
+**Na tabela:**
+- Adicionar coluna "Tempo" no `TableHeader`
+- Em cada `TableRow`, exibir o tempo formatado (HH:MM:SS) com atualização em tempo real para tarefas com timer ativo
+- Ícone de relógio pulsante quando o timer está rodando
+
+**No kanban (componente `KanbanTarefas`):**
+- Adicionar linha com ícone de relógio + tempo formatado em cada card
+- Animação sutil (pulsing dot) quando o timer está ativo
+
+### 3. Criar: Componente helper `LiveTimer` inline
+
+Um pequeno componente que recebe `tempoTotalSegundos`, `timerRodando` e `timerInicioTimestamp`, e usa `useEffect` + `setInterval` para atualizar o display a cada segundo quando o timer está ativo. Será usado tanto na tabela quanto no kanban.
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| Migration SQL | Criar bucket `task-attachments` + RLS |
-| `src/types/index.ts` | Campos `observacoes` e `fotos` |
-| `src/contexts/AppContext.tsx` | Propagar novos campos no metadata |
-| `src/pages/Tarefas.tsx` | Upload de fotos + observações no modal |
-| `src/pages/TarefaDetalhe.tsx` | Exibir/editar fotos e observações |
+| `src/contexts/AppContext.tsx` | Auto-start timer após criar tarefa |
+| `src/pages/Tarefas.tsx` | Componente `LiveTimer` + coluna/badge de tempo na tabela e kanban |
+
+### Notas
+- A regra de "apenas um timer ativo" será respeitada: ao criar uma nova tarefa, qualquer timer rodando em outra tarefa será pausado automaticamente.
+- O formato será `HH:MM:SS` para consistência com a tela de detalhe.
 
