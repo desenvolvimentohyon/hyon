@@ -9,6 +9,7 @@ export interface SubModule {
   title: string;
   url: string;
   icon: React.ElementType;
+  description?: string;
 }
 
 export interface ParentModule {
