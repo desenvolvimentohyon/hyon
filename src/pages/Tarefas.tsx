@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
+import { AiTaskAssistant } from "@/components/tarefas/AiTaskAssistant";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
@@ -226,6 +227,7 @@ export default function Tarefas() {
         }
       />
       <ModuleNavGrid moduleId="operacional" />
+      <AiTaskAssistant clientes={clientes} tecnicos={tecnicos} addTarefa={addTarefa} tecnicoAtualId={tecnicoAtualId} />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
