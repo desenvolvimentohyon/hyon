@@ -88,7 +88,7 @@ async function fetchFinancialContext() {
   const titlesCurrent = (titlesCurrentRes.data || []) as any[];
   const titlesPrev = (titlesPrevRes.data || []) as any[];
   const titlesOverdue = (titlesOverdueRes.data || []) as any[];
-  const proposals = (proposalsRes.data || []) as any[];
+  const proposals = [] as any[];
 
   const mrr = clients.reduce((s: number, c: any) => s + Number(c.monthly_value_final || 0), 0);
   const custos = clients.filter((c: any) => c.cost_active).reduce((s: number, c: any) => s + Number(c.monthly_cost_value || 0), 0);
