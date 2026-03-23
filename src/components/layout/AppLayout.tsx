@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Outlet, useLocation } from "react-router-dom";
 import { JarvisFloatingButton } from "@/components/ai/JarvisFloatingButton";
+import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
 import { Skeleton } from "@/components/ui/skeleton";
