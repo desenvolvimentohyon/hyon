@@ -27,8 +27,8 @@ export const modules: ParentModule[] = [
     icon: LayoutDashboard,
     directUrl: "/",
     children: [
-      { title: "Visão Geral", url: "/", icon: LayoutDashboard },
-      { title: "Painel Executivo", url: "/executivo", icon: BarChart3 },
+      { title: "Visão Geral", url: "/", icon: LayoutDashboard, description: "Indicadores e resumo geral" },
+      { title: "Painel Executivo", url: "/executivo", icon: BarChart3, description: "Métricas estratégicas e KPIs" },
     ],
   },
   {
