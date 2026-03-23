@@ -208,15 +208,18 @@ export default function Parametros() {
           <div className="space-y-3">
             <div><Label>Nome *</Label><Input value={fModulo.nome} onChange={e => setFModulo(p => ({ ...p, nome: e.target.value }))} /></div>
             <div><Label>Descrição</Label><Input value={fModulo.descricao} onChange={e => setFModulo(p => ({ ...p, descricao: e.target.value }))} /></div>
-            <div><Label>Sistema vinculado</Label>
-              <Select value={fModulo.sistemaId} onValueChange={v => setFModulo(p => ({ ...p, sistemaId: v }))}>
-                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {sistemas.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="flex items-center gap-2"><Switch checked={fModulo.isGlobal} onCheckedChange={v => setFModulo(p => ({ ...p, isGlobal: v, sistemaId: v ? "none" : p.sistemaId }))} /><Label>Módulo Global</Label></div>
+            {!fModulo.isGlobal && (
+              <div><Label>Sistema vinculado</Label>
+                <Select value={fModulo.sistemaId} onValueChange={v => setFModulo(p => ({ ...p, sistemaId: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {sistemas.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor Custo</Label><CurrencyInput value={fModulo.valorCusto} onValueChange={v => setFModulo(p => ({ ...p, valorCusto: v }))} /></div>
               <div><Label>Valor Venda</Label><CurrencyInput value={fModulo.valorVenda} onValueChange={v => setFModulo(p => ({ ...p, valorVenda: v }))} /></div>
