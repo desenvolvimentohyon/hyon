@@ -54,7 +54,12 @@ export default function RadarCrescimento() {
   const toggle = (key: keyof typeof openSections) => setOpenSections(p => ({ ...p, [key]: !p[key] }));
 
   const handleCriarTarefa = (titulo: string) => {
-    addTarefa({ titulo, descricao: "Ação sugerida pelo Radar de Crescimento IA", prioridade: "alta", status: "a_fazer", tipoOperacional: "comercial" });
+    addTarefa({
+      titulo, descricao: "Ação sugerida pelo Radar de Crescimento IA",
+      clienteId: null, responsavelId: "", prioridade: "alta", status: "a_fazer",
+      tags: ["radar-crescimento"], checklist: [], subTarefas: [], implantacaoId: undefined,
+      tipoOperacional: "comercial",
+    });
     toast({ title: "Tarefa criada!", description: titulo });
   };
 
