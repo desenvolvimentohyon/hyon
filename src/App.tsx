@@ -26,6 +26,7 @@ import Comercial from "./pages/Comercial";
 import Implantacao from "./pages/Implantacao";
 import Suporte from "./pages/Suporte";
 import Executivo from "./pages/Executivo";
+import RadarCrescimento from "./pages/RadarCrescimento";
 import Propostas from "./pages/Propostas";
 import PropostaDetalhe from "./pages/PropostaDetalhe";
 import PropostaInteligente from "./pages/PropostaInteligente";
