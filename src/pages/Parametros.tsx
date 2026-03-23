@@ -101,7 +101,7 @@ export default function Parametros() {
                 {modulos.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-medium">{m.nome}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{sistemas.find(s => s.id === m.sistemaId)?.nome || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{m.isGlobal ? <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge> : (sistemas.find(s => s.id === m.sistemaId)?.nome || "—")}</TableCell>
                     <TableCell className="text-right text-sm">{fmt(m.valorCusto)}</TableCell>
                     <TableCell className="text-right text-sm font-medium">{fmt(m.valorVenda)}</TableCell>
                     <TableCell>{m.ativo ? <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</TableCell>
