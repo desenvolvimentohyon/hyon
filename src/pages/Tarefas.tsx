@@ -475,6 +475,8 @@ export default function Tarefas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <TaskAIModal open={showAIModal} onOpenChange={setShowAIModal} onCreateTask={handleAICreate} />
     </div>
   );
 }
