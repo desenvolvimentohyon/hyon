@@ -147,6 +147,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const orgId = profile?.org_id;
 
   const [loading, setLoading] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
@@ -161,7 +162,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Fetch all data
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
-    setLoading(true);
+    if (!initialLoaded) setLoading(true);
     try {
       const [clientsRes, profilesRes, tasksRes, settingsRes] = await Promise.all([
         supabase.from("clients").select("*"),
@@ -201,7 +202,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       console.error("Error fetching app data:", err);
     }
     setLoading(false);
-  }, [orgId, user?.id]);
+    setInitialLoaded(true);
+  }, [orgId, user?.id, initialLoaded]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
