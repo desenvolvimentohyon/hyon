@@ -380,13 +380,13 @@ export default function Cockpit() {
                 ttsSupported={voice.ttsSupported}
                 sttSupported={voice.sttSupported}
                 voiceEnabled={voice.config.voiceEnabled}
-                onToggleVoice={voice.toggleVoice}
+                onToggleVoice={() => voice.updateConfig({ voiceEnabled: !voice.config.voiceEnabled })}
                 onReadBriefing={() => briefing && voice.speak(briefing.resumoDia)}
                 onStartListening={voice.startListening}
                 onStopListening={voice.stopListening}
-                onStopSpeaking={voice.stop}
-                onPauseSpeaking={voice.pause}
-                onResumeSpeaking={voice.resume}
+                onStopSpeaking={voice.stopSpeaking}
+                onPauseSpeaking={voice.pauseSpeaking}
+                onResumeSpeaking={voice.resumeSpeaking}
               />
             </CardContent>
           </Card>
