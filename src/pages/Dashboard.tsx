@@ -24,6 +24,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { StatusTarefa } from "@/types";
+import { TaskAISuggestions } from "@/components/tarefas/TaskAISuggestions";
+import { toast } from "@/hooks/use-toast";
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
 
