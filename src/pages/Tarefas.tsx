@@ -105,7 +105,7 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
                     draggable
                     onDragStart={e => handleDragStart(e, t.id)}
                     onDragEnd={() => { setDragId(null); setDragOver(null); }}
-                    className={`cursor-grab active:cursor-grabbing transition-all duration-150 hover:shadow-card-hover ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
+                    className={`cursor-grab active:cursor-grabbing transition-all duration-150 hover:shadow-card-hover ${statusRowColor(t.status)} ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
                   >
                     <CardContent className="p-3 space-y-2">
                       <div className="flex items-start justify-between gap-2">
