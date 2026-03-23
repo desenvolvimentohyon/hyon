@@ -15,7 +15,7 @@ function dbToModulo(r: any): ModuloCatalogo {
   return {
     id: r.id, nome: r.name, descricao: r.description || "",
     valorCusto: Number(r.cost_value) || 0, valorVenda: Number(r.sale_value) || 0,
-    ativo: r.active, sistemaId: r.system_id || undefined,
+    ativo: r.active, sistemaId: r.system_id || undefined, isGlobal: r.is_global || false,
   };
 }
 function dbToFormaPagamento(r: any): FormaPagamentoCatalogo {
