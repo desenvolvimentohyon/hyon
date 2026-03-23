@@ -186,16 +186,25 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0">
+          <TabsList className="flex flex-wrap h-auto gap-1.5 bg-transparent p-0">
             {TABS.map(tab => {
               const Icon = tab.icon;
+              const palette = TAB_COLORS[tab.value] || TAB_COLORS.dados;
+              const isActive = activeTab === tab.value;
               return (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="text-xs px-3 py-2 rounded-md border gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  className={cn(
+                    "group text-xs px-3 py-2 rounded-md border gap-1.5 transition-all duration-300",
+                    "data-[state=active]:shadow-sm",
+                    isActive
+                      ? cn(palette.bg, palette.border, palette.color)
+                      : cn("border-border/40 hover:border-border", palette.inactiveColor, `hover:${palette.color}`)
+                  )}
+                  style={isActive ? { boxShadow: palette.glow } : undefined}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-3.5 w-3.5 transition-transform duration-300 group-hover:scale-110" />
                   {tab.label}
                 </TabsTrigger>
               );
