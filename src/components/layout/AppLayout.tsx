@@ -47,6 +47,7 @@ export function AppLayout() {
           </main>
         </div>
       </div>
+      <JarvisFloatingButton />
     </SidebarProvider>
   );
 }

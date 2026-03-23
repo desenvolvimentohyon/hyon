@@ -154,7 +154,7 @@ export function AiExecutiveAssistant() {
 
   return (
     <TooltipProvider>
-      <Card className={`neon-border border-primary/20 bg-gradient-to-br from-card via-card to-primary/[0.02] ${voice.isSpeaking ? "jarvis-speaking-glow" : ""}`}>
+      <Card className="neon-border border-primary/20 bg-gradient-to-br from-card via-card to-primary/[0.02]">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
