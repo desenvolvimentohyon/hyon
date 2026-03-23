@@ -195,10 +195,6 @@ export default function Parametros() {
           <div className="space-y-3">
             <div><Label>Nome *</Label><Input value={fSistema.nome} onChange={e => setFSistema(p => ({ ...p, nome: e.target.value }))} /></div>
             <div><Label>Descrição</Label><Input value={fSistema.descricao} onChange={e => setFSistema(p => ({ ...p, descricao: e.target.value }))} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Custo</Label><CurrencyInput value={fSistema.valorCusto} onValueChange={v => setFSistema(p => ({ ...p, valorCusto: v }))} /></div>
-              <div><Label>Valor Venda</Label><CurrencyInput value={fSistema.valorVenda} onValueChange={v => setFSistema(p => ({ ...p, valorVenda: v }))} /></div>
-            </div>
             <div className="flex items-center gap-2"><Switch checked={fSistema.ativo} onCheckedChange={v => setFSistema(p => ({ ...p, ativo: v }))} /><Label>Ativo</Label></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setModal(null)}>Cancelar</Button><Button onClick={saveSistema}>Salvar</Button></DialogFooter>
