@@ -292,6 +292,192 @@ Analise e retorne o diagnóstico usando a ferramenta fornecida. Seja direto, pr�
       return new Response(JSON.stringify(diagnosis), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ─── CHURN ANALYSIS ────────────────────────────────────────────
+    if (type === "churn_analysis") {
+      const ctx = payload.context || {};
+
+      const systemPrompt = `Você é uma IA especialista em retenção de clientes e análise de churn para empresas de revenda de software ERP/SaaS.
+Analise os dados dos clientes e identifique riscos de cancelamento, explique motivos e sugira ações de retenção.
+
+Dados atuais:
+- Clientes ativos: ${ctx.clientesAtivos ?? 0}
+- Churn do mês: ${ctx.churnMes ?? 0}
+- Clientes risco alto: ${ctx.riscoAlto ?? 0}
+- Clientes risco médio: ${ctx.riscoMedio ?? 0}
+- Valor em risco: R$ ${(ctx.valorEmRisco ?? 0).toFixed(2)}
+- Taxa de retenção: ${(ctx.retencaoPct ?? 0).toFixed(1)}%
+
+Top clientes por risco:
+${(ctx.topClientes || []).map((c: any) => `- ${c.nome}: Score ${c.score}, ${c.classificacao}, Receita R$ ${c.receita.toFixed(2)}, Health ${c.healthScore}, Títulos vencidos: ${c.titulosVencidos}, Renovação pendente: ${c.renovacaoPendente ? "Sim" : "Não"}`).join("\n")}
+
+Clientes cancelados recentemente (possível recuperação):
+${(ctx.recuperacao || []).map((c: any) => `- ${c.nome}: cancelado há ${c.canceladoHaDias} dias, receita anterior R$ ${c.receitaAnterior.toFixed(2)}`).join("\n") || "Nenhum"}
+
+Analise e retorne o diagnóstico de churn usando a ferramenta. Seja direto, prático, em português do Brasil.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: \`Bearer \${LOVABLE_API_KEY}\`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Gere o diagnóstico de churn e retenção." },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "churn_diagnosis",
+                description: "Retorna diagnóstico de churn e retenção estruturado",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    resumo: { type: "string", description: "Resumo de retenção em markdown (2-4 parágrafos)" },
+                    clientes_risco: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          nome: { type: "string" },
+                          score_churn: { type: "number" },
+                          classificacao: { type: "string", enum: ["alto", "medio", "baixo"] },
+                          motivos: { type: "array", items: { type: "string" } },
+                          receita_mensal: { type: "number" },
+                          impacto_cancelamento: { type: "string" },
+                          acoes_sugeridas: {
+                            type: "array",
+                            items: {
+                              type: "object",
+                              properties: {
+                                titulo: { type: "string" },
+                                tipo: { type: "string", enum: ["tarefa", "contato", "proposta", "desconto"] },
+                              },
+                              required: ["titulo", "tipo"],
+                              additionalProperties: false,
+                            },
+                          },
+                        },
+                        required: ["nome", "score_churn", "classificacao", "motivos", "receita_mensal", "impacto_cancelamento", "acoes_sugeridas"],
+                        additionalProperties: false,
+                      },
+                    },
+                    metricas: {
+                      type: "object",
+                      properties: {
+                        total_risco_alto: { type: "number" },
+                        total_risco_medio: { type: "number" },
+                        churn_mes_atual: { type: "number" },
+                        retencao_pct: { type: "number" },
+                        valor_em_risco: { type: "number" },
+                      },
+                      required: ["total_risco_alto", "total_risco_medio", "churn_mes_atual", "retencao_pct", "valor_em_risco"],
+                      additionalProperties: false,
+                    },
+                    alertas: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+                          titulo: { type: "string" },
+                          descricao: { type: "string" },
+                        },
+                        required: ["prioridade", "titulo", "descricao"],
+                        additionalProperties: false,
+                      },
+                    },
+                    recuperacao: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          nome: { type: "string" },
+                          cancelado_ha_dias: { type: "number" },
+                          receita_anterior: { type: "number" },
+                          sugestao: { type: "string" },
+                        },
+                        required: ["nome", "cancelado_ha_dias", "receita_anterior", "sugestao"],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ["resumo", "clientes_risco", "metricas", "alertas", "recuperacao"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "churn_diagnosis" } },
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (!toolCall?.function?.arguments) {
+        return new Response(JSON.stringify({ error: "IA não retornou diagnóstico de churn" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const diagnosis = JSON.parse(toolCall.function.arguments);
+      return new Response(JSON.stringify(diagnosis), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ─── CHURN CHAT ─────────────────────────────────────────────────
+    if (type === "churn_chat") {
+      const ctx = payload.context || {};
+      const messages = payload.messages || [];
+
+      const systemPrompt = `Você é uma IA especialista em retenção de clientes para empresas de revenda de software ERP/SaaS.
+Responda perguntas sobre retenção, churn e risco de cancelamento. Seja direto e estratégico, em português do Brasil.
+
+Dados atuais:
+- Clientes risco alto: ${ctx.riscoAlto ?? 0}
+- Clientes risco médio: ${ctx.riscoMedio ?? 0}
+- Churn do mês: ${ctx.churnMes ?? 0}
+- Retenção: ${(ctx.retencaoPct ?? 0).toFixed(1)}%
+- Valor em risco: R$ ${(ctx.valorEmRisco ?? 0).toFixed(2)}
+
+Responda em markdown quando útil. Seja conciso e forneça insights acionáveis.`;
+
+      const aiMessages = [
+        { role: "system", content: systemPrompt },
+        ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+      ];
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: \`Bearer \${LOVABLE_API_KEY}\`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: aiMessages,
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "Sem resposta.";
+      return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ─── FINANCIAL CHAT ─────────────────────────────────────────────
     if (type === "financial_chat") {
       const ctx = payload.context || {};
