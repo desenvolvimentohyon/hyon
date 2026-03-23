@@ -336,7 +336,6 @@ export default function MinhaEmpresa() {
     { value: "renovacao", label: "Renovação", description: "Alertas e propostas automáticas", icon: RefreshCw, colorClass: "text-destructive", bgClass: "bg-destructive/10", borderClass: "border-destructive/30" },
   ];
 
-  const [activeTab, setActiveTab] = useState("dados");
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
