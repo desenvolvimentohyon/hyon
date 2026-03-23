@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCardClients, CardClient } from "@/hooks/useCardClients";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
