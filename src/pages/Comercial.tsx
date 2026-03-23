@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, TrendingUp, DollarSign, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
