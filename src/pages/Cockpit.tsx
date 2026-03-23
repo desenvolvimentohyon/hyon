@@ -303,6 +303,19 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Em Atraso</span><span className="font-semibold text-destructive">{context?.clientesAtraso ?? 0}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Cert. Vencendo</span><span className="font-semibold text-amber-500">{context?.certVencendo ?? 0}</span></div>
               </div>
+              {charts.data.clients.length > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="h-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={charts.data.clients} barGap={1}>
+                        <Bar dataKey="novos" fill="#10b981" radius={[2, 2, 0, 0]} />
+                        <Bar dataKey="cancelados" fill="hsl(var(--destructive))" radius={[2, 2, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </>
+              )}
             </CockpitCard>
 
             <CockpitCard title="Tarefas do Dia" icon={ListTodo} color="bg-violet-500/10 text-violet-500">
