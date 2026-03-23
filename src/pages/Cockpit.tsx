@@ -325,6 +325,23 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Atrasadas</span><span className="font-semibold text-amber-500">{context?.tarefasAtrasadas ?? 0}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Tickets Abertos</span><span className="font-semibold">{tickets}</span></div>
               </div>
+              {charts.data.tasks.some(t => t.count > 0) && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="flex items-end gap-1 h-8 justify-center">
+                    {charts.data.tasks.map(t => {
+                      const maxCount = Math.max(...charts.data.tasks.map(x => x.count), 1);
+                      const h = Math.max((t.count / maxCount) * 100, 8);
+                      return (
+                        <div key={t.label} className="flex flex-col items-center gap-0.5">
+                          <div className="w-8 rounded-t-sm transition-all" style={{ height: `${h}%`, backgroundColor: t.color, minHeight: 4 }} />
+                          <span className="text-[9px] text-muted-foreground">{t.label.slice(0, 4)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </CockpitCard>
           </div>
 
