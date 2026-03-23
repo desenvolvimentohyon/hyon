@@ -186,17 +186,19 @@ export default function Cockpit() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Modo Cockpit" icon={Gauge} iconColor="text-cyan-400" description="Central de Comando Inteligente">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={toggleFocus} className="gap-1.5 text-xs">
-            {focusMode ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-            {focusMode ? "Visão Completa" : "Modo Foco"}
-          </Button>
-          <Button variant="outline" size="sm" onClick={refetch} className="gap-1.5 text-xs">
-            <RefreshCw className="h-3.5 w-3.5" /> Atualizar
-          </Button>
-        </div>
-      </PageHeader>
+      <PageHeader title="Modo Cockpit" icon={Gauge} iconClassName="text-cyan-400" subtitle="Central de Comando Inteligente"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={toggleFocus} className="gap-1.5 text-xs">
+              {focusMode ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              {focusMode ? "Visão Completa" : "Modo Foco"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={refetch} className="gap-1.5 text-xs">
+              <RefreshCw className="h-3.5 w-3.5" /> Atualizar
+            </Button>
+          </div>
+        }
+      />
 
       {/* ── TOP: Greeting + KPIs ─────────────────────── */}
       <Card className="bg-gradient-to-r from-card via-card/95 to-card border-border/30">
