@@ -1,55 +1,30 @@
 
 
-## Plano: Link de acompanhamento com protocolo para chamados de suporte
+## Plano: Colorir tarefas por status
 
 ### Resumo
-Ao criar um chamado de suporte (tarefa tipo "suporte"), o sistema gera automaticamente um número de protocolo e um token público. Um link de acompanhamento é gerado para enviar ao cliente, onde ele pode ver o status, checklist (o que foi feito / o que falta) e mensagens.
+Aplicar cor de fundo sutil em cada tarefa (linha da tabela e card do kanban) de acordo com o status, facilitando a identificação visual imediata.
 
-### 1. Migration SQL — Adicionar campos na tabela `portal_tickets`
+### Editar: `src/pages/Tarefas.tsx`
 
-- `protocol_number` (text, unique) — Protocolo legível tipo `SUP-20260323-0001`
-- `tracking_token` (text, unique, default random hex) — Token público para acesso sem autenticação
+**1. Criar função `statusRowColor`** que retorna classes de fundo sutil para cada status:
 
-### 2. Edge Function: `supabase/functions/ticket-tracking/index.ts`
+| Status | Cor |
+|--------|-----|
+| `concluida` | Verde claro (`bg-emerald-50 dark:bg-emerald-950/30`) |
+| `em_andamento` | Azul claro (`bg-blue-50 dark:bg-blue-950/30`) |
+| `aguardando_cliente` | Amarelo claro (`bg-amber-50 dark:bg-amber-950/30`) |
+| `a_fazer` | Cinza claro (`bg-slate-50 dark:bg-slate-900/30`) |
+| `cancelada` | Vermelho claro (`bg-red-50 dark:bg-red-950/20`) |
+| `backlog` | Neutro (sem cor extra) |
 
-Endpoint público (sem JWT) que recebe `?token=xxx` e retorna:
-- Dados do ticket: protocolo, título, status, data de criação
-- Tarefa vinculada: checklist (itens concluídos/pendentes), status, tempo gasto
-- Mensagens do ticket (apenas as públicas)
-- Nome do cliente (sem dados sensíveis)
+**2. Tabela** — Adicionar a classe de cor na `TableRow` (linha 380), junto com borda lateral colorida (`border-l-4`).
 
-### 3. Nova página: `src/pages/TicketTracking.tsx`
-
-Página pública (sem autenticação) acessível via `/acompanhamento?token=xxx`:
-- Exibe o protocolo em destaque
-- Barra de progresso baseada no checklist da tarefa vinculada
-- Lista do checklist: ✅ concluído / ⬜ pendente
-- Status atual com badge colorido
-- Timeline de mensagens
-- Design limpo e responsivo (mobile-first, pois o cliente provavelmente abre pelo WhatsApp)
-
-### 4. Editar: `src/pages/Suporte.tsx` — Gerar protocolo ao criar tarefa de suporte
-
-Na função `handleCreateTaskFromTicket`:
-- Gerar protocolo sequencial (`SUP-YYYYMMDD-NNNN`)
-- Gerar tracking_token (random hex)
-- Salvar no `portal_tickets`
-- Exibir o link de acompanhamento com botão "Copiar Link"
-
-Na visualização do ticket (detalhe):
-- Exibir protocolo e botão "Copiar Link de Acompanhamento"
-
-### 5. Editar: `src/App.tsx` — Rota pública
-
-Adicionar rota `/acompanhamento` apontando para `TicketTracking`.
+**3. Kanban** — Adicionar a classe de cor no `Card` de cada tarefa (linha 92-97), com borda lateral colorida.
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| Migration SQL | Adicionar `protocol_number` e `tracking_token` em `portal_tickets` |
-| `supabase/functions/ticket-tracking/index.ts` | Edge function pública para dados do acompanhamento |
-| `src/pages/TicketTracking.tsx` | Página pública de acompanhamento |
-| `src/pages/Suporte.tsx` | Gerar protocolo + exibir link copiável |
-| `src/App.tsx` | Rota `/acompanhamento` |
+| `src/pages/Tarefas.tsx` | Função `statusRowColor` + aplicar nas rows da tabela e cards do kanban |
 
