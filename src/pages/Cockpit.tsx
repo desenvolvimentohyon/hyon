@@ -4,6 +4,7 @@ import { useJarvisVoice } from "@/hooks/useJarvisVoice";
 import { useJarvisCommands } from "@/hooks/useJarvisCommands";
 import { useGrowthRadar } from "@/hooks/useGrowthRadar";
 import { useChurnAnalysis } from "@/hooks/useChurnAnalysis";
+import { useCockpitCharts } from "@/hooks/useCockpitCharts";
 import { JarvisAvatar } from "@/components/ai/JarvisAvatar";
 import { JarvisVoiceControls } from "@/components/ai/JarvisVoiceControls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/ui/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +23,7 @@ import {
   Send, Sparkles, CheckCircle2, RefreshCw, MessageSquare,
   FileText, Headphones, Zap, ChevronRight, Play,
 } from "lucide-react";
+import { LineChart, Line, BarChart, Bar, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 /* ── KPI Mini Card ────────────────────────────────── */
 function KpiPill({ label, value, color }: { label: string; value: string | number; color?: string }) {
@@ -81,7 +84,7 @@ export default function Cockpit() {
   const growth = useGrowthRadar();
   const churn = useChurnAnalysis();
   const commands = useJarvisCommands();
-
+  const charts = useCockpitCharts();
   const [focusMode, setFocusMode] = useState(() => localStorage.getItem("cockpit_focus") === "1");
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -243,6 +246,24 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Títulos Vencidos</span><span className="font-semibold">{inadimplentes}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Valor em Atraso</span><span className="font-semibold text-destructive">R$ {(context?.valorAtraso ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></div>
               </div>
+              {charts.data.mrr.length > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="h-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={charts.data.mrr}>
+                        <defs>
+                          <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fill="url(#mrrGrad)" dot={false} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </>
+              )}
             </CockpitCard>
 
             <CockpitCard title="Comercial" icon={TrendingUp} color="bg-indigo-500/10 text-indigo-500">
@@ -251,6 +272,25 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Aceitas no Mês</span><span className="font-semibold text-emerald-500">{context?.propostasAceitasMes ?? 0}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Sem Visualização</span><span className="font-semibold text-amber-500">{context?.propostasSemView ?? 0}</span></div>
               </div>
+              {charts.data.funnel.some(f => f.count > 0) && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="space-y-1.5">
+                    {charts.data.funnel.map(f => {
+                      const maxCount = Math.max(...charts.data.funnel.map(x => x.count), 1);
+                      return (
+                        <div key={f.label} className="flex items-center gap-2 text-[11px]">
+                          <span className="w-14 text-muted-foreground shrink-0">{f.label}</span>
+                          <div className="flex-1 h-3 bg-muted/30 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all" style={{ width: `${(f.count / maxCount) * 100}%`, backgroundColor: f.color }} />
+                          </div>
+                          <span className="w-6 text-right font-medium tabular-nums">{f.count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </CockpitCard>
           </div>
 
@@ -263,6 +303,19 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Em Atraso</span><span className="font-semibold text-destructive">{context?.clientesAtraso ?? 0}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Cert. Vencendo</span><span className="font-semibold text-amber-500">{context?.certVencendo ?? 0}</span></div>
               </div>
+              {charts.data.clients.length > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="h-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={charts.data.clients} barGap={1}>
+                        <Bar dataKey="novos" fill="#10b981" radius={[2, 2, 0, 0]} />
+                        <Bar dataKey="cancelados" fill="hsl(var(--destructive))" radius={[2, 2, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </>
+              )}
             </CockpitCard>
 
             <CockpitCard title="Tarefas do Dia" icon={ListTodo} color="bg-violet-500/10 text-violet-500">
@@ -272,6 +325,23 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Atrasadas</span><span className="font-semibold text-amber-500">{context?.tarefasAtrasadas ?? 0}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Tickets Abertos</span><span className="font-semibold">{tickets}</span></div>
               </div>
+              {charts.data.tasks.some(t => t.count > 0) && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="flex items-end gap-1 h-8 justify-center">
+                    {charts.data.tasks.map(t => {
+                      const maxCount = Math.max(...charts.data.tasks.map(x => x.count), 1);
+                      const h = Math.max((t.count / maxCount) * 100, 8);
+                      return (
+                        <div key={t.label} className="flex flex-col items-center gap-0.5">
+                          <div className="w-8 rounded-t-sm transition-all" style={{ height: `${h}%`, backgroundColor: t.color, minHeight: 4 }} />
+                          <span className="text-[9px] text-muted-foreground">{t.label.slice(0, 4)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </CockpitCard>
           </div>
 
