@@ -215,6 +215,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await supabase.from("task_history").insert({
       org_id: orgId, task_id: data.id, action: "Criação", details: "Tarefa criada",
     });
+    // Auto-start timer on the newly created task
+    const now = Date.now();
+    // Stop any running timers first
+    const running = tarefas.find(t => t.timerRodando);
+    if (running) {
+      const elapsed = Math.floor((now - (running.timerInicioTimestamp || now)) / 1000);
+      await supabase.from("tasks").update({
+        timer_running: false, timer_started_at: null,
+        total_seconds: running.tempoTotalSegundos + elapsed,
+      }).eq("id", running.id);
+    }
+    await supabase.from("tasks").update({
+      timer_running: true, timer_started_at: new Date(now).toISOString(),
+    }).eq("id", data.id);
     fetchAll();
   }, [orgId, fetchAll]);
 
