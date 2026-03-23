@@ -112,26 +112,36 @@ export function AiExecutiveAssistant() {
 
   const handleChat = useCallback(async () => {
     if (!chatInput.trim() || chatLoading) return;
-    const userMsg: ChatMessage = { role: "user", content: chatInput.trim() };
+    const inputText = chatInput.trim();
+    const userMsg: ChatMessage = { role: "user", content: inputText };
     const newMessages = [...chatMessages, userMsg];
     setChatMessages(newMessages);
     setChatInput("");
     setChatLoading(true);
+    setChatOpen(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-consultant", {
-        body: {
-          type: "chat",
-          context: context || {},
-          messages: newMessages,
-        },
-      });
-      if (error) throw error;
-      const responseText = data.content;
-      setChatMessages(prev => [...prev, { role: "assistant", content: responseText }]);
-      // Speak response if enabled
-      if (voice.config.voiceEnabled && voice.config.voiceResponses) {
-        voice.speak(responseText);
+      // Try command interpretation first
+      const cmd = await commands.interpretCommand(inputText);
+
+      if (cmd && cmd.intent !== "unknown" && !cmd.fallback_chat) {
+        // It's a command — execute it
+        setChatMessages(prev => [...prev, { role: "assistant", content: `🤖 ${cmd.spoken_response}` }]);
+        commands.executeCommand(cmd, inputText);
+        if (voice.config.voiceEnabled && voice.config.voiceResponses) {
+          voice.speak(cmd.spoken_response);
+        }
+      } else {
+        // Fallback to regular chat
+        const { data, error } = await supabase.functions.invoke("ai-consultant", {
+          body: { type: "chat", context: context || {}, messages: newMessages },
+        });
+        if (error) throw error;
+        const responseText = data.content;
+        setChatMessages(prev => [...prev, { role: "assistant", content: responseText }]);
+        if (voice.config.voiceEnabled && voice.config.voiceResponses) {
+          voice.speak(responseText);
+        }
       }
     } catch {
       toast.error("Erro ao processar sua pergunta.");
@@ -139,7 +149,16 @@ export function AiExecutiveAssistant() {
       setChatLoading(false);
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
-  }, [chatInput, chatLoading, chatMessages, context, voice]);
+  }, [chatInput, chatLoading, chatMessages, context, voice, commands]);
+
+  const handleQuickCommand = useCallback((text: string) => {
+    setChatInput(text);
+    setChatOpen(true);
+    setTimeout(() => {
+      const btn = document.getElementById("jarvis-chat-send");
+      if (btn) btn.click();
+    }, 100);
+  }, []);
 
   const handleReadBriefing = useCallback(() => {
     if (briefing) {
