@@ -20,6 +20,7 @@ import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RowActions } from "@/components/ui/row-actions";
 import { Users } from "lucide-react";
