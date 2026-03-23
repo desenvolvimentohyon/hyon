@@ -289,13 +289,13 @@ export default function Cockpit() {
               </CockpitCard>
 
               <CockpitCard title="Radar de Risco" icon={ShieldAlert} color="bg-destructive/10 text-destructive">
-                {churn.isLoading ? <Skeleton className="h-20" /> : churn.clients.length > 0 ? (
+                {churn.isLoading ? <Skeleton className="h-20" /> : churn.data?.clientes_risco && churn.data.clientes_risco.length > 0 ? (
                   <div className="space-y-1.5">
-                    {churn.clients.slice(0, 3).map(c => (
-                      <div key={c.id} className="flex items-center justify-between text-sm">
+                    {churn.data.clientes_risco.slice(0, 3).map((c, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm">
                         <span className="truncate max-w-[140px]">{c.nome}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">R$ {c.receitaMensal.toFixed(0)}</span>
+                          <span className="text-xs text-muted-foreground">R$ {c.receita_mensal.toFixed(0)}</span>
                           <Badge variant="outline" className={cn("text-[10px]",
                             c.classificacao === "alto" ? "border-destructive/30 text-destructive" :
                             c.classificacao === "medio" ? "border-amber-500/30 text-amber-500" :
