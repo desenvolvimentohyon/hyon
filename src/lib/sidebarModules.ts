@@ -94,8 +94,8 @@ export const modules: ParentModule[] = [
     title: "Configurações",
     icon: Settings,
     children: [
-      { title: "Minha Empresa", url: "/configuracoes", icon: Settings },
-      { title: "Usuários", url: "/usuarios", icon: Shield },
+      { title: "Minha Empresa", url: "/configuracoes", icon: Settings, description: "Dados e identidade da empresa" },
+      { title: "Usuários", url: "/usuarios", icon: Shield, description: "Permissões e acessos" },
     ],
   },
 ];
