@@ -158,6 +158,7 @@ const App = () => (
             <Route path="/portal/:token" element={<PortalCliente />} />
             <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
             <Route path="/renovar/:token" element={<RenovarPlano />} />
+            <Route path="/acompanhamento" element={<TicketTracking />} />
             <Route path="*" element={<AuthGate />} />
           </Routes>
           <PwaInstallBanner />

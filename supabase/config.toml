@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.ai-task-assistant]
 verify_jwt = false
+
+[functions.ticket-tracking]
+verify_jwt = false
