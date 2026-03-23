@@ -1,26 +1,19 @@
 
 
-## Plano: Ao concluir tarefa, forçar status e prioridade para "concluída/baixa"
+## Plano: Remover campos de preço do formulário de Sistema
 
 ### Resumo
-Quando o status de uma tarefa mudar para `concluida` (seja manualmente, pelo checklist automático, ou drag-and-drop), o sistema automaticamente seta a prioridade para `baixa` e garante que o status fique `concluida`. Também para o timer se estiver rodando.
+O formulário de criação/edição de Sistema passará a ter apenas Nome, Descrição e Status (ativo/inativo). Os campos Valor Custo e Valor Venda serão removidos, já que os preços são definidos pelos módulos vinculados. A tabela de listagem também será atualizada para remover as colunas de custo/venda (ou exibir a soma dos módulos vinculados).
 
-### Editar: `src/contexts/AppContext.tsx` — Lógica dentro de `updateTarefa`
+### Editar: `src/pages/Parametros.tsx`
 
-Após a linha 241 (merge das changes), adicionar verificação:
-
-```text
-Se o status final for "concluida":
-  - Forçar prioridade = "baixa"
-  - Parar timer se estiver rodando (calcular elapsed, setar timer_running=false)
-  - Registrar no histórico: "Tarefa concluída — prioridade e timer ajustados automaticamente"
-```
-
-Isso será aplicado antes de montar o `dbUpdate`, garantindo que qualquer caminho que conclua a tarefa (checklist 100%, drag kanban, mudança manual) passe pela mesma lógica.
+1. **Formulário do Sistema (modal, linhas 194-208)** — Remover os dois campos `CurrencyInput` (Valor Custo e Valor Venda)
+2. **Estado do formulário (linha 34)** — Remover `valorCusto` e `valorVenda` do estado `fSistema`
+3. **Tabela de sistemas (linhas 78-93)** — Remover colunas "Custo" e "Venda", ajustar colspan do empty state
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/contexts/AppContext.tsx` | Auto-setar prioridade=baixa e parar timer ao concluir tarefa |
+| `src/pages/Parametros.tsx` | Remover campos de preço do form e tabela de sistemas |
 
