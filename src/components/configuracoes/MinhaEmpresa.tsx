@@ -126,6 +126,7 @@ export default function MinhaEmpresa() {
   const [cepLoading, setCepLoading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoDarkUploading, setLogoDarkUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("dados");
 
   // Fetch company profile
   const { data: profileData, isLoading } = useQuery({
