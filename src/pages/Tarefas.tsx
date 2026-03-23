@@ -126,6 +126,10 @@ export default function Tarefas() {
   const [novoSistema, setNovoSistema] = useState<string | undefined>(undefined);
   const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
   const [nomeClienteAvulso, setNomeClienteAvulso] = useState("");
+  const [novoObservacoes, setNovoObservacoes] = useState("");
+  const [fotosFiles, setFotosFiles] = useState<File[]>([]);
+  const [fotosPreview, setFotosPreview] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   // Detect client system when client changes
   useEffect(() => {
