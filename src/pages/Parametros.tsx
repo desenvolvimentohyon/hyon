@@ -75,19 +75,17 @@ export default function Parametros() {
           <div className="flex justify-end"><Button size="sm" onClick={openNewSistema} className="gap-1.5"><Plus className="h-4 w-4" />Novo Sistema</Button></div>
           <Card><CardContent className="p-0">
             <Table>
-              <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Descrição</TableHead><TableHead className="text-right">Custo</TableHead><TableHead className="text-right">Venda</TableHead><TableHead>Status</TableHead><TableHead className="w-20">Ações</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Descrição</TableHead><TableHead>Status</TableHead><TableHead className="w-20">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
                 {sistemas.map(s => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.nome}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{s.descricao}</TableCell>
-                    <TableCell className="text-right text-sm">{fmt(s.valorCusto)}</TableCell>
-                    <TableCell className="text-right text-sm font-medium">{fmt(s.valorVenda)}</TableCell>
                     <TableCell>{s.ativo ? <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</TableCell>
                     <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditSistema(s.id)}><Pencil className="h-3.5 w-3.5" /></Button><Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { deleteSistema(s.id); toast.success("Removido"); }}><Trash2 className="h-3.5 w-3.5" /></Button></div></TableCell>
                   </TableRow>
                 ))}
-                {sistemas.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum sistema cadastrado</TableCell></TableRow>}
+                {sistemas.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhum sistema cadastrado</TableCell></TableRow>}
               </TableBody>
             </Table>
           </CardContent></Card>
