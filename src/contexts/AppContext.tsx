@@ -244,7 +244,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       "geraCobrancaExtra", "valorCobrancaExtra", "etapaImplantacao", "riscoCancelamento",
       "valorProposta", "tipoPlano", "dataPrevisaoFechamento", "origemLead", "statusComercial",
       "motivoPerda", "objecoes", "setorTreinamento", "horasMinistradas", "participantes",
-      "treinamentoExtraCobrado", "valorTreinamentoExtra", "implantacaoId"];
+      "treinamentoExtraCobrado", "valorTreinamentoExtra", "implantacaoId", "observacoes", "fotos"];
     const existingMeta = (existing as any).metadata || {};
     const newMeta = { ...existingMeta };
     let metaChanged = false;
