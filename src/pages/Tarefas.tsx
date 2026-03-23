@@ -82,7 +82,7 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
                         <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : "Avulsa"}</span>
+                        <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
                         <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
                       </div>
                     </CardContent>
@@ -125,6 +125,7 @@ export default function Tarefas() {
   const [novoTipo, setNovoTipo] = useState<TipoOperacional>("interno");
   const [novoSistema, setNovoSistema] = useState<string | undefined>(undefined);
   const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
+  const [nomeClienteAvulso, setNomeClienteAvulso] = useState("");
 
   // Detect client system when client changes
   useEffect(() => {
@@ -179,7 +180,8 @@ export default function Tarefas() {
     if (!novoTitulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
-      clienteId: novoCliente === "null" ? null : novoCliente,
+      clienteId: novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente,
+      nomeClienteAvulso: novoCliente === "avulso" ? nomeClienteAvulso.trim() || undefined : undefined,
       responsavelId: novoResponsavel, prioridade: novoPrioridade, status: "a_fazer",
       prazoDataHora: novoPrazo || undefined,
       tags: novoTags.split(",").map(t => t.trim()).filter(Boolean),
@@ -190,7 +192,7 @@ export default function Tarefas() {
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
-    setNovoSistema(undefined); setSistemaDetectado(null);
+    setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
   };
 
   const prioridadeColor = (p: string) => {
@@ -313,7 +315,7 @@ export default function Tarefas() {
                       </div>
                     </TableCell>
                     <TableCell><Badge className={`text-[10px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge></TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : "Avulsa"}</TableCell>
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : (t.nomeClienteAvulso || "Avulsa")}</TableCell>
                     <TableCell><Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge></TableCell>
                     <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
                     <TableCell className="hidden lg:table-cell text-sm">{getTecnico(t.responsavelId)?.nome}</TableCell>
@@ -365,13 +367,17 @@ export default function Tarefas() {
               </div>
               <div>
                 <Label>Cliente</Label>
-                <Select value={novoCliente} onValueChange={setNovoCliente}>
+                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "avulso") setNomeClienteAvulso(""); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="null">Avulsa</SelectItem>
+                    <SelectItem value="avulso">Cliente Avulso</SelectItem>
                     {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                {novoCliente === "avulso" && (
+                  <Input className="mt-2" placeholder="Nome do cliente avulso" value={nomeClienteAvulso} onChange={e => setNomeClienteAvulso(e.target.value)} />
+                )}
               </div>
             </div>
             {/* System detection banner */}

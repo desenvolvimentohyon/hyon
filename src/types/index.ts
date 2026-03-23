@@ -69,6 +69,7 @@ export interface Tarefa {
   titulo: string;
   descricao: string;
   clienteId: string | null;
+  nomeClienteAvulso?: string;
   responsavelId: string;
   prioridade: Prioridade;
   status: StatusTarefa;

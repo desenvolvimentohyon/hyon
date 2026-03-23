@@ -48,6 +48,7 @@ function dbToTarefa(r: any): Tarefa {
   }));
   return {
     id: r.id, titulo: r.title, descricao: r.description, clienteId: r.client_id,
+    nomeClienteAvulso: m.nomeClienteAvulso || undefined,
     responsavelId: r.assignee_profile_id || "", prioridade: r.priority as Prioridade,
     status: r.status as StatusTarefa, prazoDataHora: r.due_at || undefined,
     criadoEm: r.created_at, atualizadoEm: r.updated_at, tags: r.tags || [],
@@ -81,6 +82,7 @@ function tarefaToDb(t: any, orgId: string) {
     sistema_relacionado: t.sistemaRelacionado || null,
     linked_ticket_id: t.linkedTicketId || null,
     metadata: {
+      nomeClienteAvulso: t.nomeClienteAvulso || undefined,
       checklist: t.checklist || [], anexosFake: t.anexosFake || [],
       moduloRelacionado: t.moduloRelacionado, slaHoras: t.slaHoras,
       reincidente: t.reincidente, geraCobrancaExtra: t.geraCobrancaExtra,
@@ -236,7 +238,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dbUpdate.timer_started_at = changes.timerInicioTimestamp ? new Date(changes.timerInicioTimestamp).toISOString() : null;
     }
     // Update metadata for extended fields
-    const metaFields = ["checklist", "anexosFake", "moduloRelacionado", "slaHoras", "reincidente",
+    const metaFields = ["nomeClienteAvulso", "checklist", "anexosFake", "moduloRelacionado", "slaHoras", "reincidente",
       "geraCobrancaExtra", "valorCobrancaExtra", "etapaImplantacao", "riscoCancelamento",
       "valorProposta", "tipoPlano", "dataPrevisaoFechamento", "origemLead", "statusComercial",
       "motivoPerda", "objecoes", "setorTreinamento", "horasMinistradas", "participantes",
