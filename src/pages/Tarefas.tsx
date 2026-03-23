@@ -180,7 +180,8 @@ export default function Tarefas() {
     if (!novoTitulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
-      clienteId: novoCliente === "null" ? null : novoCliente,
+      clienteId: novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente,
+      nomeClienteAvulso: novoCliente === "avulso" ? nomeClienteAvulso.trim() || undefined : undefined,
       responsavelId: novoResponsavel, prioridade: novoPrioridade, status: "a_fazer",
       prazoDataHora: novoPrazo || undefined,
       tags: novoTags.split(",").map(t => t.trim()).filter(Boolean),
@@ -191,7 +192,7 @@ export default function Tarefas() {
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
-    setNovoSistema(undefined); setSistemaDetectado(null);
+    setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
   };
 
   const prioridadeColor = (p: string) => {
