@@ -23,6 +23,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RowActions } from "@/components/ui/row-actions";
+import { AiRetencaoAssistant } from "@/components/ai/AiRetencaoAssistant";
 import { Users } from "lucide-react";
 
 export default function Clientes() {
