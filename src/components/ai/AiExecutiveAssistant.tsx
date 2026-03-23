@@ -58,10 +58,12 @@ const PLACEHOLDER_QUESTIONS = [
 
 export function AiExecutiveAssistant() {
   const { briefing, context, isLoading, refetch } = useExecutiveBriefing();
+  const commands = useJarvisCommands();
   const [isOpen, setIsOpen] = useState(true);
   const [alertsOpen, setAlertsOpen] = useState(true);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [quickCmdsOpen, setQuickCmdsOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
