@@ -1,10 +1,12 @@
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   cliente: ClienteFull;
@@ -18,9 +20,30 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
   const meta = { ...(cliente.metadata || {}), ...(formData.metadata || {}) } as any;
   const setMeta = (key: string, val: any) => onChange({ metadata: { ...meta, [key]: val } } as any);
 
+  const [custoModulos, setCustoModulos] = useState(0);
+  const [qtdModulos, setQtdModulos] = useState(0);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data: links } = await supabase
+        .from("client_modules")
+        .select("module_id")
+        .eq("client_id", cliente.id);
+      if (!links || links.length === 0) { setCustoModulos(0); setQtdModulos(0); return; }
+      const ids = links.map((l: any) => l.module_id);
+      const { data: mods } = await supabase
+        .from("system_modules")
+        .select("cost_value")
+        .in("id", ids);
+      const sum = (mods || []).reduce((s: number, m: any) => s + (m.cost_value || 0), 0);
+      setCustoModulos(sum);
+      setQtdModulos(ids.length);
+    };
+    fetch();
+  }, [cliente.id]);
+
   const costActive = formData.cost_active ?? cliente.cost_active;
   const costValue = Number(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0);
-  const custoModulos = Number(meta.custoModulos || 0);
   const custoCloud = Number(meta.custoCloud || 0);
   const outrosCustos = Number(meta.outrosCustos || 0);
   const totalCusto = costValue + custoModulos + custoCloud + outrosCustos;
@@ -51,7 +74,15 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
             </Select>
           </div>
           <div><Label>Custo repasse/franquia (R$)</Label><CurrencyInput value={Number(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0)} onValueChange={v => onChange({ monthly_cost_value: v } as any)} /></div>
-          <div><Label>Custo módulos (R$)</Label><CurrencyInput value={custoModulos} onValueChange={v => setMeta("custoModulos", v)} /></div>
+          <div>
+            <Label className="flex items-center gap-2">
+              Custo módulos (R$)
+              {qtdModulos > 0 && <Badge variant="secondary" className="text-[10px]">{qtdModulos} módulo{qtdModulos > 1 ? "s" : ""}</Badge>}
+            </Label>
+            <div className="flex h-10 w-full rounded-lg border border-input bg-muted/50 px-3 py-2 text-sm items-center text-muted-foreground cursor-default">
+              R$ {custoModulos.toFixed(2)}
+            </div>
+          </div>
           <div><Label>Custo cloud/infra (R$)</Label><CurrencyInput value={custoCloud} onValueChange={v => setMeta("custoCloud", v)} /></div>
           <div><Label>Outros custos (R$)</Label><CurrencyInput value={outrosCustos} onValueChange={v => setMeta("outrosCustos", v)} /></div>
         </div>
