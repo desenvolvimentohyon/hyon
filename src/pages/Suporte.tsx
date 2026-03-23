@@ -696,14 +696,38 @@ function PortalTicketsTab() {
     [tarefas]
   );
 
+  const generateProtocol = () => {
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+    const seq = String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0");
+    return `SUP-${dateStr}-${seq}`;
+  };
+
+  const getTrackingUrl = (trackingToken: string) => {
+    return `${window.location.origin}/acompanhamento?token=${trackingToken}`;
+  };
+
+  const copyTrackingLink = (trackingToken: string) => {
+    navigator.clipboard.writeText(getTrackingUrl(trackingToken));
+    toast.success("Link de acompanhamento copiado!");
+  };
+
   const handleCreateTaskFromTicket = async (ticket: any) => {
     if (!profile?.org_id) return;
     setSaving(true);
     try {
+      // Generate protocol if ticket doesn't have one
+      const protocol = ticket.protocol_number || generateProtocol();
+
+      // Update ticket with protocol if missing
+      if (!ticket.protocol_number) {
+        await supabase.from("portal_tickets").update({ protocol_number: protocol }).eq("id", ticket.id);
+      }
+
       // Create the task
       const dbData = {
         org_id: profile.org_id,
-        title: `[Ticket] ${ticket.title}`,
+        title: `[${protocol}] ${ticket.title}`,
         description: ticket.description || "",
         client_id: ticket.client_id || null,
         priority: "media",
@@ -722,10 +746,15 @@ function PortalTicketsTab() {
       // Add history
       await supabase.from("task_history").insert({
         org_id: profile.org_id, task_id: newTask.id,
-        action: "Criação", details: "Tarefa criada a partir de ticket do portal",
+        action: "Criação", details: `Tarefa criada a partir de ticket do portal — Protocolo: ${protocol}`,
       });
 
-      toast.success("Tarefa de suporte criada com sucesso!");
+      // Copy tracking link
+      if (ticket.tracking_token) {
+        copyTrackingLink(ticket.tracking_token);
+      }
+
+      toast.success("Tarefa criada! Link de acompanhamento copiado.");
       refetch();
       queryClient.invalidateQueries({ queryKey: ["portal_tickets_admin"] });
     } catch (err: any) {
