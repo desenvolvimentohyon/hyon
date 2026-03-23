@@ -101,7 +101,7 @@ export function useGrowthRadar(enabled = true) {
         supabase.from("client_modules").select("client_id, module_id"),
         supabase.from("system_modules").select("id"),
         supabase.from("financial_titles").select("client_id, value_original, status").eq("type", "receber").eq("status", "vencido"),
-        supabase.from("proposals").select("id, valor_mensal, status_aceite, data_envio, visualizada_em").in("status_aceite", ["pendente", "enviado"]),
+        supabase.from("proposals").select("id, monthly_value, acceptance_status, sent_at, first_viewed_at").in("acceptance_status", ["pendente", "enviado"]),
         supabase.from("financial_titles").select("value_original").eq("type", "receber").eq("competency", thisMonth).in("status", ["pago", "aberto", "vencido"]),
         supabase.from("financial_titles").select("value_original").eq("type", "receber").eq("competency", lastMonthKey).in("status", ["pago", "aberto", "vencido"]),
       ]);
