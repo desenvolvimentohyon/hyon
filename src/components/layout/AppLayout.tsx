@@ -2,6 +2,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Outlet, useLocation } from "react-router-dom";
+import { JarvisFloatingButton } from "@/components/ai/JarvisFloatingButton";
 import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,6 +47,7 @@ export function AppLayout() {
           </main>
         </div>
       </div>
+      <JarvisFloatingButton />
     </SidebarProvider>
   );
 }

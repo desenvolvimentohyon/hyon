@@ -11,8 +11,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { JarvisAvatar } from "@/components/ai/JarvisAvatar";
 import {
-  Brain, RefreshCw, ChevronDown, ChevronUp,
+  RefreshCw, ChevronDown, ChevronUp,
   AlertTriangle, AlertCircle, Info, CheckCircle2,
   Send, Sparkles, Users, DollarSign, Headphones,
   FileText, TrendingUp, MessageSquare, Lightbulb,
@@ -153,14 +154,15 @@ export function AiExecutiveAssistant() {
 
   return (
     <TooltipProvider>
-      <Card className={`neon-border border-primary/20 bg-gradient-to-br from-card via-card to-primary/[0.02] ${voice.isSpeaking ? "jarvis-speaking-glow" : ""}`}>
+      <Card className="neon-border border-primary/20 bg-gradient-to-br from-card via-card to-primary/[0.02]">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <div className={`h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center ${voice.isSpeaking ? "jarvis-speaking-glow" : ""}`}>
-                  <Brain className="h-4 w-4 text-primary" />
-                </div>
+                <JarvisAvatar
+                  size="sm"
+                  state={voice.isSpeaking ? "speaking" : voice.isListening ? "listening" : isLoading ? "processing" : "idle"}
+                />
                 Central de Inteligência IA
                 <Badge variant="outline" className="text-[10px] font-normal">Assistente Executivo</Badge>
               </CardTitle>

@@ -293,3 +293,29 @@
   0%, 100% { transform: scaleY(0.5); }
   50% { transform: scaleY(1.2); }
 }
+
+/* Jarvis Avatar Animations */
+@keyframes jarvis-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes jarvis-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes jarvis-ripple {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes jarvis-core-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@keyframes jarvis-capture {
+  0% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 0.4; }
+}
