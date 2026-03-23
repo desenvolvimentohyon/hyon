@@ -147,6 +147,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const orgId = profile?.org_id;
 
   const [loading, setLoading] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
