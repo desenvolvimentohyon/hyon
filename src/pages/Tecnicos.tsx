@@ -58,6 +58,7 @@ export default function Tecnicos() {
         title="Técnicos"
         actions={<Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" />Novo Técnico</Button>}
       />
+      <ModuleNavGrid moduleId="operacional" />
 
       <div className="rounded-lg border overflow-hidden">
         <Table>

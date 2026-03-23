@@ -185,6 +185,7 @@ export default function Parceiros() {
         subtitle="Gerencie parceiros e comissões de indicação"
         actions={<Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro</Button>}
       />
+      <ModuleNavGrid moduleId="comercial" />
 
       <div className="flex gap-3 flex-wrap">
         <Input placeholder="Buscar parceiro..." value={busca} onChange={e => setBusca(e.target.value)} className="w-56" />

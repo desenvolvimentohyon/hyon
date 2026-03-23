@@ -156,6 +156,7 @@ export default function Propostas() {
         title="Propostas"
         actions={<Button onClick={handleNova} className="gap-1.5"><Plus className="h-4 w-4" />Nova Proposta</Button>}
       />
+      <ModuleNavGrid moduleId="comercial" />
 
       <Card>
         <CardContent className="pt-4 space-y-3">

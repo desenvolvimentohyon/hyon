@@ -21,6 +21,7 @@ import {
   ResponsiveContainer, LineChart, Line, CartesianGrid, Legend, Area, AreaChart,
 } from "recharts";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { StatusTarefa } from "@/types";

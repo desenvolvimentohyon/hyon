@@ -105,6 +105,7 @@ export default function Comercial() {
         title="Pipeline Comercial"
         actions={<Button size="sm" onClick={() => setShowNovoLead(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Lead</Button>}
       />
+      <ModuleNavGrid moduleId="comercial" />
 
       {/* Kanban */}
       <div className="flex gap-4 overflow-x-auto pb-4">

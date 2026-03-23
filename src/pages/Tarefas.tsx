@@ -225,6 +225,7 @@ export default function Tarefas() {
           </div>
         }
       />
+      <ModuleNavGrid moduleId="operacional" />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">

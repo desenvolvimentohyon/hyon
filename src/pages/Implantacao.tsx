@@ -77,6 +77,7 @@ export default function Implantacao() {
         title="Implantações"
         actions={<Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5"><Plus className="h-4 w-4" />Nova Implantação</Button>}
       />
+      <ModuleNavGrid moduleId="operacional" />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {implantacoes.map(imp => {
