@@ -2630,6 +2630,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_global: boolean
           name: string
           org_id: string
           sale_value: number
@@ -2642,6 +2643,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_global?: boolean
           name: string
           org_id: string
           sale_value?: number
@@ -2654,6 +2656,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_global?: boolean
           name?: string
           org_id?: string
           sale_value?: number

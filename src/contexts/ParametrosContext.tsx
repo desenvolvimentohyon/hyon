@@ -133,6 +133,7 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
     if (c.valorVenda !== undefined) upd.sale_value = c.valorVenda;
     if (c.ativo !== undefined) upd.active = c.ativo;
     if (c.sistemaId !== undefined) upd.system_id = c.sistemaId;
+    if (c.isGlobal !== undefined) upd.is_global = c.isGlobal;
     const { error } = await supabase.from("system_modules").update(upd).eq("id", id);
     if (error) { toast.error("Erro ao atualizar módulo"); return; }
     fetchAll();

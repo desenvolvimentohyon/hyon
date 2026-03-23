@@ -17,6 +17,7 @@ export interface ModuloCatalogo {
   valorVenda: number;
   ativo: boolean;
   sistemaId?: string;
+  isGlobal?: boolean;
 }
 
 export interface FormaPagamentoCatalogo {
