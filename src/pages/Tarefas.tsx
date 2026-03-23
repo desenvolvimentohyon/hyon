@@ -180,8 +180,26 @@ export default function Tarefas() {
     }).sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
   }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
 
-  const handleCriar = () => {
+  const handleCriar = async () => {
     if (!novoTitulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
+    setUploading(true);
+
+    // Upload photos
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const orgId = currentUser ? (await supabase.from("profiles").select("org_id").eq("id", currentUser.id).single()).data?.org_id : null;
+    let fotosArr: { id: string; url: string; nome: string }[] = [];
+    if (orgId && fotosFiles.length > 0) {
+      for (const file of fotosFiles) {
+        const fileId = Math.random().toString(36).slice(2);
+        const filePath = `${orgId}/${fileId}-${file.name}`;
+        const { error: upErr } = await supabase.storage.from("task-attachments").upload(filePath, file);
+        if (!upErr) {
+          const { data: urlData } = supabase.storage.from("task-attachments").getPublicUrl(filePath);
+          fotosArr.push({ id: fileId, url: filePath, nome: file.name });
+        }
+      }
+    }
+
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
       clienteId: novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente,
@@ -192,11 +210,31 @@ export default function Tarefas() {
       checklist: [], anexosFake: [], comentarios: [],
       tipoOperacional: novoTipo,
       sistemaRelacionado: novoSistema || undefined,
+      observacoes: novoObservacoes.trim() || undefined,
+      fotos: fotosArr.length > 0 ? fotosArr : undefined,
     });
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
     setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
+    setNovoObservacoes(""); setFotosFiles([]); setFotosPreview([]);
+    setUploading(false);
+  };
+
+  const handleFotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setFotosFiles(prev => [...prev, ...files]);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => setFotosPreview(prev => [...prev, ev.target?.result as string]);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeFoto = (idx: number) => {
+    setFotosFiles(prev => prev.filter((_, i) => i !== idx));
+    setFotosPreview(prev => prev.filter((_, i) => i !== idx));
   };
 
   const prioridadeColor = (p: string) => {
