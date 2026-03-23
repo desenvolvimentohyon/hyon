@@ -15,6 +15,7 @@ import {
   Building2, MapPin, FileText, Landmark, Palette, Settings2,
   Copy, Plus, Trash2, Star, Loader2, Upload, AlertTriangle, RefreshCw, Search
 } from "lucide-react";
+import { SubtabGrid, type SubtabItem } from "./SubtabGrid";
 import { validateCNPJ, maskDocument } from "@/lib/cnpjUtils";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
