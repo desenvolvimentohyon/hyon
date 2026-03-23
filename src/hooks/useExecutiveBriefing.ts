@@ -40,33 +40,24 @@ async function fetchSystemContext() {
   const in7d = new Date(now); in7d.setDate(in7d.getDate() + 7);
   const todayStr = now.toISOString().split("T")[0];
 
-  const [
-    clientesAtivosRes,
-    clientesAtrasoRes,
-    clientesNovosMesRes,
-    certVencendoRes,
-    mrrRes,
-    titulosVencidosRes,
-    propostasAbertasRes,
-    propostasSemViewRes,
-    propostasAceitasMesRes,
-    tarefasPendentesRes,
-    tarefasUrgentesRes,
-    tarefasAtrasadasRes,
-    ticketsAbertosRes,
-    planosVencendoRes,
-    comissoesPendentesRes,
-  ] = await Promise.all([
+  // Split into smaller batches to avoid TS2589 (excessive type depth)
+  const [clientesAtivosRes, clientesAtrasoRes, clientesNovosMesRes, certVencendoRes, mrrRes] = await Promise.all([
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "ativo"),
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "ativo").contains("metadata", { statusFinanceiro: "2_mais_atrasos" }),
     supabase.from("clients").select("id", { count: "exact", head: true }).gte("created_at", startOfMonth),
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "ativo").not("cert_expires_at", "is", null).lte("cert_expires_at", in30d.toISOString().split("T")[0]),
     supabase.from("clients").select("monthly_value_final").eq("status", "ativo").eq("recurrence_active", true),
+  ]);
+
+  const [titulosVencidosRes, propostasAbertasRes, propostasSemViewRes, propostasAceitasMesRes, tarefasPendentesRes] = await Promise.all([
     supabase.from("financial_titles").select("id, value_final", { count: "exact" }).eq("type", "receber").eq("status", "aberto").lt("due_at", todayStr),
     supabase.from("proposals").select("id", { count: "exact", head: true }).in("status_aceite", ["pendente", "enviada"]),
     supabase.from("proposals").select("id", { count: "exact", head: true }).is("first_viewed_at", null).in("status_aceite", ["pendente", "enviada"]),
     supabase.from("proposals").select("id", { count: "exact", head: true }).eq("status_aceite", "aceitou").gte("created_at", startOfMonth),
     supabase.from("tasks").select("id", { count: "exact", head: true }).in("status", ["pendente", "em_andamento"]),
+  ]);
+
+  const [tarefasUrgentesRes, tarefasAtrasadasRes, ticketsAbertosRes, planosVencendoRes, comissoesPendentesRes] = await Promise.all([
     supabase.from("tasks").select("id", { count: "exact", head: true }).eq("priority", "urgente").in("status", ["pendente", "em_andamento"]),
     supabase.from("tasks").select("id", { count: "exact", head: true }).in("status", ["pendente", "em_andamento"]).lt("due_at", now.toISOString()),
     supabase.from("portal_tickets").select("id", { count: "exact", head: true }).in("status", ["aberto", "em_andamento"]),
