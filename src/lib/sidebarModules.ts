@@ -76,6 +76,7 @@ export const modules: ParentModule[] = [
     id: "operacional",
     title: "Suporte e Operacional",
     icon: Headphones,
+    directUrl: "/suporte",
     children: [
       { title: "Suporte", url: "/suporte", icon: Headphones, description: "Chamados e SLA de atendimento" },
       { title: "Tarefas", url: "/tarefas", icon: ListTodo, description: "Gestão de tarefas e atividades" },
