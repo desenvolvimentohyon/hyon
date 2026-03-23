@@ -1,102 +1,75 @@
 
 
-## Plano: Integrar Voz ao Jarvis
+## Plano: Avatar Animado Futurista para o Jarvis
 
 ### Resumo
-Adicionar interação por voz ao assistente executivo existente usando as APIs nativas do navegador (Web Speech API): `SpeechSynthesis` para fala e `SpeechRecognition` para escuta. Sem dependências externas, sem API keys adicionais, sem custos. Fallback elegante quando o navegador não suportar.
+Criar um componente `JarvisAvatar` com animações CSS puras (sem canvas/WebGL) que reage aos estados do Jarvis (idle, falando, ouvindo, processando). Integrar como FAB flutuante no layout principal, abrindo o painel do assistente ao clicar.
 
-### Arquitetura: 2 novos arquivos + 2 edições
+### Arquitetura: 2 novos arquivos + 3 edições
 
-### 1. Novo hook: `src/hooks/useJarvisVoice.ts`
+### 1. Novo componente: `src/components/ai/JarvisAvatar.tsx`
 
-Hook centralizado que gerencia toda a camada de voz:
+Avatar visual baseado em esferas concêntricas animadas com CSS:
 
-**Text-to-Speech (fala)**
-- Usa `window.speechSynthesis` com preferência por voz pt-BR (Google, Luciana, etc.)
-- Métodos: `speak(text)`, `stop()`, `pause()`, `resume()`
-- Estado: `isSpeaking`, `voiceEnabled`, `volume`, `rate`
-- Seleciona automaticamente a melhor voz disponível em português
-- Controle de volume e velocidade
+**Estrutura visual:**
+- Núcleo central: círculo com gradiente azul-roxo-ciano
+- Anel orbital: borda animada girando ao redor do núcleo
+- Halo externo: glow difuso pulsante
+- Ondas de áudio: rings expansivos (visíveis ao falar)
 
-**Speech-to-Text (escuta)**
-- Usa `webkitSpeechRecognition` / `SpeechRecognition`
-- Métodos: `startListening()`, `stopListening()`
-- Estado: `isListening`, `transcript`, `micSupported`
-- Callback `onResult(text)` para enviar ao chat do Jarvis
-- Pede permissão de microfone apenas ao clicar
+**Estados:**
+- `idle`: pulse leve (respiração), rotação orbital lenta
+- `speaking`: pulse intenso, ondas de áudio expandindo, glow aumentado
+- `listening`: waveform dots animados ao redor, efeito captação
+- `processing`: rotação orbital rápida, brilho intermitente
 
-**Configurações persistidas** em `localStorage`:
-- `jarvis_voice_enabled` (boolean)
-- `jarvis_auto_welcome` (boolean)
-- `jarvis_auto_read_briefing` (boolean)
-- `jarvis_voice_responses` (boolean)
-- `jarvis_volume` (0-1)
-- `jarvis_rate` (0.7-1.3)
+**Props:** `state: "idle" | "speaking" | "listening" | "processing"`, `size: "sm" | "md" | "lg"`, `onClick`, `compact: boolean`
 
-### 2. Novo componente: `src/components/ai/JarvisVoiceControls.tsx`
+### 2. Novo componente: `src/components/ai/JarvisFloatingButton.tsx`
 
-Barra compacta de controles de voz inserida no header do card do assistente:
+FAB flutuante posicionado `fixed bottom-6 right-6 z-50`:
 
-- Botão 🎤 "Falar com Jarvis" (ativa microfone, mostra waveform animado enquanto ouve)
-- Botão 🔊 "Ouvir resumo" (lê o briefing em voz alta)
-- Botão ⏸ Pausar / ▶ Retomar
-- Botão 🔇 Mute (desativa voz)
-- Indicador visual de estado: "Ouvindo..." / "Falando..." com animação CSS (pulso/glow)
-- Quando `isListening`: mostra dots animados + texto reconhecido em tempo real
-- Quando `isSpeaking`: glow sutil no ícone do Brain
+- Renderiza `<JarvisAvatar size="md" />` como botão
+- Ao clicar: abre/fecha painel lateral (sheet/drawer) com o `AiExecutiveAssistant` completo
+- Badge de notificação se houver alertas de alta prioridade
+- Estado do avatar sincronizado com `useJarvisVoice` (fala/escuta)
+- `prefers-reduced-motion`: desativa animações complexas
+- Hover: scale sutil (1.08)
 
 ### 3. Editar: `src/components/ai/AiExecutiveAssistant.tsx`
 
-- Importar `useJarvisVoice` e `JarvisVoiceControls`
-- Inserir `<JarvisVoiceControls />` no header do card, ao lado dos botões existentes
-- **Boas-vindas por voz**: Após o briefing carregar pela primeira vez na sessão, se `auto_welcome` estiver ativo, chamar `speak(briefing.saudacao + ". " + briefing.resumoDia)` — usa `sessionStorage` para garantir que fala apenas uma vez por sessão
-- **Microfone → Chat**: Quando o reconhecimento de voz finalizar, inserir o texto no campo de chat e disparar `handleChat()` automaticamente
-- **Respostas por voz**: Após receber resposta do chat, se `voice_responses` estiver ativo, chamar `speak(response)`
-- Botão "Ouvir resumo" chama `speak(briefing.resumoDia)`
+- Substituir o ícone `Brain` no header por `<JarvisAvatar size="sm" state={currentState} />` onde `currentState` é derivado de `voice.isSpeaking`, `voice.isListening`, `isLoading`
+- Remover classes `jarvis-speaking-glow` do Card (avatar absorve essa responsabilidade visual)
 
-### 4. Editar: `src/pages/Dashboard.tsx`
+### 4. Editar: `src/components/layout/AppLayout.tsx`
 
-Nenhuma mudança necessária — o componente `AiExecutiveAssistant` já está integrado. As mudanças ficam internas ao componente.
+- Importar e renderizar `<JarvisFloatingButton />` dentro do layout, abaixo do conteúdo principal
+- O FAB aparece em todas as páginas autenticadas
 
-### Detalhes técnicos
+### 5. Editar: `src/index.css`
 
-**Seleção de voz pt-BR:**
-```text
-1. Buscar vozes com lang.startsWith("pt")
-2. Preferir vozes com "Google" ou "Luciana" no nome
-3. Fallback para qualquer voz pt-BR disponível
-4. Se nenhuma pt-BR, usar voz padrão do sistema
-```
-
-**Fallbacks:**
-- Sem `speechSynthesis` → botões de voz não aparecem, tudo funciona em texto
-- Sem `SpeechRecognition` → botão de microfone não aparece
-- Autoplay bloqueado → mostrar botão "Ativar voz do Jarvis" discreto
-- Microfone negado → toast amigável "Permita acesso ao microfone para falar com o Jarvis"
-
-**Animações CSS:**
-- `@keyframes pulse-voice` para indicador de fala
-- `@keyframes wave-dots` para indicador de escuta
-- Glow no ícone Brain quando Jarvis está falando
-
-**Segurança:**
-- Microfone só ativa com clique explícito do usuário
-- Voz não trava a interface (usa API assíncrona)
-- `speechSynthesis.cancel()` antes de cada nova fala
+Adicionar keyframes para o avatar:
+- `jarvis-orbit`: rotação 360° do anel orbital (12s linear infinite)
+- `jarvis-breathe`: scale 1→1.05→1 (3s ease-in-out infinite)
+- `jarvis-ripple`: ondas expandindo de 100%→200% com fade (1.5s)
+- `jarvis-core-pulse`: brilho do núcleo sincronizado com fala (0.6s)
+- `jarvis-capture`: efeito de captação inverso para escuta
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/hooks/useJarvisVoice.ts` | **Novo** — hook com TTS + STT + config |
-| `src/components/ai/JarvisVoiceControls.tsx` | **Novo** — controles visuais de voz |
-| `src/components/ai/AiExecutiveAssistant.tsx` | Integrar voz (boas-vindas, chat, resumo) |
-| `src/index.css` | Adicionar keyframes de animação para voz |
+| `src/components/ai/JarvisAvatar.tsx` | **Novo** — componente visual do avatar |
+| `src/components/ai/JarvisFloatingButton.tsx` | **Novo** — FAB flutuante com sheet |
+| `src/components/ai/AiExecutiveAssistant.tsx` | Substituir Brain por JarvisAvatar no header |
+| `src/components/layout/AppLayout.tsx` | Renderizar JarvisFloatingButton |
+| `src/index.css` | Keyframes do avatar |
 
-### Notas
-- Sem dependências externas ou API keys — usa 100% APIs do navegador
-- Sem alteração de banco de dados
-- Sem alteração na edge function
-- Funciona em Chrome, Edge, Safari (desktop). Firefox tem suporte parcial ao SpeechRecognition
-- Configurações salvas em localStorage (sem necessidade de nova tabela)
+### Notas técnicas
+- 100% CSS animations (sem canvas/WebGL) para performance
+- Respeita `prefers-reduced-motion` para acessibilidade
+- Avatar `sm` (28px) no header, `md` (56px) no FAB
+- Paleta: `--primary` (azul), `--purple`, ciano via hsl(190 80% 50%)
+- Glassmorphism: `backdrop-blur-sm` + `bg-card/30` + `border border-white/10`
+- FAB usa Sheet do shadcn para painel lateral no desktop
 
