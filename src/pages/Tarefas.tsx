@@ -183,10 +183,12 @@ export default function Tarefas() {
       tags: novoTags.split(",").map(t => t.trim()).filter(Boolean),
       checklist: [], anexosFake: [], comentarios: [],
       tipoOperacional: novoTipo,
+      sistemaRelacionado: novoSistema || undefined,
     });
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
+    setNovoSistema(undefined); setSistemaDetectado(null);
   };
 
   const prioridadeColor = (p: string) => {
