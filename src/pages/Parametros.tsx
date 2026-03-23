@@ -43,7 +43,7 @@ export default function Parametros() {
 
   const openNewSistema = () => { setFSistema({ nome: "", descricao: "", ativo: true }); setModal({ type: "sistema", editing: null }); };
   const openEditSistema = (id: string) => { const s = sistemas.find(x => x.id === id); if (s) { setFSistema(s); setModal({ type: "sistema", editing: id }); } };
-  const saveSistema = () => { if (!fSistema.nome.trim()) { toast.error("Nome obrigatório"); return; } modal?.editing ? updateSistema(modal.editing, fSistema) : addSistema(fSistema); setModal(null); toast.success("Sistema salvo!"); };
+  const saveSistema = () => { if (!fSistema.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fSistema, valorCusto: 0, valorVenda: 0 }; modal?.editing ? updateSistema(modal.editing, data) : addSistema(data); setModal(null); toast.success("Sistema salvo!"); };
 
   const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" }); setModal({ type: "modulo", editing: null }); };
   const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "none" }); setModal({ type: "modulo", editing: id }); } };
