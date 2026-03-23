@@ -387,6 +387,13 @@ export default function TarefaDetalhe() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Photo modal */}
+      <Dialog open={!!fotoModal} onOpenChange={() => setFotoModal(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          {fotoModal && <img src={fotoModal} alt="Foto ampliada" className="w-full h-auto rounded-md" />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
