@@ -45,9 +45,9 @@ export default function Parametros() {
   const openEditSistema = (id: string) => { const s = sistemas.find(x => x.id === id); if (s) { setFSistema(s); setModal({ type: "sistema", editing: id }); } };
   const saveSistema = () => { if (!fSistema.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fSistema, valorCusto: 0, valorVenda: 0 }; modal?.editing ? updateSistema(modal.editing, data) : addSistema(data); setModal(null); toast.success("Sistema salvo!"); };
 
-  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none" }); setModal({ type: "modulo", editing: null }); };
-  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "none" }); setModal({ type: "modulo", editing: id }); } };
-  const saveModulo = () => { if (!fModulo.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fModulo, sistemaId: fModulo.sistemaId === "none" ? "" : fModulo.sistemaId }; modal?.editing ? updateModulo(modal.editing, data) : addModulo(data); setModal(null); toast.success("Módulo salvo!"); };
+  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none", isGlobal: false }); setModal({ type: "modulo", editing: null }); };
+  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "none", isGlobal: m.isGlobal || false }); setModal({ type: "modulo", editing: id }); } };
+  const saveModulo = () => { if (!fModulo.nome.trim()) { toast.error("Nome obrigatório"); return; } const data = { ...fModulo, sistemaId: fModulo.isGlobal ? "" : (fModulo.sistemaId === "none" ? "" : fModulo.sistemaId) }; modal?.editing ? updateModulo(modal.editing, data) : addModulo(data); setModal(null); toast.success("Módulo salvo!"); };
 
   const openNewForma = () => { setFForma({ nome: "", ativo: true, observacao: "" }); setModal({ type: "forma", editing: null }); };
   const openEditForma = (id: string) => { const f = formasPagamento.find(x => x.id === id); if (f) { setFForma({ nome: f.nome, ativo: f.ativo, observacao: f.observacao || "" }); setModal({ type: "forma", editing: id }); } };
