@@ -1,76 +1,64 @@
 
 
-## Plano: Aplicar navegação em cards (ModuleNavGrid) em todo o sistema
+## Plano: Cards Inteligentes (Mini Dashboards) no ModuleNavGrid
 
-### Conceito
-Criar um componente reutilizável `ModuleNavGrid` que renderiza cards de navegação para os submódulos de cada área, usando o mesmo padrão visual do `SubtabGrid` já existente em Configurações. O componente lê os dados de `sidebarModules.ts` e destaca a rota ativa.
+### Resumo
+Evoluir o componente `ModuleNavGrid` para exibir indicadores em tempo real dentro de cada card de navegação, transformando-os em mini dashboards sem perder a função de navegação.
 
-### 1. Novo componente: `ModuleNavGrid`
+### Arquitetura
 
-**Arquivo: `src/components/layout/ModuleNavGrid.tsx`**
+1. **Hook centralizado: `src/hooks/useSmartCardStats.ts`** (Novo)
+   - Um único hook que faz queries ao banco para todas as métricas necessárias
+   - Retorna um `Record<string, CardStats>` mapeado por URL do submódulo
+   - Usa `react-query` com `staleTime` de 60s para evitar chamadas excessivas
+   - Cada entrada retorna: `{ mainValue, mainLabel, secondaryValue, secondaryLabel, trend, sparklineData? }`
+   - Queries agrupadas por módulo para minimizar chamadas
 
-Componente que recebe o `moduleId` (ex: "clientes", "comercial"), busca os children do módulo em `sidebarModules.ts`, e renderiza cards clicáveis com:
-- Ícone do submódulo
-- Título e descrição (tooltip)
-- Grid responsivo: 5 colunas desktop, 3 tablet, 1-2 mobile
-- Card ativo destacado (borda + glow) baseado na rota atual (`useLocation`)
-- Hover com iluminação suave, transições de 200ms
-- `useNavigate` no click para ir à rota
+2. **Métricas por card (baseadas nas tabelas existentes)**:
 
-Cores semânticas por módulo (mesma paleta dos PageHeaders existentes):
-- Dashboard: primary/blue
-- Clientes: emerald
-- Comercial: indigo
-- Financeiro: green
-- Suporte: orange
-- Cartões: purple
+| Card (URL) | Indicador principal | Secundário |
+|---|---|---|
+| `/clientes` | Total clientes ativos | Novos no mês |
+| `/receita` | MRR atual (soma monthly_value_final) | Variação % vs mês anterior |
+| `/checkout-interno` | — (sem métrica) | — |
+| `/propostas` | Propostas enviadas no mês | Taxa de conversão % |
+| `/crm` | Leads ativos (status != ganho/perdido) | Novos no mês |
+| `/comercial` | Propostas aceitas no mês | Valor total aceito |
+| `/parceiros` | Parceiros ativos | — |
+| `/financeiro` | Receita do mês (títulos receber pagos) | Títulos em atraso |
+| `/financeiro/contas-a-receber` | Total a receber (aberto) | Em atraso |
+| `/financeiro/contas-a-pagar` | Total a pagar (aberto) | Vencendo esta semana |
+| `/suporte` | Tickets abertos | Em andamento |
+| `/tarefas` | Tarefas pendentes | Em andamento |
+| `/cartoes` | Clientes de maquininha ativos | — |
 
-### 2. Adicionar descrições aos submódulos
+3. **Componente atualizado: `ModuleNavGrid.tsx`**
+   - Importar o hook `useSmartCardStats`
+   - Dentro de cada card, abaixo do título/descrição, renderizar:
+     - Valor principal em texto bold (ex: "42 ativos")
+     - Badge de tendência (verde ↑ / vermelho ↓) quando disponível
+     - Mini sparkline opcional (via `recharts` Sparkline, 40x16px) para métricas com histórico
+   - Cards sem dados disponíveis mantêm o layout atual (apenas ícone + título + descrição)
+   - Skeleton loading enquanto dados carregam
+   - O card fica ligeiramente mais alto (~p-5 em vez de p-4) para acomodar os indicadores
 
-**Arquivo: `src/lib/sidebarModules.ts`**
-
-Adicionar campo `description` a cada `SubModule` para exibir nos tooltips e subtítulos dos cards.
-
-Exemplos:
-- "Cadastro de Clientes" → "Gestão e cadastro de clientes"
-- "Receita / MRR" → "Receita recorrente mensal"
-- "CRM" → "Pipeline e funil de vendas"
-
-### 3. Inserir o grid em cada página principal
-
-Adicionar `<ModuleNavGrid moduleId="..." />` logo após o `<PageHeader>` nas seguintes páginas:
-
-| Página | moduleId | Arquivo |
-|--------|----------|---------|
-| Dashboard | dashboard | `src/pages/Dashboard.tsx` |
-| Clientes | clientes | `src/pages/Clientes.tsx` |
-| Receita | clientes | `src/pages/Receita.tsx` |
-| Checkout Interno | clientes | `src/pages/CheckoutInterno.tsx` |
-| Propostas | comercial | `src/pages/Propostas.tsx` |
-| CRM | comercial | `src/pages/CRM.tsx` |
-| Comercial | comercial | `src/pages/Comercial.tsx` |
-| Parceiros | comercial | `src/pages/Parceiros.tsx` |
-| Financeiro (todas) | financeiro | `src/pages/financeiro/*.tsx` (8 arquivos) |
-| Suporte | operacional | `src/pages/Suporte.tsx` |
-| Tarefas | operacional | `src/pages/Tarefas.tsx` |
-| Implantação | operacional | `src/pages/Implantacao.tsx` |
-| Técnicos | operacional | `src/pages/Tecnicos.tsx` |
-| Cartões (todas) | cartoes | `src/pages/cartoes/*.tsx` (4 arquivos) |
-| Configurações | configuracoes | Já possui SubtabGrid, manter |
-
-### 4. Detalhes técnicos
-
-- O componente usa `useLocation` para detectar a rota ativa e `useNavigate` para navegação
-- Tooltips com `TooltipProvider/Tooltip` mostram a descrição ao hover
-- Animação de entrada `animate-fade-in` nos cards
-- Nenhuma alteração de rotas, banco de dados ou funcionalidades existentes
-- ~22 arquivos editados no total (1 novo componente + 1 atualização de tipos + ~20 páginas)
+4. **Detalhes visuais**
+   - Indicador principal: `text-lg font-bold` com cor semântica do módulo
+   - Badge de tendência: verde para positivo, vermelho para negativo, cinza para neutro
+   - Sparkline: stroke com a cor do módulo, sem eixos, apenas a linha
+   - Tooltip no indicador com explicação (ex: "MRR: Receita recorrente mensal")
+   - Transição suave nos valores ao atualizar
 
 ### Arquivos editados
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/lib/sidebarModules.ts` | Adicionar `description` ao tipo `SubModule` e a cada item |
-| `src/components/layout/ModuleNavGrid.tsx` | **Novo** — componente de navegação em cards |
-| ~20 páginas | Inserir `<ModuleNavGrid>` após PageHeader |
+| `src/hooks/useSmartCardStats.ts` | **Novo** — hook com queries para métricas dos cards |
+| `src/components/layout/ModuleNavGrid.tsx` | Integrar métricas, sparklines, badges de tendência |
+
+### Notas técnicas
+- Todas as queries usam as tabelas existentes (`clients`, `proposals`, `financial_titles`, `portal_tickets`, `tasks`, `card_clients`) — sem alteração de banco
+- `staleTime: 60_000` e `refetchOnWindowFocus: true` para balance entre atualização e performance
+- Sparklines usam dados dos últimos 6 meses quando disponíveis (agrupando por competência)
+- Cards de módulos sem dados relevantes (ex: Configurações, Checkout) permanecem apenas visuais
 
