@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -61,7 +61,15 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   // Current system name (from form or persisted)
   const currentSystemName = v("system_name");
   const currentSystem = sistemas.find(s => s.nome === currentSystemName);
-  const systemModules = modulos.filter(m => m.ativo && m.sistemaId === currentSystem?.id);
+  const systemModules = modulos.filter(m => m.ativo && (m.sistemaId === currentSystem?.id || m.isGlobal));
+
+  // Calculate totals from linked modules in real time
+  const moduleTotals = useMemo(() => {
+    const linked = modulos.filter(m => linkedModuleIds.includes(m.id));
+    const totalVenda = linked.reduce((sum, m) => sum + m.valorVenda, 0);
+    const totalCusto = linked.reduce((sum, m) => sum + m.valorCusto, 0);
+    return { totalVenda, totalCusto };
+  }, [linkedModuleIds, modulos]);
 
   // Load linked modules for this client
   useEffect(() => {
@@ -80,19 +88,31 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     if (!profile?.org_id || !cliente.id) return;
     setModulesLoading(true);
     try {
+      let newIds: string[];
       if (checked) {
         await supabase.from("client_modules").insert({ org_id: profile.org_id, client_id: cliente.id, module_id: moduleId });
-        setLinkedModuleIds(prev => [...prev, moduleId]);
+        newIds = [...linkedModuleIds, moduleId];
       } else {
         await supabase.from("client_modules").delete().eq("client_id", cliente.id).eq("module_id", moduleId);
-        setLinkedModuleIds(prev => prev.filter(id => id !== moduleId));
+        newIds = linkedModuleIds.filter(id => id !== moduleId);
       }
+      setLinkedModuleIds(newIds);
+
+      // Recalculate and propagate costs
+      const linkedMods = modulos.filter(m => newIds.includes(m.id));
+      const sumVenda = linkedMods.reduce((s, m) => s + m.valorVenda, 0);
+      const sumCusto = linkedMods.reduce((s, m) => s + m.valorCusto, 0);
+      const baseValue = currentSystem?.valorVenda || (formData.monthly_value_base ?? cliente.monthly_value_base) || 0;
+      onChange({
+        monthly_value_final: Number(baseValue) + sumVenda,
+        monthly_cost_value: sumCusto,
+      } as any);
     } catch {
       toast({ title: "Erro ao atualizar módulo", variant: "destructive" });
     } finally {
       setModulesLoading(false);
     }
-  }, [profile?.org_id, cliente.id]);
+  }, [profile?.org_id, cliente.id, linkedModuleIds, modulos, currentSystem, formData.monthly_value_base, cliente.monthly_value_base, onChange]);
 
   const buscarCep = async () => {
     const cep = v("address_cep").replace(/\D/g, "");
@@ -208,21 +228,36 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           {systemModules.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Nenhum módulo cadastrado para <strong>{currentSystem.nome}</strong>.</p>
           ) : (
-            <div className="grid gap-2 md:grid-cols-2">
-              {systemModules.map(m => (
-                <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
-                  <Checkbox
-                    checked={linkedModuleIds.includes(m.id)}
-                    onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
-                    disabled={modulesLoading}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{m.nome}</p>
-                    {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
-                  </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
-                </label>
-              ))}
+            <div className="space-y-3">
+              <div className="grid gap-2 md:grid-cols-2">
+                {systemModules.map(m => (
+                  <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
+                    <Checkbox
+                      checked={linkedModuleIds.includes(m.id)}
+                      onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
+                      disabled={modulesLoading}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium">{m.nome}</p>
+                        {m.isGlobal && <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Global</Badge>}
+                      </div>
+                      {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-medium whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
+                      <p className="text-[10px] text-muted-foreground">Custo: R$ {m.valorCusto.toFixed(2)}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              {linkedModuleIds.length > 0 && (
+                <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border border-border text-sm">
+                  <span className="text-muted-foreground">Módulos ativos: <strong className="text-foreground">{linkedModuleIds.length}</strong></span>
+                  <span className="text-muted-foreground">Total Venda: <strong className="text-foreground">R$ {moduleTotals.totalVenda.toFixed(2)}</strong></span>
+                  <span className="text-muted-foreground">Total Custo: <strong className="text-foreground">R$ {moduleTotals.totalCusto.toFixed(2)}</strong></span>
+                </div>
+              )}
             </div>
           )}
         </section>
