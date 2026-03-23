@@ -35,7 +35,7 @@ export const modules: ParentModule[] = [
   },
   {
     id: "clientes",
-    title: "Clientes",
+    title: "Clientes e Receita",
     icon: Users,
     directUrl: "/clientes",
     children: [
