@@ -195,6 +195,48 @@ export default function Tarefas() {
     setNovoSistema(undefined); setSistemaDetectado(null);
   };
 
+  const handleAICreate = (task: { titulo: string; descricao: string; prioridade: string; tipoOperacional: string; prazoSugerido?: string; tags?: string[] }) => {
+    addTarefa({
+      titulo: task.titulo, descricao: task.descricao,
+      clienteId: null, responsavelId: tecnicoAtualId,
+      prioridade: (task.prioridade as Prioridade) || "media",
+      status: "a_fazer", prazoDataHora: task.prazoSugerido || undefined,
+      tags: task.tags || [], checklist: [], anexosFake: [], comentarios: [],
+      tipoOperacional: (task.tipoOperacional as TipoOperacional) || "interno",
+      source: "ai",
+    });
+    toast({ title: "Tarefa criada pela IA!" });
+  };
+
+  const handleGenerateDaily = async () => {
+    setGeneratingDaily(true);
+    try {
+      const [clientsRes, titlesRes] = await Promise.all([
+        supabase.from("clients").select("id, name, status").eq("status", "ativo").limit(50),
+        supabase.from("financial_titles").select("id, due_at, status, value_final").eq("status", "aberto").eq("type", "receber").limit(30),
+      ]);
+      const overdue = (titlesRes.data || []).filter(t => t.due_at && new Date(t.due_at) < new Date());
+      const context = { totalClientes: clientsRes.data?.length || 0, titulosVencidos: overdue.length, valorVencido: overdue.reduce((s, t) => s + Number(t.value_final), 0) };
+      const { data, error } = await supabase.functions.invoke("ai-task-assistant", { body: { type: "daily", context } });
+      if (error) throw error;
+      if (data?.error) { toast({ title: data.error, variant: "destructive" }); return; }
+      const tasks = data.result?.suggestions || [];
+      for (const t of tasks) {
+        addTarefa({
+          titulo: t.titulo, descricao: t.descricao, clienteId: null, responsavelId: tecnicoAtualId,
+          prioridade: t.prioridade || "media", status: "a_fazer", tags: t.tags || [],
+          checklist: [], anexosFake: [], comentarios: [],
+          tipoOperacional: t.tipoOperacional || "interno", source: "system",
+        });
+      }
+      toast({ title: `${tasks.length} tarefas do dia criadas!` });
+    } catch (e: any) {
+      toast({ title: e.message || "Erro ao gerar tarefas", variant: "destructive" });
+    } finally {
+      setGeneratingDaily(false);
+    }
+  };
+
   const prioridadeColor = (p: string) => {
     switch (p) {
       case "urgente": return "bg-destructive text-destructive-foreground";
