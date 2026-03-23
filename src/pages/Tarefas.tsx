@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X, ImagePlus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { AiTaskAssistant } from "@/components/tarefas/AiTaskAssistant";
