@@ -14,6 +14,7 @@ import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Time
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { exportSLAPDF } from "@/lib/pdfRelatorioSLA";
 import { toast } from "sonner";
 
