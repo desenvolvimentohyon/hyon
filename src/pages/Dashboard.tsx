@@ -28,6 +28,7 @@ import { StatusTarefa } from "@/types";
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
 import { AiExecutiveAssistant } from "@/components/ai/AiExecutiveAssistant";
+import { AiFinanceiroAssistant } from "@/components/ai/AiFinanceiroAssistant";
 
 // ── Section Skeleton Loaders ─────────────────────────────────────────
 function KpisSkeleton() {
