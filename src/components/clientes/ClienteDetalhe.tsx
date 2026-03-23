@@ -186,7 +186,7 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap h-auto gap-1.5 bg-transparent p-0">
+          <TabsList className="flex items-center justify-start gap-1 sm:gap-3 h-auto bg-transparent p-0 overflow-x-auto">
             {TABS.map(tab => {
               const Icon = tab.icon;
               const palette = TAB_COLORS[tab.value] || TAB_COLORS.dados;
@@ -196,16 +196,28 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
                   key={tab.value}
                   value={tab.value}
                   className={cn(
-                    "group text-xs px-3 py-2 rounded-md border gap-1.5 transition-all duration-300",
+                    "group flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl min-w-[72px] transition-all duration-300 hover:scale-105",
                     "data-[state=active]:shadow-sm",
-                    isActive
-                      ? cn(palette.bg, palette.border, palette.color)
-                      : cn("border-border/40 hover:border-border", palette.inactiveColor, `hover:${palette.color}`)
+                    isActive ? palette.color : palette.inactiveColor
                   )}
-                  style={isActive ? { boxShadow: palette.glow } : undefined}
                 >
-                  <Icon className="h-3.5 w-3.5 transition-transform duration-300 group-hover:scale-110" />
-                  {tab.label}
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300",
+                      isActive
+                        ? cn(palette.bg, palette.border, palette.color)
+                        : cn("bg-muted/50 border-border/40", palette.inactiveColor, "group-hover:border-border", `group-hover:${palette.color}`)
+                    )}
+                    style={isActive ? { boxShadow: palette.glow } : undefined}
+                  >
+                    <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+                  <span className={cn(
+                    "text-[11px] font-medium transition-colors duration-300",
+                    isActive ? palette.color : cn(palette.inactiveColor, `group-hover:${palette.color}`)
+                  )}>
+                    {tab.label}
+                  </span>
                 </TabsTrigger>
               );
             })}
