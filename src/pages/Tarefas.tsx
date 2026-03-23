@@ -315,7 +315,7 @@ export default function Tarefas() {
                       </div>
                     </TableCell>
                     <TableCell><Badge className={`text-[10px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge></TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : "Avulsa"}</TableCell>
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : (t.nomeClienteAvulso || "Avulsa")}</TableCell>
                     <TableCell><Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge></TableCell>
                     <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
                     <TableCell className="hidden lg:table-cell text-sm">{getTecnico(t.responsavelId)?.nome}</TableCell>
