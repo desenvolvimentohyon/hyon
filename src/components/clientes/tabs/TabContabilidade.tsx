@@ -81,12 +81,6 @@ export default function TabContabilidade({ cliente, formData, onChange }: Props)
             </Select>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Nº Série Certificado</Label><Input value={v("cert_serial")} onChange={e => set("cert_serial", e.target.value)} placeholder="Número de série" /></div>
-          <div><Label>Emissor</Label><Input value={v("cert_issuer")} onChange={e => set("cert_issuer", e.target.value)} placeholder="Emissor do certificado" /></div>
-          <div><Label>Data Reconhecimento</Label><Input type="date" value={v("cert_recognition_date")} onChange={e => set("cert_recognition_date", e.target.value)} /></div>
-          <div><Label>CNAE Principal</Label><Input value={v("cnae_principal")} onChange={e => set("cnae_principal", e.target.value)} placeholder="Ex: 4712-1/00" /></div>
-        </div>
       </section>
 
       {/* CSC */}
