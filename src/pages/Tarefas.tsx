@@ -11,11 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LayoutGrid, List, Plus, Search, GripVertical, ClipboardList, Monitor, Link2, X } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { supabase } from "@/integrations/supabase/client";
 
 function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
@@ -119,6 +121,19 @@ export default function Tarefas() {
   const [novoPrazo, setNovoPrazo] = useState("");
   const [novoTags, setNovoTags] = useState("");
   const [novoTipo, setNovoTipo] = useState<TipoOperacional>("interno");
+  const [novoSistema, setNovoSistema] = useState<string | undefined>(undefined);
+  const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
+
+  // Detect client system when client changes
+  useEffect(() => {
+    setSistemaDetectado(null);
+    setNovoSistema(undefined);
+    if (novoCliente === "null") return;
+    supabase.from("clients").select("system_name").eq("id", novoCliente).single()
+      .then(({ data }) => {
+        if (data?.system_name) setSistemaDetectado(data.system_name);
+      });
+  }, [novoCliente]);
 
   useEffect(() => {
     if (searchParams.get("nova") === "1") {
@@ -168,10 +183,12 @@ export default function Tarefas() {
       tags: novoTags.split(",").map(t => t.trim()).filter(Boolean),
       checklist: [], anexosFake: [], comentarios: [],
       tipoOperacional: novoTipo,
+      sistemaRelacionado: novoSistema || undefined,
     });
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
+    setNovoSistema(undefined); setSistemaDetectado(null);
   };
 
   const prioridadeColor = (p: string) => {
@@ -353,6 +370,28 @@ export default function Tarefas() {
                 </Select>
               </div>
             </div>
+            {/* System detection banner */}
+            {sistemaDetectado && !novoSistema && (
+              <Alert className="border-info/30 bg-info/5">
+                <Monitor className="h-4 w-4 text-info" />
+                <AlertDescription className="flex items-center justify-between gap-2">
+                  <span className="text-sm">Este cliente usa <strong>{sistemaDetectado}</strong>. Deseja vincular à tarefa?</span>
+                  <Button size="sm" variant="outline" className="shrink-0 gap-1.5 h-7 text-xs" onClick={() => setNovoSistema(sistemaDetectado)}>
+                    <Link2 className="h-3 w-3" />Vincular
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            {novoSistema && (
+              <div className="flex items-center gap-2">
+                <Badge variant="info" className="gap-1">
+                  <Monitor className="h-3 w-3" />{novoSistema}
+                </Badge>
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setNovoSistema(undefined)}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Responsável</Label>
