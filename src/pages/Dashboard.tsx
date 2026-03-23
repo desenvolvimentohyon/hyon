@@ -28,6 +28,7 @@ import { StatusTarefa } from "@/types";
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
 import { AiExecutiveAssistant } from "@/components/ai/AiExecutiveAssistant";
+import { AiFinanceiroAssistant } from "@/components/ai/AiFinanceiroAssistant";
 
 // ── Section Skeleton Loaders ─────────────────────────────────────────
 function KpisSkeleton() {
@@ -616,6 +617,7 @@ export default function Dashboard() {
         />
         <ModuleNavGrid moduleId="dashboard" />
         <AiExecutiveAssistant />
+        <AiFinanceiroAssistant compact />
 
         {/* ══ LINHA 1 — KPIs executivos (5 cards) ══════════════════ */}
         {dataLoading ? <KpisSkeleton /> : (

@@ -144,6 +144,203 @@ Priorize alertas por gravidade. Sugira ações concretas.`;
       return new Response(JSON.stringify(briefing), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ─── FINANCIAL ANALYSIS ────────────────────────────────────────
+    if (type === "financial_analysis") {
+      const ctx = payload.context || {};
+
+      const systemPrompt = `Você é uma IA gestora financeira especialista em empresas de revenda de software ERP/SaaS.
+Analise os dados financeiros abaixo e forneça um diagnóstico completo, alertas, recomendações e cenários de crescimento.
+
+Dados financeiros atuais:
+- MRR: R$ ${(ctx.mrr ?? 0).toFixed(2)}
+- ARR: R$ ${(ctx.arr ?? 0).toFixed(2)}
+- Ticket Médio: R$ ${(ctx.ticketMedio ?? 0).toFixed(2)}
+- Custos totais: R$ ${(ctx.custos ?? 0).toFixed(2)}
+- Margem: R$ ${(ctx.margem ?? 0).toFixed(2)} (${(ctx.margemPct ?? 0).toFixed(1)}%)
+- Inadimplência total: R$ ${(ctx.inadimplenciaTotal ?? 0).toFixed(2)} (${(ctx.inadimplenciaPct ?? 0).toFixed(1)}%)
+- Tendência: ${ctx.tendencia ?? "estavel"}
+- Clientes ativos: ${ctx.clientesAtivos ?? 0}
+- Títulos vencidos: ${ctx.titulosVencidos ?? 0}
+- Receita mês atual: R$ ${(ctx.receitaMesAtual ?? 0).toFixed(2)}
+- Receita mês anterior: R$ ${(ctx.receitaMesAnterior ?? 0).toFixed(2)}
+- Propostas abertas: ${ctx.propostasAbertas ?? 0}
+- Valor no funil: R$ ${(ctx.valorFunilPropostas ?? 0).toFixed(2)}
+
+Top 10 clientes por receita:
+${(ctx.topClients || []).map((c: any) => `- ${c.nome}: Receita R$ ${c.receita.toFixed(2)}, Custo R$ ${c.custo.toFixed(2)}, Margem R$ ${(c.receita - c.custo).toFixed(2)}, Sistema: ${c.sistema}, Health: ${c.health}`).join("\n")}
+
+Analise e retorne o diagnóstico usando a ferramenta fornecida. Seja direto, prático, em português do Brasil.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Gere o diagnóstico financeiro completo." },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "financial_diagnosis",
+                description: "Retorna diagnóstico financeiro estruturado",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    resumo: { type: "string", description: "Resumo executivo financeiro em markdown (3-5 parágrafos)" },
+                    alertas: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+                          categoria: { type: "string", enum: ["receita", "custos", "inadimplencia", "margem", "fluxo_caixa", "renovacoes", "propostas"] },
+                          titulo: { type: "string" },
+                          descricao: { type: "string" },
+                          acao_sugerida: { type: "string" },
+                        },
+                        required: ["prioridade", "categoria", "titulo", "descricao", "acao_sugerida"],
+                        additionalProperties: false,
+                      },
+                    },
+                    recomendacoes: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          titulo: { type: "string" },
+                          descricao: { type: "string" },
+                          tipo_acao: { type: "string", enum: ["cobranca", "proposta", "upsell", "revisao", "contato", "tarefa"] },
+                          cliente_nome: { type: "string" },
+                          impacto: { type: "string" },
+                        },
+                        required: ["titulo", "descricao", "tipo_acao", "impacto"],
+                        additionalProperties: false,
+                      },
+                    },
+                    lucratividade_clientes: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          nome: { type: "string" },
+                          receita: { type: "number" },
+                          custo: { type: "number" },
+                          margem: { type: "number" },
+                          classificacao: { type: "string", enum: ["saudavel", "atencao", "critico"] },
+                        },
+                        required: ["nome", "receita", "custo", "margem", "classificacao"],
+                        additionalProperties: false,
+                      },
+                    },
+                    projecoes: {
+                      type: "object",
+                      properties: {
+                        mrr_atual: { type: "number" },
+                        arr_atual: { type: "number" },
+                        ticket_medio: { type: "number" },
+                        margem_pct: { type: "number" },
+                        inadimplencia_pct: { type: "number" },
+                        tendencia: { type: "string", enum: ["crescimento", "estavel", "queda"] },
+                      },
+                      required: ["mrr_atual", "arr_atual", "ticket_medio", "margem_pct", "inadimplencia_pct", "tendencia"],
+                      additionalProperties: false,
+                    },
+                    cenarios: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          descricao: { type: "string" },
+                          impacto_mrr: { type: "string" },
+                          impacto_margem: { type: "string" },
+                        },
+                        required: ["descricao", "impacto_mrr", "impacto_margem"],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ["resumo", "alertas", "recomendacoes", "lucratividade_clientes", "projecoes", "cenarios"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "financial_diagnosis" } },
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (!toolCall?.function?.arguments) {
+        return new Response(JSON.stringify({ error: "IA não retornou diagnóstico" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const diagnosis = JSON.parse(toolCall.function.arguments);
+      return new Response(JSON.stringify(diagnosis), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ─── FINANCIAL CHAT ─────────────────────────────────────────────
+    if (type === "financial_chat") {
+      const ctx = payload.context || {};
+      const messages = payload.messages || [];
+
+      const systemPrompt = `Você é uma IA gestora financeira especialista em empresas de revenda de software ERP/SaaS.
+Responda perguntas sobre o financeiro usando os dados reais. Seja direto e estratégico, em português do Brasil.
+
+Dados financeiros:
+- MRR: R$ ${(ctx.mrr ?? 0).toFixed(2)}
+- ARR: R$ ${(ctx.arr ?? 0).toFixed(2)}
+- Ticket Médio: R$ ${(ctx.ticketMedio ?? 0).toFixed(2)}
+- Custos: R$ ${(ctx.custos ?? 0).toFixed(2)}
+- Margem: R$ ${(ctx.margem ?? 0).toFixed(2)} (${(ctx.margemPct ?? 0).toFixed(1)}%)
+- Inadimplência: R$ ${(ctx.inadimplenciaTotal ?? 0).toFixed(2)} (${(ctx.inadimplenciaPct ?? 0).toFixed(1)}%)
+- Clientes ativos: ${ctx.clientesAtivos ?? 0}
+- Propostas abertas: ${ctx.propostasAbertas ?? 0}
+
+Responda em markdown quando útil. Seja conciso e forneça insights acionáveis.`;
+
+      const aiMessages = [
+        { role: "system", content: systemPrompt },
+        ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+      ];
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: aiMessages,
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "Sem resposta.";
+      return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ─── CHAT CONVERSACIONAL ────────────────────────────────────────
     if (type === "chat") {
       const ctx = payload.context || {};
