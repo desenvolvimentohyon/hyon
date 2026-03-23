@@ -1,24 +1,35 @@
 
 
-## Plano: Aplicar formato de cards na aba Minha Empresa
+## Plano: Sidebar com módulos em formato de cards com ícones grandes
 
 ### Resumo
-Substituir a TabsList (barra de abas) do componente MinhaEmpresa pelo mesmo componente `SubtabGrid` usado em "Configurações Gerais", convertendo as 7 abas em cards visuais com ícones e descrições.
+Transformar a lista de módulos na sidebar em um grid de cards com ícones grandes circulares e labels abaixo, seguindo o visual do print enviado (estilo "atalhos"). Quando expandida, a sidebar mostra os módulos como cards em grid 2x; quando colapsada, mantém o comportamento atual com ícones pequenos.
 
-### Editar: `src/components/configuracoes/MinhaEmpresa.tsx`
+### Editar: `src/components/layout/AppSidebar.tsx`
 
-1. **Importar `SubtabGrid`** e seu tipo `SubtabItem`.
+1. **Substituir a lista flat de módulos** pelo grid de cards com ícones grandes:
+   - Cada módulo renderizado como card com ícone circular grande (~48px) e label abaixo
+   - Grid de 2 colunas quando sidebar expandida
+   - Separadores verticais sutis entre colunas (como no print)
+   - Background translúcido/glass no container do grid
 
-2. **Criar array de subtabs** com os 7 itens (Dados Gerais, Endereço, Fiscal, Bancário, Identidade Visual, Parâmetros, Renovação), cada um com ícone, cor e descrição — seguindo o mesmo padrão visual da screenshot.
+2. **Estilo dos cards**:
+   - Ícone dentro de círculo com borda sutil (`border rounded-full`)
+   - Label do módulo abaixo do ícone, centralizado
+   - Hover e active states com as cores semânticas já definidas em `MODULE_SIDEBAR_COLORS`
+   - Sem descrição — apenas ícone + nome
 
-3. **Adicionar estado local** `activeTab` com `useState("dados")`.
-
-4. **Substituir a `TabsList`** pelo componente `<SubtabGrid>` e ocultar a TabsList original (`className="hidden"`), controlando a navegação pelo estado local.
+3. **Manter intactos**:
+   - Header com logo
+   - Busca de módulos
+   - Seção de favoritos
+   - Footer com avatar do usuário
+   - Comportamento colapsado (ícones pequenos empilhados)
 
 ### Resultado
-A aba "Minha Empresa" terá o mesmo visual de cards em grid que a aba "Configurações Gerais", com ícones coloridos, descrições e indicador de aba ativa.
+A sidebar expandida terá visual de grid de cards com ícones grandes circulares, semelhante ao print de referência, mantendo a navegação funcional e o mesmo padrão de cores por módulo.
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/components/configuracoes/MinhaEmpresa.tsx` | Substituir TabsList por SubtabGrid |
+| `src/components/layout/AppSidebar.tsx` | Reformular área de módulos para grid de cards com ícones grandes |
 
