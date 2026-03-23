@@ -57,7 +57,7 @@ export default function RadarCrescimento() {
     addTarefa({
       titulo, descricao: "Ação sugerida pelo Radar de Crescimento IA",
       clienteId: null, responsavelId: "", prioridade: "alta", status: "a_fazer",
-      tags: ["radar-crescimento"], checklist: [], implantacaoId: undefined,
+      tags: ["radar-crescimento"], checklist: [], implantacaoId: undefined, anexosFake: [], comentarios: [],
       tipoOperacional: "comercial",
     });
     toast({ title: "Tarefa criada!", description: titulo });
