@@ -466,10 +466,36 @@ export default function Tarefas() {
               <div><Label>Prazo</Label><Input type="datetime-local" value={novoPrazo} onChange={e => setNovoPrazo(e.target.value)} /></div>
               <div><Label>Tags (vírgula)</Label><Input value={novoTags} onChange={e => setNovoTags(e.target.value)} placeholder="rede, hardware" /></div>
             </div>
+            <div>
+              <Label>Observações</Label>
+              <Textarea value={novoObservacoes} onChange={e => setNovoObservacoes(e.target.value)} rows={2} placeholder="Anotações adicionais..." />
+            </div>
+            <div>
+              <Label>Fotos</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-dashed border-muted-foreground/30 cursor-pointer hover:bg-accent/50 transition-colors text-sm text-muted-foreground">
+                  <ImagePlus className="h-4 w-4" />
+                  Adicionar fotos
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleFotoSelect} />
+                </label>
+              </div>
+              {fotosPreview.length > 0 && (
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {fotosPreview.map((src, idx) => (
+                    <div key={idx} className="relative group">
+                      <img src={src} alt={`Foto ${idx + 1}`} className="h-16 w-16 rounded-md object-cover border" />
+                      <button type="button" onClick={() => removeFoto(idx)} className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNova(false)}>Cancelar</Button>
-            <Button onClick={handleCriar}>Criar Tarefa</Button>
+            <Button onClick={handleCriar} disabled={uploading}>{uploading ? "Enviando..." : "Criar Tarefa"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

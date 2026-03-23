@@ -12,8 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Play, Pause, Plus, Clock, MessageSquare, History, FileText, CheckSquare, Trash2 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ArrowLeft, Play, Pause, Plus, Clock, MessageSquare, History, FileText, CheckSquare, Trash2, ImagePlus, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 function formatTime(seconds: number) {
   const h = Math.floor(seconds / 3600);
