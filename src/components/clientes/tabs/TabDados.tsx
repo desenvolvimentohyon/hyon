@@ -61,7 +61,15 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   // Current system name (from form or persisted)
   const currentSystemName = v("system_name");
   const currentSystem = sistemas.find(s => s.nome === currentSystemName);
-  const systemModules = modulos.filter(m => m.ativo && m.sistemaId === currentSystem?.id);
+  const systemModules = modulos.filter(m => m.ativo && (m.sistemaId === currentSystem?.id || m.isGlobal));
+
+  // Calculate totals from linked modules in real time
+  const moduleTotals = useMemo(() => {
+    const linked = modulos.filter(m => linkedModuleIds.includes(m.id));
+    const totalVenda = linked.reduce((sum, m) => sum + m.valorVenda, 0);
+    const totalCusto = linked.reduce((sum, m) => sum + m.valorCusto, 0);
+    return { totalVenda, totalCusto };
+  }, [linkedModuleIds, modulos]);
 
   // Load linked modules for this client
   useEffect(() => {
