@@ -46,10 +46,10 @@ export const modules: ParentModule[] = [
     title: "Comercial",
     icon: TrendingUp,
     children: [
-      { title: "Propostas", url: "/propostas", icon: FileText },
-      { title: "CRM", url: "/crm", icon: Kanban },
-      { title: "Painel Comercial", url: "/comercial", icon: TrendingUp },
-      { title: "Parceiros", url: "/parceiros", icon: Handshake },
+      { title: "Propostas", url: "/propostas", icon: FileText, description: "Criação e envio de propostas" },
+      { title: "CRM", url: "/crm", icon: Kanban, description: "Pipeline e funil de vendas" },
+      { title: "Painel Comercial", url: "/comercial", icon: TrendingUp, description: "Leads e oportunidades" },
+      { title: "Parceiros", url: "/parceiros", icon: Handshake, description: "Gestão de parceiros e comissões" },
     ],
   },
   {
