@@ -14,7 +14,190 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const payload = await req.json();
+    const type = payload.type || "commercial";
 
+    // ─── EXECUTIVE BRIEFING ─────────────────────────────────────────
+    if (type === "executive_briefing") {
+      const ctx = payload.context || {};
+      const userName = payload.userName || "Usuário";
+      const hora = payload.hora || new Date().getHours();
+      const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+
+      const systemPrompt = `Você é um assistente executivo corporativo de alto nível para um sistema de gestão de revendas de software ERP.
+Seu papel é ser um "Jarvis corporativo": direto, estratégico, proativo.
+
+Contexto do sistema agora:
+- Nome do usuário: ${userName}
+- Saudação: ${saudacao}, ${userName}
+- Clientes ativos: ${ctx.clientesAtivos ?? 0}
+- Clientes em atraso: ${ctx.clientesAtraso ?? 0}
+- Novos clientes no mês: ${ctx.clientesNovosMes ?? 0}
+- Certificados vencendo em 30 dias: ${ctx.certVencendo ?? 0}
+- MRR atual: R$ ${(ctx.mrr ?? 0).toFixed(2)}
+- Títulos financeiros vencidos (abertos): ${ctx.titulosVencidos ?? 0}
+- Valor em atraso: R$ ${(ctx.valorAtraso ?? 0).toFixed(2)}
+- Propostas abertas: ${ctx.propostasAbertas ?? 0}
+- Propostas sem visualização: ${ctx.propostasSemView ?? 0}
+- Propostas aceitas no mês: ${ctx.propostasAceitasMes ?? 0}
+- Tarefas pendentes: ${ctx.tarefasPendentes ?? 0}
+- Tarefas urgentes: ${ctx.tarefasUrgentes ?? 0}
+- Tarefas atrasadas: ${ctx.tarefasAtrasadas ?? 0}
+- Tickets de suporte abertos: ${ctx.ticketsAbertos ?? 0}
+- Planos vencendo em 7 dias: ${ctx.planosVencendo ?? 0}
+- Comissões pendentes: ${ctx.comissoesPendentes ?? 0}
+
+Analise o contexto e retorne um briefing executivo completo usando a ferramenta fornecida.
+Seja direto, prático, em português do Brasil. Use emojis moderadamente para dar vida ao texto.
+Priorize alertas por gravidade. Sugira ações concretas.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Gere o briefing executivo do dia." },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "executive_briefing",
+                description: "Retorna briefing executivo estruturado do dia",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    saudacao: { type: "string", description: "Saudação personalizada com nome do usuário" },
+                    resumoDia: { type: "string", description: "Resumo executivo do dia em markdown (3-5 parágrafos)" },
+                    alertas: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+                          categoria: { type: "string", enum: ["comercial", "financeiro", "clientes", "suporte", "renovacoes"] },
+                          titulo: { type: "string" },
+                          descricao: { type: "string" },
+                          acao_sugerida: { type: "string" },
+                        },
+                        required: ["prioridade", "categoria", "titulo", "descricao", "acao_sugerida"],
+                        additionalProperties: false,
+                      },
+                    },
+                    sugestoes: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          titulo: { type: "string" },
+                          descricao: { type: "string" },
+                          tipo_acao: { type: "string", enum: ["tarefa", "contato", "proposta", "cobranca", "renovacao"] },
+                        },
+                        required: ["titulo", "descricao", "tipo_acao"],
+                        additionalProperties: false,
+                      },
+                    },
+                    metricas: {
+                      type: "object",
+                      properties: {
+                        mrr: { type: "number" },
+                        clientes_ativos: { type: "number" },
+                        inadimplentes: { type: "number" },
+                        propostas_abertas: { type: "number" },
+                        tickets_abertos: { type: "number" },
+                        tarefas_pendentes: { type: "number" },
+                      },
+                      required: ["mrr", "clientes_ativos", "inadimplentes", "propostas_abertas", "tickets_abertos", "tarefas_pendentes"],
+                      additionalProperties: false,
+                    },
+                  },
+                  required: ["saudacao", "resumoDia", "alertas", "sugestoes", "metricas"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "executive_briefing" } },
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        const text = await response.text();
+        console.error("AI gateway error:", status, text);
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (!toolCall?.function?.arguments) {
+        return new Response(JSON.stringify({ error: "IA não retornou briefing estruturado" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const briefing = JSON.parse(toolCall.function.arguments);
+      return new Response(JSON.stringify(briefing), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ─── CHAT CONVERSACIONAL ────────────────────────────────────────
+    if (type === "chat") {
+      const ctx = payload.context || {};
+      const messages = payload.messages || [];
+
+      const systemPrompt = `Você é um assistente executivo inteligente de um sistema de gestão de revendas de software ERP.
+Responda perguntas sobre o negócio usando os dados do sistema. Seja direto e objetivo, em português do Brasil.
+
+Dados atuais do sistema:
+- Clientes ativos: ${ctx.clientesAtivos ?? 0}
+- Clientes em atraso: ${ctx.clientesAtraso ?? 0}
+- MRR: R$ ${(ctx.mrr ?? 0).toFixed(2)}
+- Títulos vencidos: ${ctx.titulosVencidos ?? 0}
+- Valor em atraso: R$ ${(ctx.valorAtraso ?? 0).toFixed(2)}
+- Propostas abertas: ${ctx.propostasAbertas ?? 0}
+- Propostas aceitas no mês: ${ctx.propostasAceitasMes ?? 0}
+- Tarefas pendentes: ${ctx.tarefasPendentes ?? 0}
+- Tarefas urgentes: ${ctx.tarefasUrgentes ?? 0}
+- Tickets de suporte abertos: ${ctx.ticketsAbertos ?? 0}
+- Planos vencendo em 7 dias: ${ctx.planosVencendo ?? 0}
+- Certificados vencendo em 30 dias: ${ctx.certVencendo ?? 0}
+
+Responda em markdown quando útil. Seja conciso.`;
+
+      const aiMessages = [
+        { role: "system", content: systemPrompt },
+        ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+      ];
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: aiMessages,
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "Desculpe, não consegui processar sua pergunta.";
+      return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ─── COMMERCIAL ANALYSIS (existing) ─────────────────────────────
     const systemPrompt = `Você é uma consultora comercial especialista em vendas de software ERP/SaaS.
 Analise os dados da proposta comercial e forneça recomendações estratégicas para maximizar a chance de fechamento mantendo margem saudável.
 
