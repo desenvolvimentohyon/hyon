@@ -272,6 +272,25 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Aceitas no Mês</span><span className="font-semibold text-emerald-500">{context?.propostasAceitasMes ?? 0}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Sem Visualização</span><span className="font-semibold text-amber-500">{context?.propostasSemView ?? 0}</span></div>
               </div>
+              {charts.data.funnel.some(f => f.count > 0) && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="space-y-1.5">
+                    {charts.data.funnel.map(f => {
+                      const maxCount = Math.max(...charts.data.funnel.map(x => x.count), 1);
+                      return (
+                        <div key={f.label} className="flex items-center gap-2 text-[11px]">
+                          <span className="w-14 text-muted-foreground shrink-0">{f.label}</span>
+                          <div className="flex-1 h-3 bg-muted/30 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all" style={{ width: `${(f.count / maxCount) * 100}%`, backgroundColor: f.color }} />
+                          </div>
+                          <span className="w-6 text-right font-medium tabular-nums">{f.count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </CockpitCard>
           </div>
 
