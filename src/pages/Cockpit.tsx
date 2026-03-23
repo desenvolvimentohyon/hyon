@@ -84,7 +84,7 @@ export default function Cockpit() {
   const growth = useGrowthRadar();
   const churn = useChurnAnalysis();
   const commands = useJarvisCommands();
-
+  const charts = useCockpitCharts();
   const [focusMode, setFocusMode] = useState(() => localStorage.getItem("cockpit_focus") === "1");
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
