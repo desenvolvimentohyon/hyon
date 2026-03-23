@@ -159,9 +159,10 @@ export function AiExecutiveAssistant() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <div className={`h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center ${voice.isSpeaking ? "jarvis-speaking-glow" : ""}`}>
-                  <Brain className="h-4 w-4 text-primary" />
-                </div>
+                <JarvisAvatar
+                  size="sm"
+                  state={voice.isSpeaking ? "speaking" : voice.isListening ? "listening" : isLoading ? "processing" : "idle"}
+                />
                 Central de Inteligência IA
                 <Badge variant="outline" className="text-[10px] font-normal">Assistente Executivo</Badge>
               </CardTitle>
