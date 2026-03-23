@@ -246,6 +246,24 @@ export default function Cockpit() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Títulos Vencidos</span><span className="font-semibold">{inadimplentes}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Valor em Atraso</span><span className="font-semibold text-destructive">R$ {(context?.valorAtraso ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></div>
               </div>
+              {charts.data.mrr.length > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="h-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={charts.data.mrr}>
+                        <defs>
+                          <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fill="url(#mrrGrad)" dot={false} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </>
+              )}
             </CockpitCard>
 
             <CockpitCard title="Comercial" icon={TrendingUp} color="bg-indigo-500/10 text-indigo-500">
