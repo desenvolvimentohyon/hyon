@@ -48,6 +48,7 @@ import CardPropostas from "./pages/cartoes/CardPropostas";
 import CardFaturamento from "./pages/cartoes/CardFaturamento";
 import CardPropostaPublica from "./pages/cartoes/CardPropostaPublica";
 import RenovarPlano from "./pages/RenovarPlano";
+import TicketTracking from "./pages/TicketTracking";
 import Cockpit from "./pages/Cockpit";
 // Financeiro
 import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
