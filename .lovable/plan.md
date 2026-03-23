@@ -1,50 +1,39 @@
 
 
-## Plano: Adicionar Sparklines e Mini-Gráficos nos Cards do Cockpit
+## Plano: Fotos e Observações em Tarefas
 
 ### Resumo
-Inserir visualizações compactas (sparklines e mini-gráficos) dentro dos 4 cards principais do Cockpit: sparkline de MRR (últimos 6 meses), mini barras de evolução de clientes, mini funil comercial, e barras de tarefas por status.
+Adicionar a possibilidade de anexar fotos (upload real para Storage) e campo de observações dentro de tarefas, tanto na criação quanto na edição/detalhe.
 
-### Abordagem
-Usar Recharts (já instalado no projeto) com componentes compactos sem eixos, criando sparklines leves de ~40px de altura dentro dos cards existentes.
+### 1. Criar bucket de Storage: `task-attachments`
+- Migration SQL para criar bucket `task-attachments` (privado) com RLS policies permitindo upload/leitura por usuários autenticados da mesma org.
 
-### 1. Criar: `src/hooks/useCockpitCharts.ts`
-Hook que busca dados históricos para os gráficos:
-- **MRR últimos 6 meses**: query em `financial_titles` agrupando receita por competência (últimos 6 meses)
-- **Evolução de clientes**: query em `clients` agrupando `created_at` por mês (últimos 6 meses) + cancelados
-- **Funil comercial**: query em `proposals` contando por status (draft, sent, accepted, refused)
-- **Tarefas por status**: query em `tasks` contando por status (pendente, andamento, concluída)
+### 2. Editar: `src/types/index.ts`
+- Adicionar campo `observacoes?: string` na interface `Tarefa`
+- Adicionar campo `fotos?: { id: string; url: string; nome: string }[]` na interface `Tarefa`
 
-Retorna dados formatados para Recharts.
+### 3. Editar: `src/contexts/AppContext.tsx`
+- Em `tarefaToDb`: incluir `observacoes` e `fotos` no `metadata`
+- Em `dbToTarefa`: ler `observacoes` e `fotos` do metadata
 
-### 2. Editar: `src/pages/Cockpit.tsx`
-Adicionar mini-gráficos dentro de cada `CockpitCard`:
+### 4. Editar: `src/pages/Tarefas.tsx` (Modal Nova Tarefa)
+- Adicionar campo `Textarea` para "Observações" (opcional)
+- Adicionar input de upload de fotos (múltiplas, aceita imagem/*) com preview em miniatura
+- Upload via `supabase.storage.from('task-attachments')` ao criar a tarefa
+- Salvar array de fotos no metadata
 
-- **Card Financeiro**: Sparkline (LineChart sem eixos, 100% width, 40px height) mostrando evolução do MRR mensal. Linha verde com gradiente sutil.
-- **Card Clientes**: BarChart mini com barras empilhadas: novos (verde) vs cancelados (vermelho) por mês.
-- **Card Comercial**: Barras horizontais representando o funil: Abertas → Aceitas → Perdidas, com cores semânticas.
-- **Card Tarefas**: BarChart mini com 3 barras: Pendentes (amber), Em andamento (blue), Concluídas (green).
-
-Cada gráfico fica abaixo dos dados textuais já existentes, separado por um `<Separator />` fino.
-
-### Componentes Recharts usados
-```text
-LineChart + Line + Area (sparkline MRR)
-BarChart + Bar (clientes, tarefas)
-Div + styled bars (funil comercial - CSS puro para simplicidade)
-```
-
-Todos sem `XAxis`, `YAxis`, `CartesianGrid` — apenas a visualização pura para manter a compacidade.
+### 5. Editar: `src/pages/TarefaDetalhe.tsx`
+- Na aba "Resumo": exibir observações abaixo da descrição
+- Na aba "Resumo": exibir galeria de fotos com thumbnails clicáveis
+- Permitir adicionar novas fotos e editar observações no detalhe
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/hooks/useCockpitCharts.ts` | Novo — busca dados históricos |
-| `src/pages/Cockpit.tsx` | Adiciona sparklines nos 4 cards principais |
-
-### Notas
-- Recharts já está instalado e configurado no projeto
-- Fallback: se não houver dados históricos, não mostra o gráfico (graceful degradation)
-- Gráficos são puramente visuais (sem tooltips complexos) para manter performance
+| Migration SQL | Criar bucket `task-attachments` + RLS |
+| `src/types/index.ts` | Campos `observacoes` e `fotos` |
+| `src/contexts/AppContext.tsx` | Propagar novos campos no metadata |
+| `src/pages/Tarefas.tsx` | Upload de fotos + observações no modal |
+| `src/pages/TarefaDetalhe.tsx` | Exibir/editar fotos e observações |
 
