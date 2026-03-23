@@ -1,77 +1,94 @@
 
 
-## Plano: Assistente Inteligente de Tarefas (Texto + Voz)
+## Plano: Assistente Central IA (Jarvis Corporativo)
 
 ### Resumo
-Adicionar um assistente de IA ao módulo de tarefas que permite criar tarefas por texto natural e por voz, além de sugerir tarefas automaticamente com base em dados do sistema.
+Criar uma IA central que funciona como assistente executivo: sauda o usuário, resume o dia, alerta sobre riscos, sugere ações e responde perguntas conversacionais — tudo integrado com os dados reais do sistema.
 
-### 1. Edge Function: `ai-task-assistant`
+### Arquitetura
 
-**Arquivo: `supabase/functions/ai-task-assistant/index.ts`**
+**3 novos arquivos + 2 edições:**
 
-Recebe texto do usuário + contexto (lista de clientes, técnicos) e usa Lovable AI (Gemini Flash) com tool calling para retornar tarefa estruturada:
+### 1. Edge Function: `supabase/functions/ai-consultant/index.ts` (atualizar)
 
-```
-Tool: parse_task
-Retorna: { titulo, descricao, clienteNome?, prioridade, tipoOperacional, prazoDataHora?, responsavelNome? }
-```
+A edge function existente será expandida para suportar um novo modo `type: "executive_briefing"` que:
+- Recebe contexto completo do sistema (resumo de clientes, financeiro, propostas, tarefas, certificados, renovações)
+- Retorna via tool calling uma estrutura `ExecutiveBriefing`:
+  - `saudacao` (saudação contextual com nome do usuário)
+  - `resumoDia` (texto markdown com resumo executivo)
+  - `alertas[]` (prioridade, categoria, titulo, descricao, acao_sugerida)
+  - `sugestoes[]` (titulo, descricao, tipo_acao, dados_acao)
+  - `metricas` (mrr, clientes_ativos, inadimplentes, propostas_abertas, tickets_abertos, tarefas_pendentes)
 
-Segundo modo `type: "suggest"` — recebe dados do sistema (clientes inadimplentes, certificados vencendo, propostas aceitas) e retorna array de sugestões de tarefas.
+Também suportar `type: "chat"` para conversação livre, onde o usuário faz perguntas e a IA responde com base no contexto do sistema (streaming SSE).
 
-### 2. Componente: `AiTaskAssistant`
+### 2. Novo componente: `src/components/ai/AiExecutiveAssistant.tsx`
 
-**Arquivo: `src/components/tarefas/AiTaskAssistant.tsx`**
+Componente principal que aparece no Dashboard, contendo:
 
-Card no topo da página de Tarefas com:
+**Seção 1 — Saudação + Resumo**
+- Card com saudação baseada no horário ("Bom dia, {nome}")
+- Resumo executivo do dia em texto markdown (renderizado com `react-markdown`)
+- Métricas rápidas inline (MRR, clientes ativos, tickets)
 
-- **Campo de texto**: "Descreva a tarefa..." com botão "Criar com IA"
-- **Botão de voz** 🎤: Usa Web Speech API (`webkitSpeechRecognition`) para capturar fala → converte em texto → envia à edge function
-- **Preview da tarefa**: Após resposta da IA, exibe card com campos preenchidos (título, cliente, prioridade, data) com botões: "Criar", "Editar", "Cancelar"
-- **Associação automática de cliente**: Match do nome retornado pela IA com `clientes` do contexto (fuzzy match simples)
-- **Loading state** e tratamento de erros (429/402)
+**Seção 2 — Alertas Inteligentes**
+- Lista de alertas categorizados (Comercial/Financeiro/Clientes/Suporte)
+- Badges de prioridade (vermelho/amarelo/verde)
+- Cada alerta com botões: "Criar ação" / "Ignorar"
 
-### 3. Painel de Sugestões Inteligentes
+**Seção 3 — Sugestões de Ação**
+- Cards com ações sugeridas pela IA
+- Botões: Criar tarefa / Editar antes / Ignorar
+- Integração com `addTarefa` do AppContext
 
-Dentro do mesmo componente, seção colapsável "Sugestões da IA":
+**Seção 4 — Chat Conversacional**
+- Campo de input tipo chat no rodapé do card
+- Streaming de respostas (SSE)
+- Exemplos de perguntas como placeholders rotativos
+- Histórico da conversa na sessão
 
-- Ao abrir a página, faz query para buscar:
-  - Clientes com `statusFinanceiro = '2_mais_atrasos'`
-  - Certificados com vencimento < 30 dias
-  - Propostas aceitas sem tarefa de implantação
-- Envia esses dados à edge function (mode `suggest`)
-- Renderiza cards de sugestão com botões: "Criar Tarefa" / "Ignorar"
-- Cache de 5 minutos para não re-consultar
+**Dados**: Hook interno com `react-query` que:
+1. Busca contagens de clientes, títulos financeiros, propostas, tarefas, certificados
+2. Envia tudo à edge function para gerar o briefing
+3. `staleTime: 300_000` (5min), refresh ao focar a janela
 
-### 4. Integração na página Tarefas
+### 3. Novo hook: `src/hooks/useExecutiveBriefing.ts`
 
-**Arquivo: `src/pages/Tarefas.tsx`**
+Hook que agrega dados de todas as tabelas relevantes em queries paralelas:
+- `clients` → ativos, em atraso, novos no mês, certificados vencendo em 30d
+- `financial_titles` → MRR, inadimplência, títulos vencidos
+- `proposals` → abertas, sem visualização, aceitas no mês
+- `tasks` → pendentes, urgentes, atrasadas
+- `portal_tickets` → abertos, em andamento
 
-- Importar e inserir `<AiTaskAssistant />` entre o `ModuleNavGrid` e os filtros
-- Passar `clientes`, `tecnicos`, `addTarefa` como props
+Envia o contexto agregado à edge function e retorna o briefing estruturado.
+
+### 4. Integração no Dashboard
+
+**Arquivo: `src/pages/Dashboard.tsx`**
+
+- Inserir `<AiExecutiveAssistant />` como primeiro elemento após o `PageHeader` e `ModuleNavGrid`
+- Componente colapsável para não dominar a tela (expandido por padrão na primeira visita do dia)
+- Botão de refresh manual
 
 ### 5. Config TOML
 
-**Arquivo: `supabase/config.toml`**
-
-Adicionar:
-```toml
-[functions.ai-task-assistant]
-verify_jwt = false
-```
+A edge function `ai-consultant` já existe no config.toml com `verify_jwt = false` — sem alteração necessária.
 
 ### Detalhes técnicos
 
-- Web Speech API é nativa do navegador, sem dependência externa — fallback mostra toast se não suportado
-- Edge function usa `LOVABLE_API_KEY` já disponível
-- Tool calling garante resposta estruturada sem parsing de JSON instável
-- Sugestões usam `react-query` com `staleTime: 300_000` (5min)
+- **Streaming**: O chat conversacional usa SSE para respostas em tempo real
+- **Saudação por horário**: Lógica client-side (antes das 12h = Bom dia, 12-18h = Boa tarde, depois = Boa noite)
+- **Performance**: Queries agregadas com `count()` e filtros diretos, sem trazer registros completos
+- **Sem alteração de banco**: Todas as queries usam tabelas existentes
+- **Nome do usuário**: Obtido do `profile.full_name` via `useAuth()`
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `supabase/functions/ai-task-assistant/index.ts` | **Novo** — Edge function com parsing + sugestões |
-| `supabase/config.toml` | Adicionar bloco da nova função |
-| `src/components/tarefas/AiTaskAssistant.tsx` | **Novo** — Componente do assistente |
-| `src/pages/Tarefas.tsx` | Inserir `<AiTaskAssistant />` |
+| `supabase/functions/ai-consultant/index.ts` | Expandir com modos `executive_briefing` e `chat` |
+| `src/hooks/useExecutiveBriefing.ts` | **Novo** — agregação de dados + chamada à IA |
+| `src/components/ai/AiExecutiveAssistant.tsx` | **Novo** — UI do assistente (briefing + alertas + chat) |
+| `src/pages/Dashboard.tsx` | Inserir `<AiExecutiveAssistant />` |
 
