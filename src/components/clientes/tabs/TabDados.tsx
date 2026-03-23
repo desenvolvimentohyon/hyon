@@ -88,19 +88,31 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     if (!profile?.org_id || !cliente.id) return;
     setModulesLoading(true);
     try {
+      let newIds: string[];
       if (checked) {
         await supabase.from("client_modules").insert({ org_id: profile.org_id, client_id: cliente.id, module_id: moduleId });
-        setLinkedModuleIds(prev => [...prev, moduleId]);
+        newIds = [...linkedModuleIds, moduleId];
       } else {
         await supabase.from("client_modules").delete().eq("client_id", cliente.id).eq("module_id", moduleId);
-        setLinkedModuleIds(prev => prev.filter(id => id !== moduleId));
+        newIds = linkedModuleIds.filter(id => id !== moduleId);
       }
+      setLinkedModuleIds(newIds);
+
+      // Recalculate and propagate costs
+      const linkedMods = modulos.filter(m => newIds.includes(m.id));
+      const sumVenda = linkedMods.reduce((s, m) => s + m.valorVenda, 0);
+      const sumCusto = linkedMods.reduce((s, m) => s + m.valorCusto, 0);
+      const baseValue = currentSystem?.valorVenda || (formData.monthly_value_base ?? cliente.monthly_value_base) || 0;
+      onChange({
+        monthly_value_final: Number(baseValue) + sumVenda,
+        monthly_cost_value: sumCusto,
+      } as any);
     } catch {
       toast({ title: "Erro ao atualizar módulo", variant: "destructive" });
     } finally {
       setModulesLoading(false);
     }
-  }, [profile?.org_id, cliente.id]);
+  }, [profile?.org_id, cliente.id, linkedModuleIds, modulos, currentSystem, formData.monthly_value_base, cliente.monthly_value_base, onChange]);
 
   const buscarCep = async () => {
     const cep = v("address_cep").replace(/\D/g, "");
