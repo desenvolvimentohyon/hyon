@@ -48,6 +48,7 @@ function dbToTarefa(r: any): Tarefa {
   }));
   return {
     id: r.id, titulo: r.title, descricao: r.description, clienteId: r.client_id,
+    nomeClienteAvulso: m.nomeClienteAvulso || undefined,
     responsavelId: r.assignee_profile_id || "", prioridade: r.priority as Prioridade,
     status: r.status as StatusTarefa, prazoDataHora: r.due_at || undefined,
     criadoEm: r.created_at, atualizadoEm: r.updated_at, tags: r.tags || [],
