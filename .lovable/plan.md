@@ -1,40 +1,27 @@
 
 
-## Plano: Auto-iniciar cronômetro ao criar tarefa + exibir tempo na listagem
+## Plano: Corrigir reset de tela ao atualizar dados
 
-### Resumo
-Quando uma tarefa for criada, o cronômetro será automaticamente iniciado. Na tela de tarefas (tabela e kanban), cada tarefa exibirá o tempo decorrido em tempo real.
+### Problema
+Toda mutação (`addTarefa`, `updateTarefa`, `startTimer`, `stopTimer`) chama `fetchAll()`, que executa `setLoading(true)` — isso exibe o skeleton de carregamento completo, resetando a view atual (aba, filtros, scroll) e forçando o usuário de volta ao estado inicial.
 
-### 1. Editar: `src/contexts/AppContext.tsx` — Auto-start timer on task creation
+### Solução
+Separar o carregamento inicial (loading) do recarregamento em background (refresh silencioso).
 
-Na função `addTarefa`, após o insert no banco, chamar `startTimer` automaticamente com o ID da tarefa recém-criada.
+### Editar: `src/contexts/AppContext.tsx`
 
-- Após o `supabase.from("tasks").insert(...)`, usar o `data.id` retornado para fazer um update imediato setando `timer_running: true` e `timer_started_at: now()`.
-- Isso respeita a regra existente de parar qualquer outro timer ativo antes.
+1. **Criar flag `initialLoaded`** — controla se é o primeiro carregamento ou um refresh subsequente
+2. **Alterar `fetchAll`** — só seta `setLoading(true)` no primeiro carregamento. Em refreshes subsequentes, atualiza os dados silenciosamente sem mostrar skeleton
+3. **Resultado**: ao criar/editar tarefa, os dados são recarregados em background sem perder a posição do usuário na tela
 
-### 2. Editar: `src/pages/Tarefas.tsx` — Exibir tempo em cada tarefa
-
-**Na tabela:**
-- Adicionar coluna "Tempo" no `TableHeader`
-- Em cada `TableRow`, exibir o tempo formatado (HH:MM:SS) com atualização em tempo real para tarefas com timer ativo
-- Ícone de relógio pulsante quando o timer está rodando
-
-**No kanban (componente `KanbanTarefas`):**
-- Adicionar linha com ícone de relógio + tempo formatado em cada card
-- Animação sutil (pulsing dot) quando o timer está ativo
-
-### 3. Criar: Componente helper `LiveTimer` inline
-
-Um pequeno componente que recebe `tempoTotalSegundos`, `timerRodando` e `timerInicioTimestamp`, e usa `useEffect` + `setInterval` para atualizar o display a cada segundo quando o timer está ativo. Será usado tanto na tabela quanto no kanban.
+```text
+Antes:  fetchAll → setLoading(true) → skeleton → reset UI
+Depois: fetchAll → (se já carregou) → atualiza dados silenciosamente → UI preservada
+```
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/contexts/AppContext.tsx` | Auto-start timer após criar tarefa |
-| `src/pages/Tarefas.tsx` | Componente `LiveTimer` + coluna/badge de tempo na tabela e kanban |
-
-### Notas
-- A regra de "apenas um timer ativo" será respeitada: ao criar uma nova tarefa, qualquer timer rodando em outra tarefa será pausado automaticamente.
-- O formato será `HH:MM:SS` para consistência com a tela de detalhe.
+| `src/contexts/AppContext.tsx` | Loading apenas no primeiro fetch, refreshes silenciosos |
 
