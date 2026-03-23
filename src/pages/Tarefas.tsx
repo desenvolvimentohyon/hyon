@@ -113,6 +113,8 @@ export default function Tarefas() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroSistema, setFiltroSistema] = useState<string>("todos");
   const [showNova, setShowNova] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [generatingDaily, setGeneratingDaily] = useState(false);
 
   // Form state
   const [novoTitulo, setNovoTitulo] = useState("");
