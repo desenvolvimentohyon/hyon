@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Outlet, useLocation } from "react-router-dom";
 import { JarvisFloatingButton } from "@/components/ai/JarvisFloatingButton";
+import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +43,7 @@ export function AppLayout() {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <Topbar />
+          <PushNotificationBanner />
           <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
             {hasAccess ? <Outlet /> : <AcessoNegado />}
           </main>
