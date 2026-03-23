@@ -1,0 +1,82 @@
+import { useLocation, useNavigate } from "react-router-dom";
+import { modules } from "@/lib/sidebarModules";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const MODULE_COLORS: Record<string, { color: string; bg: string; border: string; activeBg: string }> = {
+  dashboard: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/40", activeBg: "bg-primary/15" },
+  clientes: { color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/40", activeBg: "bg-emerald-500/15" },
+  comercial: { color: "text-indigo-500", bg: "bg-indigo-500/10", border: "border-indigo-500/40", activeBg: "bg-indigo-500/15" },
+  financeiro: { color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/40", activeBg: "bg-green-500/15" },
+  operacional: { color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/40", activeBg: "bg-orange-500/15" },
+  cartoes: { color: "text-purple-500", bg: "bg-purple-500/10", border: "border-purple-500/40", activeBg: "bg-purple-500/15" },
+  configuracoes: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/40", activeBg: "bg-primary/15" },
+};
+
+function isModuleActive(moduleId: string, pathname: string): boolean {
+  const mod = modules.find((m) => m.id === moduleId);
+  if (!mod) return false;
+  return mod.children.some((c) => {
+    if (c.url === "/") return pathname === "/";
+    return pathname === c.url || pathname.startsWith(c.url + "/");
+  });
+}
+
+export function ModuleNavBar() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <nav
+        className="sticky top-16 z-10 flex items-center justify-center gap-1 sm:gap-3 md:gap-5 px-2 sm:px-4 py-2 bg-background/80 backdrop-blur-md overflow-x-auto scrollbar-none"
+        style={{ borderBottom: "1px solid hsl(var(--border) / 0.4)" }}
+      >
+        {modules.map((mod) => {
+          const active = isModuleActive(mod.id, location.pathname);
+          const palette = MODULE_COLORS[mod.id] || MODULE_COLORS.dashboard;
+          const Icon = mod.icon;
+
+          return (
+            <Tooltip key={mod.id}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => navigate(mod.directUrl || mod.children[0]?.url || "/")}
+                  className={cn(
+                    "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[72px] group",
+                    "hover:scale-105",
+                    active
+                      ? cn("border", palette.border, palette.activeBg, "shadow-sm")
+                      : "border border-transparent hover:bg-muted/50"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full border transition-colors",
+                      active
+                        ? cn(palette.bg, palette.border, palette.color)
+                        : "bg-muted/50 border-border/40 text-muted-foreground group-hover:border-border"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[11px] font-medium leading-tight text-center truncate max-w-[80px]",
+                      active ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    {mod.title}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {mod.title}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </nav>
+    </TooltipProvider>
+  );
+}
