@@ -95,7 +95,7 @@ export default function Cockpit() {
     setTimeout(() => handleChat(text), 100);
   }, []);
 
-  const voice = useJarvisVoice({ onSpeechResult: handleSpeechResult });
+  const voice = useJarvisVoice(handleSpeechResult);
 
   const jarvisState = voice.isSpeaking ? "speaking" as const
     : voice.isListening ? "listening" as const
