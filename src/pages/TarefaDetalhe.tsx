@@ -44,7 +44,8 @@ export default function TarefaDetalhe() {
   useEffect(() => {
     if (!tarefa) return;
     setTitulo(tarefa.titulo);
-  }, [tarefa?.titulo]);
+    setObservacoesText(tarefa.observacoes || "");
+  }, [tarefa?.titulo, tarefa?.observacoes]);
 
   // Live timer
   useEffect(() => {
