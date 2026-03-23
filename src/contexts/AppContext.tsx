@@ -96,6 +96,7 @@ function tarefaToDb(t: any, orgId: string) {
       setorTreinamento: t.setorTreinamento, horasMinistradas: t.horasMinistradas,
       participantes: t.participantes, treinamentoExtraCobrado: t.treinamentoExtraCobrado,
       valorTreinamentoExtra: t.valorTreinamentoExtra, implantacaoId: t.implantacaoId,
+      observacoes: t.observacoes, fotos: t.fotos,
     },
   };
 }
