@@ -37,6 +37,7 @@ export const modules: ParentModule[] = [
     id: "clientes",
     title: "Clientes",
     icon: Users,
+    directUrl: "/clientes",
     children: [
       { title: "Cadastro de Clientes", url: "/clientes", icon: Users, description: "Gestão e cadastro de clientes" },
       { title: "Receita / MRR", url: "/receita", icon: DollarSign, description: "Receita recorrente mensal" },
