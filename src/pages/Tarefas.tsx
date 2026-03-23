@@ -227,6 +227,7 @@ export default function Tarefas() {
         }
       />
       <ModuleNavGrid moduleId="operacional" />
+      <AiTaskAssistant clientes={clientes} tecnicos={tecnicos} addTarefa={addTarefa} tecnicoAtualId={tecnicoAtualId} />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
