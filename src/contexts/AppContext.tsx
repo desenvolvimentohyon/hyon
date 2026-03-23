@@ -68,6 +68,7 @@ function dbToTarefa(r: any): Tarefa {
     participantes: m.participantes, treinamentoExtraCobrado: m.treinamentoExtraCobrado,
     valorTreinamentoExtra: m.valorTreinamentoExtra, implantacaoId: m.implantacaoId,
     linkedTicketId: r.linked_ticket_id || undefined,
+    source: r.source || "manual",
   };
 }
 
