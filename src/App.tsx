@@ -26,6 +26,7 @@ import Comercial from "./pages/Comercial";
 import Implantacao from "./pages/Implantacao";
 import Suporte from "./pages/Suporte";
 import Executivo from "./pages/Executivo";
+import RadarCrescimento from "./pages/RadarCrescimento";
 import Propostas from "./pages/Propostas";
 import PropostaDetalhe from "./pages/PropostaDetalhe";
 import PropostaInteligente from "./pages/PropostaInteligente";
@@ -103,6 +104,7 @@ function AuthGate() {
                     <Route path="/implantacao" element={<Implantacao />} />
                     <Route path="/suporte" element={<Suporte />} />
                     <Route path="/executivo" element={<Executivo />} />
+                    <Route path="/radar-crescimento" element={<RadarCrescimento />} />
                     <Route path="/propostas" element={<Propostas />} />
                     <Route path="/propostas/nova" element={<PropostaInteligente />} />
                     <Route path="/propostas/:id" element={<PropostaDetalhe />} />

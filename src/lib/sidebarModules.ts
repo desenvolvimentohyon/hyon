@@ -29,6 +29,7 @@ export const modules: ParentModule[] = [
     children: [
       { title: "Visão Geral", url: "/", icon: LayoutDashboard, description: "Indicadores e resumo geral" },
       { title: "Painel Executivo", url: "/executivo", icon: BarChart3, description: "Métricas estratégicas e KPIs" },
+      { title: "Radar de Crescimento", url: "/radar-crescimento", icon: Rocket, description: "Oportunidades e estratégia com IA" },
     ],
   },
   {
