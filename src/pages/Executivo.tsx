@@ -9,6 +9,7 @@ import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { RECEITA_COLORS } from "@/types/receita";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart, Area } from "recharts";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const CHART_COLORS = [
   "hsl(224, 60%, 45%)",
