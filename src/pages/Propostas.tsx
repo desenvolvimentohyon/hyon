@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { gerarPDFProposta } from "@/lib/pdfGenerator";
 import { Plus, Search, MoreHorizontal, FileText, Copy, Download, Send, Eye, EyeOff, ThumbsUp, ThumbsDown, Trash2, ExternalLink, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { StatusVisualizacao, StatusAceite, SistemaProposta, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 
 export default function Propostas() {
