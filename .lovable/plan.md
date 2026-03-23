@@ -1,64 +1,77 @@
 
 
-## Plano: Cards Inteligentes (Mini Dashboards) no ModuleNavGrid
+## Plano: Assistente Inteligente de Tarefas (Texto + Voz)
 
 ### Resumo
-Evoluir o componente `ModuleNavGrid` para exibir indicadores em tempo real dentro de cada card de navegação, transformando-os em mini dashboards sem perder a função de navegação.
+Adicionar um assistente de IA ao módulo de tarefas que permite criar tarefas por texto natural e por voz, além de sugerir tarefas automaticamente com base em dados do sistema.
 
-### Arquitetura
+### 1. Edge Function: `ai-task-assistant`
 
-1. **Hook centralizado: `src/hooks/useSmartCardStats.ts`** (Novo)
-   - Um único hook que faz queries ao banco para todas as métricas necessárias
-   - Retorna um `Record<string, CardStats>` mapeado por URL do submódulo
-   - Usa `react-query` com `staleTime` de 60s para evitar chamadas excessivas
-   - Cada entrada retorna: `{ mainValue, mainLabel, secondaryValue, secondaryLabel, trend, sparklineData? }`
-   - Queries agrupadas por módulo para minimizar chamadas
+**Arquivo: `supabase/functions/ai-task-assistant/index.ts`**
 
-2. **Métricas por card (baseadas nas tabelas existentes)**:
+Recebe texto do usuário + contexto (lista de clientes, técnicos) e usa Lovable AI (Gemini Flash) com tool calling para retornar tarefa estruturada:
 
-| Card (URL) | Indicador principal | Secundário |
-|---|---|---|
-| `/clientes` | Total clientes ativos | Novos no mês |
-| `/receita` | MRR atual (soma monthly_value_final) | Variação % vs mês anterior |
-| `/checkout-interno` | — (sem métrica) | — |
-| `/propostas` | Propostas enviadas no mês | Taxa de conversão % |
-| `/crm` | Leads ativos (status != ganho/perdido) | Novos no mês |
-| `/comercial` | Propostas aceitas no mês | Valor total aceito |
-| `/parceiros` | Parceiros ativos | — |
-| `/financeiro` | Receita do mês (títulos receber pagos) | Títulos em atraso |
-| `/financeiro/contas-a-receber` | Total a receber (aberto) | Em atraso |
-| `/financeiro/contas-a-pagar` | Total a pagar (aberto) | Vencendo esta semana |
-| `/suporte` | Tickets abertos | Em andamento |
-| `/tarefas` | Tarefas pendentes | Em andamento |
-| `/cartoes` | Clientes de maquininha ativos | — |
+```
+Tool: parse_task
+Retorna: { titulo, descricao, clienteNome?, prioridade, tipoOperacional, prazoDataHora?, responsavelNome? }
+```
 
-3. **Componente atualizado: `ModuleNavGrid.tsx`**
-   - Importar o hook `useSmartCardStats`
-   - Dentro de cada card, abaixo do título/descrição, renderizar:
-     - Valor principal em texto bold (ex: "42 ativos")
-     - Badge de tendência (verde ↑ / vermelho ↓) quando disponível
-     - Mini sparkline opcional (via `recharts` Sparkline, 40x16px) para métricas com histórico
-   - Cards sem dados disponíveis mantêm o layout atual (apenas ícone + título + descrição)
-   - Skeleton loading enquanto dados carregam
-   - O card fica ligeiramente mais alto (~p-5 em vez de p-4) para acomodar os indicadores
+Segundo modo `type: "suggest"` — recebe dados do sistema (clientes inadimplentes, certificados vencendo, propostas aceitas) e retorna array de sugestões de tarefas.
 
-4. **Detalhes visuais**
-   - Indicador principal: `text-lg font-bold` com cor semântica do módulo
-   - Badge de tendência: verde para positivo, vermelho para negativo, cinza para neutro
-   - Sparkline: stroke com a cor do módulo, sem eixos, apenas a linha
-   - Tooltip no indicador com explicação (ex: "MRR: Receita recorrente mensal")
-   - Transição suave nos valores ao atualizar
+### 2. Componente: `AiTaskAssistant`
 
-### Arquivos editados
+**Arquivo: `src/components/tarefas/AiTaskAssistant.tsx`**
+
+Card no topo da página de Tarefas com:
+
+- **Campo de texto**: "Descreva a tarefa..." com botão "Criar com IA"
+- **Botão de voz** 🎤: Usa Web Speech API (`webkitSpeechRecognition`) para capturar fala → converte em texto → envia à edge function
+- **Preview da tarefa**: Após resposta da IA, exibe card com campos preenchidos (título, cliente, prioridade, data) com botões: "Criar", "Editar", "Cancelar"
+- **Associação automática de cliente**: Match do nome retornado pela IA com `clientes` do contexto (fuzzy match simples)
+- **Loading state** e tratamento de erros (429/402)
+
+### 3. Painel de Sugestões Inteligentes
+
+Dentro do mesmo componente, seção colapsável "Sugestões da IA":
+
+- Ao abrir a página, faz query para buscar:
+  - Clientes com `statusFinanceiro = '2_mais_atrasos'`
+  - Certificados com vencimento < 30 dias
+  - Propostas aceitas sem tarefa de implantação
+- Envia esses dados à edge function (mode `suggest`)
+- Renderiza cards de sugestão com botões: "Criar Tarefa" / "Ignorar"
+- Cache de 5 minutos para não re-consultar
+
+### 4. Integração na página Tarefas
+
+**Arquivo: `src/pages/Tarefas.tsx`**
+
+- Importar e inserir `<AiTaskAssistant />` entre o `ModuleNavGrid` e os filtros
+- Passar `clientes`, `tecnicos`, `addTarefa` como props
+
+### 5. Config TOML
+
+**Arquivo: `supabase/config.toml`**
+
+Adicionar:
+```toml
+[functions.ai-task-assistant]
+verify_jwt = false
+```
+
+### Detalhes técnicos
+
+- Web Speech API é nativa do navegador, sem dependência externa — fallback mostra toast se não suportado
+- Edge function usa `LOVABLE_API_KEY` já disponível
+- Tool calling garante resposta estruturada sem parsing de JSON instável
+- Sugestões usam `react-query` com `staleTime: 300_000` (5min)
+
+### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/hooks/useSmartCardStats.ts` | **Novo** — hook com queries para métricas dos cards |
-| `src/components/layout/ModuleNavGrid.tsx` | Integrar métricas, sparklines, badges de tendência |
-
-### Notas técnicas
-- Todas as queries usam as tabelas existentes (`clients`, `proposals`, `financial_titles`, `portal_tickets`, `tasks`, `card_clients`) — sem alteração de banco
-- `staleTime: 60_000` e `refetchOnWindowFocus: true` para balance entre atualização e performance
-- Sparklines usam dados dos últimos 6 meses quando disponíveis (agrupando por competência)
-- Cards de módulos sem dados relevantes (ex: Configurações, Checkout) permanecem apenas visuais
+| `supabase/functions/ai-task-assistant/index.ts` | **Novo** — Edge function com parsing + sugestões |
+| `supabase/config.toml` | Adicionar bloco da nova função |
+| `src/components/tarefas/AiTaskAssistant.tsx` | **Novo** — Componente do assistente |
+| `src/pages/Tarefas.tsx` | Inserir `<AiTaskAssistant />` |
 
