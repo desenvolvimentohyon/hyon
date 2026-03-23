@@ -239,6 +239,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const existing = tarefas.find(t => t.id === id);
     if (!existing) return;
     const merged = { ...existing, ...changes };
+
+    // Auto-adjust on completion: force priority to low and stop timer
+    const finalStatus = changes.status ?? existing.status;
+    if (finalStatus === "concluida") {
+      changes.prioridade = "baixa";
+      merged.prioridade = "baixa";
+      if (existing.timerRodando) {
+        const now = Date.now();
+        const elapsed = Math.floor((now - (existing.timerInicioTimestamp || now)) / 1000);
+        changes.tempoTotalSegundos = existing.tempoTotalSegundos + elapsed;
+        changes.timerRodando = false;
+        changes.timerInicioTimestamp = undefined;
+        merged.tempoTotalSegundos = changes.tempoTotalSegundos;
+        merged.timerRodando = false;
+        merged.timerInicioTimestamp = undefined;
+      }
+    }
+
     const dbUpdate: any = {};
     if (changes.titulo !== undefined) dbUpdate.title = changes.titulo;
     if (changes.descricao !== undefined) dbUpdate.description = changes.descricao;
