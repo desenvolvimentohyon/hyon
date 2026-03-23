@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Save, Download, Upload, RotateCcw, Bell, Plus, X } from "lucide-react";
 import { SistemaPrincipal } from "@/types/receita";
 import { supabase } from "@/integrations/supabase/client";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
 

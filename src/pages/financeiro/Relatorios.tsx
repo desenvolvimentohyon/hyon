@@ -16,6 +16,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { FINANCEIRO_COLORS } from "@/types/financeiro";
 import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
 import { exportDREPDF, exportMRRPDF } from "@/lib/pdfRelatorioFinanceiro";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Download, TrendingUp, TrendingDown, Target, DollarSign, Users, Percent, Calendar } from "lucide-react";
 import { toast } from "sonner";
 

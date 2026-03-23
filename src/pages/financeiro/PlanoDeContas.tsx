@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Plus, ChevronRight, ChevronDown, Edit, Trash2, Download, Upload, FolderTree } from "lucide-react";
 import { PlanoContas, TipoPlanoContas, FINANCEIRO_COLORS } from "@/types/financeiro";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const tipoColors: Record<TipoPlanoContas, string> = {
   receita: "bg-info/10 text-info border-info/20",
