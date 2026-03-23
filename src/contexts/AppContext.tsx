@@ -201,7 +201,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       console.error("Error fetching app data:", err);
     }
     setLoading(false);
-  }, [orgId, user?.id]);
+    setInitialLoaded(true);
+  }, [orgId, user?.id, initialLoaded]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
