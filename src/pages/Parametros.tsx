@@ -41,7 +41,7 @@ export default function Parametros() {
   // Alerta
   const [alertaDias, setAlertaDias] = useState(alertaCertificadoDias);
 
-  const openNewSistema = () => { setFSistema({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true }); setModal({ type: "sistema", editing: null }); };
+  const openNewSistema = () => { setFSistema({ nome: "", descricao: "", ativo: true }); setModal({ type: "sistema", editing: null }); };
   const openEditSistema = (id: string) => { const s = sistemas.find(x => x.id === id); if (s) { setFSistema(s); setModal({ type: "sistema", editing: id }); } };
   const saveSistema = () => { if (!fSistema.nome.trim()) { toast.error("Nome obrigatório"); return; } modal?.editing ? updateSistema(modal.editing, fSistema) : addSistema(fSistema); setModal(null); toast.success("Sistema salvo!"); };
 
