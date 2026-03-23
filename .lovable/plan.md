@@ -1,77 +1,86 @@
 
 
-## Plano: Jarvis — Assistente de Comando Total por Voz
+## Plano: Modo Cockpit — Central de Comando Inteligente
 
 ### Resumo
-Adicionar uma camada de interpretação de comandos ao Jarvis que mapeia texto/voz para ações do sistema (navegação, criação, consulta). Usa a edge function `ai-consultant` com novo modo `command` para interpretar intenção, e um novo hook client-side executa a ação correspondente via React Router e toasts de confirmação.
+Criar uma nova página `/cockpit` que funciona como central de comando unificada, integrando dados e IAs já existentes em um layout otimizado de "mission control". Reutiliza hooks e componentes existentes sem duplicar lógica.
 
-### Arquitetura: 1 novo arquivo + 3 edições
+### Arquitetura: 1 novo arquivo + 2 edições
 
-### 1. Edge Function: `ai-consultant/index.ts` (adicionar modo `command`)
+### 1. Nova página: `src/pages/Cockpit.tsx`
 
-Novo `type: "command"` que recebe o texto do comando + rota atual + permissões do usuário e retorna via tool calling:
+Página completa com layout de cockpit dividido em seções:
 
-```
-Tool: jarvis_command
-{
-  intent: "navigate" | "create" | "query" | "action" | "unknown",
-  route?: string,           // ex: "/clientes", "/financeiro"
-  entity_type?: string,     // ex: "tarefa", "proposta", "cliente"
-  entity_name?: string,     // ex: "João", "Mercado Central"
-  params?: Record<string, string>,  // ex: { valor: "500", data: "amanhã" }
-  requires_confirmation?: boolean,
-  confirmation_message?: string,
-  spoken_response: string,  // resposta falada/textual do Jarvis
-  fallback_chat?: boolean   // se true, redireciona para chat normal
-}
-```
+**Topo — Saudação + Status**
+- Reutiliza `useExecutiveBriefing()` para saudação e métricas
+- KPIs compactos inline: MRR, Clientes Ativos, Inadimplentes, Propostas Abertas, Tarefas Pendentes, Churn
+- Badge de status geral do negócio (verde/amarelo/vermelho)
 
-System prompt inclui a lista de rotas/módulos disponíveis do `sidebarModules.ts` e os comandos rápidos suportados.
+**Grid Central — Cards Inteligentes (3 colunas no desktop)**
 
-### 2. Novo hook: `src/hooks/useJarvisCommands.ts`
+| Card | Dados | Fonte |
+|------|-------|-------|
+| Financeiro | MRR, receita mês, inadimplência, margem | `useExecutiveBriefing` + query direta `financial_titles` |
+| Comercial | Propostas abertas/aceitas/taxa conversão, funil | `usePropostas` context |
+| Clientes | Ativos, em risco, novos, health score médio | `useApp` context + queries |
+| Tarefas do Dia | Pendentes, urgentes, sugeridas pela IA | Query `tasks` |
+| Radar de Crescimento | Top 3 oportunidades, potencial upsell | `useGrowthRadar` (resumo compacto) |
+| Radar de Risco | Top 3 clientes em risco, churn score | `useChurnAnalysis` |
 
-Responsável por executar ações baseadas no resultado do `jarvis_command`:
+**Seção Alertas + Ações**
+- Lista de alertas priorizados (do briefing)
+- Ações recomendadas com botões: Executar / Abrir / Ignorar
+- Cada ação usa `useJarvisCommands` para executar
 
-- **navigate**: `useNavigate()` para a rota retornada
-- **create**: navega para a rota + abre modal/formulário (ex: `/propostas` com query param `?new=1`)
-- **query**: delega para o chat existente do `AiExecutiveAssistant`
-- **action**: executa ações como criar tarefa via Supabase, com confirmação se `requires_confirmation`
-- **unknown**: responde "Não entendi, pode repetir?"
+**Painel Lateral — Jarvis**
+- `JarvisAvatar` com estado sincronizado
+- `JarvisVoiceControls` para voz
+- Campo de chat inline (reutiliza lógica de `AiExecutiveAssistant`)
+- Chips de comandos rápidos
 
-Integra com permissões via `useAuth()` — bloqueia ações não permitidas.
+**Modo Foco**
+- Toggle no header que esconde cards secundários
+- Mostra apenas: Tarefas do dia + Alertas críticos + KPIs essenciais
+- Persiste em `localStorage`
 
-Mantém histórico dos últimos 20 comandos em `useState`.
+### 2. Editar: `src/App.tsx`
+- Adicionar rota `/cockpit` com import do `Cockpit`
 
-### 3. Editar: `src/components/ai/AiExecutiveAssistant.tsx`
+### 3. Editar: `src/lib/sidebarModules.ts`
+- Adicionar "Modo Cockpit" como primeiro submódulo do grupo Dashboard com ícone `Gauge` (lucide)
 
-- Importar `useJarvisCommands`
-- No `handleChat` e `handleSpeechResult`: antes de enviar ao chat, verificar se o texto é um comando (invocar `ai-consultant` com `type: "command"`)
-- Se a IA retornar `intent !== "unknown"` e `fallback_chat !== true`, executar o comando e mostrar `spoken_response` como mensagem do assistente + falar se voz ativada
-- Se `fallback_chat === true`, seguir fluxo normal de chat
-- Adicionar seção "Comandos rápidos" colapsável com chips clicáveis: "Abrir clientes", "Criar proposta", "Ver financeiro", "Clientes em risco", "Criar tarefa"
-- Diálogo de confirmação inline para ações sensíveis (`requires_confirmation`)
+### Detalhes técnicos
 
-### 4. Editar: `supabase/functions/ai-consultant/index.ts`
+**Performance:**
+- Reutiliza hooks existentes (`useExecutiveBriefing`, `useGrowthRadar`, `useChurnAnalysis`) — sem queries duplicadas
+- Lazy load dos cards com `Suspense`
+- `staleTime` dos hooks já configurado (5 min)
 
-Adicionar bloco `if (type === "command")` com:
-- System prompt contendo mapa de rotas (extraído de `sidebarModules`)
-- Lista de ações suportadas (navigate, create tarefa/proposta/cliente, query)
-- Tool `jarvis_command` com schema acima
-- Instrução para respeitar permissões passadas no payload
+**Voz:**
+- Reutiliza `useJarvisVoice` existente
+- Boas-vindas automáticas ao entrar no cockpit (mesma lógica do dashboard, com flag `sessionStorage` separada: `jarvis_cockpit_welcome`)
+
+**Responsividade:**
+- Desktop: grid 3 colunas + sidebar Jarvis
+- Tablet: grid 2 colunas, Jarvis colapsável
+- Mobile: stack vertical, Jarvis via FAB existente
+
+**Visual:**
+- Glassmorphism nos cards (`bg-card/80 backdrop-blur-sm border-white/5`)
+- Cores semânticas: verde (crescimento), vermelho (risco), azul (info), laranja (atenção)
+- Glow sutil nos KPIs principais
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `supabase/functions/ai-consultant/index.ts` | Adicionar modo `command` |
-| `src/hooks/useJarvisCommands.ts` | **Novo** — execução de comandos |
-| `src/components/ai/AiExecutiveAssistant.tsx` | Integrar comandos + chips rápidos |
+| `src/pages/Cockpit.tsx` | **Novo** — página completa do cockpit |
+| `src/App.tsx` | Nova rota `/cockpit` |
+| `src/lib/sidebarModules.ts` | Novo submódulo "Modo Cockpit" |
 
-### Notas técnicas
+### Notas
 - Sem alteração de banco de dados
-- Reutiliza edge function existente
-- Comandos de navegação: mapa hardcoded de aliases → rotas (ex: "clientes" → "/clientes", "financeiro" → "/financeiro")
-- Confirmação inline no chat (não modal separado) para ações sensíveis
-- Histórico de comandos armazenado em memória (não persistido)
-- Permissões checadas client-side via `useAuth().profile` antes de executar
+- Sem nova edge function — reutiliza `ai-consultant` existente
+- Dashboard atual permanece intacto
+- Todos os componentes de IA existentes são reutilizados, não duplicados
 
