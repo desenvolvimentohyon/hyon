@@ -109,6 +109,9 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
                         <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
                         <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
                       </div>
+                      <div className="pt-1 border-t border-border/30">
+                        <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
+                      </div>
                     </CardContent>
                   </Card>
                 );
