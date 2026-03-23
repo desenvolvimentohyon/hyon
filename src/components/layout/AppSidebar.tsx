@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Star, ChevronDown } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Search, Star } from "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
 import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 import { NavLink } from "@/components/NavLink";
@@ -77,48 +77,13 @@ export function AppSidebar() {
     m.children.some((c) => isActive(c.url))
   )?.id;
 
-  const [openModules, setOpenModules] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (activeParentId) {
-      setOpenModules((prev) => {
-        if (prev.has(activeParentId)) return prev;
-        const next = new Set(prev);
-        next.add(activeParentId);
-        return next;
-      });
-    }
-  }, [activeParentId]);
-
-  const toggleModule = (id: string) => {
-    setOpenModules((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
   const lowerSearch = search.toLowerCase().trim();
   const filteredModules = useMemo(() => {
     if (!lowerSearch) return modules;
-    return modules
-      .map((mod) => {
-        const parentMatch = mod.title.toLowerCase().includes(lowerSearch);
-        const matchedChildren = mod.children.filter((c) =>
-          c.title.toLowerCase().includes(lowerSearch)
-        );
-        if (parentMatch) return mod;
-        if (matchedChildren.length > 0) return { ...mod, children: matchedChildren };
-        return null;
-      })
-      .filter(Boolean) as typeof modules;
+    return modules.filter((mod) =>
+      mod.title.toLowerCase().includes(lowerSearch)
+    );
   }, [lowerSearch]);
-
-  useEffect(() => {
-    if (lowerSearch) {
-      setOpenModules(new Set(filteredModules.map((m) => m.id)));
-    }
-  }, [lowerSearch, filteredModules]);
 
   const favoriteItems = useMemo(() => {
     const items: { title: string; url: string; icon: React.ElementType }[] = [];
@@ -214,53 +179,33 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Module groups */}
+        {/* Module groups — flat list, no expansion */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               <TooltipProvider delayDuration={300}>
                 {filteredModules.map((mod) => {
-                  const visibleChildren = mod.children.filter((c) => canAccess(c.url));
-                  if (visibleChildren.length === 0) return null;
+                  const hasAccess = mod.children.some((c) => canAccess(c.url));
+                  if (!hasAccess) return null;
 
-                  const isOpen = openModules.has(mod.id);
                   const isParentActive = activeParentId === mod.id;
                   const palette = MODULE_SIDEBAR_COLORS[mod.id] || MODULE_SIDEBAR_COLORS.dashboard;
-
-                  if (collapsed) {
-                    const targetUrl = mod.directUrl || visibleChildren[0].url;
-                    return (
-                      <SidebarMenuItem key={mod.id}>
-                        <SidebarMenuButton asChild isActive={isParentActive} tooltip={mod.title}>
-                          <NavLink
-                            to={targetUrl}
-                            end={targetUrl === "/"}
-                            className={cn(
-                              "relative flex items-center justify-center transition-all duration-200 rounded-xl mx-1 border",
-                              isParentActive
-                                ? cn(palette.active, palette.glow, "font-semibold")
-                                : "border-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-border/30"
-                            )}
-                            activeClassName=""
-                          >
-                            <mod.icon className={cn("h-4 w-4", isParentActive ? palette.icon : "text-sidebar-foreground/60")} />
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  }
+                  const targetUrl = mod.directUrl || mod.children[0].url;
 
                   return (
-                    <div key={mod.id} className="mb-0.5">
-                      <SidebarMenuItem>
-                        <button
-                          onClick={() => toggleModule(mod.id)}
+                    <SidebarMenuItem key={mod.id}>
+                      <SidebarMenuButton asChild isActive={isParentActive} tooltip={collapsed ? mod.title : undefined}>
+                        <NavLink
+                          to={targetUrl}
+                          end={targetUrl === "/"}
                           className={cn(
-                            "flex items-center w-full gap-2.5 px-3 py-2.5 rounded-xl mx-1 text-left transition-all duration-200 group border",
+                            "relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl mx-1 transition-all duration-200 border",
+                            collapsed ? "justify-center" : "",
                             isParentActive
                               ? cn(palette.active, palette.glow, "font-semibold")
                               : "border-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-border/30"
                           )}
+                          activeClassName=""
                         >
                           <div className={cn(
                             "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
@@ -268,81 +213,10 @@ export function AppSidebar() {
                           )}>
                             <mod.icon className={cn("h-3.5 w-3.5", isParentActive ? palette.icon : "text-sidebar-foreground/50")} />
                           </div>
-                          <span className="text-[13px] flex-1">{mod.title}</span>
-                          <ChevronDown
-                            className={cn(
-                              "h-3.5 w-3.5 shrink-0 text-sidebar-foreground/40 transition-transform duration-200",
-                              isOpen && "rotate-180"
-                            )}
-                          />
-                        </button>
-                      </SidebarMenuItem>
-
-                      <div
-                        className={cn(
-                          "overflow-hidden transition-all duration-200",
-                          isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-                        )}
-                      >
-                        <div className="ml-3 pl-3 border-l border-sidebar-border/20 mt-1 mb-1.5 space-y-0.5">
-                          {visibleChildren.map((child) => {
-                            const childActive = isActive(child.url);
-                            const isFav = favorites.includes(child.url);
-                            return (
-                              <SidebarMenuItem key={child.url}>
-                                <SidebarMenuButton asChild isActive={childActive}>
-                                  <div className="flex items-center group/fav">
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <NavLink
-                                          to={child.url}
-                                          end={child.url === "/" || child.url === "/financeiro"}
-                                          className={cn(
-                                            "relative flex items-center gap-2.5 px-2.5 py-2 rounded-xl border transition-all duration-200 text-[12.5px] flex-1",
-                                            childActive
-                                              ? cn(palette.active, palette.glow, "font-medium")
-                                              : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 hover:border-sidebar-border/20"
-                                          )}
-                                          activeClassName=""
-                                        >
-                                          <div className={cn(
-                                            "flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-md transition-colors",
-                                            childActive ? palette.active.split(" ")[0] : "bg-transparent"
-                                          )}>
-                                            <child.icon className={cn("h-3.5 w-3.5", childActive ? palette.icon : "text-sidebar-foreground/45")} />
-                                          </div>
-                                          <span>{child.title}</span>
-                                        </NavLink>
-                                      </TooltipTrigger>
-                                      {child.description && (
-                                        <TooltipContent side="right" className="max-w-[200px]">
-                                          <p className="text-xs">{child.description}</p>
-                                        </TooltipContent>
-                                      )}
-                                    </Tooltip>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleFavorite(child.url);
-                                      }}
-                                      className={cn(
-                                        "p-1 rounded-lg transition-all duration-200 shrink-0",
-                                        isFav
-                                          ? "text-amber-500 opacity-100"
-                                          : "text-sidebar-foreground/20 opacity-0 group-hover/fav:opacity-100 hover:text-amber-500"
-                                      )}
-                                      title={isFav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                                    >
-                                      <Star className={cn("h-3 w-3", isFav && "fill-amber-500")} />
-                                    </button>
-                                  </div>
-                                </SidebarMenuButton>
-                              </SidebarMenuItem>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
+                          {!collapsed && <span className="text-[13px]">{mod.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   );
                 })}
               </TooltipProvider>

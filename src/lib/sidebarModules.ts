@@ -37,6 +37,7 @@ export const modules: ParentModule[] = [
     id: "clientes",
     title: "Clientes",
     icon: Users,
+    directUrl: "/clientes",
     children: [
       { title: "Cadastro de Clientes", url: "/clientes", icon: Users, description: "Gestão e cadastro de clientes" },
       { title: "Receita / MRR", url: "/receita", icon: DollarSign, description: "Receita recorrente mensal" },
@@ -47,6 +48,7 @@ export const modules: ParentModule[] = [
     id: "comercial",
     title: "Comercial",
     icon: TrendingUp,
+    directUrl: "/propostas",
     children: [
       { title: "Propostas", url: "/propostas", icon: FileText, description: "Criação e envio de propostas" },
       { title: "CRM", url: "/crm", icon: Kanban, description: "Pipeline e funil de vendas" },
@@ -58,6 +60,7 @@ export const modules: ParentModule[] = [
     id: "financeiro",
     title: "Financeiro",
     icon: Landmark,
+    directUrl: "/financeiro",
     children: [
       { title: "Visão Geral", url: "/financeiro", icon: Landmark, description: "Resumo financeiro geral" },
       { title: "Contas a Receber", url: "/financeiro/contas-a-receber", icon: TrendingUp, description: "Títulos e receitas a receber" },
@@ -73,6 +76,7 @@ export const modules: ParentModule[] = [
     id: "operacional",
     title: "Suporte e Operacional",
     icon: Headphones,
+    directUrl: "/suporte",
     children: [
       { title: "Suporte", url: "/suporte", icon: Headphones, description: "Chamados e SLA de atendimento" },
       { title: "Tarefas", url: "/tarefas", icon: ListTodo, description: "Gestão de tarefas e atividades" },
@@ -84,6 +88,7 @@ export const modules: ParentModule[] = [
     id: "cartoes",
     title: "Cartões",
     icon: CreditCard,
+    directUrl: "/cartoes",
     children: [
       { title: "Dashboard", url: "/cartoes", icon: BarChart3, description: "Visão geral de maquininhas" },
       { title: "Clientes", url: "/cartoes/clientes", icon: Users, description: "Clientes de maquininha" },
@@ -95,6 +100,7 @@ export const modules: ParentModule[] = [
     id: "configuracoes",
     title: "Configurações",
     icon: Settings,
+    directUrl: "/configuracoes",
     children: [
       { title: "Minha Empresa", url: "/configuracoes", icon: Settings, description: "Dados e identidade da empresa" },
       { title: "Usuários", url: "/usuarios", icon: Shield, description: "Permissões e acessos" },
