@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Rocket, Plus, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/hooks/use-toast";
 import { TEMPLATES_IMPLANTACAO } from "@/lib/constants";
