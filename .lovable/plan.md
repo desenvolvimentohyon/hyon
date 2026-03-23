@@ -1,31 +1,76 @@
 
 
-## Plano: Vincular tarefa ao sistema do cliente automaticamente
+## Plano: Aplicar navegação em cards (ModuleNavGrid) em todo o sistema
 
-### Resumo
-Ao selecionar um cliente no modal de criação de tarefa, detectar o `system_name` do cliente e exibir uma sugestão opcional para vincular o sistema à tarefa.
+### Conceito
+Criar um componente reutilizável `ModuleNavGrid` que renderiza cards de navegação para os submódulos de cada área, usando o mesmo padrão visual do `SubtabGrid` já existente em Configurações. O componente lê os dados de `sidebarModules.ts` e destaca a rota ativa.
 
-### Mudança
+### 1. Novo componente: `ModuleNavGrid`
 
-**Arquivo: `src/pages/Tarefas.tsx`**
+**Arquivo: `src/components/layout/ModuleNavGrid.tsx`**
 
-1. No modal "Nova Tarefa", ao alterar o `novoCliente`, buscar o `system_name` do cliente selecionado via `clientes.find()`
-2. Se o cliente tiver `system_name` preenchido, exibir um banner informativo abaixo do select de cliente:
-   - Texto: "Este cliente usa o sistema **{nome}**. Deseja vincular à tarefa?"
-   - Botão "Vincular" que seta `sistemaRelacionado` no form state
-   - Se já vinculado, mostrar badge com o nome do sistema e botão para desvincular
-3. Adicionar state `novoSistema` (string | undefined) ao form
-4. Passar `sistemaRelacionado: novoSistema` no `addTarefa()`
-5. Resetar `novoSistema` ao trocar de cliente ou fechar o modal
+Componente que recebe o `moduleId` (ex: "clientes", "comercial"), busca os children do módulo em `sidebarModules.ts`, e renderiza cards clicáveis com:
+- Ícone do submódulo
+- Título e descrição (tooltip)
+- Grid responsivo: 5 colunas desktop, 3 tablet, 1-2 mobile
+- Card ativo destacado (borda + glow) baseado na rota atual (`useLocation`)
+- Hover com iluminação suave, transições de 200ms
+- `useNavigate` no click para ir à rota
 
-### Detalhes técnicos
+Cores semânticas por módulo (mesma paleta dos PageHeaders existentes):
+- Dashboard: primary/blue
+- Clientes: emerald
+- Comercial: indigo
+- Financeiro: green
+- Suporte: orange
+- Cartões: purple
 
-- O campo `system_name` do cliente já está disponível via contexto de Receita, mas no `AppContext` os clientes não carregam esse campo. Verificar se `clientes` no `useApp()` inclui `system_name`.
-- Se não incluir, usar query direta ou buscar do array de clientes do ReceitaContext.
-- O `sistemaRelacionado` é salvo como `sistema_relacionado` na tabela `tasks` e já é suportado pelo `tarefaToDb`.
+### 2. Adicionar descrições aos submódulos
+
+**Arquivo: `src/lib/sidebarModules.ts`**
+
+Adicionar campo `description` a cada `SubModule` para exibir nos tooltips e subtítulos dos cards.
+
+Exemplos:
+- "Cadastro de Clientes" → "Gestão e cadastro de clientes"
+- "Receita / MRR" → "Receita recorrente mensal"
+- "CRM" → "Pipeline e funil de vendas"
+
+### 3. Inserir o grid em cada página principal
+
+Adicionar `<ModuleNavGrid moduleId="..." />` logo após o `<PageHeader>` nas seguintes páginas:
+
+| Página | moduleId | Arquivo |
+|--------|----------|---------|
+| Dashboard | dashboard | `src/pages/Dashboard.tsx` |
+| Clientes | clientes | `src/pages/Clientes.tsx` |
+| Receita | clientes | `src/pages/Receita.tsx` |
+| Checkout Interno | clientes | `src/pages/CheckoutInterno.tsx` |
+| Propostas | comercial | `src/pages/Propostas.tsx` |
+| CRM | comercial | `src/pages/CRM.tsx` |
+| Comercial | comercial | `src/pages/Comercial.tsx` |
+| Parceiros | comercial | `src/pages/Parceiros.tsx` |
+| Financeiro (todas) | financeiro | `src/pages/financeiro/*.tsx` (8 arquivos) |
+| Suporte | operacional | `src/pages/Suporte.tsx` |
+| Tarefas | operacional | `src/pages/Tarefas.tsx` |
+| Implantação | operacional | `src/pages/Implantacao.tsx` |
+| Técnicos | operacional | `src/pages/Tecnicos.tsx` |
+| Cartões (todas) | cartoes | `src/pages/cartoes/*.tsx` (4 arquivos) |
+| Configurações | configuracoes | Já possui SubtabGrid, manter |
+
+### 4. Detalhes técnicos
+
+- O componente usa `useLocation` para detectar a rota ativa e `useNavigate` para navegação
+- Tooltips com `TooltipProvider/Tooltip` mostram a descrição ao hover
+- Animação de entrada `animate-fade-in` nos cards
+- Nenhuma alteração de rotas, banco de dados ou funcionalidades existentes
+- ~22 arquivos editados no total (1 novo componente + 1 atualização de tipos + ~20 páginas)
 
 ### Arquivos editados
+
 | Arquivo | Mudança |
 |---------|---------|
-| `src/pages/Tarefas.tsx` | Adicionar detecção do sistema do cliente + banner de vínculo opcional no modal de criação |
+| `src/lib/sidebarModules.ts` | Adicionar `description` ao tipo `SubModule` e a cada item |
+| `src/components/layout/ModuleNavGrid.tsx` | **Novo** — componente de navegação em cards |
+| ~20 páginas | Inserir `<ModuleNavGrid>` após PageHeader |
 
