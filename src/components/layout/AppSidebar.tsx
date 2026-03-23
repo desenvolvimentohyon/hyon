@@ -179,48 +179,83 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Module groups — flat list, no expansion */}
+        {/* Module groups — card grid */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              <TooltipProvider delayDuration={300}>
+            {collapsed ? (
+              <SidebarMenu>
+                <TooltipProvider delayDuration={300}>
+                  {filteredModules.map((mod) => {
+                    const hasAccess = mod.children.some((c) => canAccess(c.url));
+                    if (!hasAccess) return null;
+                    const isParentActive = activeParentId === mod.id;
+                    const palette = MODULE_SIDEBAR_COLORS[mod.id] || MODULE_SIDEBAR_COLORS.dashboard;
+                    const targetUrl = mod.directUrl || mod.children[0].url;
+                    return (
+                      <SidebarMenuItem key={mod.id}>
+                        <SidebarMenuButton asChild isActive={isParentActive} tooltip={mod.title}>
+                          <NavLink
+                            to={targetUrl}
+                            end={targetUrl === "/"}
+                            className={cn(
+                              "relative flex items-center justify-center px-3 py-2.5 rounded-xl mx-1 transition-all duration-200 border",
+                              isParentActive
+                                ? cn(palette.active, palette.glow, "font-semibold")
+                                : "border-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-border/30"
+                            )}
+                            activeClassName=""
+                          >
+                            <div className={cn(
+                              "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+                              isParentActive ? palette.active.split(" ")[0] : "bg-sidebar-accent/30"
+                            )}>
+                              <mod.icon className={cn("h-3.5 w-3.5", isParentActive ? palette.icon : "text-sidebar-foreground/50")} />
+                            </div>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </TooltipProvider>
+              </SidebarMenu>
+            ) : (
+              <div className="px-2 grid grid-cols-2 gap-1.5">
                 {filteredModules.map((mod) => {
                   const hasAccess = mod.children.some((c) => canAccess(c.url));
                   if (!hasAccess) return null;
-
                   const isParentActive = activeParentId === mod.id;
                   const palette = MODULE_SIDEBAR_COLORS[mod.id] || MODULE_SIDEBAR_COLORS.dashboard;
                   const targetUrl = mod.directUrl || mod.children[0].url;
-
                   return (
-                    <SidebarMenuItem key={mod.id}>
-                      <SidebarMenuButton asChild isActive={isParentActive} tooltip={collapsed ? mod.title : undefined}>
-                        <NavLink
-                          to={targetUrl}
-                          end={targetUrl === "/"}
-                          className={cn(
-                            "relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl mx-1 transition-all duration-200 border",
-                            collapsed ? "justify-center" : "",
-                            isParentActive
-                              ? cn(palette.active, palette.glow, "font-semibold")
-                              : "border-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-border/30"
-                          )}
-                          activeClassName=""
-                        >
-                          <div className={cn(
-                            "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-                            isParentActive ? palette.active.split(" ")[0] : "bg-sidebar-accent/30"
-                          )}>
-                            <mod.icon className={cn("h-3.5 w-3.5", isParentActive ? palette.icon : "text-sidebar-foreground/50")} />
-                          </div>
-                          {!collapsed && <span className="text-[13px]">{mod.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <NavLink
+                      key={mod.id}
+                      to={targetUrl}
+                      end={targetUrl === "/"}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border transition-all duration-200 group",
+                        isParentActive
+                          ? cn(palette.active, palette.glow, "font-semibold")
+                          : "border-sidebar-border/20 bg-sidebar-accent/10 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 hover:border-sidebar-border/40"
+                      )}
+                      activeClassName=""
+                    >
+                      <div className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200",
+                        isParentActive
+                          ? cn("border-current/20", palette.active.split(" ")[0])
+                          : "border-sidebar-border/30 bg-sidebar-accent/30 group-hover:border-sidebar-border/50"
+                      )}>
+                        <mod.icon className={cn(
+                          "h-5 w-5 transition-colors",
+                          isParentActive ? palette.icon : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/70"
+                        )} />
+                      </div>
+                      <span className="text-[11px] leading-tight text-center">{mod.title}</span>
+                    </NavLink>
                   );
                 })}
-              </TooltipProvider>
-            </SidebarMenu>
+              </div>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
