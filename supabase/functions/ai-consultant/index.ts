@@ -432,6 +432,206 @@ Analise e retorne o diagnóstico de churn usando a ferramenta. Seja direto, prá
       return new Response(JSON.stringify(diagnosis), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ─── GROWTH RADAR ───────────────────────────────────────────────
+    if (type === "growth_radar") {
+      const ctx = payload.context || {};
+
+      const systemPrompt = `Você é uma IA estrategista de crescimento para empresas de revenda de software ERP/SaaS.
+Analise os dados e identifique oportunidades de crescimento, perdas financeiras e projete cenários futuros.
+
+Dados atuais:
+- MRR: R$ ${(ctx.mrr ?? 0).toFixed(2)}
+- ARR: R$ ${(ctx.arr ?? 0).toFixed(2)}
+- Ticket Médio: R$ ${(ctx.ticketMedio ?? 0).toFixed(2)}
+- Clientes ativos: ${ctx.clientesAtivos ?? 0}
+- Churn: ${(ctx.churnPct ?? 0).toFixed(1)}%
+- Retenção: ${(ctx.retencaoPct ?? 0).toFixed(1)}%
+- Crescimento mensal: ${(ctx.crescimentoPct ?? 0).toFixed(1)}%
+- Receita perdida (inadimplência): R$ ${(ctx.receitaPerdida ?? 0).toFixed(2)}
+- Potencial de upsell estimado: R$ ${(ctx.potencialUpsell ?? 0).toFixed(2)}
+- Propostas abertas: ${ctx.propostasAbertas ?? 0}
+- Valor no funil: R$ ${(ctx.valorFunil ?? 0).toFixed(2)}
+- Propostas esquecidas (sem view >7d): ${ctx.propostasEsquecidas ?? 0}
+
+Top oportunidades (clientes com potencial):
+${(ctx.topOportunidades || []).map((c: any) => `- ${c.nome}: Receita R$ ${c.receita.toFixed(2)}, ${c.modulosContratados}/${c.totalModulos} módulos, ${c.planoAnual ? "Anual" : "Mensal"}, Health ${c.health}`).join("\n")}
+
+Perdas identificadas:
+${(ctx.topPerdas || []).map((p: any) => `- ${p.nome}: ${p.tipo} - ${p.descricao} (R$ ${p.valor.toFixed(2)})`).join("\n")}
+
+Clientes para reativação:
+${(ctx.reativacao || []).map((c: any) => `- ${c.nome}: cancelado há ${c.canceladoHaDias} dias, receita anterior R$ ${c.receitaAnterior.toFixed(2)}`).join("\n") || "Nenhum"}
+
+Analise e retorne o diagnóstico de crescimento usando a ferramenta. Seja direto, prático, em português do Brasil.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: \`Bearer \${LOVABLE_API_KEY}\`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Gere o diagnóstico do radar de crescimento." },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "growth_radar",
+                description: "Retorna diagnóstico de crescimento estruturado",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    diagnostico: { type: "string", description: "Diagnóstico estratégico em markdown (3-5 parágrafos)" },
+                    oportunidades: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          tipo: { type: "string", enum: ["upsell", "plano_anual", "expansao", "reativacao"] },
+                          cliente_nome: { type: "string" },
+                          receita_atual: { type: "number" },
+                          potencial_adicional: { type: "number" },
+                          acao_sugerida: { type: "string" },
+                          prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+                        },
+                        required: ["tipo", "cliente_nome", "receita_atual", "potencial_adicional", "acao_sugerida", "prioridade"],
+                        additionalProperties: false,
+                      },
+                    },
+                    perdas: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          tipo: { type: "string", enum: ["inadimplencia", "margem_baixa", "churn", "desconto_excessivo"] },
+                          cliente_nome: { type: "string" },
+                          valor_impacto: { type: "number" },
+                          descricao: { type: "string" },
+                        },
+                        required: ["tipo", "cliente_nome", "valor_impacto", "descricao"],
+                        additionalProperties: false,
+                      },
+                    },
+                    projecoes: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          cenario: { type: "string" },
+                          impacto_mrr: { type: "string" },
+                          impacto_margem: { type: "string" },
+                        },
+                        required: ["cenario", "impacto_mrr", "impacto_margem"],
+                        additionalProperties: false,
+                      },
+                    },
+                    metricas: {
+                      type: "object",
+                      properties: {
+                        crescimento_mensal_pct: { type: "number" },
+                        churn_pct: { type: "number" },
+                        retencao_pct: { type: "number" },
+                        ticket_medio: { type: "number" },
+                        potencial_upsell_total: { type: "number" },
+                        receita_perdida_total: { type: "number" },
+                      },
+                      required: ["crescimento_mensal_pct", "churn_pct", "retencao_pct", "ticket_medio", "potencial_upsell_total", "receita_perdida_total"],
+                      additionalProperties: false,
+                    },
+                    alertas: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+                          titulo: { type: "string" },
+                          descricao: { type: "string" },
+                        },
+                        required: ["prioridade", "titulo", "descricao"],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ["diagnostico", "oportunidades", "perdas", "projecoes", "metricas", "alertas"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "growth_radar" } },
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (!toolCall?.function?.arguments) {
+        return new Response(JSON.stringify({ error: "IA não retornou diagnóstico de crescimento" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const diagnosis = JSON.parse(toolCall.function.arguments);
+      return new Response(JSON.stringify(diagnosis), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ─── GROWTH CHAT ────────────────────────────────────────────────
+    if (type === "growth_chat") {
+      const ctx = payload.context || {};
+      const messages = payload.messages || [];
+
+      const systemPrompt = `Você é uma IA estrategista de crescimento para empresas de revenda de software ERP/SaaS.
+Responda perguntas sobre crescimento, oportunidades e estratégia. Seja direto e estratégico, em português do Brasil.
+
+Dados atuais:
+- MRR: R$ ${(ctx.mrr ?? 0).toFixed(2)}
+- Clientes ativos: ${ctx.clientesAtivos ?? 0}
+- Churn: ${(ctx.churnPct ?? 0).toFixed(1)}%
+- Retenção: ${(ctx.retencaoPct ?? 0).toFixed(1)}%
+- Crescimento: ${(ctx.crescimentoPct ?? 0).toFixed(1)}%
+- Potencial upsell: R$ ${(ctx.potencialUpsell ?? 0).toFixed(2)}
+- Receita perdida: R$ ${(ctx.receitaPerdida ?? 0).toFixed(2)}
+- Valor no funil: R$ ${(ctx.valorFunil ?? 0).toFixed(2)}
+
+Responda em markdown quando útil. Seja conciso e forneça insights acionáveis.`;
+
+      const aiMessages = [
+        { role: "system", content: systemPrompt },
+        ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+      ];
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: \`Bearer \${LOVABLE_API_KEY}\`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: aiMessages,
+        }),
+      });
+
+      if (!response.ok) {
+        const status = response.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Limite excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Créditos esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Erro ao consultar IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "Sem resposta.";
+      return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ─── CHURN CHAT ─────────────────────────────────────────────────
     if (type === "churn_chat") {
       const ctx = payload.context || {};
