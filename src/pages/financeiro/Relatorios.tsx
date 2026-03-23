@@ -16,6 +16,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { FINANCEIRO_COLORS } from "@/types/financeiro";
 import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
 import { exportDREPDF, exportMRRPDF } from "@/lib/pdfRelatorioFinanceiro";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Download, TrendingUp, TrendingDown, Target, DollarSign, Users, Percent, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ export default function Relatorios() {
         <h1 className="text-2xl font-bold text-foreground">Relatórios Financeiros</h1>
         <p className="text-muted-foreground text-sm">DRE, MRR, lucratividade e projeções</p>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       <Tabs defaultValue="dre" className="space-y-4">
         <TabsList className="flex-wrap">

@@ -9,6 +9,7 @@ export interface SubModule {
   title: string;
   url: string;
   icon: React.ElementType;
+  description?: string;
 }
 
 export interface ParentModule {
@@ -26,8 +27,8 @@ export const modules: ParentModule[] = [
     icon: LayoutDashboard,
     directUrl: "/",
     children: [
-      { title: "Visão Geral", url: "/", icon: LayoutDashboard },
-      { title: "Painel Executivo", url: "/executivo", icon: BarChart3 },
+      { title: "Visão Geral", url: "/", icon: LayoutDashboard, description: "Indicadores e resumo geral" },
+      { title: "Painel Executivo", url: "/executivo", icon: BarChart3, description: "Métricas estratégicas e KPIs" },
     ],
   },
   {
@@ -35,9 +36,9 @@ export const modules: ParentModule[] = [
     title: "Clientes",
     icon: Users,
     children: [
-      { title: "Cadastro de Clientes", url: "/clientes", icon: Users },
-      { title: "Receita / MRR", url: "/receita", icon: DollarSign },
-      { title: "Checkout Interno", url: "/checkout-interno", icon: ShoppingCart },
+      { title: "Cadastro de Clientes", url: "/clientes", icon: Users, description: "Gestão e cadastro de clientes" },
+      { title: "Receita / MRR", url: "/receita", icon: DollarSign, description: "Receita recorrente mensal" },
+      { title: "Checkout Interno", url: "/checkout-interno", icon: ShoppingCart, description: "Vendas e onboarding rápido" },
     ],
   },
   {
@@ -45,10 +46,10 @@ export const modules: ParentModule[] = [
     title: "Comercial",
     icon: TrendingUp,
     children: [
-      { title: "Propostas", url: "/propostas", icon: FileText },
-      { title: "CRM", url: "/crm", icon: Kanban },
-      { title: "Painel Comercial", url: "/comercial", icon: TrendingUp },
-      { title: "Parceiros", url: "/parceiros", icon: Handshake },
+      { title: "Propostas", url: "/propostas", icon: FileText, description: "Criação e envio de propostas" },
+      { title: "CRM", url: "/crm", icon: Kanban, description: "Pipeline e funil de vendas" },
+      { title: "Painel Comercial", url: "/comercial", icon: TrendingUp, description: "Leads e oportunidades" },
+      { title: "Parceiros", url: "/parceiros", icon: Handshake, description: "Gestão de parceiros e comissões" },
     ],
   },
   {
@@ -56,14 +57,14 @@ export const modules: ParentModule[] = [
     title: "Financeiro",
     icon: Landmark,
     children: [
-      { title: "Visão Geral", url: "/financeiro", icon: Landmark },
-      { title: "Contas a Receber", url: "/financeiro/contas-a-receber", icon: TrendingUp },
-      { title: "Contas a Pagar", url: "/financeiro/contas-a-pagar", icon: CreditCard },
-      { title: "Lançamentos", url: "/financeiro/lancamentos", icon: BookOpen },
-      { title: "Plano de Contas", url: "/financeiro/plano-de-contas", icon: FolderTree },
-      { title: "Conciliação", url: "/financeiro/conciliacao-bancaria", icon: ArrowLeftRight },
-      { title: "Relatórios", url: "/financeiro/relatorios", icon: BarChart2 },
-      { title: "Configurações", url: "/financeiro/configuracoes", icon: SlidersHorizontal },
+      { title: "Visão Geral", url: "/financeiro", icon: Landmark, description: "Resumo financeiro geral" },
+      { title: "Contas a Receber", url: "/financeiro/contas-a-receber", icon: TrendingUp, description: "Títulos e receitas a receber" },
+      { title: "Contas a Pagar", url: "/financeiro/contas-a-pagar", icon: CreditCard, description: "Despesas e contas a pagar" },
+      { title: "Lançamentos", url: "/financeiro/lancamentos", icon: BookOpen, description: "Lançamentos financeiros avulsos" },
+      { title: "Plano de Contas", url: "/financeiro/plano-de-contas", icon: FolderTree, description: "Estrutura de contas contábeis" },
+      { title: "Conciliação", url: "/financeiro/conciliacao-bancaria", icon: ArrowLeftRight, description: "Conciliação bancária automática" },
+      { title: "Relatórios", url: "/financeiro/relatorios", icon: BarChart2, description: "DRE, fluxo de caixa e análises" },
+      { title: "Configurações", url: "/financeiro/configuracoes", icon: SlidersHorizontal, description: "Regras de cobrança e métodos" },
     ],
   },
   {
@@ -71,10 +72,10 @@ export const modules: ParentModule[] = [
     title: "Suporte e Operacional",
     icon: Headphones,
     children: [
-      { title: "Suporte", url: "/suporte", icon: Headphones },
-      { title: "Tarefas", url: "/tarefas", icon: ListTodo },
-      { title: "Implantação", url: "/implantacao", icon: Rocket },
-      { title: "Técnicos", url: "/tecnicos", icon: Wrench },
+      { title: "Suporte", url: "/suporte", icon: Headphones, description: "Chamados e SLA de atendimento" },
+      { title: "Tarefas", url: "/tarefas", icon: ListTodo, description: "Gestão de tarefas e atividades" },
+      { title: "Implantação", url: "/implantacao", icon: Rocket, description: "Projetos de implantação" },
+      { title: "Técnicos", url: "/tecnicos", icon: Wrench, description: "Equipe técnica e responsáveis" },
     ],
   },
   {
@@ -82,10 +83,10 @@ export const modules: ParentModule[] = [
     title: "Cartões",
     icon: CreditCard,
     children: [
-      { title: "Dashboard", url: "/cartoes", icon: BarChart3 },
-      { title: "Clientes", url: "/cartoes/clientes", icon: Users },
-      { title: "Propostas", url: "/cartoes/propostas", icon: FileText },
-      { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign },
+      { title: "Dashboard", url: "/cartoes", icon: BarChart3, description: "Visão geral de maquininhas" },
+      { title: "Clientes", url: "/cartoes/clientes", icon: Users, description: "Clientes de maquininha" },
+      { title: "Propostas", url: "/cartoes/propostas", icon: FileText, description: "Propostas de maquininha" },
+      { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign, description: "Receita e comissões" },
     ],
   },
   {
@@ -93,8 +94,8 @@ export const modules: ParentModule[] = [
     title: "Configurações",
     icon: Settings,
     children: [
-      { title: "Minha Empresa", url: "/configuracoes", icon: Settings },
-      { title: "Usuários", url: "/usuarios", icon: Shield },
+      { title: "Minha Empresa", url: "/configuracoes", icon: Settings, description: "Dados e identidade da empresa" },
+      { title: "Usuários", url: "/usuarios", icon: Shield, description: "Permissões e acessos" },
     ],
   },
 ];

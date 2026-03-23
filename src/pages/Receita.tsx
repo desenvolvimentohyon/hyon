@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { gerarRelatorioPDF } from "@/lib/pdfRelatorioReceita";
 import { toast } from "sonner";
 
@@ -199,6 +200,7 @@ export default function Receita() {
         </div>
         }
       />
+      <ModuleNavGrid moduleId="clientes" />
 
       {/* KPIs */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">

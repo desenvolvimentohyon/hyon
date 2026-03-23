@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Plus, CheckCircle, AlertTriangle, Clock, ArrowDownRight } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { STATUS_TITULO_LABELS, TituloFinanceiro } from "@/types/financeiro";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -75,6 +76,7 @@ export default function ContasPagar() {
         subtitle="Gestão de despesas e repasses"
         actions={<Button onClick={() => setModalNovo(true)}><Plus className="h-4 w-4 mr-1" /> Lançar Despesa</Button>}
       />
+      <ModuleNavGrid moduleId="financeiro" />
 
       {vencidos.length > 0 && (
         <Card className="border-destructive/50">

@@ -9,6 +9,7 @@ import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
 import { RECEITA_COLORS } from "@/types/receita";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart, Area } from "recharts";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const CHART_COLORS = [
   "hsl(224, 60%, 45%)",
@@ -141,6 +142,7 @@ export default function Executivo() {
   return (
     <div className="space-y-6">
       <PageHeader icon={BarChart3} iconClassName="text-primary" title="Painel Executivo" />
+      <ModuleNavGrid moduleId="dashboard" />
 
       <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {kpis.map(k => (

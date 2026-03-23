@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCardClients, CardClient } from "@/hooks/useCardClients";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function CardClientes() {
           <Plus className="h-4 w-4" /> Novo Cliente
         </Button>
       } />
+      <ModuleNavGrid moduleId="cartoes" />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">

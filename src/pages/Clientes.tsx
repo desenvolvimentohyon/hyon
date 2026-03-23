@@ -20,6 +20,7 @@ import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RowActions } from "@/components/ui/row-actions";
 import { Users } from "lucide-react";
@@ -133,6 +134,7 @@ export default function Clientes() {
         title="Clientes"
         actions={<Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
       />
+      <ModuleNavGrid moduleId="clientes" />
       <div className="relative max-w-sm">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input placeholder="Buscar cliente..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-9" />

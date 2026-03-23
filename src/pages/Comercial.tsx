@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, TrendingUp, DollarSign, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { toast } from "@/hooks/use-toast";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
@@ -104,6 +105,7 @@ export default function Comercial() {
         title="Pipeline Comercial"
         actions={<Button size="sm" onClick={() => setShowNovoLead(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Lead</Button>}
       />
+      <ModuleNavGrid moduleId="comercial" />
 
       {/* Kanban */}
       <div className="flex gap-4 overflow-x-auto pb-4">

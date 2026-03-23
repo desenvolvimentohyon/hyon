@@ -2,6 +2,7 @@ import { useCardClients } from "@/hooks/useCardClients";
 import { useCardProposals, useCardOnboarding } from "@/hooks/useCardProposals";
 import { useCardRevenue } from "@/hooks/useCardRevenue";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,6 +81,7 @@ export default function CardDashboard() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Dashboard — Cartões" subtitle={`${ativos} clientes ativos · ${(clients || []).length} total`} />
+      <ModuleNavGrid moduleId="cartoes" />
 
       {/* KPIs */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">

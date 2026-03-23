@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Rocket, Plus, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/hooks/use-toast";
 import { TEMPLATES_IMPLANTACAO } from "@/lib/constants";
@@ -76,6 +77,7 @@ export default function Implantacao() {
         title="Implantações"
         actions={<Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5"><Plus className="h-4 w-4" />Nova Implantação</Button>}
       />
+      <ModuleNavGrid moduleId="operacional" />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {implantacoes.map(imp => {

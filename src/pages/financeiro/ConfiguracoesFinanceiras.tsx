@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Save, Download, Upload, RotateCcw, Bell, Plus, X } from "lucide-react";
 import { SistemaPrincipal } from "@/types/receita";
 import { supabase } from "@/integrations/supabase/client";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
 
@@ -166,6 +167,7 @@ export default function ConfiguracoesFinanceiras() {
         <h1 className="text-2xl font-bold text-foreground">Configurações Financeiras</h1>
         <p className="text-muted-foreground text-sm">Parâmetros e regras do módulo financeiro</p>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       {/* Régua de Cobrança */}
       <Card>

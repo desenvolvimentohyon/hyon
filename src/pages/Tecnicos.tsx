@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Switch } from "@/components/ui/switch";
 import { Plus, Pencil, Wrench } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { toast } from "@/hooks/use-toast";
 import { Tecnico } from "@/types";
 
@@ -57,6 +58,7 @@ export default function Tecnicos() {
         title="Técnicos"
         actions={<Button size="sm" onClick={openNew} className="gap-1.5"><Plus className="h-4 w-4" />Novo Técnico</Button>}
       />
+      <ModuleNavGrid moduleId="operacional" />
 
       <div className="rounded-lg border overflow-hidden">
         <Table>

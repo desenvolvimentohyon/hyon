@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Link2, Unlink, Upload, CheckCircle2, AlertCircle } from "lucide-react";
 import { FINANCEIRO_COLORS, MovimentoBancario } from "@/types/financeiro";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -73,6 +74,7 @@ export default function ConciliacaoBancaria() {
           <Button disabled={!selectedMov || !selectedTitulo} onClick={handleConciliar}><Link2 className="h-4 w-4 mr-1" /> Conciliar</Button>
         </div>
       </div>
+      <ModuleNavGrid moduleId="financeiro" />
 
       {/* Conta e progresso */}
       <div className="flex gap-4 items-center">
