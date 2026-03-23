@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Switch } from "@/components/ui/switch";
 import { Plus, Pencil, Wrench } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { toast } from "@/hooks/use-toast";
 import { Tecnico } from "@/types";
 
