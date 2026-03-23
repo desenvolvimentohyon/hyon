@@ -1,75 +1,77 @@
 
 
-## Plano: Avatar Animado Futurista para o Jarvis
+## Plano: Jarvis — Assistente de Comando Total por Voz
 
 ### Resumo
-Criar um componente `JarvisAvatar` com animações CSS puras (sem canvas/WebGL) que reage aos estados do Jarvis (idle, falando, ouvindo, processando). Integrar como FAB flutuante no layout principal, abrindo o painel do assistente ao clicar.
+Adicionar uma camada de interpretação de comandos ao Jarvis que mapeia texto/voz para ações do sistema (navegação, criação, consulta). Usa a edge function `ai-consultant` com novo modo `command` para interpretar intenção, e um novo hook client-side executa a ação correspondente via React Router e toasts de confirmação.
 
-### Arquitetura: 2 novos arquivos + 3 edições
+### Arquitetura: 1 novo arquivo + 3 edições
 
-### 1. Novo componente: `src/components/ai/JarvisAvatar.tsx`
+### 1. Edge Function: `ai-consultant/index.ts` (adicionar modo `command`)
 
-Avatar visual baseado em esferas concêntricas animadas com CSS:
+Novo `type: "command"` que recebe o texto do comando + rota atual + permissões do usuário e retorna via tool calling:
 
-**Estrutura visual:**
-- Núcleo central: círculo com gradiente azul-roxo-ciano
-- Anel orbital: borda animada girando ao redor do núcleo
-- Halo externo: glow difuso pulsante
-- Ondas de áudio: rings expansivos (visíveis ao falar)
+```
+Tool: jarvis_command
+{
+  intent: "navigate" | "create" | "query" | "action" | "unknown",
+  route?: string,           // ex: "/clientes", "/financeiro"
+  entity_type?: string,     // ex: "tarefa", "proposta", "cliente"
+  entity_name?: string,     // ex: "João", "Mercado Central"
+  params?: Record<string, string>,  // ex: { valor: "500", data: "amanhã" }
+  requires_confirmation?: boolean,
+  confirmation_message?: string,
+  spoken_response: string,  // resposta falada/textual do Jarvis
+  fallback_chat?: boolean   // se true, redireciona para chat normal
+}
+```
 
-**Estados:**
-- `idle`: pulse leve (respiração), rotação orbital lenta
-- `speaking`: pulse intenso, ondas de áudio expandindo, glow aumentado
-- `listening`: waveform dots animados ao redor, efeito captação
-- `processing`: rotação orbital rápida, brilho intermitente
+System prompt inclui a lista de rotas/módulos disponíveis do `sidebarModules.ts` e os comandos rápidos suportados.
 
-**Props:** `state: "idle" | "speaking" | "listening" | "processing"`, `size: "sm" | "md" | "lg"`, `onClick`, `compact: boolean`
+### 2. Novo hook: `src/hooks/useJarvisCommands.ts`
 
-### 2. Novo componente: `src/components/ai/JarvisFloatingButton.tsx`
+Responsável por executar ações baseadas no resultado do `jarvis_command`:
 
-FAB flutuante posicionado `fixed bottom-6 right-6 z-50`:
+- **navigate**: `useNavigate()` para a rota retornada
+- **create**: navega para a rota + abre modal/formulário (ex: `/propostas` com query param `?new=1`)
+- **query**: delega para o chat existente do `AiExecutiveAssistant`
+- **action**: executa ações como criar tarefa via Supabase, com confirmação se `requires_confirmation`
+- **unknown**: responde "Não entendi, pode repetir?"
 
-- Renderiza `<JarvisAvatar size="md" />` como botão
-- Ao clicar: abre/fecha painel lateral (sheet/drawer) com o `AiExecutiveAssistant` completo
-- Badge de notificação se houver alertas de alta prioridade
-- Estado do avatar sincronizado com `useJarvisVoice` (fala/escuta)
-- `prefers-reduced-motion`: desativa animações complexas
-- Hover: scale sutil (1.08)
+Integra com permissões via `useAuth()` — bloqueia ações não permitidas.
+
+Mantém histórico dos últimos 20 comandos em `useState`.
 
 ### 3. Editar: `src/components/ai/AiExecutiveAssistant.tsx`
 
-- Substituir o ícone `Brain` no header por `<JarvisAvatar size="sm" state={currentState} />` onde `currentState` é derivado de `voice.isSpeaking`, `voice.isListening`, `isLoading`
-- Remover classes `jarvis-speaking-glow` do Card (avatar absorve essa responsabilidade visual)
+- Importar `useJarvisCommands`
+- No `handleChat` e `handleSpeechResult`: antes de enviar ao chat, verificar se o texto é um comando (invocar `ai-consultant` com `type: "command"`)
+- Se a IA retornar `intent !== "unknown"` e `fallback_chat !== true`, executar o comando e mostrar `spoken_response` como mensagem do assistente + falar se voz ativada
+- Se `fallback_chat === true`, seguir fluxo normal de chat
+- Adicionar seção "Comandos rápidos" colapsável com chips clicáveis: "Abrir clientes", "Criar proposta", "Ver financeiro", "Clientes em risco", "Criar tarefa"
+- Diálogo de confirmação inline para ações sensíveis (`requires_confirmation`)
 
-### 4. Editar: `src/components/layout/AppLayout.tsx`
+### 4. Editar: `supabase/functions/ai-consultant/index.ts`
 
-- Importar e renderizar `<JarvisFloatingButton />` dentro do layout, abaixo do conteúdo principal
-- O FAB aparece em todas as páginas autenticadas
-
-### 5. Editar: `src/index.css`
-
-Adicionar keyframes para o avatar:
-- `jarvis-orbit`: rotação 360° do anel orbital (12s linear infinite)
-- `jarvis-breathe`: scale 1→1.05→1 (3s ease-in-out infinite)
-- `jarvis-ripple`: ondas expandindo de 100%→200% com fade (1.5s)
-- `jarvis-core-pulse`: brilho do núcleo sincronizado com fala (0.6s)
-- `jarvis-capture`: efeito de captação inverso para escuta
+Adicionar bloco `if (type === "command")` com:
+- System prompt contendo mapa de rotas (extraído de `sidebarModules`)
+- Lista de ações suportadas (navigate, create tarefa/proposta/cliente, query)
+- Tool `jarvis_command` com schema acima
+- Instrução para respeitar permissões passadas no payload
 
 ### Arquivos
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/components/ai/JarvisAvatar.tsx` | **Novo** — componente visual do avatar |
-| `src/components/ai/JarvisFloatingButton.tsx` | **Novo** — FAB flutuante com sheet |
-| `src/components/ai/AiExecutiveAssistant.tsx` | Substituir Brain por JarvisAvatar no header |
-| `src/components/layout/AppLayout.tsx` | Renderizar JarvisFloatingButton |
-| `src/index.css` | Keyframes do avatar |
+| `supabase/functions/ai-consultant/index.ts` | Adicionar modo `command` |
+| `src/hooks/useJarvisCommands.ts` | **Novo** — execução de comandos |
+| `src/components/ai/AiExecutiveAssistant.tsx` | Integrar comandos + chips rápidos |
 
 ### Notas técnicas
-- 100% CSS animations (sem canvas/WebGL) para performance
-- Respeita `prefers-reduced-motion` para acessibilidade
-- Avatar `sm` (28px) no header, `md` (56px) no FAB
-- Paleta: `--primary` (azul), `--purple`, ciano via hsl(190 80% 50%)
-- Glassmorphism: `backdrop-blur-sm` + `bg-card/30` + `border border-white/10`
-- FAB usa Sheet do shadcn para painel lateral no desktop
+- Sem alteração de banco de dados
+- Reutiliza edge function existente
+- Comandos de navegação: mapa hardcoded de aliases → rotas (ex: "clientes" → "/clientes", "financeiro" → "/financeiro")
+- Confirmação inline no chat (não modal separado) para ações sensíveis
+- Histórico de comandos armazenado em memória (não persistido)
+- Permissões checadas client-side via `useAuth().profile` antes de executar
 
