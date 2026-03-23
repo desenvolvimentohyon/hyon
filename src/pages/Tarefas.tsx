@@ -45,6 +45,17 @@ function LiveTimer({ tempoTotalSegundos, timerRodando, timerInicioTimestamp }: {
   );
 }
 
+function statusRowColor(status: string): string {
+  switch (status) {
+    case "concluida": return "bg-emerald-50/80 dark:bg-emerald-950/30 border-l-4 border-l-emerald-500";
+    case "em_andamento": return "bg-blue-50/80 dark:bg-blue-950/30 border-l-4 border-l-blue-500";
+    case "aguardando_cliente": return "bg-amber-50/80 dark:bg-amber-950/30 border-l-4 border-l-amber-500";
+    case "a_fazer": return "bg-slate-50/80 dark:bg-slate-900/30 border-l-4 border-l-slate-400";
+    case "cancelada": return "bg-red-50/60 dark:bg-red-950/20 border-l-4 border-l-red-400";
+    default: return "";
+  }
+}
+
 function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
@@ -94,7 +105,7 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
                     draggable
                     onDragStart={e => handleDragStart(e, t.id)}
                     onDragEnd={() => { setDragId(null); setDragOver(null); }}
-                    className={`cursor-grab active:cursor-grabbing transition-all duration-150 hover:shadow-card-hover ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
+                    className={`cursor-grab active:cursor-grabbing transition-all duration-150 hover:shadow-card-hover ${statusRowColor(t.status)} ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
                   >
                     <CardContent className="p-3 space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -377,7 +388,7 @@ export default function Tarefas() {
               {filteredTarefas.map(t => {
                 const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || { label: t.tipoOperacional || "N/A", bgClass: "bg-muted text-muted-foreground" };
                 return (
-                  <TableRow key={t.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => navigate(`/tarefas/${t.id}`)}>
+                  <TableRow key={t.id} className={`group cursor-pointer hover:bg-accent/40 transition-colors duration-150 ${statusRowColor(t.status)}`} onClick={() => navigate(`/tarefas/${t.id}`)}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{t.titulo}</span>
