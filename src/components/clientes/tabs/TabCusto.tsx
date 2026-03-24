@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,10 +44,8 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
   }, [cliente.id]);
 
   const costActive = formData.cost_active ?? cliente.cost_active;
-  const costValue = Number(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0);
-  const custoCloud = Number(meta.custoCloud || 0);
   const outrosCustos = Number(meta.outrosCustos || 0);
-  const totalCusto = costValue + custoModulos + custoCloud + outrosCustos;
+  const totalCusto = custoModulos + outrosCustos;
   const mensalidadeFinal = Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0);
   const margem = mensalidadeFinal - totalCusto;
 
