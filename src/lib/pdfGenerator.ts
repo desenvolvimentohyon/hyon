@@ -14,6 +14,8 @@ export interface PdfProposalData {
   acceptedByName: string | null;
   acceptanceStatus: string;
   items: { description: string; quantity: number; unitValue: number }[];
+  createdAt: string;
+  validityDays: number | null;
 }
 
 export interface PdfCompanyData {
@@ -223,8 +225,16 @@ export function generateProposalPDF(
     <div class="cover-meta">
       <div class="cover-meta-item"><label>Cliente</label><span>${proposal.clientName || "—"}</span></div>
       <div class="cover-meta-item"><label>Proposta</label><span>${proposal.proposalNumber}</span></div>
-      <div class="cover-meta-item"><label>Data</label><span>${dateStr(proposal.sentAt)}</span></div>
-      <div class="cover-meta-item"><label>Validade</label><span>${dateStr(proposal.validUntil)}</span></div>
+      <div class="cover-meta-item"><label>Data</label><span>${dateStr(proposal.sentAt || proposal.createdAt)}</span></div>
+      <div class="cover-meta-item"><label>Validade</label><span>${(() => {
+        if (proposal.validUntil) return dateStr(proposal.validUntil);
+        if (proposal.createdAt && proposal.validityDays) {
+          const d = new Date(proposal.createdAt);
+          d.setDate(d.getDate() + proposal.validityDays);
+          return d.toLocaleDateString("pt-BR");
+        }
+        return "—";
+      })()}</span></div>
     </div>
   </div>
   <div class="cover-bottom" style="font-size:11px;color:${greenMuted};">
@@ -372,6 +382,8 @@ export async function gerarPDFPropostaComDados(proposta: Proposta, orgId: string
         quantity: i.quantidade,
         unitValue: i.valor,
       })),
+      createdAt: proposta.criadoEm,
+      validityDays: proposta.validadeDias,
     },
     {
       tradeName: cp?.trade_name || null,
@@ -419,6 +431,8 @@ export function gerarPDFProposta(proposta: Proposta, config: CRMConfig) {
         quantity: i.quantidade,
         unitValue: i.valor,
       })),
+      createdAt: proposta.criadoEm,
+      validityDays: proposta.validadeDias,
     },
     {
       tradeName: config.nomeEmpresa,
