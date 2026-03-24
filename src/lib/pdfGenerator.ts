@@ -210,6 +210,11 @@ export function generateProposalPDF(
 <div class="cover">
   <div class="cover-top">
     <div>${logoHtml}</div>
+    <div style="margin-top:10px;font-size:12px;color:${greenMuted};line-height:1.7;text-align:left;">
+      ${company.cnpj ? `<strong style="color:${green};">CNPJ:</strong> ${company.cnpj}<br/>` : ""}
+      ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}${(company.phone || company.email) ? "<br/>" : ""}
+      ${fullAddress ? `${fullAddress}` : ""}
+    </div>
   </div>
   <div class="cover-center">
     <div class="cover-title">${companyName.toUpperCase()}</div>
