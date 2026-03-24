@@ -22,6 +22,7 @@ import { StatusVisualizacao, StatusAceite, SistemaProposta, STATUS_VISUALIZACAO_
 export default function Propostas() {
   const { propostas, crmConfig, loading, addProposta, updateProposta, deleteProposta, cloneProposta } = usePropostas();
   const { clientes } = useApp();
+  const { profile } = useAuth();
   const navigate = useNavigate();
 
   const [busca, setBusca] = useState("");
