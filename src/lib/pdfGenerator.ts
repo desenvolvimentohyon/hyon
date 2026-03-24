@@ -56,10 +56,16 @@ export function generateProposalPDF(
   proposal: PdfProposalData,
   company: PdfCompanyData
 ) {
-  const c1 = company.primaryColor || "#3b82f6";
-  const c2 = company.secondaryColor || "#10b981";
-  const companyName = company.tradeName || company.legalName || "Empresa";
+  const dark = "#0f172a";
+  const darkCard = "#1e293b";
+  const green = "#4ade80";
+  const greenMuted = "#86efac";
+  const greenDim = "rgba(74,222,128,0.15)";
+  const greenBorder = "rgba(74,222,128,0.25)";
+  const white = "#f1f5f9";
+  const companyName = company.tradeName || company.legalName || "Hyon Tecnologia";
   const fileName = `proposta-${slugify(proposal.clientName || "cliente")}-${new Date().toISOString().slice(0, 10)}`;
+  const year = new Date().getFullYear();
 
   const addressParts = [
     company.addressStreet,
@@ -80,7 +86,7 @@ export function generateProposalPDF(
   const itemsRows = proposal.items
     .map(
       (i) =>
-        `<tr><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;">${i.description}</td><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;text-align:center;">${i.quantity}</td><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;text-align:right;">${fmt(i.unitValue)}</td><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;text-align:right;">${fmt(i.quantity * i.unitValue)}</td></tr>`
+        `<tr><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};">${i.description}</td><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};text-align:center;">${i.quantity}</td><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.unitValue)}</td><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.quantity * i.unitValue)}</td></tr>`
     )
     .join("");
 
@@ -88,12 +94,12 @@ export function generateProposalPDF(
     proposal.items.length > 0
       ? `<div class="section" style="page-break-inside:avoid;">
           <h2>Itens da Proposta</h2>
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead><tr style="background:${c1}10;">
-              <th style="text-align:left;padding:10px 14px;border-bottom:2px solid ${c1}40;">Descrição</th>
-              <th style="text-align:center;padding:10px 14px;border-bottom:2px solid ${c1}40;width:60px;">Qtd</th>
-              <th style="text-align:right;padding:10px 14px;border-bottom:2px solid ${c1}40;width:110px;">Valor Unit.</th>
-              <th style="text-align:right;padding:10px 14px;border-bottom:2px solid ${c1}40;width:110px;">Total</th>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;color:${white};">
+            <thead><tr style="background:${greenDim};">
+              <th style="text-align:left;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</th>
+              <th style="text-align:center;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;width:60px;">Qtd</th>
+              <th style="text-align:right;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;width:110px;">Valor Unit.</th>
+              <th style="text-align:right;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;width:110px;">Total</th>
             </tr></thead>
             <tbody>${itemsRows}</tbody>
           </table>
@@ -104,9 +110,9 @@ export function generateProposalPDF(
     proposal.acceptanceStatus === "aceitou"
       ? `<div class="section signature" style="page-break-inside:avoid;">
           <h2>Aceite</h2>
-          <div style="background:${c2}10;border:1px solid ${c2}40;border-radius:12px;padding:24px;text-align:center;">
-            <p style="font-size:16px;font-weight:600;color:${c2};">✓ Proposta aceita${proposal.acceptedByName ? ` por ${proposal.acceptedByName}` : ""}</p>
-            <p style="font-size:13px;color:#666;margin-top:4px;">em ${dateStr(proposal.acceptedAt)}</p>
+          <div style="background:${greenDim};border:1px solid ${green};border-radius:12px;padding:24px;text-align:center;">
+            <p style="font-size:16px;font-weight:600;color:${green};">✓ Proposta aceita${proposal.acceptedByName ? ` por ${proposal.acceptedByName}` : ""}</p>
+            <p style="font-size:13px;color:${greenMuted};margin-top:4px;">em ${dateStr(proposal.acceptedAt)}</p>
           </div>
         </div>`
       : `<div class="section signature" style="page-break-inside:avoid;">
@@ -114,12 +120,12 @@ export function generateProposalPDF(
           <div style="margin-top:40px;">
             <div style="display:flex;gap:60px;flex-wrap:wrap;">
               <div style="flex:1;min-width:200px;">
-                <div style="border-bottom:1px solid #999;height:40px;"></div>
-                <p style="font-size:12px;color:#666;margin-top:6px;">Nome do responsável</p>
+                <div style="border-bottom:1px solid ${greenBorder};height:40px;"></div>
+                <p style="font-size:12px;color:${greenMuted};margin-top:6px;">Nome do responsável</p>
               </div>
               <div style="flex:1;min-width:200px;">
-                <div style="border-bottom:1px solid #999;height:40px;"></div>
-                <p style="font-size:12px;color:#666;margin-top:6px;">Data</p>
+                <div style="border-bottom:1px solid ${greenBorder};height:40px;"></div>
+                <p style="font-size:12px;color:${greenMuted};margin-top:6px;">Data</p>
               </div>
             </div>
           </div>
@@ -128,13 +134,13 @@ export function generateProposalPDF(
   const institutionalSection = company.institutionalText
     ? `<div class="section" style="page-break-inside:avoid;">
         <h2>Sobre o Sistema</h2>
-        <p style="font-size:14px;line-height:1.7;color:#444;">${company.institutionalText}</p>
+        <p style="font-size:14px;line-height:1.7;color:${greenMuted};">${company.institutionalText}</p>
       </div>`
     : "";
 
   const logoHtml = company.logoUrl
-    ? `<img src="${company.logoUrl}" style="max-height:60px;max-width:200px;object-fit:contain;" crossorigin="anonymous" />`
-    : `<div style="width:56px;height:56px;border-radius:14px;background:${c1};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:24px;">${companyName.charAt(0)}</div>`;
+    ? `<img src="${company.logoUrl}" style="max-height:70px;max-width:220px;object-fit:contain;" crossorigin="anonymous" />`
+    : `<div style="width:56px;height:56px;border-radius:14px;background:${green};display:flex;align-items:center;justify-content:center;color:${dark};font-weight:700;font-size:24px;">${companyName.charAt(0)}</div>`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -144,56 +150,57 @@ export function generateProposalPDF(
 <style>
   @page { size: A4; margin: 20mm 18mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1a1a2e; line-height: 1.5; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: ${white}; line-height: 1.5; background: ${dark}; }
   
-  .cover { min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 0; page-break-after: always; }
-  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .cover-company-info { font-size: 12px; color: #666; text-align: right; line-height: 1.6; }
+  .cover { min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 0; page-break-after: always; background: ${dark}; }
+  .cover-top { display: flex; justify-content: flex-start; align-items: flex-start; }
   .cover-center { text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; }
-  .cover-title { font-size: 36px; font-weight: 800; letter-spacing: 2px; color: ${c1}; }
-  .cover-subtitle { font-size: 18px; color: #555; font-weight: 500; }
-  .cover-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 420px; margin: 24px auto 0; }
-  .cover-meta-item { background: #f8f9fa; border-radius: 10px; padding: 14px 18px; text-align: left; }
-  .cover-meta-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; display: block; margin-bottom: 2px; }
-  .cover-meta-item span { font-size: 14px; font-weight: 600; }
-  .cover-bottom { font-size: 11px; color: #aaa; text-align: center; }
+  .cover-title { font-size: 42px; font-weight: 800; letter-spacing: 4px; color: #fff; text-transform: uppercase; }
+  .cover-subtitle { font-size: 18px; color: ${green}; font-weight: 500; letter-spacing: 2px; }
+  .cover-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 440px; margin: 28px auto 0; }
+  .cover-meta-item { background: ${darkCard}; border: 1px solid ${greenBorder}; border-radius: 10px; padding: 14px 18px; text-align: left; }
+  .cover-meta-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: ${green}; display: block; margin-bottom: 4px; }
+  .cover-meta-item span { font-size: 14px; font-weight: 600; color: #fff; }
+  .cover-bottom { font-size: 12px; color: ${greenMuted}; line-height: 1.7; }
+  .cover-bottom strong { color: #fff; }
 
   .section { margin-bottom: 32px; }
-  .section h2 { font-size: 15px; font-weight: 700; color: ${c1}; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid ${c1}20; }
+  .section h2 { font-size: 15px; font-weight: 700; color: ${green}; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid ${greenBorder}; }
   
   .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .summary-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; text-align: center; }
-  .summary-card.highlight { border-color: ${c1}60; background: ${c1}06; }
-  .summary-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
-  .summary-value { font-size: 28px; font-weight: 800; margin: 4px 0; }
-  .summary-sub { font-size: 12px; color: #888; }
+  .summary-card { border: 1px solid ${greenBorder}; border-radius: 12px; padding: 20px; text-align: center; background: ${darkCard}; }
+  .summary-card.highlight { border-color: ${green}; background: ${greenDim}; }
+  .summary-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; }
+  .summary-value { font-size: 28px; font-weight: 800; margin: 4px 0; color: #fff; }
+  .summary-sub { font-size: 12px; color: ${greenMuted}; }
 
   .benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .benefit-item { display: flex; align-items: flex-start; gap: 10px; padding: 14px; border-radius: 10px; background: #f9fafb; }
-  .benefit-icon { width: 28px; height: 28px; border-radius: 8px; background: ${c1}15; color: ${c1}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; font-weight: 700; }
-  .benefit-text { font-size: 13px; font-weight: 600; }
+  .benefit-item { display: flex; align-items: flex-start; gap: 10px; padding: 14px; border-radius: 10px; background: ${darkCard}; border: 1px solid ${greenBorder}; }
+  .benefit-icon { width: 28px; height: 28px; border-radius: 8px; background: ${greenDim}; color: ${green}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; font-weight: 700; }
+  .benefit-text { font-size: 13px; font-weight: 600; color: ${white}; }
   
   .conditions-table { width: 100%; border-collapse: collapse; }
-  .conditions-table th { text-align: left; padding: 10px 14px; background: ${c1}10; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: ${c1}; border-bottom: 2px solid ${c1}30; }
-  .conditions-table td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
-  .conditions-table td:last-child { font-weight: 700; text-align: right; }
+  .conditions-table th { text-align: left; padding: 12px 14px; background: ${greenDim}; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; border-bottom: 2px solid ${green}; }
+  .conditions-table td { padding: 12px 14px; border-bottom: 1px solid ${greenBorder}; font-size: 14px; color: ${white}; }
+  .conditions-table td:last-child { font-weight: 700; text-align: right; color: #fff; }
   
   .steps-list { counter-reset: step; }
   .step-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
-  .step-num { width: 32px; height: 32px; border-radius: 50%; background: ${c1}; color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .step-title { font-size: 14px; font-weight: 600; }
-  .step-desc { font-size: 12px; color: #888; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: ${green}; color: ${dark}; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-size: 14px; font-weight: 600; color: #fff; }
+  .step-desc { font-size: 12px; color: ${greenMuted}; }
   
-  .footer-block { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; font-size: 11px; color: #999; text-align: center; line-height: 1.8; }
+  .footer-block { margin-top: 40px; padding-top: 20px; border-top: 2px solid ${greenBorder}; font-size: 11px; color: ${greenMuted}; text-align: center; line-height: 1.8; }
+  .footer-block strong { color: ${green}; }
   
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .no-print { display: none; }
   }
   @media screen {
-    body { max-width: 800px; margin: 0 auto; padding: 20px; background: #f0f0f0; }
-    .cover { min-height: auto; padding: 60px 0; border: 1px solid #ddd; background: #fff; margin-bottom: 20px; border-radius: 8px; padding: 40px; }
-    .page-content { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 40px; }
+    body { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .cover { min-height: auto; padding: 60px 40px; border: 1px solid ${greenBorder}; margin-bottom: 20px; border-radius: 8px; }
+    .page-content { border: 1px solid ${greenBorder}; border-radius: 8px; padding: 40px; background: ${dark}; }
   }
 </style>
 </head>
@@ -203,16 +210,11 @@ export function generateProposalPDF(
 <div class="cover">
   <div class="cover-top">
     <div>${logoHtml}</div>
-    <div class="cover-company-info">
-      <strong>${companyName}</strong><br/>
-      ${company.phone ? `${company.phone}<br/>` : ""}
-      ${company.email ? `${company.email}<br/>` : ""}
-      ${company.website ? `${company.website}` : ""}
-    </div>
   </div>
   <div class="cover-center">
-    <div class="cover-title">PROPOSTA COMERCIAL</div>
-    <div class="cover-subtitle">${proposal.systemName || "Sistema"}</div>
+    <div class="cover-title">${companyName.toUpperCase()}</div>
+    <div style="width:80px;height:3px;background:${green};border-radius:2px;margin:8px auto;"></div>
+    <div class="cover-subtitle">PROPOSTA COMERCIAL</div>
     <div class="cover-meta">
       <div class="cover-meta-item"><label>Cliente</label><span>${proposal.clientName || "—"}</span></div>
       <div class="cover-meta-item"><label>Proposta</label><span>${proposal.proposalNumber}</span></div>
@@ -220,7 +222,11 @@ export function generateProposalPDF(
       <div class="cover-meta-item"><label>Validade</label><span>${dateStr(proposal.validUntil)}</span></div>
     </div>
   </div>
-  <div class="cover-bottom">Documento gerado automaticamente</div>
+  <div class="cover-bottom">
+    ${company.cnpj ? `<strong>CNPJ:</strong> ${company.cnpj}<br/>` : ""}
+    ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}<br/>
+    ${fullAddress ? `${fullAddress}` : ""}
+  </div>
 </div>
 
 <!-- CONTENT -->
@@ -232,15 +238,15 @@ export function generateProposalPDF(
     <div class="summary-grid">
       <div class="summary-card">
         <div class="summary-label">Sistema</div>
-        <div style="font-size:18px;font-weight:700;margin-top:4px;">${proposal.systemName || "—"}</div>
+        <div style="font-size:18px;font-weight:700;margin-top:4px;color:#fff;">${proposal.systemName || "—"}</div>
       </div>
       <div class="summary-card">
         <div class="summary-label">Plano</div>
-        <div style="font-size:18px;font-weight:700;margin-top:4px;">${proposal.planName || "—"}</div>
+        <div style="font-size:18px;font-weight:700;margin-top:4px;color:#fff;">${proposal.planName || "—"}</div>
       </div>
       <div class="summary-card highlight">
         <div class="summary-label">Mensalidade</div>
-        <div class="summary-value" style="color:${c1};">${fmt(proposal.monthlyValue)}</div>
+        <div class="summary-value" style="color:${green};">${fmt(proposal.monthlyValue)}</div>
         <div class="summary-sub">/mês</div>
       </div>
       <div class="summary-card">
@@ -276,12 +282,14 @@ export function generateProposalPDF(
       <tbody>
         <tr><td>Implantação</td><td>${fmt(proposal.implementationValue)}</td></tr>
         <tr><td>Mensalidade</td><td>${fmt(proposal.monthlyValue)}</td></tr>
+        <tr><td>Prazo de Validade</td><td style="font-weight:600;">${dateStr(proposal.validUntil)}</td></tr>
       </tbody>
     </table>
-    <ul style="margin-top:16px;padding-left:20px;font-size:13px;color:#555;line-height:1.8;">
+    <ul style="margin-top:16px;padding-left:20px;font-size:13px;color:${greenMuted};line-height:1.8;">
       <li>Mensalidade cobrada conforme plano escolhido</li>
       <li>Implantação inclui treinamento inicial</li>
       <li>Suporte conforme horário contratado</li>
+      ${proposal.validUntil ? `<li>Esta proposta é válida até ${dateStr(proposal.validUntil)}</li>` : ""}
       ${proposal.additionalInfo ? `<li>${proposal.additionalInfo}</li>` : ""}
     </ul>
   </div>
@@ -301,13 +309,11 @@ export function generateProposalPDF(
 
   <!-- Footer -->
   <div class="footer-block">
-    <strong>${companyName}</strong>
-    ${company.cnpj ? ` — CNPJ: ${company.cnpj}` : ""}
-    <br/>
-    ${company.phone ? `${company.phone}` : ""}
+    © ${year} <strong>${companyName}</strong> — Todos os direitos reservados
+    ${company.cnpj ? `<br/>CNPJ: ${company.cnpj}` : ""}
+    ${company.phone ? ` | ${company.phone}` : ""}
     ${company.email ? ` | ${company.email}` : ""}
     ${fullAddress ? `<br/>${fullAddress}` : ""}
-    ${company.footerText ? `<br/>${company.footerText}` : ""}
   </div>
 
 </div>
