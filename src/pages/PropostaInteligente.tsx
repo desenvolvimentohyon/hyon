@@ -95,15 +95,10 @@ export default function PropostaInteligente() {
     });
   }, []);
 
-  // Auto-select all active modules for selected system
+  // Clear modules when system changes (don't auto-select)
   useEffect(() => {
-    if (sistemaId) {
-      const systemModules = modulos.filter(m => m.ativo && m.sistemaId === sistemaId);
-      setModuloIds(systemModules.map(m => m.id));
-    } else {
-      setModuloIds([]);
-    }
-  }, [sistemaId, modulos]);
+    setModuloIds([]);
+  }, [sistemaId]);
 
   // Derived calculations
   const sistema = useMemo(() => sistemas.find(s => s.id === sistemaId), [sistemas, sistemaId]);
