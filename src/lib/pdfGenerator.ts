@@ -152,21 +152,20 @@ export function generateProposalPDF(
 <meta charset="utf-8">
 <title>${fileName}</title>
 <style>
-  @page { size: A4; margin: 20mm 18mm; }
+  @page { size: A4; margin: 12mm 14mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: ${white}; line-height: 1.5; background: ${dark}; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: ${white}; line-height: 1.4; background: ${dark}; font-size: 11px; }
   
-  .cover { min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 0; page-break-after: always; background: ${dark}; }
-  .cover-top { display: flex; justify-content: flex-start; align-items: flex-start; }
-  .cover-center { text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; }
-  .cover-title { font-size: 42px; font-weight: 800; letter-spacing: 4px; color: #fff; text-transform: uppercase; }
-  .cover-subtitle { font-size: 18px; color: ${green}; font-weight: 500; letter-spacing: 2px; }
-  .cover-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 440px; margin: 28px auto 0; }
-  .cover-meta-item { background: ${darkCard}; border: 1px solid ${greenBorder}; border-radius: 10px; padding: 14px 18px; text-align: left; }
-  .cover-meta-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: ${green}; display: block; margin-bottom: 4px; }
-  .cover-meta-item span { font-size: 14px; font-weight: 600; color: #fff; }
-  .cover-bottom { font-size: 12px; color: ${greenMuted}; line-height: 1.7; }
-  .cover-bottom strong { color: #fff; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid ${green}; margin-bottom: 12px; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-company-name { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+  .header-right { text-align: right; font-size: 9px; color: ${greenMuted}; line-height: 1.6; }
+  .header-right strong { color: ${green}; }
+  
+  .meta-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .meta-item { background: ${darkCard}; border: 1px solid ${greenBorder}; border-radius: 6px; padding: 6px 8px; }
+  .meta-item label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; display: block; margin-bottom: 1px; }
+  .meta-item span { font-size: 11px; font-weight: 600; color: #fff; }
 
   .section { margin-bottom: 32px; }
   .section h2 { font-size: 15px; font-weight: 700; color: ${green}; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid ${greenBorder}; }
