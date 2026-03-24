@@ -136,7 +136,7 @@ function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeCol
 }
 
 export default function Tarefas() {
-  const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
+  const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, addCliente, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
   const { sistemas } = useParametros();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
@@ -165,6 +165,10 @@ export default function Tarefas() {
   const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
   const [nomeClienteAvulso, setNomeClienteAvulso] = useState("");
   const [novoObservacoes, setNovoObservacoes] = useState("");
+  const [novoClienteNome, setNovoClienteNome] = useState("");
+  const [novoClienteTelefone, setNovoClienteTelefone] = useState("");
+  const [novoClienteEmail, setNovoClienteEmail] = useState("");
+  const [novoClienteCidade, setNovoClienteCidade] = useState("");
   const [fotosFiles, setFotosFiles] = useState<File[]>([]);
   const [fotosPreview, setFotosPreview] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -220,7 +224,27 @@ export default function Tarefas() {
 
   const handleCriar = async () => {
     if (!novoTitulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
+    if (novoCliente === "novo" && !novoClienteNome.trim()) { toast({ title: "Nome do novo cliente é obrigatório", variant: "destructive" }); return; }
     setUploading(true);
+
+    // Create new client if needed
+    let clienteIdFinal: string | null = null;
+    if (novoCliente === "novo") {
+      const newId = crypto.randomUUID();
+      await addCliente({
+        nome: novoClienteNome.trim(),
+        telefone: novoClienteTelefone.trim() || undefined,
+        email: novoClienteEmail.trim() || undefined,
+      });
+      // Find the newly created client by name (just added)
+      const { data: newClients } = await supabase.from("clients").select("id").eq("name", novoClienteNome.trim()).order("created_at", { ascending: false }).limit(1);
+      clienteIdFinal = newClients?.[0]?.id || null;
+      if (clienteIdFinal && novoClienteCidade.trim()) {
+        await supabase.from("clients").update({ city: novoClienteCidade.trim() }).eq("id", clienteIdFinal);
+      }
+    } else {
+      clienteIdFinal = novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente;
+    }
 
     // Upload photos
     const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -240,7 +264,7 @@ export default function Tarefas() {
 
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
-      clienteId: novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente,
+      clienteId: clienteIdFinal,
       nomeClienteAvulso: novoCliente === "avulso" ? nomeClienteAvulso.trim() || undefined : undefined,
       responsavelId: novoResponsavel, prioridade: novoPrioridade, status: "a_fazer",
       prazoDataHora: novoPrazo || undefined,
@@ -256,6 +280,7 @@ export default function Tarefas() {
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
     setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
     setNovoObservacoes(""); setFotosFiles([]); setFotosPreview([]);
+    setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade("");
     setUploading(false);
   };
 
@@ -451,16 +476,27 @@ export default function Tarefas() {
               </div>
               <div>
                 <Label>Cliente</Label>
-                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "avulso") setNomeClienteAvulso(""); }}>
+                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "avulso") setNomeClienteAvulso(""); if (v !== "novo") { setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade(""); } }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="null">Avulsa</SelectItem>
                     <SelectItem value="avulso">Cliente Avulso</SelectItem>
+                    <SelectItem value="novo">➕ Cadastrar novo cliente</SelectItem>
                     {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 {novoCliente === "avulso" && (
                   <Input className="mt-2" placeholder="Nome do cliente avulso" value={nomeClienteAvulso} onChange={e => setNomeClienteAvulso(e.target.value)} />
+                )}
+                {novoCliente === "novo" && (
+                  <div className="mt-2 space-y-2 rounded-md border border-border/60 p-3 bg-muted/30">
+                    <div><Input placeholder="Nome do cliente *" value={novoClienteNome} onChange={e => setNovoClienteNome(e.target.value)} /></div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Telefone" value={novoClienteTelefone} onChange={e => setNovoClienteTelefone(e.target.value)} />
+                      <Input placeholder="Email" type="email" value={novoClienteEmail} onChange={e => setNovoClienteEmail(e.target.value)} />
+                    </div>
+                    <Input placeholder="Cidade" value={novoClienteCidade} onChange={e => setNovoClienteCidade(e.target.value)} />
+                  </div>
                 )}
               </div>
             </div>
