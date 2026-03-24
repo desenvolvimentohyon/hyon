@@ -416,10 +416,7 @@ export default function Tarefas() {
                 return (
                   <TableRow key={t.id} className={`group cursor-pointer hover:bg-accent/40 transition-colors duration-150 ${statusRowColor(t.status)}`} onClick={() => navigate(`/tarefas/${t.id}`)}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{t.titulo}</span>
-                        {isAtrasada(t) && <Badge variant="destructive" className="text-[10px]">Atrasada</Badge>}
-                      </div>
+                      <span className="font-medium text-sm">{t.titulo}</span>
                     </TableCell>
                     <TableCell><Badge className={`text-[10px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge></TableCell>
                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : (t.nomeClienteAvulso || "Avulsa")}</TableCell>
