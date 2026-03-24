@@ -205,7 +205,6 @@ export default function PropostaInteligente() {
       }
 
       const itens = [
-        { id: crypto.randomUUID(), descricao: `Sistema: ${sistema?.nome}`, quantidade: 1, valor: calc.sistemaValor },
         ...modulosSelecionados.map(m => ({
           id: crypto.randomUUID(), descricao: `Módulo: ${m.nome}`, quantidade: 1, valor: m.valorVenda,
         })),
