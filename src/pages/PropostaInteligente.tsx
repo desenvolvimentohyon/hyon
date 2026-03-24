@@ -179,8 +179,26 @@ export default function PropostaInteligente() {
       toast.error("Selecione um sistema para gerar a proposta.");
       return;
     }
+    if (clienteId === "novo" && !novoClienteNome.trim()) {
+      toast.error("Informe o nome do novo cliente.");
+      return;
+    }
     setGerando(true);
     try {
+      let finalClienteId = clienteId;
+      let finalClienteNome = cliente?.nome || "";
+
+      // Criar novo cliente se necessário
+      if (clienteId === "novo") {
+        addCliente({
+          nome: novoClienteNome.trim(),
+          telefone: novoClienteTelefone.trim() || undefined,
+          email: novoClienteEmail.trim() || undefined,
+        });
+        finalClienteId = "";
+        finalClienteNome = novoClienteNome.trim();
+      }
+
       const itens = [
         { id: crypto.randomUUID(), descricao: `Sistema: ${sistema?.nome}`, quantidade: 1, valor: calc.sistemaValor },
         ...modulosSelecionados.map(m => ({
@@ -189,8 +207,8 @@ export default function PropostaInteligente() {
       ];
 
       addProposta({
-        clienteId: clienteId || null,
-        clienteNomeSnapshot: cliente?.nome || "",
+        clienteId: finalClienteId || null,
+        clienteNomeSnapshot: finalClienteNome,
         sistema: (sistema?.nome || "OUTRO") as any,
         planoNome: plano?.nomePlano || "",
         valorMensalidade: calc.mensalidadeFinal,
