@@ -476,18 +476,13 @@ export default function Tarefas() {
               </div>
               <div>
                 <Label>Cliente</Label>
-                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "avulso") setNomeClienteAvulso(""); if (v !== "novo") { setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade(""); } }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "novo") { setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade(""); } }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="null">Avulsa</SelectItem>
-                    <SelectItem value="avulso">Cliente Avulso</SelectItem>
                     <SelectItem value="novo">➕ Cadastrar novo cliente</SelectItem>
                     {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                {novoCliente === "avulso" && (
-                  <Input className="mt-2" placeholder="Nome do cliente avulso" value={nomeClienteAvulso} onChange={e => setNomeClienteAvulso(e.target.value)} />
-                )}
                 {novoCliente === "novo" && (
                   <div className="mt-2 space-y-2 rounded-md border border-border/60 p-3 bg-muted/30">
                     <div><Input placeholder="Nome do cliente *" value={novoClienteNome} onChange={e => setNovoClienteNome(e.target.value)} /></div>
