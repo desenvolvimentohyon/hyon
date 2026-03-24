@@ -224,7 +224,27 @@ export default function Tarefas() {
 
   const handleCriar = async () => {
     if (!novoTitulo.trim()) { toast({ title: "Título obrigatório", variant: "destructive" }); return; }
+    if (novoCliente === "novo" && !novoClienteNome.trim()) { toast({ title: "Nome do novo cliente é obrigatório", variant: "destructive" }); return; }
     setUploading(true);
+
+    // Create new client if needed
+    let clienteIdFinal: string | null = null;
+    if (novoCliente === "novo") {
+      const newId = crypto.randomUUID();
+      await addCliente({
+        nome: novoClienteNome.trim(),
+        telefone: novoClienteTelefone.trim() || undefined,
+        email: novoClienteEmail.trim() || undefined,
+      });
+      // Find the newly created client by name (just added)
+      const { data: newClients } = await supabase.from("clients").select("id").eq("name", novoClienteNome.trim()).order("created_at", { ascending: false }).limit(1);
+      clienteIdFinal = newClients?.[0]?.id || null;
+      if (clienteIdFinal && novoClienteCidade.trim()) {
+        await supabase.from("clients").update({ city: novoClienteCidade.trim() }).eq("id", clienteIdFinal);
+      }
+    } else {
+      clienteIdFinal = novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente;
+    }
 
     // Upload photos
     const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -244,7 +264,7 @@ export default function Tarefas() {
 
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
-      clienteId: novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente,
+      clienteId: clienteIdFinal,
       nomeClienteAvulso: novoCliente === "avulso" ? nomeClienteAvulso.trim() || undefined : undefined,
       responsavelId: novoResponsavel, prioridade: novoPrioridade, status: "a_fazer",
       prazoDataHora: novoPrazo || undefined,
