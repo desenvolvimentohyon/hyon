@@ -407,6 +407,7 @@ export default function Tarefas() {
                 <TableHead>Tempo</TableHead>
                 <TableHead className="hidden lg:table-cell">Responsável</TableHead>
                 <TableHead className="hidden lg:table-cell">Prazo</TableHead>
+                <TableHead className="hidden lg:table-cell">Situação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
