@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,10 +44,8 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
   }, [cliente.id]);
 
   const costActive = formData.cost_active ?? cliente.cost_active;
-  const costValue = Number(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0);
-  const custoCloud = Number(meta.custoCloud || 0);
   const outrosCustos = Number(meta.outrosCustos || 0);
-  const totalCusto = costValue + custoModulos + custoCloud + outrosCustos;
+  const totalCusto = custoModulos + outrosCustos;
   const mensalidadeFinal = Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0);
   const margem = mensalidadeFinal - totalCusto;
 
@@ -62,8 +61,7 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
           <div>
             <Label>Sistema de custo</Label>
             <Select value={(formData.cost_system_name ?? cliente.cost_system_name ?? "") as string} onValueChange={val => {
-              const sys = sistemas.find(s => s.nome === val);
-              onChange({ cost_system_name: val, ...(sys && sys.valorCusto > 0 ? { monthly_cost_value: sys.valorCusto } : {}) } as any);
+              onChange({ cost_system_name: val } as any);
             }}>
               <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
               <SelectContent>
@@ -73,7 +71,6 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Custo repasse/franquia (R$)</Label><CurrencyInput value={Number(formData.monthly_cost_value ?? cliente.monthly_cost_value ?? 0)} onValueChange={v => onChange({ monthly_cost_value: v } as any)} /></div>
           <div>
             <Label className="flex items-center gap-2">
               Custo módulos (R$)
@@ -83,8 +80,16 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
               R$ {custoModulos.toFixed(2)}
             </div>
           </div>
-          <div><Label>Custo cloud/infra (R$)</Label><CurrencyInput value={custoCloud} onValueChange={v => setMeta("custoCloud", v)} /></div>
           <div><Label>Outros custos (R$)</Label><CurrencyInput value={outrosCustos} onValueChange={v => setMeta("outrosCustos", v)} /></div>
+          <div className="md:col-span-2">
+            <Label>Observação (outros custos)</Label>
+            <Textarea
+              value={meta.outrosCustosObs || ""}
+              onChange={e => setMeta("outrosCustosObs", e.target.value)}
+              placeholder="Descreva o que compõe os outros custos..."
+              rows={3}
+            />
+          </div>
         </div>
       </section>
 
