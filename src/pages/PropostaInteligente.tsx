@@ -50,7 +50,7 @@ interface CompanyImpl {
 export default function PropostaInteligente() {
   const navigate = useNavigate();
   const { addProposta, crmConfig } = usePropostas();
-  const { clientes } = useApp();
+  const { clientes, addCliente } = useApp();
   const { sistemas, modulos, planos, formasPagamento } = useParametros();
 
   // External data
