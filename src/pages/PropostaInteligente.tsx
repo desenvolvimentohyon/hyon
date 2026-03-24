@@ -22,7 +22,7 @@ import { PropostaComparador } from "@/components/propostas/PropostaComparador";
 import { PropostaSugestoes } from "@/components/propostas/PropostaSugestoes";
 import { ConsultoraComercialIA } from "@/components/propostas/ConsultoraComercialIA";
 
-import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText } from "lucide-react";
+import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText, Plus } from "lucide-react";
 
 interface Partner {
   id: string;
