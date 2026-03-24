@@ -1,22 +1,21 @@
 
 
-## Plano: Mostrar data de criação e validade no PDF da proposta
+## Plano: Seção "Sobre o Sistema" com descrição do catálogo de sistemas
 
 ### Problema
-Os campos "Data" e "Validade" na capa do PDF mostram "—" porque usam `sentAt` (data de envio) e `validUntil` (data de validade explícita), que frequentemente são `null`. Precisa usar a data de criação da proposta e calcular a validade baseada nos dias configurados.
+A seção "Sobre o Sistema" no PDF usa `institutionalText` (texto institucional da empresa), que contém o CNPJ. O correto é mostrar a descrição do sistema cadastrada no catálogo de sistemas (`systems_catalog.description`).
 
 ### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/lib/pdfGenerator.ts` | Adicionar campo `createdAt` ao `PdfProposalData`; usar `createdAt` como fallback para "Data"; calcular validade automaticamente quando `validUntil` for null |
+| `src/lib/pdfGenerator.ts` | Adicionar campo `systemDescription` ao `PdfProposalData`; usar esse campo na seção "Sobre o Sistema" em vez de `company.institutionalText` |
+| `src/lib/pdfGenerator.ts` | Em `gerarPDFPropostaComDados`, buscar a descrição do sistema no `systems_catalog` pelo nome do sistema e passá-la para o PDF |
 
-### Detalhes
+### Detalhes técnicos
 
-1. **Interface `PdfProposalData`**: Adicionar `createdAt: string` e `validityDays: number | null`
-2. **Capa do PDF (linha 226-227)**:
-   - "Data": usar `proposal.sentAt || proposal.createdAt` (sempre terá valor)
-   - "Validade": usar `proposal.validUntil` ou calcular `createdAt + validityDays`
-3. **`gerarPDFPropostaComDados` (linha 354-374)**: Passar `criadoEm` e `validadeDias`
-4. **`gerarPDFProposta` (legada, linha 400)**: Passar `criadoEm` e `validadeDias` também
+1. **Interface `PdfProposalData`**: Adicionar `systemDescription: string | null`
+2. **Seção "Sobre o Sistema" (linha 136-141)**: Trocar `company.institutionalText` por `proposal.systemDescription`
+3. **`gerarPDFPropostaComDados` (linha 351-408)**: Adicionar query ao `systems_catalog` filtrando por `name = proposta.sistema` e `org_id = orgId` para obter a `description`; passar como `systemDescription`
+4. **Legacy `gerarPDFProposta`**: Passar `systemDescription: null` para manter compatibilidade
 
