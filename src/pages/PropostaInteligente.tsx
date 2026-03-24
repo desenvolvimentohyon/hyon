@@ -71,6 +71,7 @@ export default function PropostaInteligente() {
   const [formaPagamentoId, setFormaPagamentoId] = useState("");
   const [fluxoImplantacao, setFluxoImplantacao] = useState<"a_vista" | "parcelado">("a_vista");
   const [parcelasImplantacao, setParcelasImplantacao] = useState(2);
+  const [descontoManualPercent, setDescontoManualPercent] = useState(0);
   const [observacoes, setObservacoes] = useState(crmConfig.informacoesAdicionaisPadrao || "");
 
   // Novo cliente inline
