@@ -45,7 +45,7 @@ interface Props {
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props) {
-  const valorTotal = data.mensalidadeFinal + data.implantacaoTotal;
+  
 
   return (
     <div className="sticky top-4 space-y-3">
