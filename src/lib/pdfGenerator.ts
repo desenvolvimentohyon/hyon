@@ -134,10 +134,11 @@ export function generateProposalPDF(
           </div>
         </div>`;
 
-  const institutionalSection = company.institutionalText
+  const aboutSystemText = proposal.systemDescription || company.institutionalText;
+  const institutionalSection = aboutSystemText
     ? `<div class="section" style="page-break-inside:avoid;">
         <h2>Sobre o Sistema</h2>
-        <p style="font-size:14px;line-height:1.7;color:${greenMuted};">${company.institutionalText}</p>
+        <p style="font-size:14px;line-height:1.7;color:${greenMuted};">${aboutSystemText}</p>
       </div>`
     : "";
 
