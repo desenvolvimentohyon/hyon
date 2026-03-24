@@ -117,19 +117,21 @@ export default function PropostaInteligente() {
   );
 
   const calc = useMemo(() => {
-    const sistemaValor = 0; // valor do sistema não entra no cálculo — mensalidade é a soma dos módulos
+    const sistemaValor = 0;
     const modulosValor = modulosSelecionados.reduce((sum, m) => sum + m.valorVenda, 0);
     const mensalidadeBase = modulosValor;
     const descontoPercent = plano?.descontoPercentual || 0;
     const descontoValor = mensalidadeBase * (descontoPercent / 100);
     const valorAposPlano = mensalidadeBase - descontoValor;
     const descontoManualValor = valorAposPlano * (descontoManualPercent / 100);
-    const mensalidadeFinal = valorAposPlano - descontoManualValor;
+    const mensalidadeFinal = Math.max(0, valorAposPlano - descontoManualValor - descontoManualReais);
 
     const implKm = distanciaKm * companyImpl.impl_cost_per_km;
     const implRegiao = regiao ? regiao.base_value + regiao.additional_fee : 0;
     const implDiarias = dias * companyImpl.impl_daily_rate;
-    const implantacaoTotal = implKm + implRegiao + implDiarias;
+    const implantacaoBruto = implKm + implRegiao + implDiarias;
+    const descontoImplPercentVal = implantacaoBruto * (descontoImplPercent / 100);
+    const implantacaoTotal = Math.max(0, implantacaoBruto - descontoImplPercentVal - descontoImplReais);
 
     const comissaoImpl = parceiro && parceiro.commission_implant_percent
       ? implantacaoTotal * (parceiro.commission_implant_percent / 100)
@@ -140,11 +142,11 @@ export default function PropostaInteligente() {
 
     return {
       sistemaValor, modulosValor, mensalidadeBase,
-      descontoPercent, descontoValor, descontoManualValor, mensalidadeFinal,
-      implKm, implRegiao, implDiarias, implantacaoTotal,
+      descontoPercent, descontoValor, descontoManualValor, descontoManualReais, mensalidadeFinal,
+      implKm, implRegiao, implDiarias, implantacaoBruto, descontoImplPercentVal, descontoImplReais, implantacaoTotal,
       comissaoImpl, comissaoRecur,
     };
-  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro, descontoManualPercent]);
+  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
 
   const resumoData = useMemo(() => ({
     sistemaNome: sistema?.nome || "",
