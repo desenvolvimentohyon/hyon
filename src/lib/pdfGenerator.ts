@@ -225,8 +225,16 @@ export function generateProposalPDF(
     <div class="cover-meta">
       <div class="cover-meta-item"><label>Cliente</label><span>${proposal.clientName || "—"}</span></div>
       <div class="cover-meta-item"><label>Proposta</label><span>${proposal.proposalNumber}</span></div>
-      <div class="cover-meta-item"><label>Data</label><span>${dateStr(proposal.sentAt)}</span></div>
-      <div class="cover-meta-item"><label>Validade</label><span>${dateStr(proposal.validUntil)}</span></div>
+      <div class="cover-meta-item"><label>Data</label><span>${dateStr(proposal.sentAt || proposal.createdAt)}</span></div>
+      <div class="cover-meta-item"><label>Validade</label><span>${(() => {
+        if (proposal.validUntil) return dateStr(proposal.validUntil);
+        if (proposal.createdAt && proposal.validityDays) {
+          const d = new Date(proposal.createdAt);
+          d.setDate(d.getDate() + proposal.validityDays);
+          return d.toLocaleDateString("pt-BR");
+        }
+        return "—";
+      })()}</span></div>
     </div>
   </div>
   <div class="cover-bottom" style="font-size:11px;color:${greenMuted};">
