@@ -1,35 +1,40 @@
 
 
-## Plano: Melhorar PDF da proposta e corrigir link público
-
-### Problemas identificados
-1. **PDF sem dados da empresa**: A função `gerarPDFProposta` (usada em PropostaDetalhe e Propostas) passa `cnpj: null`, `logoUrl: null`, `phone: null`, etc. — precisa buscar dados de `company_profile` antes de gerar o PDF
-2. **Link abrindo tela de login**: A rota `/proposta/:token` está corretamente fora do `AuthGate`. O problema pode ser que a página mostra erro/vazio (e o usuário interpreta como redirecionamento ao login), ou que o link copiado contém formato incorreto. Vou adicionar tratamento de erro mais claro e validar o fluxo
+## Plano: Redesign do PDF da proposta com tema escuro e layout atualizado
 
 ### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/lib/pdfGenerator.ts` | Remover a função `gerarPDFProposta` legada; criar `gerarPDFPropostaComDados` que busca `company_profile` do banco e monta os dados completos (logo, CNPJ, telefone, endereço) |
-| `src/pages/PropostaDetalhe.tsx` | Usar nova função que busca company_profile antes de gerar PDF |
-| `src/pages/Propostas.tsx` | Usar nova função que busca company_profile antes de gerar PDF |
-| `src/pages/PropostaPublica.tsx` | Usar `VITE_SUPABASE_URL` em vez de construir URL manualmente; melhorar tratamento de erros para não mostrar tela vazia |
+| `src/lib/pdfGenerator.ts` | Redesenhar a capa e o conteúdo do PDF com tema escuro, informações da empresa reorganizadas e prazo de validade |
 
-### Detalhes técnicos
+### Detalhes
 
-#### 1. Nova função de geração de PDF com dados da empresa
-Criar função assíncrona `gerarPDFPropostaComDados(proposta, orgId)` que:
-- Busca `company_profile` do Supabase filtrando por `org_id`
-- Constrói a URL pública do logo: `${VITE_SUPABASE_URL}/storage/v1/object/public/company-logos/${logo_path}`
-- Passa todos os campos (cnpj, telefone, email, endereço, etc.) para `generateProposalPDF`
-- Mantém `generateProposalPDF` como função base inalterada
+#### 1. Tema escuro com detalhes em verde claro
+- Fundo do body/cover: tom escuro (`#0f172a` ou `#1a1a2e`)
+- Textos informativos e labels em verde claro (`#4ade80` / `#86efac`)
+- Títulos e valores em branco
+- Cards e tabelas com fundo semi-transparente claro sobre o escuro
 
-#### 2. Atualizar chamadas nas páginas internas
-- `PropostaDetalhe.tsx` e `Propostas.tsx`: trocar `gerarPDFProposta(p, crmConfig)` por `await gerarPDFPropostaComDados(p, orgId)`
-- Tornar `handlePDF` async
+#### 2. Reorganizar capa (cover page)
+- **Topo esquerdo**: Logo da empresa (imagem do storage)
+- **Centro**: Nome da empresa "HYON TECNOLOGIA" em destaque
+- **Abaixo do centro**: Cards com Cliente, Proposta, Data, **Validade** (já existe, mas garantir que o `validUntil` seja passado corretamente)
+- **Rodapé da capa / esquerda inferior**: CNPJ, telefone, email, endereço completo
 
-#### 3. Corrigir acesso à página pública
-- Usar `import.meta.env.VITE_SUPABASE_URL` (que já está no .env) em vez de construir a URL com `VITE_SUPABASE_PROJECT_ID`
-- Adicionar fallback e mensagem de erro mais clara quando a fetch falha
-- Garantir que a página não mostra tela em branco — exibir mensagem de "Proposta não encontrada" com visual adequado
+#### 3. Adicionar prazo de validade
+- O campo `validUntil` já existe no `PdfProposalData` e já é exibido na capa como "Validade"
+- Garantir que o valor é passado corretamente pelo `gerarPDFPropostaComDados`
+- Adicionar uma linha nas "Condições Comerciais" com o prazo de validade
+
+#### 4. Rodapé
+- Substituir rodapé atual por: `© {ano} Hyon Tecnologia — Todos os direitos reservados`
+- Manter CNPJ, telefone, email e endereço no rodapé também
+
+#### 5. Cores e estilos CSS
+- `@page` background: escuro
+- `.cover`: fundo escuro, texto branco/verde
+- `.section h2`: verde claro
+- Tabelas: bordas em verde claro translúcido, texto branco
+- Cards de resumo: fundo escuro com borda verde
 
