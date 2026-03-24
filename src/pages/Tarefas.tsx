@@ -243,7 +243,7 @@ export default function Tarefas() {
         await supabase.from("clients").update({ city: novoClienteCidade.trim() }).eq("id", clienteIdFinal);
       }
     } else {
-      clienteIdFinal = novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente;
+      clienteIdFinal = novoCliente === "" ? null : novoCliente;
     }
 
     // Upload photos
