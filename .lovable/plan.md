@@ -1,22 +1,19 @@
 
 
-## Plano: Adicionar desconto manual na mensalidade da proposta
+## Plano: Remover dupla contagem do valor do sistema na mensalidade
 
-### Contexto
-O cálculo atual da mensalidade já é dinâmico (sistema + módulos selecionados). O valor de R$600 vem do cadastro do sistema nos parâmetros. O que falta é a possibilidade de aplicar um **desconto manual** na mensalidade, além do desconto automático do plano.
+### Problema
+O cálculo atual soma `sistema.valorVenda` (R$ 600) **mais** o valor dos módulos selecionados. Porém, conforme a regra de negócio do sistema, o preço do sistema já é representado pela soma dos seus módulos — não existe um valor avulso do sistema. Isso causa dupla contagem: R$ 600 do sistema + R$ 68,60 dos módulos = R$ 668,60, quando deveria ser apenas R$ 68,60 (dos módulos).
 
-### Alterações
+### Correção
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/PropostaInteligente.tsx` | Adicionar campo de desconto manual (%) na seção "Plano e Desconto" e incluí-lo no cálculo |
-| `src/components/propostas/PropostaResumoLateral.tsx` | Exibir linha do desconto manual no resumo lateral |
+| `src/pages/PropostaInteligente.tsx` | Remover `sistemaValor` do cálculo de `mensalidadeBase` — a mensalidade passa a ser apenas a soma dos módulos selecionados |
 
 ### Detalhes
 
-1. **Novo estado `descontoManualPercent`** (number, default 0) no formulário
-2. **Campo numérico** na seção "Plano e Desconto" com label "Desconto adicional (%)" — permite o usuário inserir um percentual de desconto manual
-3. **Cálculo atualizado**: `mensalidadeFinal = mensalidadeBase - descontoPlano - descontoManual`
-4. **Resumo lateral**: exibir linha separada para desconto manual quando > 0
-5. **Interface `ResumoData`**: adicionar `descontoManualPercent` e `descontoManualValor`
+1. **Linha 125**: Alterar `mensalidadeBase = sistemaValor + modulosValor` para `mensalidadeBase = modulosValor`
+2. **Resumo lateral e itens da proposta**: Remover a linha de "Sistema" dos itens gerados (que adiciona o valor do sistema separadamente), manter apenas os módulos
+3. O campo `sistemaValor` continua existindo para referência (nome do sistema no resumo), mas com valor 0 ou removido do cálculo financeiro
 
