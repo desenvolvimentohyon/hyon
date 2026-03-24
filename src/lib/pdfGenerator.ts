@@ -61,10 +61,16 @@ export function generateProposalPDF(
 ) {
   const dark = "#0f172a";
   const darkCard = "#1e293b";
-  const green = "#4ade80";
-  const greenMuted = "#86efac";
-  const greenDim = "rgba(74,222,128,0.15)";
-  const greenBorder = "rgba(74,222,128,0.25)";
+  const green = company.primaryColor || "#4ade80";
+  // Derive muted/dim/border variants from primaryColor via hex→rgb
+  const hexToRgb = (hex: string) => {
+    const h = hex.replace("#", "");
+    return { r: parseInt(h.substring(0, 2), 16), g: parseInt(h.substring(2, 4), 16), b: parseInt(h.substring(4, 6), 16) };
+  };
+  const rgb = hexToRgb(green);
+  const greenMuted = `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`;
+  const greenDim = `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
+  const greenBorder = `rgba(${rgb.r},${rgb.g},${rgb.b},0.25)`;
   const white = "#f1f5f9";
   const companyName = company.tradeName || company.legalName || "Hyon Tecnologia";
   const fileName = `proposta-${slugify(proposal.clientName || "cliente")}-${new Date().toISOString().slice(0, 10)}`;
