@@ -382,6 +382,8 @@ export async function gerarPDFPropostaComDados(proposta: Proposta, orgId: string
         quantity: i.quantidade,
         unitValue: i.valor,
       })),
+      createdAt: proposta.criadoEm,
+      validityDays: proposta.validadeDias,
     },
     {
       tradeName: cp?.trade_name || null,
