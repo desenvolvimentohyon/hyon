@@ -448,7 +448,7 @@ export default function PropostaInteligente() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Distância (km)</Label>
-                  <Input type="number" min={0} value={distanciaKm} onChange={e => setDistanciaKm(Number(e.target.value) || 0)} />
+                  <Input type="number" min={0} value={distanciaKm || ""} onChange={e => setDistanciaKm(Number(e.target.value) || 0)} placeholder="0" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Dias</Label>
