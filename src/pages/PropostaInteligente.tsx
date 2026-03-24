@@ -91,7 +91,6 @@ export default function PropostaInteligente() {
       if (rRes.data) setRegions(rRes.data as any);
       if (cRes.data) {
         setCompanyImpl(cRes.data as any);
-        setDias(cRes.data.impl_default_days || 1);
       }
     });
   }, []);
