@@ -506,6 +506,15 @@ export default function PropostaInteligente() {
                   </div>
                 )}
               </div>
+              <div className="mt-3 space-y-1.5">
+                <Label className="text-xs">Forma de pagamento (implantação)</Label>
+                <Select value={formaPagamentoImplId} onValueChange={setFormaPagamentoImplId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {formasAtivas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
 
