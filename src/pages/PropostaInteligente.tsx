@@ -120,9 +120,9 @@ export default function PropostaInteligente() {
   );
 
   const calc = useMemo(() => {
-    const sistemaValor = sistema?.valorVenda || 0;
+    const sistemaValor = 0; // valor do sistema não entra no cálculo — mensalidade é a soma dos módulos
     const modulosValor = modulosSelecionados.reduce((sum, m) => sum + m.valorVenda, 0);
-    const mensalidadeBase = sistemaValor + modulosValor;
+    const mensalidadeBase = modulosValor;
     const descontoPercent = plano?.descontoPercentual || 0;
     const descontoValor = mensalidadeBase * (descontoPercent / 100);
     const valorAposPlano = mensalidadeBase - descontoValor;
@@ -205,7 +205,6 @@ export default function PropostaInteligente() {
       }
 
       const itens = [
-        { id: crypto.randomUUID(), descricao: `Sistema: ${sistema?.nome}`, quantidade: 1, valor: calc.sistemaValor },
         ...modulosSelecionados.map(m => ({
           id: crypto.randomUUID(), descricao: `Módulo: ${m.nome}`, quantidade: 1, valor: m.valorVenda,
         })),
