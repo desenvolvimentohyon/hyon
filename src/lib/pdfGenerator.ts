@@ -351,12 +351,20 @@ import { Proposta, CRMConfig } from "@/types/propostas";
 import { supabase } from "@/integrations/supabase/client";
 
 export async function gerarPDFPropostaComDados(proposta: Proposta, orgId: string) {
-  // Fetch company_profile from DB
-  const { data: cp } = await supabase
-    .from("company_profile")
-    .select("trade_name, legal_name, cnpj, phone, email, website, whatsapp, logo_path, primary_color, secondary_color, footer_text, institutional_text, address_street, address_number, address_neighborhood, address_city, address_uf, address_cep")
-    .eq("org_id", orgId)
-    .maybeSingle();
+  // Fetch company_profile and system description in parallel
+  const [{ data: cp }, { data: systemData }] = await Promise.all([
+    supabase
+      .from("company_profile")
+      .select("trade_name, legal_name, cnpj, phone, email, website, whatsapp, logo_path, primary_color, secondary_color, footer_text, institutional_text, address_street, address_number, address_neighborhood, address_city, address_uf, address_cep")
+      .eq("org_id", orgId)
+      .maybeSingle(),
+    supabase
+      .from("systems_catalog")
+      .select("description")
+      .eq("org_id", orgId)
+      .eq("name", proposta.sistema)
+      .maybeSingle(),
+  ]);
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const logoUrl = cp?.logo_path
