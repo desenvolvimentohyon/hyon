@@ -123,8 +123,9 @@ export default function PropostaDetalhe() {
     toast({ title: "Mensagem copiada!" });
   };
 
-  const handlePDF = () => {
-    gerarPDFProposta({ ...proposta, ...form } as Proposta, crmConfig);
+  const handlePDF = async () => {
+    if (!profile?.org_id) return;
+    await gerarPDFPropostaComDados({ ...proposta, ...form } as Proposta, profile.org_id);
     updateProposta(proposta.id, { pdfGeradoEm: new Date().toISOString() }, "PDF gerado");
     toast({ title: "PDF gerado!" });
   };

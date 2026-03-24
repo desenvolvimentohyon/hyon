@@ -107,10 +107,10 @@ export default function Propostas() {
     toast({ title: "Proposta aberta no WhatsApp!" });
   };
 
-  const handlePDF = (id: string) => {
+  const handlePDF = async (id: string) => {
     const p = propostas.find(x => x.id === id);
-    if (!p) return;
-    gerarPDFProposta(p, crmConfig);
+    if (!p || !profile?.org_id) return;
+    await gerarPDFPropostaComDados(p, profile.org_id);
     updateProposta(id, { pdfGeradoEm: new Date().toISOString() }, "PDF gerado");
     toast({ title: "PDF gerado e baixado!" });
   };
