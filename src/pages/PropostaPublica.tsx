@@ -400,7 +400,7 @@ export default function PropostaPublica() {
           <div className="flex items-center gap-3 min-w-0">
             {company?.logo_path ? (
               <img
-                src={`https://${projectId}.supabase.co/storage/v1/object/public/company-logos/${company.logo_path}`}
+                src={`${supabaseUrl}/storage/v1/object/public/company-logos/${company.logo_path}`}
                 alt={companyName}
                 className="w-9 h-9 rounded-xl object-contain shrink-0"
               />
