@@ -143,8 +143,8 @@ export function generateProposalPDF(
     : "";
 
   const logoHtml = company.logoUrl
-    ? `<img src="${company.logoUrl}" style="max-height:70px;max-width:220px;object-fit:contain;" crossorigin="anonymous" />`
-    : `<div style="width:56px;height:56px;border-radius:14px;background:${green};display:flex;align-items:center;justify-content:center;color:${dark};font-weight:700;font-size:24px;">${companyName.charAt(0)}</div>`;
+    ? `<img src="${company.logoUrl}" style="max-height:40px;max-width:140px;object-fit:contain;" crossorigin="anonymous" />`
+    : `<div style="width:36px;height:36px;border-radius:10px;background:${green};display:flex;align-items:center;justify-content:center;color:${dark};font-weight:700;font-size:16px;">${companyName.charAt(0)}</div>`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
