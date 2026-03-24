@@ -89,20 +89,20 @@ export function generateProposalPDF(
   const itemsRows = proposal.items
     .map(
       (i) =>
-        `<tr><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};">${i.description}</td><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};text-align:center;">${i.quantity}</td><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.unitValue)}</td><td style="padding:12px 14px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.quantity * i.unitValue)}</td></tr>`
+        `<tr><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};">${i.description}</td><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};text-align:center;">${i.quantity}</td><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.unitValue)}</td><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.quantity * i.unitValue)}</td></tr>`
     )
     .join("");
 
   const itemsTable =
     proposal.items.length > 0
-      ? `<div class="section" style="page-break-inside:avoid;">
+      ? `<div class="section">
           <h2>Itens da Proposta</h2>
-          <table style="width:100%;border-collapse:collapse;font-size:13px;color:${white};">
+          <table style="width:100%;border-collapse:collapse;font-size:11px;color:${white};">
             <thead><tr style="background:${greenDim};">
-              <th style="text-align:left;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;">Descrição</th>
-              <th style="text-align:center;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;width:60px;">Qtd</th>
-              <th style="text-align:right;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;width:110px;">Valor Unit.</th>
-              <th style="text-align:right;padding:12px 14px;border-bottom:2px solid ${green};color:${green};font-size:11px;text-transform:uppercase;letter-spacing:1px;width:110px;">Total</th>
+              <th style="text-align:left;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;">Descrição</th>
+              <th style="text-align:center;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:40px;">Qtd</th>
+              <th style="text-align:right;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:80px;">Valor Unit.</th>
+              <th style="text-align:right;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:80px;">Total</th>
             </tr></thead>
             <tbody>${itemsRows}</tbody>
           </table>
@@ -111,40 +111,48 @@ export function generateProposalPDF(
 
   const signatureBlock =
     proposal.acceptanceStatus === "aceitou"
-      ? `<div class="section signature" style="page-break-inside:avoid;">
+      ? `<div class="section">
           <h2>Aceite</h2>
-          <div style="background:${greenDim};border:1px solid ${green};border-radius:12px;padding:24px;text-align:center;">
-            <p style="font-size:16px;font-weight:600;color:${green};">✓ Proposta aceita${proposal.acceptedByName ? ` por ${proposal.acceptedByName}` : ""}</p>
-            <p style="font-size:13px;color:${greenMuted};margin-top:4px;">em ${dateStr(proposal.acceptedAt)}</p>
+          <div style="background:${greenDim};border:1px solid ${green};border-radius:8px;padding:12px;text-align:center;">
+            <p style="font-size:13px;font-weight:600;color:${green};">✓ Proposta aceita${proposal.acceptedByName ? ` por ${proposal.acceptedByName}` : ""}</p>
+            <p style="font-size:10px;color:${greenMuted};margin-top:2px;">em ${dateStr(proposal.acceptedAt)}</p>
           </div>
         </div>`
-      : `<div class="section signature" style="page-break-inside:avoid;">
+      : `<div class="section">
           <h2>Aceite da Proposta</h2>
-          <div style="margin-top:40px;">
-            <div style="display:flex;gap:60px;flex-wrap:wrap;">
-              <div style="flex:1;min-width:200px;">
-                <div style="border-bottom:1px solid ${greenBorder};height:40px;"></div>
-                <p style="font-size:12px;color:${greenMuted};margin-top:6px;">Nome do responsável</p>
-              </div>
-              <div style="flex:1;min-width:200px;">
-                <div style="border-bottom:1px solid ${greenBorder};height:40px;"></div>
-                <p style="font-size:12px;color:${greenMuted};margin-top:6px;">Data</p>
-              </div>
+          <div style="display:flex;gap:40px;flex-wrap:wrap;margin-top:10px;">
+            <div style="flex:1;min-width:160px;">
+              <div style="border-bottom:1px solid ${greenBorder};height:24px;"></div>
+              <p style="font-size:9px;color:${greenMuted};margin-top:3px;">Nome do responsável</p>
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <div style="border-bottom:1px solid ${greenBorder};height:24px;"></div>
+              <p style="font-size:9px;color:${greenMuted};margin-top:3px;">Data</p>
             </div>
           </div>
         </div>`;
 
   const aboutSystemText = proposal.systemDescription || company.institutionalText;
   const institutionalSection = aboutSystemText
-    ? `<div class="section" style="page-break-inside:avoid;">
+    ? `<div class="section">
         <h2>Sobre o Sistema</h2>
-        <p style="font-size:14px;line-height:1.7;color:${greenMuted};">${aboutSystemText}</p>
+        <p style="font-size:10px;line-height:1.5;color:${greenMuted};">${aboutSystemText}</p>
       </div>`
     : "";
 
   const logoHtml = company.logoUrl
-    ? `<img src="${company.logoUrl}" style="max-height:40px;max-width:140px;object-fit:contain;" crossorigin="anonymous" />`
-    : `<div style="width:36px;height:36px;border-radius:10px;background:${green};display:flex;align-items:center;justify-content:center;color:${dark};font-weight:700;font-size:16px;">${companyName.charAt(0)}</div>`;
+    ? `<img src="${company.logoUrl}" style="max-height:36px;max-width:120px;object-fit:contain;" crossorigin="anonymous" />`
+    : `<div style="width:32px;height:32px;border-radius:8px;background:${green};display:flex;align-items:center;justify-content:center;color:${dark};font-weight:700;font-size:14px;">${companyName.charAt(0)}</div>`;
+
+  const validityDisplay = (() => {
+    if (proposal.validUntil) return dateStr(proposal.validUntil);
+    if (proposal.createdAt && proposal.validityDays) {
+      const d = new Date(proposal.createdAt);
+      d.setDate(d.getDate() + proposal.validityDays);
+      return d.toLocaleDateString("pt-BR");
+    }
+    return "—";
+  })();
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -154,182 +162,159 @@ export function generateProposalPDF(
 <style>
   @page { size: A4; margin: 12mm 14mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: ${white}; line-height: 1.4; background: ${dark}; font-size: 11px; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: ${white}; line-height: 1.35; background: ${dark}; font-size: 11px; }
   
-  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid ${green}; margin-bottom: 12px; }
-  .header-left { display: flex; align-items: center; gap: 10px; }
-  .header-company-name { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
-  .header-right { text-align: right; font-size: 9px; color: ${greenMuted}; line-height: 1.6; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid ${green}; margin-bottom: 10px; }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header-company-name { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+  .header-right { text-align: right; font-size: 9px; color: ${greenMuted}; line-height: 1.5; }
   .header-right strong { color: ${green}; }
   
-  .meta-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-  .meta-item { background: ${darkCard}; border: 1px solid ${greenBorder}; border-radius: 6px; padding: 6px 8px; }
+  .meta-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .meta-item { background: ${darkCard}; border: 1px solid ${greenBorder}; border-radius: 5px; padding: 5px 8px; }
   .meta-item label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; display: block; margin-bottom: 1px; }
   .meta-item span { font-size: 11px; font-weight: 600; color: #fff; }
 
-  .section { margin-bottom: 32px; }
-  .section h2 { font-size: 15px; font-weight: 700; color: ${green}; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid ${greenBorder}; }
+  .section { margin-bottom: 10px; }
+  .section h2 { font-size: 10px; font-weight: 700; color: ${green}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; padding-bottom: 3px; border-bottom: 1px solid ${greenBorder}; }
   
-  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .summary-card { border: 1px solid ${greenBorder}; border-radius: 12px; padding: 20px; text-align: center; background: ${darkCard}; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
+  .summary-card { border: 1px solid ${greenBorder}; border-radius: 6px; padding: 7px; text-align: center; background: ${darkCard}; }
   .summary-card.highlight { border-color: ${green}; background: ${greenDim}; }
-  .summary-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; }
-  .summary-value { font-size: 28px; font-weight: 800; margin: 4px 0; color: #fff; }
-  .summary-sub { font-size: 12px; color: ${greenMuted}; }
+  .summary-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; }
+  .summary-value { font-size: 15px; font-weight: 800; margin: 1px 0; color: #fff; }
+  .summary-sub { font-size: 9px; color: ${greenMuted}; }
 
-  .benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .benefit-item { display: flex; align-items: flex-start; gap: 10px; padding: 14px; border-radius: 10px; background: ${darkCard}; border: 1px solid ${greenBorder}; }
-  .benefit-icon { width: 28px; height: 28px; border-radius: 8px; background: ${greenDim}; color: ${green}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; font-weight: 700; }
-  .benefit-text { font-size: 13px; font-weight: 600; color: ${white}; }
+  .benefits-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+  .benefit-item { display: flex; align-items: center; gap: 4px; padding: 3px 5px; border-radius: 4px; background: ${darkCard}; border: 1px solid ${greenBorder}; }
+  .benefit-icon { color: ${green}; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .benefit-text { font-size: 9px; font-weight: 600; color: ${white}; }
   
   .conditions-table { width: 100%; border-collapse: collapse; }
-  .conditions-table th { text-align: left; padding: 12px 14px; background: ${greenDim}; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; border-bottom: 2px solid ${green}; }
-  .conditions-table td { padding: 12px 14px; border-bottom: 1px solid ${greenBorder}; font-size: 14px; color: ${white}; }
+  .conditions-table th { text-align: left; padding: 3px 6px; background: ${greenDim}; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; border-bottom: 1px solid ${green}; }
+  .conditions-table td { padding: 3px 6px; border-bottom: 1px solid ${greenBorder}; font-size: 10px; color: ${white}; }
   .conditions-table td:last-child { font-weight: 700; text-align: right; color: #fff; }
   
-  .steps-list { counter-reset: step; }
-  .step-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
-  .step-num { width: 32px; height: 32px; border-radius: 50%; background: ${green}; color: ${dark}; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .step-title { font-size: 14px; font-weight: 600; color: #fff; }
-  .step-desc { font-size: 12px; color: ${greenMuted}; }
+  .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .step-item { display: flex; align-items: center; gap: 5px; }
+  .step-num { width: 16px; height: 16px; border-radius: 50%; background: ${green}; color: ${dark}; font-weight: 700; font-size: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-text { font-size: 9px; font-weight: 600; color: #fff; }
+  .step-text span { font-weight: 400; color: ${greenMuted}; }
   
-  .footer-block { margin-top: 40px; padding-top: 20px; border-top: 2px solid ${greenBorder}; font-size: 11px; color: ${greenMuted}; text-align: center; line-height: 1.8; }
+  .footer-block { margin-top: 10px; padding-top: 5px; border-top: 1px solid ${greenBorder}; font-size: 8px; color: ${greenMuted}; text-align: center; line-height: 1.4; }
   .footer-block strong { color: ${green}; }
   
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .no-print { display: none; }
   }
   @media screen {
     body { max-width: 800px; margin: 0 auto; padding: 20px; }
-    .cover { min-height: auto; padding: 60px 40px; border: 1px solid ${greenBorder}; margin-bottom: 20px; border-radius: 8px; }
-    .page-content { border: 1px solid ${greenBorder}; border-radius: 8px; padding: 40px; background: ${dark}; }
   }
 </style>
 </head>
 <body>
 
-<!-- COVER PAGE -->
-<div class="cover">
-  <div class="cover-top">
-    <div>${logoHtml}</div>
-    <div style="margin-top:10px;font-size:12px;color:${greenMuted};line-height:1.7;text-align:left;">
-      ${company.cnpj ? `<strong style="color:${green};">CNPJ:</strong> ${company.cnpj}<br/>` : ""}
-      ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}${(company.phone || company.email) ? "<br/>" : ""}
-      ${fullAddress ? `${fullAddress}` : ""}
-    </div>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    ${logoHtml}
+    <div class="header-company-name">${companyName}</div>
   </div>
-  <div class="cover-center">
-    <div class="cover-title">${companyName.toUpperCase()}</div>
-    <div style="width:80px;height:3px;background:${green};border-radius:2px;margin:8px auto;"></div>
-    <div class="cover-subtitle">PROPOSTA COMERCIAL</div>
-    <div class="cover-meta">
-      <div class="cover-meta-item"><label>Cliente</label><span>${proposal.clientName || "—"}</span></div>
-      <div class="cover-meta-item"><label>Proposta</label><span>${proposal.proposalNumber}</span></div>
-      <div class="cover-meta-item"><label>Data</label><span>${dateStr(proposal.sentAt || proposal.createdAt)}</span></div>
-      <div class="cover-meta-item"><label>Validade</label><span>${(() => {
-        if (proposal.validUntil) return dateStr(proposal.validUntil);
-        if (proposal.createdAt && proposal.validityDays) {
-          const d = new Date(proposal.createdAt);
-          d.setDate(d.getDate() + proposal.validityDays);
-          return d.toLocaleDateString("pt-BR");
-        }
-        return "—";
-      })()}</span></div>
-    </div>
-  </div>
-  <div class="cover-bottom" style="font-size:11px;color:${greenMuted};">
-    © ${new Date().getFullYear()} ${companyName} — Todos os direitos reservados
+  <div class="header-right">
+    ${company.cnpj ? `<strong>CNPJ:</strong> ${company.cnpj}<br/>` : ""}
+    ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}${(company.phone || company.email) ? "<br/>" : ""}
+    ${fullAddress ? `${fullAddress}` : ""}
   </div>
 </div>
 
-<!-- CONTENT -->
-<div class="page-content">
+<!-- META BAR -->
+<div class="meta-bar">
+  <div class="meta-item"><label>Cliente</label><span>${proposal.clientName || "—"}</span></div>
+  <div class="meta-item"><label>Proposta</label><span>${proposal.proposalNumber}</span></div>
+  <div class="meta-item"><label>Data</label><span>${dateStr(proposal.sentAt || proposal.createdAt)}</span></div>
+  <div class="meta-item"><label>Validade</label><span>${validityDisplay}</span></div>
+</div>
 
-  <!-- Summary -->
-  <div class="section">
-    <h2>Resumo Comercial</h2>
-    <div class="summary-grid">
-      <div class="summary-card">
-        <div class="summary-label">Sistema</div>
-        <div style="font-size:18px;font-weight:700;margin-top:4px;color:#fff;">${proposal.systemName || "—"}</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-label">Plano</div>
-        <div style="font-size:18px;font-weight:700;margin-top:4px;color:#fff;">${proposal.planName || "—"}</div>
-      </div>
-      <div class="summary-card highlight">
-        <div class="summary-label">Mensalidade</div>
-        <div class="summary-value" style="color:${green};">${fmt(proposal.monthlyValue)}</div>
-        <div class="summary-sub">/mês</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-label">Implantação</div>
-        <div class="summary-value">${fmt(proposal.implementationValue)}</div>
-        <div class="summary-sub">${flowLabel}</div>
-      </div>
+<!-- Summary -->
+<div class="section">
+  <h2>Resumo Comercial</h2>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">Sistema</div>
+      <div style="font-size:12px;font-weight:700;margin-top:1px;color:#fff;">${proposal.systemName || "—"}</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Plano</div>
+      <div style="font-size:12px;font-weight:700;margin-top:1px;color:#fff;">${proposal.planName || "—"}</div>
+    </div>
+    <div class="summary-card highlight">
+      <div class="summary-label">Mensalidade</div>
+      <div class="summary-value" style="color:${green};">${fmt(proposal.monthlyValue)}</div>
+      <div class="summary-sub">/mês</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Implantação</div>
+      <div class="summary-value">${fmt(proposal.implementationValue)}</div>
+      <div class="summary-sub">${flowLabel}</div>
     </div>
   </div>
+</div>
 
-  <!-- Benefits -->
-  <div class="section" style="page-break-inside:avoid;">
-    <h2>O que está incluso</h2>
-    <div class="benefits-grid">
-      <div class="benefit-item"><div class="benefit-icon">✓</div><div><div class="benefit-text">Implantação assistida</div></div></div>
-      <div class="benefit-item"><div class="benefit-icon">✓</div><div><div class="benefit-text">Treinamento da equipe</div></div></div>
-      <div class="benefit-item"><div class="benefit-icon">✓</div><div><div class="benefit-text">Suporte técnico</div></div></div>
-      <div class="benefit-item"><div class="benefit-icon">✓</div><div><div class="benefit-text">Config. de equipamentos</div></div></div>
-      <div class="benefit-item"><div class="benefit-icon">✓</div><div><div class="benefit-text">Atualizações do sistema</div></div></div>
-      <div class="benefit-item"><div class="benefit-icon">✓</div><div><div class="benefit-text">Acesso remoto</div></div></div>
-    </div>
+<!-- Benefits -->
+<div class="section">
+  <h2>O que está incluso</h2>
+  <div class="benefits-grid">
+    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Implantação assistida</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Treinamento da equipe</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Suporte técnico</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Config. equipamentos</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Atualizações</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Acesso remoto</div></div>
   </div>
+</div>
 
-  ${institutionalSection}
+${institutionalSection}
 
-  ${itemsTable}
+${itemsTable}
 
-  <!-- Conditions -->
-  <div class="section" style="page-break-inside:avoid;">
-    <h2>Condições Comerciais</h2>
-    <table class="conditions-table">
-      <thead><tr><th>Item</th><th style="text-align:right;">Valor</th></tr></thead>
-      <tbody>
-        <tr><td>Implantação</td><td>${fmt(proposal.implementationValue)}</td></tr>
-        <tr><td>Mensalidade</td><td>${fmt(proposal.monthlyValue)}</td></tr>
-        <tr><td>Prazo de Validade</td><td style="font-weight:600;">${dateStr(proposal.validUntil)}</td></tr>
-      </tbody>
-    </table>
-    <ul style="margin-top:16px;padding-left:20px;font-size:13px;color:${greenMuted};line-height:1.8;">
-      <li>Mensalidade cobrada conforme plano escolhido</li>
-      <li>Implantação inclui treinamento inicial</li>
-      <li>Suporte conforme horário contratado</li>
-      ${proposal.validUntil ? `<li>Esta proposta é válida até ${dateStr(proposal.validUntil)}</li>` : ""}
-      ${proposal.additionalInfo ? `<li>${proposal.additionalInfo}</li>` : ""}
-    </ul>
+<!-- Conditions -->
+<div class="section">
+  <h2>Condições Comerciais</h2>
+  <table class="conditions-table">
+    <thead><tr><th>Item</th><th style="text-align:right;">Valor</th></tr></thead>
+    <tbody>
+      <tr><td>Implantação</td><td>${fmt(proposal.implementationValue)}</td></tr>
+      <tr><td>Mensalidade</td><td>${fmt(proposal.monthlyValue)}</td></tr>
+      <tr><td>Prazo de Validade</td><td style="font-weight:600;">${validityDisplay}</td></tr>
+    </tbody>
+  </table>
+  <ul style="margin-top:4px;padding-left:14px;font-size:9px;color:${greenMuted};line-height:1.5;">
+    <li>Mensalidade cobrada conforme plano escolhido</li>
+    <li>Implantação inclui treinamento inicial</li>
+    <li>Suporte conforme horário contratado</li>
+    ${proposal.additionalInfo ? `<li>${proposal.additionalInfo}</li>` : ""}
+  </ul>
+</div>
+
+<!-- Steps -->
+<div class="section">
+  <h2>Próximos Passos</h2>
+  <div class="steps-grid">
+    <div class="step-item"><div class="step-num">1</div><div class="step-text">Aceite da proposta</div></div>
+    <div class="step-item"><div class="step-num">2</div><div class="step-text">Agendamento da implantação</div></div>
+    <div class="step-item"><div class="step-num">3</div><div class="step-text">Treinamento da equipe</div></div>
+    <div class="step-item"><div class="step-num">4</div><div class="step-text">Início da operação</div></div>
   </div>
+</div>
 
-  <!-- Steps -->
-  <div class="section" style="page-break-inside:avoid;">
-    <h2>Próximos Passos</h2>
-    <div class="steps-list">
-      <div class="step-item"><div class="step-num">1</div><div><div class="step-title">Aceite da proposta</div><div class="step-desc">Confirme o aceite para dar início ao processo</div></div></div>
-      <div class="step-item"><div class="step-num">2</div><div><div class="step-title">Agendamento da implantação</div><div class="step-desc">Nossa equipe entrará em contato</div></div></div>
-      <div class="step-item"><div class="step-num">3</div><div><div class="step-title">Treinamento da equipe</div><div class="step-desc">Capacitação para uso do sistema</div></div></div>
-      <div class="step-item"><div class="step-num">4</div><div><div class="step-title">Início da operação</div><div class="step-desc">Sistema pronto para uso</div></div></div>
-    </div>
-  </div>
+${signatureBlock}
 
-  ${signatureBlock}
-
-  <!-- Footer -->
-  <div class="footer-block">
-    © ${year} <strong>${companyName}</strong> — Todos os direitos reservados
-    ${company.cnpj ? `<br/>CNPJ: ${company.cnpj}` : ""}
-    ${company.phone ? ` | ${company.phone}` : ""}
-    ${company.email ? ` | ${company.email}` : ""}
-    ${fullAddress ? `<br/>${fullAddress}` : ""}
-  </div>
-
+<!-- Footer -->
+<div class="footer-block">
+  © ${year} <strong>${companyName}</strong> — Todos os direitos reservados
+  ${company.cnpj ? ` | CNPJ: ${company.cnpj}` : ""}
+  ${company.phone ? ` | ${company.phone}` : ""}
+  ${company.email ? ` | ${company.email}` : ""}
 </div>
 
 <script>
