@@ -111,6 +111,8 @@ export default function PropostaInteligente() {
   const formaPag = useMemo(() => formasPagamento.find(f => f.id === formaPagamentoId), [formasPagamento, formaPagamentoId]);
   const formaPagImpl = useMemo(() => formasPagamento.find(f => f.id === formaPagamentoImplId), [formasPagamento, formaPagamentoImplId]);
   const cliente = useMemo(() => clientes.find(c => c.id === clienteId), [clientes, clienteId]);
+  const isCartaoImpl = formaPagImpl ? /cart[aã]o|cr[eé]dito/i.test(formaPagImpl.nome) : false;
+  const fluxoImplantacao = isCartaoImpl && parcelasImplantacao > 1 ? "parcelado" as const : "a_vista" as const;
 
   const modulosSelecionados = useMemo(() =>
     modulos.filter(m => moduloIds.includes(m.id)),
