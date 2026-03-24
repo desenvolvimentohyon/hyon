@@ -488,24 +488,6 @@ export default function PropostaInteligente() {
                   />
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Fluxo de pagamento</Label>
-                  <Select value={fluxoImplantacao} onValueChange={(v: "a_vista" | "parcelado") => setFluxoImplantacao(v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="a_vista">À vista</SelectItem>
-                      <SelectItem value="parcelado">Parcelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {fluxoImplantacao === "parcelado" && (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Parcelas</Label>
-                    <Input type="number" min={2} max={24} value={parcelasImplantacao} onChange={e => setParcelasImplantacao(Number(e.target.value) || 2)} />
-                  </div>
-                )}
-              </div>
               <div className="mt-3 space-y-1.5">
                 <Label className="text-xs">Forma de pagamento (implantação)</Label>
                 <Select value={formaPagamentoImplId} onValueChange={setFormaPagamentoImplId}>
@@ -515,6 +497,12 @@ export default function PropostaInteligente() {
                   </SelectContent>
                 </Select>
               </div>
+              {formaPagImpl && /cart[aã]o|cr[eé]dito/i.test(formaPagImpl.nome) && (
+                <div className="mt-3 space-y-1.5">
+                  <Label className="text-xs">Parcelas</Label>
+                  <Input type="number" min={1} max={24} value={parcelasImplantacao || ""} onChange={e => setParcelasImplantacao(Math.max(1, Number(e.target.value) || 1))} placeholder="1" />
+                </div>
+              )}
             </CardContent>
           </Card>
 
