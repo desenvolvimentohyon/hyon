@@ -1,14 +1,31 @@
 
 
-## Plano: Reduzir tamanho do modal "Nova Tarefa"
+## Plano: Adicionar opção "Cadastrar novo cliente" no select de Cliente (Nova Tarefa)
 
-### Editar: `src/pages/Tarefas.tsx`
+### Contexto atual
+O select de Cliente na criação de tarefa já possui:
+- "Avulsa" (sem cliente)
+- "Cliente Avulso" (nome digitado manualmente)
+- Lista de clientes cadastrados
 
-1. **Reduzir largura do modal**: Trocar `max-w-lg` por `max-w-md` no `DialogContent` (linha 435)
-2. **Reduzir espaçamentos**: Diminuir `space-y-4` para `space-y-3`, reduzir `rows` das textareas
-3. **Adicionar scroll**: Colocar `max-h-[80vh] overflow-y-auto` no conteúdo para que caiba em telas menores
+### Mudança
+
+**Editar: `src/pages/Tarefas.tsx`**
+
+1. **Adicionar opção "Cadastrar novo cliente"** no `SelectContent` (value `"novo"`)
+
+2. **Exibir formulário simplificado inline** quando `novoCliente === "novo"`:
+   - Nome (obrigatório)
+   - Telefone
+   - Email
+   - Cidade
+   - Apenas esses 4 campos — sem sistema, perfil, CNPJ, etc.
+
+3. **Ao criar a tarefa**: Se `novoCliente === "novo"`, chamar `addCliente` com os dados simplificados antes de criar a tarefa, e vincular o novo `clienteId` à tarefa
+
+4. **Novos estados**: `novoClienteNome`, `novoClienteTelefone`, `novoClienteEmail`, `novoClienteCidade`
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/Tarefas.tsx` | Reduzir largura, espaçamentos e adicionar scroll ao modal |
+| `src/pages/Tarefas.tsx` | Adicionar opção + mini-formulário inline + lógica de criação |
 
