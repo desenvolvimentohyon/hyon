@@ -216,13 +216,17 @@ export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props)
 
           <Separator />
 
-          {/* Valor Total */}
-          <div className="rounded-lg bg-primary/10 p-3 text-center space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">Valor Total</p>
-            <p className="text-2xl font-bold text-primary">{fmt(valorTotal)}</p>
-            <p className="text-[10px] text-muted-foreground">
-              {fmt(data.mensalidadeFinal)}/mês + {fmt(data.implantacaoTotal)} implantação
-            </p>
+          {/* Valores separados */}
+          <div className="rounded-lg bg-primary/10 p-3 space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-muted-foreground">Mensalidade</p>
+              <p className="text-lg font-bold text-primary">{fmt(data.mensalidadeFinal)}<span className="text-xs font-normal text-muted-foreground">/mês</span></p>
+            </div>
+            <Separator className="bg-primary/10" />
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-muted-foreground">Implantação</p>
+              <p className="text-lg font-bold text-foreground">{fmt(data.implantacaoTotal)}</p>
+            </div>
           </div>
 
           <Button className="w-full gap-2" onClick={onGerarProposta} disabled={gerando}>

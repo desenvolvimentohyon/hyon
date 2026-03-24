@@ -578,11 +578,19 @@ export default function PropostaInteligente() {
       {/* Mobile sticky footer */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border z-50">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Valor total</p>
-            <p className="text-lg font-bold text-primary">
-              R$ {(calc.mensalidadeFinal + calc.implantacaoTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
+          <div className="flex gap-4">
+            <div>
+              <p className="text-[10px] text-muted-foreground">Mensalidade</p>
+              <p className="text-sm font-bold text-primary">
+                R$ {calc.mensalidadeFinal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">Implantação</p>
+              <p className="text-sm font-bold text-foreground">
+                R$ {calc.implantacaoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
           </div>
           <Button onClick={handleGerarProposta} disabled={gerando} className="gap-1.5">
             {gerando ? "Gerando..." : "Gerar Proposta"}
