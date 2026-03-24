@@ -156,6 +156,8 @@ export default function PropostaInteligente() {
     planoNome: plano?.nomePlano || "",
     descontoPercent: calc.descontoPercent,
     descontoValor: calc.descontoValor,
+    descontoManualPercent,
+    descontoManualValor: calc.descontoManualValor,
     mensalidadeBase: calc.mensalidadeBase,
     mensalidadeFinal: calc.mensalidadeFinal,
     implantacaoKm: distanciaKm,
