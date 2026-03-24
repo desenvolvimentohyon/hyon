@@ -73,6 +73,12 @@ export default function PropostaInteligente() {
   const [parcelasImplantacao, setParcelasImplantacao] = useState(2);
   const [observacoes, setObservacoes] = useState(crmConfig.informacoesAdicionaisPadrao || "");
 
+  // Novo cliente inline
+  const [novoClienteNome, setNovoClienteNome] = useState("");
+  const [novoClienteTelefone, setNovoClienteTelefone] = useState("");
+  const [novoClienteEmail, setNovoClienteEmail] = useState("");
+  const [novoClienteCidade, setNovoClienteCidade] = useState("");
+
   // Fetch external data on mount
   useEffect(() => {
     Promise.all([
