@@ -1,37 +1,22 @@
 
 
-## Plano: Redesign da capa do PDF — layout compacto em página A4 única
-
-### Problema
-1. O nome "HYON TECNOLOGIA" está muito grande e centralizado; as informações da empresa ficam separadas
-2. Os cards de metadados (cliente, proposta, datas) não estão padronizados
-3. A capa ocupa uma página inteira (`page-break-after: always`) e o conteúdo vai para a segunda página
+## Plano: Limpar rodapé e usar cores do company_profile no PDF
 
 ### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/lib/pdfGenerator.ts` | Redesenhar a capa como cabeçalho compacto e remover a quebra de página, unificando tudo em uma única página A4 |
+| `src/lib/pdfGenerator.ts` | 1. Remover CNPJ, email e telefone do rodapé (linhas 315-317). 2. Substituir cores hardcoded (dark/green) pelas cores `primaryColor` e `secondaryColor` do `company_profile`. |
 
 ### Detalhes
 
-1. **Cabeçalho compacto** (substituir a capa full-page):
-   - **Esquerda**: Logo + nome da empresa (tamanho reduzido ~20px) como título
-   - **Direita**: Informações da empresa (CNPJ, telefone, email, endereço) alinhadas à direita
-   - Layout em `flex` com `justify-content: space-between`
+1. **Rodapé (linha 313-318)**: Remover as 3 linhas que adicionam CNPJ, phone e email. Manter apenas `© {year} {companyName} — Todos os direitos reservados`.
 
-2. **Metadados padronizados** (abaixo do cabeçalho):
-   - Grid 4 colunas em uma única linha: Cliente | Proposta | Data | Validade
-   - Todos com mesmo estilo, tamanho e espaçamento
-   - Tamanho compacto (padding menor)
+2. **Cores dinâmicas**: Atualmente o PDF usa cores fixas (`#4ade80` verde neon, `#0f172a` dark). Substituir por:
+   - `green` → `company.primaryColor` (cor primária configurada)
+   - `greenMuted` → versão com opacidade da primaryColor
+   - `dark` → manter `#0f172a` como fundo base (dark premium)
+   - `greenDim` / `greenBorder` → derivar de `primaryColor` com rgba
 
-3. **Remover quebra de página da capa**:
-   - Remover `page-break-after: always` do `.cover`
-   - Remover `min-height: 100vh` 
-   - A capa vira um cabeçalho que flui direto para o conteúdo
-
-4. **Ajustes gerais de tamanho**:
-   - Reduzir margens e paddings das seções
-   - Fontes menores nos cards de resumo
-   - Tudo deve caber em uma página A4 (ou o mínimo de páginas possível)
+   Isso fará o PDF respeitar as cores configuradas no perfil da empresa.
 
