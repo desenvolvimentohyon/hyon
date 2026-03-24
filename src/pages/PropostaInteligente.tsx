@@ -110,6 +110,7 @@ export default function PropostaInteligente() {
   const regiao = useMemo(() => regions.find(r => r.id === regiaoId), [regions, regiaoId]);
   const parceiro = useMemo(() => partners.find(p => p.id === parceiroId), [partners, parceiroId]);
   const formaPag = useMemo(() => formasPagamento.find(f => f.id === formaPagamentoId), [formasPagamento, formaPagamentoId]);
+  const formaPagImpl = useMemo(() => formasPagamento.find(f => f.id === formaPagamentoImplId), [formasPagamento, formaPagamentoImplId]);
   const cliente = useMemo(() => clientes.find(c => c.id === clienteId), [clientes, clienteId]);
 
   const modulosSelecionados = useMemo(() =>
