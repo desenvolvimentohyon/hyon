@@ -247,7 +247,7 @@ export default function PropostaInteligente() {
     } finally {
       setGerando(false);
     }
-  }, [sistemaId, sistema, clienteId, cliente, plano, calc, modulosSelecionados, fluxoImplantacao, parcelasImplantacao, observacoes, parceiroId, parceiro, crmConfig, addProposta, navigate]);
+  }, [sistemaId, sistema, clienteId, cliente, plano, calc, modulosSelecionados, fluxoImplantacao, parcelasImplantacao, observacoes, parceiroId, parceiro, crmConfig, addProposta, addCliente, navigate, novoClienteNome, novoClienteTelefone, novoClienteEmail]);
 
   const sistemasAtivos = useMemo(() => sistemas.filter(s => s.ativo), [sistemas]);
   const modulosDoSistema = useMemo(() => modulos.filter(m => m.ativo && m.sistemaId === sistemaId), [modulos, sistemaId]);
