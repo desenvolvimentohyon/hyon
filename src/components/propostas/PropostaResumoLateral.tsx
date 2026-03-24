@@ -11,6 +11,8 @@ interface ResumoData {
   planoNome: string;
   descontoPercent: number;
   descontoValor: number;
+  descontoManualPercent: number;
+  descontoManualValor: number;
   mensalidadeBase: number;
   mensalidadeFinal: number;
   implantacaoKm: number;
