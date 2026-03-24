@@ -227,10 +227,8 @@ export function generateProposalPDF(
       <div class="cover-meta-item"><label>Validade</label><span>${dateStr(proposal.validUntil)}</span></div>
     </div>
   </div>
-  <div class="cover-bottom">
-    ${company.cnpj ? `<strong>CNPJ:</strong> ${company.cnpj}<br/>` : ""}
-    ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}<br/>
-    ${fullAddress ? `${fullAddress}` : ""}
+  <div class="cover-bottom" style="font-size:11px;color:${greenMuted};">
+    © ${new Date().getFullYear()} ${companyName} — Todos os direitos reservados
   </div>
 </div>
 
