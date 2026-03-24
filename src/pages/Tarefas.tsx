@@ -436,7 +436,7 @@ export default function Tarefas() {
                 );
               })}
               {filteredTarefas.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">Nenhuma tarefa encontrada</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-12 text-muted-foreground">Nenhuma tarefa encontrada</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
