@@ -1,29 +1,15 @@
 
 
-## Plano: Auto-carregar módulos e calcular custo ao selecionar sistema
+## Plano: Simplificar aba Custos Operacionais
 
-### Problema atual
-Na aba Dados, ao selecionar um sistema:
-1. Os módulos filtrados não incluem módulos globais
-2. Ao marcar/desmarcar módulos, o custo não é recalculado automaticamente
-3. O valor de custo dos módulos não reflete no `monthly_cost_value` nem no resumo financeiro em tempo real
+### Mudanças em `src/components/clientes/tabs/TabCusto.tsx`
 
-### Mudanças
-
-**Editar: `src/components/clientes/tabs/TabDados.tsx`**
-
-1. **Incluir módulos globais** na lista de módulos exibidos — além dos módulos do sistema selecionado, mostrar também os módulos com `isGlobal === true`
-
-2. **Recalcular custo ao trocar sistema**: Quando o usuário seleciona um sistema diferente, limpar os módulos vinculados do sistema anterior e carregar os do novo sistema. Atualizar o `monthly_value_base` com o valor de venda do sistema.
-
-3. **Calcular totais em tempo real**: Exibir um resumo abaixo da lista de módulos com:
-   - Total venda dos módulos marcados
-   - Total custo dos módulos marcados
-   - Atualizar `monthly_value_final` automaticamente (valor base sistema + soma venda módulos)
-
-4. **Propagar custo para o formulário**: Ao marcar/desmarcar módulos, chamar `onChange({ monthly_cost_value: somaCustoModulos })` para que o valor reflita na aba Custo sem precisar salvar primeiro
+1. **Remover campo "Custo repasse/franquia"** (linha 76) — não será mais usado no cálculo
+2. **Remover campo "Custo cloud/infra"** (linha 86) — eliminar campo e variável `custoCloud`
+3. **Adicionar campo de observação** ao lado de "Outros custos" — um `Textarea` para o usuário descrever o que compõe os outros custos (salvo em `meta.outrosCustosObs`)
+4. **Ajustar cálculo do total**: `totalCusto = custoModulos + outrosCustos` (sem `costValue` e sem `custoCloud`)
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/components/clientes/tabs/TabDados.tsx` | Incluir globais, calcular custos em tempo real, propagar valores |
+| `src/components/clientes/tabs/TabCusto.tsx` | Remover repasse/franquia e cloud/infra, adicionar observação em outros custos, ajustar cálculo |
 
