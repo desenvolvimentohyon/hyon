@@ -419,6 +419,15 @@ export default function PropostaInteligente() {
                   <div className="flex justify-between font-semibold"><span>Valor final</span><span className="text-primary">R$ {calc.mensalidadeFinal.toFixed(2)}</span></div>
                 </div>
               )}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Forma de pagamento (mensalidade)</Label>
+                <Select value={formaPagamentoId} onValueChange={setFormaPagamentoId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {formasAtivas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
 
