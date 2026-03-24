@@ -243,6 +243,7 @@ export default function PropostaPublica() {
         })),
         createdAt: proposal.created_at || new Date().toISOString(),
         validityDays: proposal.valid_days || null,
+        systemDescription: null,
       },
       companyPdf
     );
