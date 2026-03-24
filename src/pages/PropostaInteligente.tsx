@@ -377,18 +377,30 @@ export default function PropostaInteligente() {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Desconto adicional (%)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={descontoManualPercent || ""}
-                  onChange={e => setDescontoManualPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
-                  placeholder="0"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto adicional (%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={descontoManualPercent || ""}
+                    onChange={e => setDescontoManualPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto adicional (R$)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={descontoManualReais || ""}
+                    onChange={e => setDescontoManualReais(Math.max(0, Number(e.target.value) || 0))}
+                    placeholder="0,00"
+                  />
+                </div>
               </div>
-              {(calc.descontoPercent > 0 || descontoManualPercent > 0) && calc.mensalidadeBase > 0 && (
+              {(calc.descontoPercent > 0 || descontoManualPercent > 0 || descontoManualReais > 0) && calc.mensalidadeBase > 0 && (
                 <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 p-3 text-sm space-y-1">
                   <div className="flex justify-between"><span className="text-muted-foreground">Valor original</span><span className="line-through">R$ {calc.mensalidadeBase.toFixed(2)}</span></div>
                   {calc.descontoPercent > 0 && (
@@ -396,6 +408,9 @@ export default function PropostaInteligente() {
                   )}
                   {descontoManualPercent > 0 && (
                     <div className="flex justify-between text-emerald-600 dark:text-emerald-400"><span>Desconto adicional ({descontoManualPercent}%)</span><span>-R$ {calc.descontoManualValor.toFixed(2)}</span></div>
+                  )}
+                  {descontoManualReais > 0 && (
+                    <div className="flex justify-between text-emerald-600 dark:text-emerald-400"><span>Desconto adicional (R$)</span><span>-R$ {descontoManualReais.toFixed(2)}</span></div>
                   )}
                   <Separator />
                   <div className="flex justify-between font-semibold"><span>Valor final</span><span className="text-primary">R$ {calc.mensalidadeFinal.toFixed(2)}</span></div>
