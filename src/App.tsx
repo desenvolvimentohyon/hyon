@@ -133,7 +133,7 @@ function AuthGate() {
                     <Route path="/financeiro/relatorios" element={<Relatorios />} />
                     <Route path="/financeiro/configuracoes" element={<ConfiguracoesFinanceiras />} />
                   </Route>
-                  <Route path="/aceite/:numero" element={<Navigate to={`/proposta`} replace />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </FinanceiroProvider>
