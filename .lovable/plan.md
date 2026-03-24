@@ -1,25 +1,20 @@
 
 
-## Plano: Corrigir contagem de tarefas pendentes nos cards e cockpit
+## Plano: Mover badge "Atrasada" para coluna própria na tabela de tarefas
 
 ### Problema
-Os status das tarefas no banco de dados são: `backlog`, `a_fazer`, `em_andamento`, `aguardando_cliente`, `concluida`, `cancelada`.
+O badge "Atrasada" está dentro da célula do título (junto ao texto), fazendo com que fique em posições diferentes dependendo do tamanho do título — sem alinhamento visual consistente.
 
-Porém, as queries que contam tarefas pendentes usam `status = "pendente"` — um valor que **não existe** na tabela. Por isso o contador sempre retorna 0.
+### Solução
+Criar uma coluna dedicada "Situação" na tabela para o badge "Atrasada", garantindo alinhamento uniforme.
 
-O mesmo problema ocorre em:
-- `useSmartCardStats.ts` (card de Tarefas na sidebar/dashboard)
-- `useExecutiveBriefing.ts` (cockpit e IA executiva)
-- `useCockpitCharts.ts` (gráficos do cockpit)
+### Editar: `src/pages/Tarefas.tsx`
 
-### Correções
+1. **Adicionar coluna "Situação"** no `TableHeader` após "Prazo" (linha ~409)
+2. **Remover o badge "Atrasada" de dentro da célula Título** (linha 420)
+3. **Adicionar nova `TableCell`** com o badge "Atrasada" na nova coluna — exibindo o badge apenas quando a tarefa está atrasada, ou "—" caso contrário
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/hooks/useSmartCardStats.ts` | Trocar `.eq("status", "pendente")` por `.in("status", ["backlog", "a_fazer"])` |
-| `src/hooks/useExecutiveBriefing.ts` | Trocar `.in("status", ["pendente", "em_andamento"])` por `.in("status", ["backlog", "a_fazer", "em_andamento"])` e `.eq("priority", "urgente")` com os status corretos |
-| `src/hooks/useCockpitCharts.ts` | Trocar mapeamento de `"pendente"/"aberta"` por `"backlog"/"a_fazer"`, e `"andamento"` por `"em_andamento"`, e `"concluída"/"feita"` por `"concluida"` |
-
-### Resultado
-Os cards e gráficos passarão a contar corretamente as tarefas com status `backlog` e `a_fazer` como "pendentes", `em_andamento` como "em andamento", e `concluida` como "concluídas".
+| `src/pages/Tarefas.tsx` | Mover badge "Atrasada" do título para coluna própria |
 
