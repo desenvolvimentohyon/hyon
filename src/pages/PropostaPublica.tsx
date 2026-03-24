@@ -242,7 +242,7 @@ export default function PropostaPublica() {
           unitValue: i.unit_value,
         })),
         createdAt: proposal.created_at || new Date().toISOString(),
-        validityDays: proposal.validity_days || null,
+        validityDays: proposal.valid_days || null,
       },
       companyPdf
     );
