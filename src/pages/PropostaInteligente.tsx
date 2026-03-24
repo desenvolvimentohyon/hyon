@@ -280,7 +280,7 @@ export default function PropostaInteligente() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main form */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4 pb-24 lg:pb-0">
           {/* 1. Cliente */}
           <Card>
             <CardHeader className="pb-2">
