@@ -127,8 +127,8 @@ export default function PropostaPublica() {
   const [acceptChecked, setAcceptChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const fnUrl = `https://${projectId}.supabase.co/functions/v1/public-proposal`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const fnUrl = `${supabaseUrl}/functions/v1/public-proposal`;
 
   const fetchProposal = useCallback(async () => {
     if (!token) { setState("not_found"); return; }
