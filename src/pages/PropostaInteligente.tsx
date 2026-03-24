@@ -70,8 +70,7 @@ export default function PropostaInteligente() {
   const [parceiroId, setParceiroId] = useState("");
   const [formaPagamentoId, setFormaPagamentoId] = useState("");
   const [formaPagamentoImplId, setFormaPagamentoImplId] = useState("");
-  const [fluxoImplantacao, setFluxoImplantacao] = useState<"a_vista" | "parcelado">("a_vista");
-  const [parcelasImplantacao, setParcelasImplantacao] = useState(2);
+  const [parcelasImplantacao, setParcelasImplantacao] = useState(1);
   const [descontoManualPercent, setDescontoManualPercent] = useState(0);
   const [descontoManualReais, setDescontoManualReais] = useState(0);
   const [descontoImplPercent, setDescontoImplPercent] = useState(0);
