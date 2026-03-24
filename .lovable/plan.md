@@ -1,31 +1,15 @@
 
 
-## Plano: Adicionar opção "Cadastrar novo cliente" no select de Cliente (Nova Tarefa)
+## Plano: Remover opções "Avulsa" e "Cliente Avulso" do select de Cliente na criação de tarefa
 
-### Contexto atual
-O select de Cliente na criação de tarefa já possui:
-- "Avulsa" (sem cliente)
-- "Cliente Avulso" (nome digitado manualmente)
-- Lista de clientes cadastrados
+### Editar: `src/pages/Tarefas.tsx`
 
-### Mudança
-
-**Editar: `src/pages/Tarefas.tsx`**
-
-1. **Adicionar opção "Cadastrar novo cliente"** no `SelectContent` (value `"novo"`)
-
-2. **Exibir formulário simplificado inline** quando `novoCliente === "novo"`:
-   - Nome (obrigatório)
-   - Telefone
-   - Email
-   - Cidade
-   - Apenas esses 4 campos — sem sistema, perfil, CNPJ, etc.
-
-3. **Ao criar a tarefa**: Se `novoCliente === "novo"`, chamar `addCliente` com os dados simplificados antes de criar a tarefa, e vincular o novo `clienteId` à tarefa
-
-4. **Novos estados**: `novoClienteNome`, `novoClienteTelefone`, `novoClienteEmail`, `novoClienteCidade`
+1. **Remover `<SelectItem value="null">Avulsa</SelectItem>`** (linha 482)
+2. **Remover `<SelectItem value="avulso">Cliente Avulso</SelectItem>`** (linha 483)
+3. **Remover bloco condicional do input de cliente avulso** (linhas 488-490) — o `{novoCliente === "avulso" && ...}`
+4. **Ajustar valor default do `novoCliente`** para `""` ou primeiro cliente, para que o select não fique com valor inválido
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/Tarefas.tsx` | Adicionar opção + mini-formulário inline + lógica de criação |
+| `src/pages/Tarefas.tsx` | Remover as 2 opções e o input condicional de cliente avulso |
 
