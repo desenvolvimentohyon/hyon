@@ -55,12 +55,12 @@ async function fetchSystemContext() {
 
   const [titulosVencidosRes, tarefasPendentesRes] = await Promise.all([
     supabase.from("financial_titles").select("id, value_final", { count: "exact" }).eq("type", "receber").eq("status", "aberto").lt("due_at", todayStr),
-    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).in("status", ["pendente", "em_andamento"]),
+    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).in("status", ["backlog", "a_fazer", "em_andamento"]),
   ]);
 
   const [tarefasUrgentesRes, tarefasAtrasadasRes, ticketsAbertosRes, planosVencendoRes, comissoesPendentesRes] = await Promise.all([
-    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).eq("priority", "urgente").in("status", ["pendente", "em_andamento"]),
-    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).in("status", ["pendente", "em_andamento"]).lt("due_at", now.toISOString()),
+    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).eq("priority", "urgente").in("status", ["backlog", "a_fazer", "em_andamento"]),
+    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).in("status", ["backlog", "a_fazer", "em_andamento"]).lt("due_at", now.toISOString()),
     supabase.from("portal_tickets" as any).select("id", { count: "exact", head: true }).in("status", ["aberto", "em_andamento"]),
     supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "ativo").not("metadata->plan_end_date", "is", null),
     supabase.from("financial_titles").select("id", { count: "exact", head: true }).eq("type", "pagar").eq("status", "aberto").eq("commission_type", "parceiro"),

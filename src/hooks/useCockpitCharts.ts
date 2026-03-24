@@ -93,9 +93,9 @@ export function useCockpitCharts() {
 
         const taskCounts: Record<string, number> = { pendente: 0, andamento: 0, concluida: 0 };
         (taskData as any[])?.forEach(t => {
-          if (t.status === "pendente" || t.status === "aberta") taskCounts.pendente++;
-          else if (t.status === "andamento" || t.status === "em_andamento") taskCounts.andamento++;
-          else if (t.status === "concluida" || t.status === "concluída" || t.status === "feita") taskCounts.concluida++;
+          if (t.status === "backlog" || t.status === "a_fazer") taskCounts.pendente++;
+          else if (t.status === "em_andamento" || t.status === "aguardando_cliente") taskCounts.andamento++;
+          else if (t.status === "concluida") taskCounts.concluida++;
         });
         const tasks: TaskDistribution[] = [
           { label: "Pendentes", count: taskCounts.pendente, color: "#f59e0b" },
