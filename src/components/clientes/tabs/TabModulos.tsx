@@ -214,7 +214,7 @@ export default function TabModulos({ clienteId }: Props) {
 
           <div className="rounded-lg border border-border p-4 bg-muted/30">
             <div className="grid gap-3 md:grid-cols-2 text-sm">
-              <div><span className="text-muted-foreground">Total venda geral:</span> <span className="font-semibold">R$ {totalSale.toFixed(2)}</span></div>
+              <div><span className="text-muted-foreground"><div><span className="text-muted-foreground">Total sugerido de venda:</span> <span className="font-semibold">R$ {totalSale.toFixed(2)}</span></div></span> <span className="font-semibold">R$ {totalSale.toFixed(2)}</span></div>
               <div><span className="text-muted-foreground">Total custo geral:</span> <span className="font-semibold">R$ {totalCost.toFixed(2)}</span></div>
             </div>
           </div>
