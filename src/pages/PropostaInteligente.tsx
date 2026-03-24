@@ -125,7 +125,9 @@ export default function PropostaInteligente() {
     const mensalidadeBase = sistemaValor + modulosValor;
     const descontoPercent = plano?.descontoPercentual || 0;
     const descontoValor = mensalidadeBase * (descontoPercent / 100);
-    const mensalidadeFinal = mensalidadeBase - descontoValor;
+    const valorAposPlano = mensalidadeBase - descontoValor;
+    const descontoManualValor = valorAposPlano * (descontoManualPercent / 100);
+    const mensalidadeFinal = valorAposPlano - descontoManualValor;
 
     const implKm = distanciaKm * companyImpl.impl_cost_per_km;
     const implRegiao = regiao ? regiao.base_value + regiao.additional_fee : 0;
