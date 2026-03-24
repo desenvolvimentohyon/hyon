@@ -1,20 +1,33 @@
 
 
-## Plano: Não calcular implantação até o usuário preencher os campos
+## Plano: Corrigir auto-seleção de módulos e adicionar descontos em R$ na mensalidade e implantação
 
-### Problema
-O valor de R$ 600 que aparece imediatamente vem do cálculo `dias × impl_daily_rate` (1 × 600 = R$ 600). Como `dias` inicia com o valor padrão da empresa e a taxa diária é R$ 600, o total aparece antes mesmo do usuário configurar algo.
+### Problemas identificados
+1. **Linha 98-106**: `useEffect` seleciona automaticamente todos os módulos ao trocar de sistema — deveria iniciar sem nenhum selecionado
+2. **Desconto em R$**: só existe desconto em percentual, falta opção de desconto em valor fixo (R$)
+3. **Implantação**: não tem campos de desconto (nem % nem R$)
 
-### Solução
-Iniciar `dias` com **0** em vez do valor padrão, para que o cálculo de implantação comece zerado. O valor padrão da empresa será usado apenas como sugestão/placeholder.
-
-### Editar: `src/pages/PropostaInteligente.tsx`
-
-1. **Alterar o estado inicial de `dias`** de `1` para `0` (linha 69)
-2. **Remover a atribuição do `setDias` no `useEffect`** que carrega `impl_default_days` (linha 94) — ou manter apenas como placeholder/sugestão
-3. **Opcionalmente**: mostrar o `impl_default_days` como placeholder no input de dias para que o usuário saiba o padrão
+### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/PropostaInteligente.tsx` | Iniciar `dias` com 0 e não auto-preencher com valor padrão da empresa |
+| `src/pages/PropostaInteligente.tsx` | 3 mudanças abaixo |
+
+#### 1. Remover auto-seleção de módulos
+Alterar o `useEffect` (linhas 98-106) para apenas limpar os módulos ao trocar de sistema, sem selecionar nenhum automaticamente.
+
+#### 2. Adicionar desconto em R$ na mensalidade
+- Novo estado `descontoManualReais` (default 0)
+- Novo campo na seção "Plano e Desconto" ao lado do campo de percentual: "Desconto adicional (R$)"
+- Cálculo: `mensalidadeFinal = valorAposPlano - descontoManualValor(%) - descontoManualReais`
+- Quando o usuário preenche um, o outro se mantém (são acumulativos)
+
+#### 3. Adicionar descontos na seção de Implantação
+- Novos estados `descontoImplPercent` e `descontoImplReais` (default 0)
+- Dois campos na seção de Implantação: "Desconto implantação (%)" e "Desconto implantação (R$)"
+- Cálculo: `implantacaoFinal = implantacaoTotal - descontoImplPercVal - descontoImplReais`
+- Atualizar `calc` para incluir `implantacaoFinal` e usar esse valor na proposta gerada
+
+#### 4. Atualizar resumo lateral
+- Passar novos campos de desconto para `PropostaResumoLateral` e exibir linhas de desconto da implantação
 
