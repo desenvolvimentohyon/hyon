@@ -210,6 +210,11 @@ export function generateProposalPDF(
 <div class="cover">
   <div class="cover-top">
     <div>${logoHtml}</div>
+    <div style="margin-top:10px;font-size:12px;color:${greenMuted};line-height:1.7;text-align:left;">
+      ${company.cnpj ? `<strong style="color:${green};">CNPJ:</strong> ${company.cnpj}<br/>` : ""}
+      ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}${(company.phone || company.email) ? "<br/>" : ""}
+      ${fullAddress ? `${fullAddress}` : ""}
+    </div>
   </div>
   <div class="cover-center">
     <div class="cover-title">${companyName.toUpperCase()}</div>
@@ -222,10 +227,8 @@ export function generateProposalPDF(
       <div class="cover-meta-item"><label>Validade</label><span>${dateStr(proposal.validUntil)}</span></div>
     </div>
   </div>
-  <div class="cover-bottom">
-    ${company.cnpj ? `<strong>CNPJ:</strong> ${company.cnpj}<br/>` : ""}
-    ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}<br/>
-    ${fullAddress ? `${fullAddress}` : ""}
+  <div class="cover-bottom" style="font-size:11px;color:${greenMuted};">
+    © ${new Date().getFullYear()} ${companyName} — Todos os direitos reservados
   </div>
 </div>
 
