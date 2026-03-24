@@ -16,6 +16,7 @@ export interface PdfProposalData {
   items: { description: string; quantity: number; unitValue: number }[];
   createdAt: string;
   validityDays: number | null;
+  systemDescription: string | null;
 }
 
 export interface PdfCompanyData {
