@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { gerarPDFPropostaComDados } from "@/lib/pdfGenerator";
-import { Plus, Search, MoreHorizontal, FileText, Copy, Download, Send, Eye, EyeOff, ThumbsUp, ThumbsDown, Trash2, ExternalLink, MessageCircle } from "lucide-react";
+import { Plus, Search, FileText, Copy, Download, Send, Eye, EyeOff, ThumbsUp, ThumbsDown, Trash2, ExternalLink, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { StatusVisualizacao, StatusAceite, SistemaProposta, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
@@ -239,25 +239,27 @@ export default function Propostas() {
                   </TableCell>
                   <TableCell><Badge className="text-[10px] bg-primary/10 text-primary">{p.statusCRM}</Badge></TableCell>
                   <TableCell onClick={e => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => navigate(`/propostas/${p.id}`)}><FileText className="h-3.5 w-3.5 mr-2" />Abrir</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleClone(p.id)}><Copy className="h-3.5 w-3.5 mr-2" />Clonar</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handlePDF(p.id)}><Download className="h-3.5 w-3.5 mr-2" />Baixar PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleCopyLink(p.id)}><ExternalLink className="h-3.5 w-3.5 mr-2" />Copiar Link</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleWhatsApp(p.id)}><MessageCircle className="h-3.5 w-3.5 mr-2" />Enviar via WhatsApp</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleEnviar(p.id)}><Send className="h-3.5 w-3.5 mr-2" />Marcar Enviada</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMarcar(p.id, { statusVisualizacao: "visualizado" as StatusVisualizacao }, "Visualização", "Marcada como visualizada!")}><Eye className="h-3.5 w-3.5 mr-2" />Marcar Visualizada</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMarcar(p.id, { statusVisualizacao: "nao_abriu" as StatusVisualizacao }, "Não abriu", "Marcada como não abriu!")}><EyeOff className="h-3.5 w-3.5 mr-2" />Marcar Não Abriu</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleMarcar(p.id, { statusAceite: "aceitou" as const, statusCRM: "Aceita" }, "Aceite", "Proposta aceita!")}><ThumbsUp className="h-3.5 w-3.5 mr-2" />Marcar Aceita</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMarcar(p.id, { statusAceite: "recusou" as const, statusCRM: "Recusada" }, "Recusa", "Proposta recusada!")}><ThumbsDown className="h-3.5 w-3.5 mr-2" />Marcar Recusada</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(p.id)}><Trash2 className="h-3.5 w-3.5 mr-2" />Excluir</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <TooltipProvider delayDuration={200}>
+                      <div className="flex items-center gap-0.5">
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/propostas/${p.id}`)}><FileText className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Abrir</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleClone(p.id)}><Copy className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Clonar</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePDF(p.id)}><Download className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Baixar PDF</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyLink(p.id)}><ExternalLink className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Copiar Link</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleWhatsApp(p.id)}><MessageCircle className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>WhatsApp</TooltipContent></Tooltip>
+
+                        <div className="w-px h-4 bg-border mx-0.5" />
+
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEnviar(p.id)}><Send className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Marcar Enviada</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleMarcar(p.id, { statusVisualizacao: "visualizado" as StatusVisualizacao }, "Visualização", "Marcada como visualizada!")}><Eye className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Marcar Visualizada</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleMarcar(p.id, { statusVisualizacao: "nao_abriu" as StatusVisualizacao }, "Não abriu", "Marcada como não abriu!")}><EyeOff className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Marcar Não Abriu</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleMarcar(p.id, { statusAceite: "aceitou" as const, statusCRM: "Aceita" }, "Aceite", "Proposta aceita!")}><ThumbsUp className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Marcar Aceita</TooltipContent></Tooltip>
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleMarcar(p.id, { statusAceite: "recusou" as const, statusCRM: "Recusada" }, "Recusa", "Proposta recusada!")}><ThumbsDown className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Marcar Recusada</TooltipContent></Tooltip>
+
+                        <div className="w-px h-4 bg-border mx-0.5" />
+
+                        <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(p.id)}><Trash2 className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Excluir</TooltipContent></Tooltip>
+                      </div>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
               ))}
