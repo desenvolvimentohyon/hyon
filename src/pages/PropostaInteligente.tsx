@@ -455,6 +455,29 @@ export default function PropostaInteligente() {
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto implantação (%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={descontoImplPercent || ""}
+                    onChange={e => setDescontoImplPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto implantação (R$)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={descontoImplReais || ""}
+                    onChange={e => setDescontoImplReais(Math.max(0, Number(e.target.value) || 0))}
+                    placeholder="0,00"
+                  />
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
                   <Label className="text-xs">Fluxo de pagamento</Label>
                   <Select value={fluxoImplantacao} onValueChange={(v: "a_vista" | "parcelado") => setFluxoImplantacao(v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
