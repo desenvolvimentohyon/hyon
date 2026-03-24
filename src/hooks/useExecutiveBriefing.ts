@@ -55,7 +55,7 @@ async function fetchSystemContext() {
 
   const [titulosVencidosRes, tarefasPendentesRes] = await Promise.all([
     supabase.from("financial_titles").select("id, value_final", { count: "exact" }).eq("type", "receber").eq("status", "aberto").lt("due_at", todayStr),
-    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).in("status", ["pendente", "em_andamento"]),
+    supabase.from("tasks" as any).select("id", { count: "exact", head: true }).in("status", ["backlog", "a_fazer", "em_andamento"]),
   ]);
 
   const [tarefasUrgentesRes, tarefasAtrasadasRes, ticketsAbertosRes, planosVencendoRes, comissoesPendentesRes] = await Promise.all([
