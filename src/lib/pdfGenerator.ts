@@ -318,9 +318,6 @@ ${signatureBlock}
 <!-- Footer -->
 <div class="footer-block">
   © ${year} <strong>${companyName}</strong> — Todos os direitos reservados
-  ${company.cnpj ? ` | CNPJ: ${company.cnpj}` : ""}
-  ${company.phone ? ` | ${company.phone}` : ""}
-  ${company.email ? ` | ${company.email}` : ""}
 </div>
 
 <script>
