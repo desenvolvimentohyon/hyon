@@ -429,6 +429,9 @@ export default function Tarefas() {
                     <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                       {t.prazoDataHora ? new Date(t.prazoDataHora).toLocaleDateString("pt-BR") : "—"}
                     </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {isAtrasada(t) ? <Badge variant="destructive" className="text-[10px]">Atrasada</Badge> : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
                   </TableRow>
                 );
               })}
