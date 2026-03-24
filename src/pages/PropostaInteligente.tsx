@@ -536,22 +536,7 @@ export default function PropostaInteligente() {
             </Card>
           )}
 
-          {/* 7. Forma de Pagamento */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2"><CreditCard className="h-4 w-4 text-emerald-500" /> Forma de Pagamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={formaPagamentoId} onValueChange={setFormaPagamentoId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {formasAtivas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          {/* 8. Observações */}
+          {/* 7. Observações */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2"><FileText className="h-4 w-4 text-muted-foreground" /> Observações</CardTitle>

@@ -192,13 +192,24 @@ export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props)
             </>
           )}
 
-          {data.formaPagamento && (
+          {(data.formaPagamento || data.formaPagamentoImpl) && (
             <>
               <Separator />
-              <div className="flex items-center gap-1.5 text-xs">
-                <Receipt className="h-3 w-3 text-muted-foreground" />
-                <span className="text-muted-foreground">Pagamento:</span>
-                <span className="font-medium">{data.formaPagamento}</span>
+              <div className="space-y-1">
+                {data.formaPagamento && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <Receipt className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">Pgto. mensalidade:</span>
+                    <span className="font-medium">{data.formaPagamento}</span>
+                  </div>
+                )}
+                {data.formaPagamentoImpl && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <Receipt className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">Pgto. implantação:</span>
+                    <span className="font-medium">{data.formaPagamentoImpl}</span>
+                  </div>
+                )}
               </div>
             </>
           )}
