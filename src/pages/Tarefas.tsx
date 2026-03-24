@@ -488,6 +488,16 @@ export default function Tarefas() {
                 {novoCliente === "avulso" && (
                   <Input className="mt-2" placeholder="Nome do cliente avulso" value={nomeClienteAvulso} onChange={e => setNomeClienteAvulso(e.target.value)} />
                 )}
+                {novoCliente === "novo" && (
+                  <div className="mt-2 space-y-2 rounded-md border border-border/60 p-3 bg-muted/30">
+                    <div><Input placeholder="Nome do cliente *" value={novoClienteNome} onChange={e => setNovoClienteNome(e.target.value)} /></div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Telefone" value={novoClienteTelefone} onChange={e => setNovoClienteTelefone(e.target.value)} />
+                      <Input placeholder="Email" type="email" value={novoClienteEmail} onChange={e => setNovoClienteEmail(e.target.value)} />
+                    </div>
+                    <Input placeholder="Cidade" value={novoClienteCidade} onChange={e => setNovoClienteCidade(e.target.value)} />
+                  </div>
+                )}
               </div>
             </div>
             {/* System detection banner */}
