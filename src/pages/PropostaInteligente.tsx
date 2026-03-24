@@ -143,11 +143,11 @@ export default function PropostaInteligente() {
 
     return {
       sistemaValor, modulosValor, mensalidadeBase,
-      descontoPercent, descontoValor, mensalidadeFinal,
+      descontoPercent, descontoValor, descontoManualValor, mensalidadeFinal,
       implKm, implRegiao, implDiarias, implantacaoTotal,
       comissaoImpl, comissaoRecur,
     };
-  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro]);
+  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro, descontoManualPercent]);
 
   const resumoData = useMemo(() => ({
     sistemaNome: sistema?.nome || "",
