@@ -1,19 +1,20 @@
 
 
-## Plano: Remover dupla contagem do valor do sistema na mensalidade
+## Plano: Não calcular implantação até o usuário preencher os campos
 
 ### Problema
-O cálculo atual soma `sistema.valorVenda` (R$ 600) **mais** o valor dos módulos selecionados. Porém, conforme a regra de negócio do sistema, o preço do sistema já é representado pela soma dos seus módulos — não existe um valor avulso do sistema. Isso causa dupla contagem: R$ 600 do sistema + R$ 68,60 dos módulos = R$ 668,60, quando deveria ser apenas R$ 68,60 (dos módulos).
+O valor de R$ 600 que aparece imediatamente vem do cálculo `dias × impl_daily_rate` (1 × 600 = R$ 600). Como `dias` inicia com o valor padrão da empresa e a taxa diária é R$ 600, o total aparece antes mesmo do usuário configurar algo.
 
-### Correção
+### Solução
+Iniciar `dias` com **0** em vez do valor padrão, para que o cálculo de implantação comece zerado. O valor padrão da empresa será usado apenas como sugestão/placeholder.
+
+### Editar: `src/pages/PropostaInteligente.tsx`
+
+1. **Alterar o estado inicial de `dias`** de `1` para `0` (linha 69)
+2. **Remover a atribuição do `setDias` no `useEffect`** que carrega `impl_default_days` (linha 94) — ou manter apenas como placeholder/sugestão
+3. **Opcionalmente**: mostrar o `impl_default_days` como placeholder no input de dias para que o usuário saiba o padrão
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/PropostaInteligente.tsx` | Remover `sistemaValor` do cálculo de `mensalidadeBase` — a mensalidade passa a ser apenas a soma dos módulos selecionados |
-
-### Detalhes
-
-1. **Linha 125**: Alterar `mensalidadeBase = sistemaValor + modulosValor` para `mensalidadeBase = modulosValor`
-2. **Resumo lateral e itens da proposta**: Remover a linha de "Sistema" dos itens gerados (que adiciona o valor do sistema separadamente), manter apenas os módulos
-3. O campo `sistemaValor` continua existindo para referência (nome do sistema no resumo), mas com valor 0 ou removido do cálculo financeiro
+| `src/pages/PropostaInteligente.tsx` | Iniciar `dias` com 0 e não auto-preencher com valor padrão da empresa |
 
