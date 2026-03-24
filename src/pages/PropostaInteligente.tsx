@@ -69,6 +69,7 @@ export default function PropostaInteligente() {
   const [dias, setDias] = useState(0);
   const [parceiroId, setParceiroId] = useState("");
   const [formaPagamentoId, setFormaPagamentoId] = useState("");
+  const [formaPagamentoImplId, setFormaPagamentoImplId] = useState("");
   const [fluxoImplantacao, setFluxoImplantacao] = useState<"a_vista" | "parcelado">("a_vista");
   const [parcelasImplantacao, setParcelasImplantacao] = useState(2);
   const [descontoManualPercent, setDescontoManualPercent] = useState(0);
@@ -109,6 +110,7 @@ export default function PropostaInteligente() {
   const regiao = useMemo(() => regions.find(r => r.id === regiaoId), [regions, regiaoId]);
   const parceiro = useMemo(() => partners.find(p => p.id === parceiroId), [partners, parceiroId]);
   const formaPag = useMemo(() => formasPagamento.find(f => f.id === formaPagamentoId), [formasPagamento, formaPagamentoId]);
+  const formaPagImpl = useMemo(() => formasPagamento.find(f => f.id === formaPagamentoImplId), [formasPagamento, formaPagamentoImplId]);
   const cliente = useMemo(() => clientes.find(c => c.id === clienteId), [clientes, clienteId]);
 
   const modulosSelecionados = useMemo(() =>
@@ -175,9 +177,10 @@ export default function PropostaInteligente() {
     comissaoImplantacao: calc.comissaoImpl,
     comissaoRecorrente: calc.comissaoRecur,
     formaPagamento: formaPag?.nome || "",
+    formaPagamentoImpl: formaPagImpl?.nome || "",
     fluxoImplantacao,
     parcelasImplantacao,
-  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
+  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, formaPagImpl, fluxoImplantacao, parcelasImplantacao, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
 
   const handleToggleModulo = useCallback((id: string) => {
     setModuloIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -416,6 +419,15 @@ export default function PropostaInteligente() {
                   <div className="flex justify-between font-semibold"><span>Valor final</span><span className="text-primary">R$ {calc.mensalidadeFinal.toFixed(2)}</span></div>
                 </div>
               )}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Forma de pagamento (mensalidade)</Label>
+                <Select value={formaPagamentoId} onValueChange={setFormaPagamentoId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {formasAtivas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
 
@@ -446,11 +458,11 @@ export default function PropostaInteligente() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Distância (km)</Label>
-                  <Input type="number" min={0} value={distanciaKm} onChange={e => setDistanciaKm(Number(e.target.value) || 0)} />
+                  <Input type="number" min={0} value={distanciaKm || ""} onChange={e => setDistanciaKm(Number(e.target.value) || 0)} placeholder="0" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Dias</Label>
-                  <Input type="number" min={1} value={dias} onChange={e => setDias(Number(e.target.value) || 1)} />
+                  <Input type="number" min={0} value={dias || ""} onChange={e => setDias(Number(e.target.value) || 0)} placeholder="0" />
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
@@ -494,6 +506,15 @@ export default function PropostaInteligente() {
                   </div>
                 )}
               </div>
+              <div className="mt-3 space-y-1.5">
+                <Label className="text-xs">Forma de pagamento (implantação)</Label>
+                <Select value={formaPagamentoImplId} onValueChange={setFormaPagamentoImplId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {formasAtivas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
 
@@ -515,22 +536,7 @@ export default function PropostaInteligente() {
             </Card>
           )}
 
-          {/* 7. Forma de Pagamento */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2"><CreditCard className="h-4 w-4 text-emerald-500" /> Forma de Pagamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={formaPagamentoId} onValueChange={setFormaPagamentoId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {formasAtivas.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          {/* 8. Observações */}
+          {/* 7. Observações */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2"><FileText className="h-4 w-4 text-muted-foreground" /> Observações</CardTitle>
