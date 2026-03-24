@@ -59,19 +59,18 @@ export function generateProposalPDF(
   proposal: PdfProposalData,
   company: PdfCompanyData
 ) {
-  const dark = "#0f172a";
-  const darkCard = "#1e293b";
-  const green = company.primaryColor || "#4ade80";
-  // Derive muted/dim/border variants from primaryColor via hex→rgb
+  const primary = company.primaryColor || "#3b82f6";
   const hexToRgb = (hex: string) => {
     const h = hex.replace("#", "");
     return { r: parseInt(h.substring(0, 2), 16), g: parseInt(h.substring(2, 4), 16), b: parseInt(h.substring(4, 6), 16) };
   };
-  const rgb = hexToRgb(green);
-  const greenMuted = `rgba(${rgb.r},${rgb.g},${rgb.b},0.7)`;
-  const greenDim = `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
-  const greenBorder = `rgba(${rgb.r},${rgb.g},${rgb.b},0.25)`;
-  const white = "#f1f5f9";
+  const rgb = hexToRgb(primary);
+  const primaryLight = `rgba(${rgb.r},${rgb.g},${rgb.b},0.08)`;
+  const primaryMuted = `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
+  const textDark = "#1e293b";
+  const textMuted = "#64748b";
+  const border = "#e2e8f0";
+  const bgCard = "#f8fafc";
   const companyName = company.tradeName || company.legalName || "Hyon Tecnologia";
   const fileName = `proposta-${slugify(proposal.clientName || "cliente")}-${new Date().toISOString().slice(0, 10)}`;
   const year = new Date().getFullYear();
@@ -82,7 +81,6 @@ export function generateProposalPDF(
     company.addressNeighborhood,
     company.addressCity,
     company.addressUf,
-    company.addressCep,
   ].filter(Boolean);
   const fullAddress = addressParts.length > 0 ? addressParts.join(", ") : null;
 
@@ -95,20 +93,20 @@ export function generateProposalPDF(
   const itemsRows = proposal.items
     .map(
       (i) =>
-        `<tr><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};">${i.description}</td><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};text-align:center;">${i.quantity}</td><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.unitValue)}</td><td style="padding:4px 6px;border-bottom:1px solid ${greenBorder};text-align:right;">${fmt(i.quantity * i.unitValue)}</td></tr>`
+        `<tr><td style="padding:6px 8px;border-bottom:1px solid ${border};">${i.description}</td><td style="padding:6px 8px;border-bottom:1px solid ${border};text-align:center;">${i.quantity}</td><td style="padding:6px 8px;border-bottom:1px solid ${border};text-align:right;">${fmt(i.unitValue)}</td><td style="padding:6px 8px;border-bottom:1px solid ${border};text-align:right;font-weight:600;">${fmt(i.quantity * i.unitValue)}</td></tr>`
     )
     .join("");
 
   const itemsTable =
     proposal.items.length > 0
       ? `<div class="section">
-          <h2>Itens da Proposta</h2>
-          <table style="width:100%;border-collapse:collapse;font-size:11px;color:${white};">
-            <thead><tr style="background:${greenDim};">
-              <th style="text-align:left;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;">Descrição</th>
-              <th style="text-align:center;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:40px;">Qtd</th>
-              <th style="text-align:right;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:80px;">Valor Unit.</th>
-              <th style="text-align:right;padding:4px 6px;border-bottom:1px solid ${green};color:${green};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:80px;">Total</th>
+          <div class="section-header"><div class="section-icon">📋</div><div class="section-title">ITENS DA PROPOSTA</div></div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;color:${textDark};">
+            <thead><tr style="background:${primaryLight};">
+              <th style="text-align:left;padding:6px 8px;border-bottom:2px solid ${primary};color:${primary};font-size:9px;text-transform:uppercase;letter-spacing:1px;">Descrição</th>
+              <th style="text-align:center;padding:6px 8px;border-bottom:2px solid ${primary};color:${primary};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:40px;">Qtd</th>
+              <th style="text-align:right;padding:6px 8px;border-bottom:2px solid ${primary};color:${primary};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:80px;">Valor Unit.</th>
+              <th style="text-align:right;padding:6px 8px;border-bottom:2px solid ${primary};color:${primary};font-size:9px;text-transform:uppercase;letter-spacing:1px;width:80px;">Total</th>
             </tr></thead>
             <tbody>${itemsRows}</tbody>
           </table>
@@ -118,22 +116,22 @@ export function generateProposalPDF(
   const signatureBlock =
     proposal.acceptanceStatus === "aceitou"
       ? `<div class="section">
-          <h2>Aceite</h2>
-          <div style="background:${greenDim};border:1px solid ${green};border-radius:8px;padding:12px;text-align:center;">
-            <p style="font-size:13px;font-weight:600;color:${green};">✓ Proposta aceita${proposal.acceptedByName ? ` por ${proposal.acceptedByName}` : ""}</p>
-            <p style="font-size:10px;color:${greenMuted};margin-top:2px;">em ${dateStr(proposal.acceptedAt)}</p>
+          <div class="section-header"><div class="section-icon">✅</div><div class="section-title">ACEITE</div></div>
+          <div style="background:${primaryLight};border:2px solid ${primary};border-radius:8px;padding:14px;text-align:center;">
+            <p style="font-size:13px;font-weight:700;color:${primary};">✓ Proposta aceita${proposal.acceptedByName ? ` por ${proposal.acceptedByName}` : ""}</p>
+            <p style="font-size:10px;color:${textMuted};margin-top:4px;">em ${dateStr(proposal.acceptedAt)}</p>
           </div>
         </div>`
       : `<div class="section">
-          <h2>Aceite da Proposta</h2>
-          <div style="display:flex;gap:40px;flex-wrap:wrap;margin-top:10px;">
+          <div class="section-header"><div class="section-icon">✍️</div><div class="section-title">ACEITE DA PROPOSTA</div></div>
+          <div style="display:flex;gap:40px;flex-wrap:wrap;margin-top:8px;">
             <div style="flex:1;min-width:160px;">
-              <div style="border-bottom:1px solid ${greenBorder};height:24px;"></div>
-              <p style="font-size:9px;color:${greenMuted};margin-top:3px;">Nome do responsável</p>
+              <div style="border-bottom:2px solid ${border};height:28px;"></div>
+              <p style="font-size:9px;color:${textMuted};margin-top:4px;">Nome do responsável</p>
             </div>
             <div style="flex:1;min-width:160px;">
-              <div style="border-bottom:1px solid ${greenBorder};height:24px;"></div>
-              <p style="font-size:9px;color:${greenMuted};margin-top:3px;">Data</p>
+              <div style="border-bottom:2px solid ${border};height:28px;"></div>
+              <p style="font-size:9px;color:${textMuted};margin-top:4px;">Data</p>
             </div>
           </div>
         </div>`;
@@ -141,14 +139,14 @@ export function generateProposalPDF(
   const aboutSystemText = proposal.systemDescription || company.institutionalText;
   const institutionalSection = aboutSystemText
     ? `<div class="section">
-        <h2>Sobre o Sistema</h2>
-        <p style="font-size:10px;line-height:1.5;color:${greenMuted};">${aboutSystemText}</p>
+        <div class="section-header"><div class="section-icon">💡</div><div class="section-title">SOBRE O SISTEMA</div></div>
+        <p style="font-size:10px;line-height:1.6;color:${textMuted};">${aboutSystemText}</p>
       </div>`
     : "";
 
   const logoHtml = company.logoUrl
-    ? `<img src="${company.logoUrl}" style="max-height:36px;max-width:120px;object-fit:contain;" crossorigin="anonymous" />`
-    : `<div style="width:32px;height:32px;border-radius:8px;background:${green};display:flex;align-items:center;justify-content:center;color:${dark};font-weight:700;font-size:14px;">${companyName.charAt(0)}</div>`;
+    ? `<img src="${company.logoUrl}" style="max-height:32px;max-width:100px;object-fit:contain;" crossorigin="anonymous" />`
+    : `<div style="width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;">${companyName.charAt(0)}</div>`;
 
   const validityDisplay = (() => {
     if (proposal.validUntil) return dateStr(proposal.validUntil);
@@ -166,50 +164,59 @@ export function generateProposalPDF(
 <meta charset="utf-8">
 <title>${fileName}</title>
 <style>
-  @page { size: A4; margin: 12mm 14mm; }
+  @page { size: A4; margin: 10mm 12mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: ${white}; line-height: 1.35; background: ${dark}; font-size: 11px; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: ${textDark}; line-height: 1.4; background: #fff; font-size: 11px; }
   
-  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 2px solid ${green}; margin-bottom: 10px; }
-  .header-left { display: flex; align-items: center; gap: 8px; }
-  .header-company-name { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: 1px; }
-  .header-right { text-align: right; font-size: 9px; color: ${greenMuted}; line-height: 1.5; }
-  .header-right strong { color: ${green}; }
+  .top-bar { background: ${primary}; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 8px 8px; }
+  .top-bar-left { display: flex; align-items: center; gap: 10px; }
+  .top-bar-name { font-size: 15px; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
+  .top-bar-right { text-align: right; font-size: 9px; color: rgba(255,255,255,0.85); line-height: 1.6; }
   
-  .meta-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-  .meta-item { background: ${darkCard}; border: 1px solid ${greenBorder}; border-radius: 5px; padding: 5px 8px; }
-  .meta-item label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; display: block; margin-bottom: 1px; }
-  .meta-item span { font-size: 11px; font-weight: 600; color: #fff; }
+  .title-block { text-align: center; margin: 14px 0 10px; }
+  .title-block h1 { font-size: 18px; font-weight: 800; color: ${textDark}; letter-spacing: 2px; text-transform: uppercase; }
+  .title-meta { display: flex; justify-content: center; gap: 24px; margin-top: 6px; }
+  .title-meta-item { font-size: 9px; color: ${textMuted}; }
+  .title-meta-item strong { color: ${textDark}; font-weight: 700; }
 
   .section { margin-bottom: 10px; }
-  .section h2 { font-size: 10px; font-weight: 700; color: ${green}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; padding-bottom: 3px; border-bottom: 1px solid ${greenBorder}; }
-  
-  .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
-  .summary-card { border: 1px solid ${greenBorder}; border-radius: 6px; padding: 7px; text-align: center; background: ${darkCard}; }
-  .summary-card.highlight { border-color: ${green}; background: ${greenDim}; }
-  .summary-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; }
-  .summary-value { font-size: 15px; font-weight: 800; margin: 1px 0; color: #fff; }
-  .summary-sub { font-size: 9px; color: ${greenMuted}; }
+  .section-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 2px solid ${border}; }
+  .section-icon { width: 20px; height: 20px; border-radius: 50%; background: ${primaryLight}; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .section-title { font-size: 10px; font-weight: 700; color: ${primary}; text-transform: uppercase; letter-spacing: 1px; }
 
-  .benefits-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
-  .benefit-item { display: flex; align-items: center; gap: 4px; padding: 3px 5px; border-radius: 4px; background: ${darkCard}; border: 1px solid ${greenBorder}; }
-  .benefit-icon { color: ${green}; font-size: 9px; font-weight: 700; flex-shrink: 0; }
-  .benefit-text { font-size: 9px; font-weight: 600; color: ${white}; }
-  
+  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .data-card { background: ${bgCard}; border: 1px solid ${border}; border-radius: 6px; padding: 8px 10px; }
+  .data-card label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${textMuted}; display: block; margin-bottom: 2px; }
+  .data-card span { font-size: 11px; font-weight: 600; color: ${textDark}; }
+
+  .system-badge { display: inline-flex; align-items: center; gap: 6px; background: ${textDark}; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+  .plan-badge { display: inline-flex; align-items: center; gap: 6px; background: ${primaryLight}; color: ${primary}; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+
+  .modules-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+  .module-card { background: #fff; border: 1px solid ${border}; border-left: 3px solid ${primary}; border-radius: 4px; padding: 5px 8px; display: flex; align-items: center; gap: 5px; }
+  .module-icon { color: ${primary}; font-size: 10px; flex-shrink: 0; }
+  .module-name { font-size: 9px; font-weight: 600; color: ${textDark}; }
+
+  .invest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .invest-card { background: ${bgCard}; border: 1px solid ${border}; border-radius: 8px; padding: 12px; text-align: center; }
+  .invest-card.highlight { background: ${primaryLight}; border-color: ${primary}; }
+  .invest-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: ${textMuted}; margin-bottom: 4px; }
+  .invest-value { font-size: 20px; font-weight: 800; color: ${primary}; }
+  .invest-sub { font-size: 9px; color: ${textMuted}; margin-top: 2px; }
+
   .conditions-table { width: 100%; border-collapse: collapse; }
-  .conditions-table th { text-align: left; padding: 3px 6px; background: ${greenDim}; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: ${green}; border-bottom: 1px solid ${green}; }
-  .conditions-table td { padding: 3px 6px; border-bottom: 1px solid ${greenBorder}; font-size: 10px; color: ${white}; }
-  .conditions-table td:last-child { font-weight: 700; text-align: right; color: #fff; }
-  
-  .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-  .step-item { display: flex; align-items: center; gap: 5px; }
-  .step-num { width: 16px; height: 16px; border-radius: 50%; background: ${green}; color: ${dark}; font-weight: 700; font-size: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .step-text { font-size: 9px; font-weight: 600; color: #fff; }
-  .step-text span { font-weight: 400; color: ${greenMuted}; }
-  
-  .footer-block { margin-top: 10px; padding-top: 5px; border-top: 1px solid ${greenBorder}; font-size: 8px; color: ${greenMuted}; text-align: center; line-height: 1.4; }
-  .footer-block strong { color: ${green}; }
-  
+  .conditions-table th { text-align: left; padding: 5px 8px; background: ${primaryLight}; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: ${primary}; border-bottom: 2px solid ${primary}; }
+  .conditions-table td { padding: 5px 8px; border-bottom: 1px solid ${border}; font-size: 10px; color: ${textDark}; }
+  .conditions-table td:last-child { font-weight: 700; text-align: right; }
+
+  .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .step-item { display: flex; align-items: center; gap: 6px; }
+  .step-num { width: 18px; height: 18px; border-radius: 50%; background: ${primary}; color: #fff; font-weight: 700; font-size: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-text { font-size: 10px; font-weight: 600; color: ${textDark}; }
+
+  .footer-block { margin-top: 12px; padding-top: 6px; border-top: 2px solid ${border}; font-size: 8px; color: ${textMuted}; text-align: center; line-height: 1.5; }
+  .footer-block strong { color: ${primary}; }
+
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
@@ -220,81 +227,93 @@ export function generateProposalPDF(
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <div class="header-left">
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-bar-left">
     ${logoHtml}
-    <div class="header-company-name">${companyName}</div>
+    <div class="top-bar-name">${companyName}</div>
   </div>
-  <div class="header-right">
-    ${company.cnpj ? `<strong>CNPJ:</strong> ${company.cnpj}<br/>` : ""}
-    ${company.phone ? `${company.phone}` : ""}${company.email ? ` | ${company.email}` : ""}${(company.phone || company.email) ? "<br/>" : ""}
+  <div class="top-bar-right">
+    ${company.cnpj ? `CNPJ: ${company.cnpj}<br/>` : ""}
+    ${company.phone ? `${company.phone}` : ""}${company.email ? ` · ${company.email}` : ""}<br/>
     ${fullAddress ? `${fullAddress}` : ""}
   </div>
 </div>
 
-<!-- META BAR -->
-<div class="meta-bar">
-  <div class="meta-item"><label>Cliente</label><span>${proposal.clientName || "—"}</span></div>
-  <div class="meta-item"><label>Proposta</label><span>${proposal.proposalNumber}</span></div>
-  <div class="meta-item"><label>Data</label><span>${dateStr(proposal.sentAt || proposal.createdAt)}</span></div>
-  <div class="meta-item"><label>Validade</label><span>${validityDisplay}</span></div>
-</div>
-
-<!-- Summary -->
-<div class="section">
-  <h2>Resumo Comercial</h2>
-  <div class="summary-grid">
-    <div class="summary-card">
-      <div class="summary-label">Sistema</div>
-      <div style="font-size:12px;font-weight:700;margin-top:1px;color:#fff;">${proposal.systemName || "—"}</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">Plano</div>
-      <div style="font-size:12px;font-weight:700;margin-top:1px;color:#fff;">${proposal.planName || "—"}</div>
-    </div>
-    <div class="summary-card highlight">
-      <div class="summary-label">Mensalidade</div>
-      <div class="summary-value" style="color:${green};">${fmt(proposal.monthlyValue)}</div>
-      <div class="summary-sub">/mês</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">Implantação</div>
-      <div class="summary-value">${fmt(proposal.implementationValue)}</div>
-      <div class="summary-sub">${flowLabel}</div>
-    </div>
+<!-- TITLE -->
+<div class="title-block">
+  <h1>Proposta Comercial</h1>
+  <div class="title-meta">
+    <div class="title-meta-item">Nº <strong>${proposal.proposalNumber}</strong></div>
+    <div class="title-meta-item">Data <strong>${dateStr(proposal.sentAt || proposal.createdAt)}</strong></div>
+    <div class="title-meta-item">Validade <strong>${validityDisplay}</strong></div>
   </div>
 </div>
 
-<!-- Benefits -->
+<!-- CLIENT DATA -->
 <div class="section">
-  <h2>O que está incluso</h2>
-  <div class="benefits-grid">
-    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Implantação assistida</div></div>
-    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Treinamento da equipe</div></div>
-    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Suporte técnico</div></div>
-    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Config. equipamentos</div></div>
-    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Atualizações</div></div>
-    <div class="benefit-item"><div class="benefit-icon">✓</div><div class="benefit-text">Acesso remoto</div></div>
+  <div class="section-header"><div class="section-icon">👤</div><div class="section-title">DADOS DO CLIENTE</div></div>
+  <div class="data-grid">
+    <div class="data-card"><label>Empresa / Cliente</label><span>${proposal.clientName || "—"}</span></div>
+    <div class="data-card"><label>Plano</label><span>${proposal.planName || "—"}</span></div>
+  </div>
+</div>
+
+<!-- SYSTEM -->
+<div class="section">
+  <div class="section-header"><div class="section-icon">🖥️</div><div class="section-title">SISTEMA</div></div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="system-badge">⚙ ${proposal.systemName || "—"}</div>
+    <div class="plan-badge">📦 ${proposal.planName || "—"}</div>
+  </div>
+</div>
+
+<!-- BENEFITS / MODULES -->
+<div class="section">
+  <div class="section-header"><div class="section-icon">📦</div><div class="section-title">MÓDULOS INCLUÍDOS</div></div>
+  <div class="modules-grid">
+    <div class="module-card"><div class="module-icon">✓</div><div class="module-name">Implantação assistida</div></div>
+    <div class="module-card"><div class="module-icon">✓</div><div class="module-name">Treinamento da equipe</div></div>
+    <div class="module-card"><div class="module-icon">✓</div><div class="module-name">Suporte técnico</div></div>
+    <div class="module-card"><div class="module-icon">✓</div><div class="module-name">Config. equipamentos</div></div>
+    <div class="module-card"><div class="module-icon">✓</div><div class="module-name">Atualizações</div></div>
+    <div class="module-card"><div class="module-icon">✓</div><div class="module-name">Acesso remoto</div></div>
   </div>
 </div>
 
 ${institutionalSection}
 
+<!-- INVESTMENT -->
+<div class="section">
+  <div class="section-header"><div class="section-icon">💰</div><div class="section-title">INVESTIMENTO</div></div>
+  <div class="invest-grid">
+    <div class="invest-card highlight">
+      <div class="invest-label">Mensalidade</div>
+      <div class="invest-value">${fmt(proposal.monthlyValue)}</div>
+      <div class="invest-sub">/mês</div>
+    </div>
+    <div class="invest-card">
+      <div class="invest-label">Implantação</div>
+      <div class="invest-value" style="color:${textDark};">${fmt(proposal.implementationValue)}</div>
+      <div class="invest-sub">${flowLabel}</div>
+    </div>
+  </div>
+</div>
+
 ${itemsTable}
 
 <!-- Conditions -->
 <div class="section">
-  <h2>Condições Comerciais</h2>
+  <div class="section-header"><div class="section-icon">📄</div><div class="section-title">CONDIÇÕES COMERCIAIS</div></div>
   <table class="conditions-table">
     <thead><tr><th>Item</th><th style="text-align:right;">Valor</th></tr></thead>
     <tbody>
       <tr><td>Implantação</td><td>${fmt(proposal.implementationValue)}</td></tr>
       <tr><td>Mensalidade</td><td>${fmt(proposal.monthlyValue)}</td></tr>
-      <tr><td>Prazo de Validade</td><td style="font-weight:600;">${validityDisplay}</td></tr>
+      <tr><td>Prazo de Validade</td><td>${validityDisplay}</td></tr>
     </tbody>
   </table>
-  <ul style="margin-top:4px;padding-left:14px;font-size:9px;color:${greenMuted};line-height:1.5;">
+  <ul style="margin-top:6px;padding-left:16px;font-size:9px;color:${textMuted};line-height:1.6;">
     <li>Mensalidade cobrada conforme plano escolhido</li>
     <li>Implantação inclui treinamento inicial</li>
     <li>Suporte conforme horário contratado</li>
@@ -304,7 +323,7 @@ ${itemsTable}
 
 <!-- Steps -->
 <div class="section">
-  <h2>Próximos Passos</h2>
+  <div class="section-header"><div class="section-icon">🚀</div><div class="section-title">PRÓXIMOS PASSOS</div></div>
   <div class="steps-grid">
     <div class="step-item"><div class="step-num">1</div><div class="step-text">Aceite da proposta</div></div>
     <div class="step-item"><div class="step-num">2</div><div class="step-text">Agendamento da implantação</div></div>
