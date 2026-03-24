@@ -241,6 +241,8 @@ export default function PropostaPublica() {
           quantity: i.quantity,
           unitValue: i.unit_value,
         })),
+        createdAt: proposal.created_at || new Date().toISOString(),
+        validityDays: proposal.validity_days || null,
       },
       companyPdf
     );
