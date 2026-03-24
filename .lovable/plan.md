@@ -1,30 +1,37 @@
 
 
-## Plano: Corrigir visibilidade das Sugestões Inteligentes e separar valores no rodapé/resumo
+## Plano: Corrigir página pública da proposta (link, logo, informações da empresa)
 
-### Problemas
-1. **Sugestões Inteligentes**: O componente está no final da coluna esquerda, mas com o rodapé fixo mobile (`fixed bottom-0`) cobrindo o conteúdo inferior, fica escondido. Precisa de padding-bottom extra na coluna principal.
-2. **Valor total no rodapé mobile**: Mostra `mensalidade + implantação` somados em um único valor. Precisa exibir separadamente.
-3. **Resumo lateral (desktop)**: O bloco "Valor Total" também soma tudo — precisa separar mensalidade e implantação visualmente.
+### Problema raiz
+O link copiado aponta para `/aceite/PROP-2026-XXXX`, que usa o componente `AceiteProposta` (uma página simples do contexto). A página rica `PropostaPublica` fica em `/proposta/:token`, mas o `acceptance_link` armazenado no banco é `/aceite/PROP-2026-XXXX`, então a edge function nunca encontra a proposta quando acessada via `/proposta/`.
 
 ### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/PropostaInteligente.tsx` | Adicionar `pb-24` no container principal para evitar que o rodapé fixo cubra conteúdo; separar valores no rodapé mobile |
-| `src/components/propostas/PropostaResumoLateral.tsx` | Separar mensalidade e implantação no bloco "Valor Total" do resumo lateral |
+| `src/contexts/PropostasContext.tsx` | Mudar `acceptance_link` para armazenar apenas o número da proposta (ex: `PROP-2026-0001`) e mudar `linkAceite` para apontar para `/proposta/{numero}` |
+| `src/pages/Propostas.tsx` | Atualizar link copiado para usar `/proposta/{token}` |
+| `src/pages/PropostaDetalhe.tsx` | Atualizar link copiado para usar `/proposta/{token}` |
+| `supabase/functions/public-proposal/index.ts` | Buscar por `acceptance_link = token` OU `proposal_number = token` para compatibilidade com propostas existentes |
+| `src/pages/PropostaPublica.tsx` | Adicionar logo da empresa no header (imagem real do storage); adicionar seção com dados da empresa (CNPJ, endereço, contato) visível na página |
+| `src/App.tsx` | Remover rota duplicada `/aceite/:numero` do AuthGate (manter apenas no nível raiz); redirecionar `/aceite/:numero` para `/proposta/:numero` |
 
-#### 1. Visibilidade das Sugestões (PropostaInteligente.tsx)
-- Adicionar `pb-24` ao container principal (ou à coluna esquerda) para que o conteúdo não fique escondido atrás do rodapé fixo mobile
+### Detalhes técnicos
 
-#### 2. Rodapé mobile (PropostaInteligente.tsx, linhas 578-591)
-Substituir o valor total único por dois valores lado a lado:
-- **Mensalidade**: `R$ X/mês`
-- **Implantação**: `R$ Y`
+#### 1. Corrigir armazenamento do acceptance_link
+- `PropostasContext.tsx` linha 127: mudar de `acceptance_link: \`/aceite/${numero}\`` para `acceptance_link: numero`
+- Linha 24: mudar `linkAceite` para `/proposta/${r.acceptance_link || r.proposal_number}`
 
-#### 3. Resumo lateral (PropostaResumoLateral.tsx, linhas 219-226)
-Substituir o bloco único "Valor Total" por duas linhas separadas:
-- **Mensalidade final**: `R$ X/mês`
-- **Implantação total**: `R$ Y`
-- Remover o valor somado
+#### 2. Edge function: busca flexível
+- Alterar a query para buscar por `acceptance_link` OU `proposal_number` para funcionar com propostas antigas e novas
+
+#### 3. Logo real no header da página pública
+- No header (linha 400-406), substituir o quadrado colorido com inicial por uma `<img>` quando `company.logo_path` existir, usando URL pública do bucket `company-logos`
+
+#### 4. Seção de informações da empresa
+- Adicionar bloco visual entre o hero e o pricing card com: logo grande, nome da empresa, CNPJ, endereço formatado, telefone, email, site
+- Usar o `institutional_text` se disponível
+
+#### 5. Redirecionar /aceite para /proposta
+- No `App.tsx`, trocar a rota `/aceite/:numero` para fazer redirect para `/proposta/:numero`
 
