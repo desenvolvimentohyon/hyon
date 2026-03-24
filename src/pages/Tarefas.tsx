@@ -155,7 +155,7 @@ export default function Tarefas() {
   // Form state
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novoDesc, setNovoDesc] = useState("");
-  const [novoCliente, setNovoCliente] = useState<string>("null");
+  const [novoCliente, setNovoCliente] = useState<string>("");
   const [novoResponsavel, setNovoResponsavel] = useState(tecnicoAtualId);
   const [novoPrioridade, setNovoPrioridade] = useState<Prioridade>("media");
   const [novoPrazo, setNovoPrazo] = useState("");
