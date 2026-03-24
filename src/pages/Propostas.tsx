@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useApp } from "@/contexts/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
-import { gerarPDFProposta } from "@/lib/pdfGenerator";
+import { gerarPDFPropostaComDados } from "@/lib/pdfGenerator";
 import { Plus, Search, MoreHorizontal, FileText, Copy, Download, Send, Eye, EyeOff, ThumbsUp, ThumbsDown, Trash2, ExternalLink, MessageCircle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
@@ -21,6 +22,7 @@ import { StatusVisualizacao, StatusAceite, SistemaProposta, STATUS_VISUALIZACAO_
 export default function Propostas() {
   const { propostas, crmConfig, loading, addProposta, updateProposta, deleteProposta, cloneProposta } = usePropostas();
   const { clientes } = useApp();
+  const { profile } = useAuth();
   const navigate = useNavigate();
 
   const [busca, setBusca] = useState("");
@@ -105,10 +107,10 @@ export default function Propostas() {
     toast({ title: "Proposta aberta no WhatsApp!" });
   };
 
-  const handlePDF = (id: string) => {
+  const handlePDF = async (id: string) => {
     const p = propostas.find(x => x.id === id);
-    if (!p) return;
-    gerarPDFProposta(p, crmConfig);
+    if (!p || !profile?.org_id) return;
+    await gerarPDFPropostaComDados(p, profile.org_id);
     updateProposta(id, { pdfGeradoEm: new Date().toISOString() }, "PDF gerado");
     toast({ title: "PDF gerado e baixado!" });
   };

@@ -127,8 +127,8 @@ export default function PropostaPublica() {
   const [acceptChecked, setAcceptChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const fnUrl = `https://${projectId}.supabase.co/functions/v1/public-proposal`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const fnUrl = `${supabaseUrl}/functions/v1/public-proposal`;
 
   const fetchProposal = useCallback(async () => {
     if (!token) { setState("not_found"); return; }
@@ -400,7 +400,7 @@ export default function PropostaPublica() {
           <div className="flex items-center gap-3 min-w-0">
             {company?.logo_path ? (
               <img
-                src={`https://${projectId}.supabase.co/storage/v1/object/public/company-logos/${company.logo_path}`}
+                src={`${supabaseUrl}/storage/v1/object/public/company-logos/${company.logo_path}`}
                 alt={companyName}
                 className="w-9 h-9 rounded-xl object-contain shrink-0"
               />
@@ -625,7 +625,7 @@ export default function PropostaPublica() {
                   <div className="flex items-center gap-3">
                     {company.logo_path ? (
                       <img
-                        src={`https://${projectId}.supabase.co/storage/v1/object/public/company-logos/${company.logo_path}`}
+                        src={`${supabaseUrl}/storage/v1/object/public/company-logos/${company.logo_path}`}
                         alt={companyName}
                         className="w-12 h-12 rounded-lg object-contain"
                       />

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useApp } from "@/contexts/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { gerarPDFProposta } from "@/lib/pdfGenerator";
+import { gerarPDFPropostaComDados } from "@/lib/pdfGenerator";
 import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Clock, Handshake, MessageCircle } from "lucide-react";
 import { Proposta, SistemaProposta, FluxoPagamento, StatusVisualizacao, StatusAceite, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ export default function PropostaDetalhe() {
   const navigate = useNavigate();
   const { propostas, crmConfig, loading, updateProposta, cloneProposta, getProposta } = usePropostas();
   const { clientes } = useApp();
+  const { profile } = useAuth();
   const { sistemas } = useParametros();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
 
@@ -121,8 +123,9 @@ export default function PropostaDetalhe() {
     toast({ title: "Mensagem copiada!" });
   };
 
-  const handlePDF = () => {
-    gerarPDFProposta({ ...proposta, ...form } as Proposta, crmConfig);
+  const handlePDF = async () => {
+    if (!profile?.org_id) return;
+    await gerarPDFPropostaComDados({ ...proposta, ...form } as Proposta, profile.org_id);
     updateProposta(proposta.id, { pdfGeradoEm: new Date().toISOString() }, "PDF gerado");
     toast({ title: "PDF gerado!" });
   };
