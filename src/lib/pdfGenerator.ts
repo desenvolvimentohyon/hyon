@@ -327,6 +327,67 @@ export function generateProposalPDF(
 
 // Legacy wrapper for internal use (PropostaDetalhe still uses old types)
 import { Proposta, CRMConfig } from "@/types/propostas";
+import { supabase } from "@/integrations/supabase/client";
+
+export async function gerarPDFPropostaComDados(proposta: Proposta, orgId: string) {
+  // Fetch company_profile from DB
+  const { data: cp } = await supabase
+    .from("company_profile")
+    .select("trade_name, legal_name, cnpj, phone, email, website, whatsapp, logo_path, primary_color, secondary_color, footer_text, institutional_text, address_street, address_number, address_neighborhood, address_city, address_uf, address_cep")
+    .eq("org_id", orgId)
+    .maybeSingle();
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const logoUrl = cp?.logo_path
+    ? `${supabaseUrl}/storage/v1/object/public/company-logos/${cp.logo_path}`
+    : null;
+
+  generateProposalPDF(
+    {
+      proposalNumber: proposta.numeroProposta,
+      clientName: proposta.clienteNomeSnapshot || "",
+      systemName: proposta.sistema,
+      planName: proposta.planoNome,
+      monthlyValue: proposta.valorMensalidade,
+      implementationValue: proposta.valorImplantacao,
+      implementationFlow: proposta.fluxoPagamentoImplantacao,
+      implementationInstallments: proposta.parcelasImplantacao,
+      sentAt: proposta.dataEnvio,
+      validUntil: proposta.dataValidade,
+      additionalInfo: proposta.informacoesAdicionais,
+      acceptedAt: null,
+      acceptedByName: null,
+      acceptanceStatus: proposta.statusAceite,
+      items: proposta.itens.map((i) => ({
+        description: i.descricao,
+        quantity: i.quantidade,
+        unitValue: i.valor,
+      })),
+    },
+    {
+      tradeName: cp?.trade_name || null,
+      legalName: cp?.legal_name || null,
+      cnpj: cp?.cnpj || null,
+      phone: cp?.phone || null,
+      email: cp?.email || null,
+      website: cp?.website || null,
+      whatsapp: cp?.whatsapp || null,
+      logoUrl,
+      primaryColor: cp?.primary_color || "#3b82f6",
+      secondaryColor: cp?.secondary_color || "#10b981",
+      footerText: cp?.footer_text || null,
+      institutionalText: cp?.institutional_text || null,
+      addressStreet: cp?.address_street || null,
+      addressNumber: cp?.address_number || null,
+      addressNeighborhood: cp?.address_neighborhood || null,
+      addressCity: cp?.address_city || null,
+      addressUf: cp?.address_uf || null,
+      addressCep: cp?.address_cep || null,
+    }
+  );
+}
+
+/** @deprecated Use gerarPDFPropostaComDados instead */
 export function gerarPDFProposta(proposta: Proposta, config: CRMConfig) {
   generateProposalPDF(
     {
