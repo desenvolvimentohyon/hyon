@@ -1,37 +1,35 @@
 
 
-## Plano: Corrigir página pública da proposta (link, logo, informações da empresa)
+## Plano: Melhorar PDF da proposta e corrigir link público
 
-### Problema raiz
-O link copiado aponta para `/aceite/PROP-2026-XXXX`, que usa o componente `AceiteProposta` (uma página simples do contexto). A página rica `PropostaPublica` fica em `/proposta/:token`, mas o `acceptance_link` armazenado no banco é `/aceite/PROP-2026-XXXX`, então a edge function nunca encontra a proposta quando acessada via `/proposta/`.
+### Problemas identificados
+1. **PDF sem dados da empresa**: A função `gerarPDFProposta` (usada em PropostaDetalhe e Propostas) passa `cnpj: null`, `logoUrl: null`, `phone: null`, etc. — precisa buscar dados de `company_profile` antes de gerar o PDF
+2. **Link abrindo tela de login**: A rota `/proposta/:token` está corretamente fora do `AuthGate`. O problema pode ser que a página mostra erro/vazio (e o usuário interpreta como redirecionamento ao login), ou que o link copiado contém formato incorreto. Vou adicionar tratamento de erro mais claro e validar o fluxo
 
 ### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/contexts/PropostasContext.tsx` | Mudar `acceptance_link` para armazenar apenas o número da proposta (ex: `PROP-2026-0001`) e mudar `linkAceite` para apontar para `/proposta/{numero}` |
-| `src/pages/Propostas.tsx` | Atualizar link copiado para usar `/proposta/{token}` |
-| `src/pages/PropostaDetalhe.tsx` | Atualizar link copiado para usar `/proposta/{token}` |
-| `supabase/functions/public-proposal/index.ts` | Buscar por `acceptance_link = token` OU `proposal_number = token` para compatibilidade com propostas existentes |
-| `src/pages/PropostaPublica.tsx` | Adicionar logo da empresa no header (imagem real do storage); adicionar seção com dados da empresa (CNPJ, endereço, contato) visível na página |
-| `src/App.tsx` | Remover rota duplicada `/aceite/:numero` do AuthGate (manter apenas no nível raiz); redirecionar `/aceite/:numero` para `/proposta/:numero` |
+| `src/lib/pdfGenerator.ts` | Remover a função `gerarPDFProposta` legada; criar `gerarPDFPropostaComDados` que busca `company_profile` do banco e monta os dados completos (logo, CNPJ, telefone, endereço) |
+| `src/pages/PropostaDetalhe.tsx` | Usar nova função que busca company_profile antes de gerar PDF |
+| `src/pages/Propostas.tsx` | Usar nova função que busca company_profile antes de gerar PDF |
+| `src/pages/PropostaPublica.tsx` | Usar `VITE_SUPABASE_URL` em vez de construir URL manualmente; melhorar tratamento de erros para não mostrar tela vazia |
 
 ### Detalhes técnicos
 
-#### 1. Corrigir armazenamento do acceptance_link
-- `PropostasContext.tsx` linha 127: mudar de `acceptance_link: \`/aceite/${numero}\`` para `acceptance_link: numero`
-- Linha 24: mudar `linkAceite` para `/proposta/${r.acceptance_link || r.proposal_number}`
+#### 1. Nova função de geração de PDF com dados da empresa
+Criar função assíncrona `gerarPDFPropostaComDados(proposta, orgId)` que:
+- Busca `company_profile` do Supabase filtrando por `org_id`
+- Constrói a URL pública do logo: `${VITE_SUPABASE_URL}/storage/v1/object/public/company-logos/${logo_path}`
+- Passa todos os campos (cnpj, telefone, email, endereço, etc.) para `generateProposalPDF`
+- Mantém `generateProposalPDF` como função base inalterada
 
-#### 2. Edge function: busca flexível
-- Alterar a query para buscar por `acceptance_link` OU `proposal_number` para funcionar com propostas antigas e novas
+#### 2. Atualizar chamadas nas páginas internas
+- `PropostaDetalhe.tsx` e `Propostas.tsx`: trocar `gerarPDFProposta(p, crmConfig)` por `await gerarPDFPropostaComDados(p, orgId)`
+- Tornar `handlePDF` async
 
-#### 3. Logo real no header da página pública
-- No header (linha 400-406), substituir o quadrado colorido com inicial por uma `<img>` quando `company.logo_path` existir, usando URL pública do bucket `company-logos`
-
-#### 4. Seção de informações da empresa
-- Adicionar bloco visual entre o hero e o pricing card com: logo grande, nome da empresa, CNPJ, endereço formatado, telefone, email, site
-- Usar o `institutional_text` se disponível
-
-#### 5. Redirecionar /aceite para /proposta
-- No `App.tsx`, trocar a rota `/aceite/:numero` para fazer redirect para `/proposta/:numero`
+#### 3. Corrigir acesso à página pública
+- Usar `import.meta.env.VITE_SUPABASE_URL` (que já está no .env) em vez de construir a URL com `VITE_SUPABASE_PROJECT_ID`
+- Adicionar fallback e mensagem de erro mais clara quando a fetch falha
+- Garantir que a página não mostra tela em branco — exibir mensagem de "Proposta não encontrada" com visual adequado
 
