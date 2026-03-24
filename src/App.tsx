@@ -153,7 +153,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/aceite/:numero" element={<AceiteProposta />} />
+            <Route path="/aceite/:numero" element={<AceiteRedirect />} />
             <Route path="/proposta/:token" element={<PropostaPublica />} />
             <Route path="/portal/:token" element={<PortalCliente />} />
             <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
