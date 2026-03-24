@@ -29,16 +29,30 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method === "GET" || action === "view") {
-      // Fetch proposal by acceptance_link token
-      const { data: proposal, error } = await supabase
-        .from("proposals")
-        .select(
-          "id, proposal_number, client_name_snapshot, system_name, plan_name, monthly_value, implementation_value, implementation_flow, implementation_installments, valid_days, valid_until, acceptance_status, view_status, additional_info, first_viewed_at, views_count, accepted_at, accepted_by_name, created_at, sent_at"
-        )
-        .eq("acceptance_link", token)
-        .single();
+      // Fetch proposal by acceptance_link or proposal_number (backward compat)
+      const selectFields = "id, proposal_number, client_name_snapshot, system_name, plan_name, monthly_value, implementation_value, implementation_flow, implementation_installments, valid_days, valid_until, acceptance_status, view_status, additional_info, first_viewed_at, views_count, accepted_at, accepted_by_name, created_at, sent_at";
 
-      if (error || !proposal) {
+      let proposal = null;
+      let error = null;
+
+      // Try acceptance_link first
+      const r1 = await supabase.from("proposals").select(selectFields).eq("acceptance_link", token).maybeSingle();
+      if (r1.data) {
+        proposal = r1.data;
+      } else {
+        // Fallback: search by proposal_number
+        const r2 = await supabase.from("proposals").select(selectFields).eq("proposal_number", token).maybeSingle();
+        if (r2.data) {
+          proposal = r2.data;
+        } else {
+          // Fallback: old format /aceite/PROP-...
+          const r3 = await supabase.from("proposals").select(selectFields).eq("acceptance_link", `/aceite/${token}`).maybeSingle();
+          proposal = r3.data;
+          error = r3.error;
+        }
+      }
+
+      if (!proposal) {
         return new Response(
           JSON.stringify({ error: "Proposta não encontrada" }),
           {
@@ -102,14 +116,22 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json();
 
-      // Find proposal
-      const { data: proposal, error } = await supabase
-        .from("proposals")
-        .select("id, acceptance_status")
-        .eq("acceptance_link", token)
-        .single();
+      // Find proposal (flexible lookup)
+      let proposal = null;
+      const r1 = await supabase.from("proposals").select("id, acceptance_status").eq("acceptance_link", token).maybeSingle();
+      if (r1.data) {
+        proposal = r1.data;
+      } else {
+        const r2 = await supabase.from("proposals").select("id, acceptance_status").eq("proposal_number", token).maybeSingle();
+        if (r2.data) {
+          proposal = r2.data;
+        } else {
+          const r3 = await supabase.from("proposals").select("id, acceptance_status").eq("acceptance_link", `/aceite/${token}`).maybeSingle();
+          proposal = r3.data;
+        }
+      }
 
-      if (error || !proposal) {
+      if (!proposal) {
         return new Response(
           JSON.stringify({ error: "Proposta não encontrada" }),
           {

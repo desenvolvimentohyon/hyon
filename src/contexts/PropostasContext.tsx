@@ -21,7 +21,7 @@ function dbToProposta(r: any): Proposta {
     dataValidade: r.valid_until, statusCRM: r.crm_status || "Rascunho",
     statusVisualizacao: r.view_status || "nao_enviado",
     statusAceite: r.acceptance_status || "pendente",
-    linkAceite: r.acceptance_link || "", pdfGeradoEm: r.pdf_generated_at,
+    linkAceite: `/proposta/${r.acceptance_link || r.proposal_number}`, pdfGeradoEm: r.pdf_generated_at,
     observacoesInternas: r.notes_internal || "",
     informacoesAdicionais: r.additional_info || "",
     itens: items, historico: [],
@@ -124,7 +124,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         valid_days: p.validadeDias, crm_status: p.statusCRM || "Rascunho",
         view_status: p.statusVisualizacao || "nao_enviado",
         acceptance_status: p.statusAceite || "pendente",
-        acceptance_link: `/aceite/${numero}`,
+        acceptance_link: numero,
         notes_internal: p.observacoesInternas, additional_info: p.informacoesAdicionais,
         partner_id: p.partnerId || null,
         partner_commission_percent: p.partnerCommissionPercent || null,
@@ -286,7 +286,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         implementation_value: original.valorImplantacao,
         implementation_flow: original.fluxoPagamentoImplantacao,
         implementation_installments: original.parcelasImplantacao,
-        valid_days: original.validadeDias, acceptance_link: `/aceite/${numero}`,
+        valid_days: original.validadeDias, acceptance_link: numero,
         notes_internal: original.observacoesInternas, additional_info: original.informacoesAdicionais,
       }).select().single();
       if (error) { toast.error("Erro ao clonar proposta"); return; }

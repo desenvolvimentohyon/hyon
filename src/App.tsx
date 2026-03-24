@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { PropostasProvider } from "@/contexts/PropostasContext";
@@ -32,6 +32,12 @@ import PropostaDetalhe from "./pages/PropostaDetalhe";
 import PropostaInteligente from "./pages/PropostaInteligente";
 import CRM from "./pages/CRM";
 import AceiteProposta from "./pages/AceiteProposta";
+
+function AceiteRedirect() {
+  const { numero } = useParams<{ numero: string }>();
+  return <Navigate to={`/proposta/${numero}`} replace />;
+}
+
 import PropostaPublica from "./pages/PropostaPublica";
 import UsuariosConfig from "./pages/UsuariosConfig";
 
@@ -133,7 +139,7 @@ function AuthGate() {
                     <Route path="/financeiro/relatorios" element={<Relatorios />} />
                     <Route path="/financeiro/configuracoes" element={<ConfiguracoesFinanceiras />} />
                   </Route>
-                  <Route path="/aceite/:numero" element={<AceiteProposta />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </FinanceiroProvider>
@@ -153,7 +159,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/aceite/:numero" element={<AceiteProposta />} />
+            <Route path="/aceite/:numero" element={<AceiteRedirect />} />
             <Route path="/proposta/:token" element={<PropostaPublica />} />
             <Route path="/portal/:token" element={<PortalCliente />} />
             <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
