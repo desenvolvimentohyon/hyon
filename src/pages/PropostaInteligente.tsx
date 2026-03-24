@@ -157,6 +157,7 @@ export default function PropostaInteligente() {
     descontoValor: calc.descontoValor,
     descontoManualPercent,
     descontoManualValor: calc.descontoManualValor,
+    descontoManualReais: calc.descontoManualReais,
     mensalidadeBase: calc.mensalidadeBase,
     mensalidadeFinal: calc.mensalidadeFinal,
     implantacaoKm: distanciaKm,
@@ -165,6 +166,10 @@ export default function PropostaInteligente() {
     implantacaoRegiaoValor: calc.implRegiao,
     implantacaoDiarias: dias,
     implantacaoDiariasValor: calc.implDiarias,
+    implantacaoBruto: calc.implantacaoBruto,
+    descontoImplPercent,
+    descontoImplPercentVal: calc.descontoImplPercentVal,
+    descontoImplReais: calc.descontoImplReais,
     implantacaoTotal: calc.implantacaoTotal,
     parceiroNome: parceiro?.name || "",
     comissaoImplantacao: calc.comissaoImpl,
@@ -172,7 +177,7 @@ export default function PropostaInteligente() {
     formaPagamento: formaPag?.nome || "",
     fluxoImplantacao,
     parcelasImplantacao,
-  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao, descontoManualPercent]);
+  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
 
   const handleToggleModulo = useCallback((id: string) => {
     setModuloIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
