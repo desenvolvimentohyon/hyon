@@ -165,6 +165,10 @@ export default function Tarefas() {
   const [sistemaDetectado, setSistemaDetectado] = useState<string | null>(null);
   const [nomeClienteAvulso, setNomeClienteAvulso] = useState("");
   const [novoObservacoes, setNovoObservacoes] = useState("");
+  const [novoClienteNome, setNovoClienteNome] = useState("");
+  const [novoClienteTelefone, setNovoClienteTelefone] = useState("");
+  const [novoClienteEmail, setNovoClienteEmail] = useState("");
+  const [novoClienteCidade, setNovoClienteCidade] = useState("");
   const [fotosFiles, setFotosFiles] = useState<File[]>([]);
   const [fotosPreview, setFotosPreview] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
