@@ -88,23 +88,21 @@ export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props)
               <span>{fmt(data.mensalidadeBase)}</span>
             </div>
             {data.descontoPercent > 0 && (
-              <>
-                <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                  <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> Desconto {data.planoNome} ({data.descontoPercent}%)</span>
-                  <span>-{fmt(data.descontoValor)}</span>
-                </div>
-                <div className="flex justify-between font-semibold">
-                  <span>Mensalidade final</span>
-                  <span className="text-primary">{fmt(data.mensalidadeFinal)}</span>
-                </div>
-              </>
-            )}
-            {data.descontoPercent === 0 && (
-              <div className="flex justify-between font-semibold">
-                <span>Mensalidade final</span>
-                <span className="text-primary">{fmt(data.mensalidadeFinal)}</span>
+              <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> Desconto {data.planoNome} ({data.descontoPercent}%)</span>
+                <span>-{fmt(data.descontoValor)}</span>
               </div>
             )}
+            {data.descontoManualPercent > 0 && (
+              <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> Desconto adicional ({data.descontoManualPercent}%)</span>
+                <span>-{fmt(data.descontoManualValor)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-semibold">
+              <span>Mensalidade final</span>
+              <span className="text-primary">{fmt(data.mensalidadeFinal)}</span>
+            </div>
           </div>
 
           <Separator />
