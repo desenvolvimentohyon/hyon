@@ -476,11 +476,12 @@ export default function Tarefas() {
               </div>
               <div>
                 <Label>Cliente</Label>
-                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "avulso") setNomeClienteAvulso(""); }}>
+                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "avulso") setNomeClienteAvulso(""); if (v !== "novo") { setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade(""); } }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="null">Avulsa</SelectItem>
                     <SelectItem value="avulso">Cliente Avulso</SelectItem>
+                    <SelectItem value="novo">➕ Cadastrar novo cliente</SelectItem>
                     {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
