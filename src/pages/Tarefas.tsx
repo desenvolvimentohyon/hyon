@@ -277,7 +277,7 @@ export default function Tarefas() {
     });
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
-    setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
+    setNovoTitulo(""); setNovoDesc(""); setNovoCliente(""); setNovoPrazo(""); setNovoTags("");
     setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
     setNovoObservacoes(""); setFotosFiles([]); setFotosPreview([]);
     setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade("");
