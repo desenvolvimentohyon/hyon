@@ -116,14 +116,22 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json();
 
-      // Find proposal
-      const { data: proposal, error } = await supabase
-        .from("proposals")
-        .select("id, acceptance_status")
-        .eq("acceptance_link", token)
-        .single();
+      // Find proposal (flexible lookup)
+      let proposal = null;
+      const r1 = await supabase.from("proposals").select("id, acceptance_status").eq("acceptance_link", token).maybeSingle();
+      if (r1.data) {
+        proposal = r1.data;
+      } else {
+        const r2 = await supabase.from("proposals").select("id, acceptance_status").eq("proposal_number", token).maybeSingle();
+        if (r2.data) {
+          proposal = r2.data;
+        } else {
+          const r3 = await supabase.from("proposals").select("id, acceptance_status").eq("acceptance_link", `/aceite/${token}`).maybeSingle();
+          proposal = r3.data;
+        }
+      }
 
-      if (error || !proposal) {
+      if (!proposal) {
         return new Response(
           JSON.stringify({ error: "Proposta não encontrada" }),
           {

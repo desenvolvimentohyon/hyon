@@ -286,7 +286,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         implementation_value: original.valorImplantacao,
         implementation_flow: original.fluxoPagamentoImplantacao,
         implementation_installments: original.parcelasImplantacao,
-        valid_days: original.validadeDias, acceptance_link: `/aceite/${numero}`,
+        valid_days: original.validadeDias, acceptance_link: numero,
         notes_internal: original.observacoesInternas, additional_info: original.informacoesAdicionais,
       }).select().single();
       if (error) { toast.error("Erro ao clonar proposta"); return; }

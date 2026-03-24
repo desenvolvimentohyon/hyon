@@ -398,12 +398,20 @@ export default function PropostaPublica() {
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
-              style={{ backgroundColor: primaryColor }}
-            >
-              {companyName.charAt(0)}
-            </div>
+            {company?.logo_path ? (
+              <img
+                src={`https://${projectId}.supabase.co/storage/v1/object/public/company-logos/${company.logo_path}`}
+                alt={companyName}
+                className="w-9 h-9 rounded-xl object-contain shrink-0"
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {companyName.charAt(0)}
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-sm font-semibold truncate">{companyName}</p>
               <p className="text-[11px] text-muted-foreground truncate">
