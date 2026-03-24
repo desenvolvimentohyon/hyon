@@ -22,7 +22,7 @@ import { PropostaComparador } from "@/components/propostas/PropostaComparador";
 import { PropostaSugestoes } from "@/components/propostas/PropostaSugestoes";
 import { ConsultoraComercialIA } from "@/components/propostas/ConsultoraComercialIA";
 
-import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText } from "lucide-react";
+import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText, Plus } from "lucide-react";
 
 interface Partner {
   id: string;
@@ -50,7 +50,7 @@ interface CompanyImpl {
 export default function PropostaInteligente() {
   const navigate = useNavigate();
   const { addProposta, crmConfig } = usePropostas();
-  const { clientes } = useApp();
+  const { clientes, addCliente } = useApp();
   const { sistemas, modulos, planos, formasPagamento } = useParametros();
 
   // External data
@@ -72,6 +72,12 @@ export default function PropostaInteligente() {
   const [fluxoImplantacao, setFluxoImplantacao] = useState<"a_vista" | "parcelado">("a_vista");
   const [parcelasImplantacao, setParcelasImplantacao] = useState(2);
   const [observacoes, setObservacoes] = useState(crmConfig.informacoesAdicionaisPadrao || "");
+
+  // Novo cliente inline
+  const [novoClienteNome, setNovoClienteNome] = useState("");
+  const [novoClienteTelefone, setNovoClienteTelefone] = useState("");
+  const [novoClienteEmail, setNovoClienteEmail] = useState("");
+  const [novoClienteCidade, setNovoClienteCidade] = useState("");
 
   // Fetch external data on mount
   useEffect(() => {
@@ -173,8 +179,26 @@ export default function PropostaInteligente() {
       toast.error("Selecione um sistema para gerar a proposta.");
       return;
     }
+    if (clienteId === "novo" && !novoClienteNome.trim()) {
+      toast.error("Informe o nome do novo cliente.");
+      return;
+    }
     setGerando(true);
     try {
+      let finalClienteId = clienteId;
+      let finalClienteNome = cliente?.nome || "";
+
+      // Criar novo cliente se necessário
+      if (clienteId === "novo") {
+        addCliente({
+          nome: novoClienteNome.trim(),
+          telefone: novoClienteTelefone.trim() || undefined,
+          email: novoClienteEmail.trim() || undefined,
+        });
+        finalClienteId = "";
+        finalClienteNome = novoClienteNome.trim();
+      }
+
       const itens = [
         { id: crypto.randomUUID(), descricao: `Sistema: ${sistema?.nome}`, quantidade: 1, valor: calc.sistemaValor },
         ...modulosSelecionados.map(m => ({
@@ -183,8 +207,8 @@ export default function PropostaInteligente() {
       ];
 
       addProposta({
-        clienteId: clienteId || null,
-        clienteNomeSnapshot: cliente?.nome || "",
+        clienteId: finalClienteId || null,
+        clienteNomeSnapshot: finalClienteNome,
         sistema: (sistema?.nome || "OUTRO") as any,
         planoNome: plano?.nomePlano || "",
         valorMensalidade: calc.mensalidadeFinal,
@@ -223,7 +247,7 @@ export default function PropostaInteligente() {
     } finally {
       setGerando(false);
     }
-  }, [sistemaId, sistema, clienteId, cliente, plano, calc, modulosSelecionados, fluxoImplantacao, parcelasImplantacao, observacoes, parceiroId, parceiro, crmConfig, addProposta, navigate]);
+  }, [sistemaId, sistema, clienteId, cliente, plano, calc, modulosSelecionados, fluxoImplantacao, parcelasImplantacao, observacoes, parceiroId, parceiro, crmConfig, addProposta, addCliente, navigate, novoClienteNome, novoClienteTelefone, novoClienteEmail]);
 
   const sistemasAtivos = useMemo(() => sistemas.filter(s => s.ativo), [sistemas]);
   const modulosDoSistema = useMemo(() => modulos.filter(m => m.ativo && m.sistemaId === sistemaId), [modulos, sistemaId]);
@@ -250,13 +274,38 @@ export default function PropostaInteligente() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2"><User className="h-4 w-4 text-blue-500" /> Cliente</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <Select value={clienteId} onValueChange={setClienteId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[140px]">
+                  <SelectItem value="novo">
+                    <span className="flex items-center gap-1 text-primary font-medium">
+                      <Plus className="h-3.5 w-3.5" /> Cadastrar novo cliente
+                    </span>
+                  </SelectItem>
                   {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {clienteId === "novo" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Nome *</Label>
+                    <Input placeholder="Nome do cliente" value={novoClienteNome} onChange={e => setNovoClienteNome(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Telefone</Label>
+                    <Input placeholder="(00) 00000-0000" value={novoClienteTelefone} onChange={e => setNovoClienteTelefone(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Email</Label>
+                    <Input placeholder="email@exemplo.com" value={novoClienteEmail} onChange={e => setNovoClienteEmail(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Cidade</Label>
+                    <Input placeholder="Cidade" value={novoClienteCidade} onChange={e => setNovoClienteCidade(e.target.value)} />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
