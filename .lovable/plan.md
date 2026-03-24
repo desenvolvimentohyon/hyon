@@ -1,15 +1,8 @@
 
 
-## Plano: Simplificar aba Custos Operacionais
+## Plano: Renomear label "Total venda geral" para "Total sugerido de venda"
 
-### Mudanças em `src/components/clientes/tabs/TabCusto.tsx`
+### Editar: `src/components/clientes/tabs/TabModulos.tsx` (linha 217)
 
-1. **Remover campo "Custo repasse/franquia"** (linha 76) — não será mais usado no cálculo
-2. **Remover campo "Custo cloud/infra"** (linha 86) — eliminar campo e variável `custoCloud`
-3. **Adicionar campo de observação** ao lado de "Outros custos" — um `Textarea` para o usuário descrever o que compõe os outros custos (salvo em `meta.outrosCustosObs`)
-4. **Ajustar cálculo do total**: `totalCusto = custoModulos + outrosCustos` (sem `costValue` e sem `custoCloud`)
-
-| Arquivo | Mudança |
-|---------|------|
-| `src/components/clientes/tabs/TabCusto.tsx` | Remover repasse/franquia e cloud/infra, adicionar observação em outros custos, ajustar cálculo |
+Trocar o texto `Total venda geral:` por `Total sugerido de venda:`.
 
