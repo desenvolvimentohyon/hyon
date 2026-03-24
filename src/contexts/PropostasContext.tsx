@@ -21,7 +21,7 @@ function dbToProposta(r: any): Proposta {
     dataValidade: r.valid_until, statusCRM: r.crm_status || "Rascunho",
     statusVisualizacao: r.view_status || "nao_enviado",
     statusAceite: r.acceptance_status || "pendente",
-    linkAceite: `/proposta/${r.acceptance_link || r.proposal_number}`, pdfGeradoEm: r.pdf_generated_at,
+    linkAceite: `/proposta/${r.proposal_number}`, pdfGeradoEm: r.pdf_generated_at,
     observacoesInternas: r.notes_internal || "",
     informacoesAdicionais: r.additional_info || "",
     itens: items, historico: [],
