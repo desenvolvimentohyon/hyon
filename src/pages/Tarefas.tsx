@@ -265,7 +265,7 @@ export default function Tarefas() {
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
       clienteId: clienteIdFinal,
-      nomeClienteAvulso: novoCliente === "avulso" ? nomeClienteAvulso.trim() || undefined : undefined,
+      nomeClienteAvulso: undefined,
       responsavelId: novoResponsavel, prioridade: novoPrioridade, status: "a_fazer",
       prazoDataHora: novoPrazo || undefined,
       tags: novoTags.split(",").map(t => t.trim()).filter(Boolean),
