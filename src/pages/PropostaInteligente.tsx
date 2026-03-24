@@ -72,6 +72,9 @@ export default function PropostaInteligente() {
   const [fluxoImplantacao, setFluxoImplantacao] = useState<"a_vista" | "parcelado">("a_vista");
   const [parcelasImplantacao, setParcelasImplantacao] = useState(2);
   const [descontoManualPercent, setDescontoManualPercent] = useState(0);
+  const [descontoManualReais, setDescontoManualReais] = useState(0);
+  const [descontoImplPercent, setDescontoImplPercent] = useState(0);
+  const [descontoImplReais, setDescontoImplReais] = useState(0);
   const [observacoes, setObservacoes] = useState(crmConfig.informacoesAdicionaisPadrao || "");
 
   // Novo cliente inline
@@ -95,15 +98,10 @@ export default function PropostaInteligente() {
     });
   }, []);
 
-  // Auto-select all active modules for selected system
+  // Clear modules when system changes (don't auto-select)
   useEffect(() => {
-    if (sistemaId) {
-      const systemModules = modulos.filter(m => m.ativo && m.sistemaId === sistemaId);
-      setModuloIds(systemModules.map(m => m.id));
-    } else {
-      setModuloIds([]);
-    }
-  }, [sistemaId, modulos]);
+    setModuloIds([]);
+  }, [sistemaId]);
 
   // Derived calculations
   const sistema = useMemo(() => sistemas.find(s => s.id === sistemaId), [sistemas, sistemaId]);
@@ -119,19 +117,21 @@ export default function PropostaInteligente() {
   );
 
   const calc = useMemo(() => {
-    const sistemaValor = 0; // valor do sistema não entra no cálculo — mensalidade é a soma dos módulos
+    const sistemaValor = 0;
     const modulosValor = modulosSelecionados.reduce((sum, m) => sum + m.valorVenda, 0);
     const mensalidadeBase = modulosValor;
     const descontoPercent = plano?.descontoPercentual || 0;
     const descontoValor = mensalidadeBase * (descontoPercent / 100);
     const valorAposPlano = mensalidadeBase - descontoValor;
     const descontoManualValor = valorAposPlano * (descontoManualPercent / 100);
-    const mensalidadeFinal = valorAposPlano - descontoManualValor;
+    const mensalidadeFinal = Math.max(0, valorAposPlano - descontoManualValor - descontoManualReais);
 
     const implKm = distanciaKm * companyImpl.impl_cost_per_km;
     const implRegiao = regiao ? regiao.base_value + regiao.additional_fee : 0;
     const implDiarias = dias * companyImpl.impl_daily_rate;
-    const implantacaoTotal = implKm + implRegiao + implDiarias;
+    const implantacaoBruto = implKm + implRegiao + implDiarias;
+    const descontoImplPercentVal = implantacaoBruto * (descontoImplPercent / 100);
+    const implantacaoTotal = Math.max(0, implantacaoBruto - descontoImplPercentVal - descontoImplReais);
 
     const comissaoImpl = parceiro && parceiro.commission_implant_percent
       ? implantacaoTotal * (parceiro.commission_implant_percent / 100)
@@ -142,11 +142,11 @@ export default function PropostaInteligente() {
 
     return {
       sistemaValor, modulosValor, mensalidadeBase,
-      descontoPercent, descontoValor, descontoManualValor, mensalidadeFinal,
-      implKm, implRegiao, implDiarias, implantacaoTotal,
+      descontoPercent, descontoValor, descontoManualValor, descontoManualReais, mensalidadeFinal,
+      implKm, implRegiao, implDiarias, implantacaoBruto, descontoImplPercentVal, descontoImplReais, implantacaoTotal,
       comissaoImpl, comissaoRecur,
     };
-  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro, descontoManualPercent]);
+  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
 
   const resumoData = useMemo(() => ({
     sistemaNome: sistema?.nome || "",
@@ -157,6 +157,7 @@ export default function PropostaInteligente() {
     descontoValor: calc.descontoValor,
     descontoManualPercent,
     descontoManualValor: calc.descontoManualValor,
+    descontoManualReais: calc.descontoManualReais,
     mensalidadeBase: calc.mensalidadeBase,
     mensalidadeFinal: calc.mensalidadeFinal,
     implantacaoKm: distanciaKm,
@@ -165,6 +166,10 @@ export default function PropostaInteligente() {
     implantacaoRegiaoValor: calc.implRegiao,
     implantacaoDiarias: dias,
     implantacaoDiariasValor: calc.implDiarias,
+    implantacaoBruto: calc.implantacaoBruto,
+    descontoImplPercent,
+    descontoImplPercentVal: calc.descontoImplPercentVal,
+    descontoImplReais: calc.descontoImplReais,
     implantacaoTotal: calc.implantacaoTotal,
     parceiroNome: parceiro?.name || "",
     comissaoImplantacao: calc.comissaoImpl,
@@ -172,7 +177,7 @@ export default function PropostaInteligente() {
     formaPagamento: formaPag?.nome || "",
     fluxoImplantacao,
     parcelasImplantacao,
-  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao, descontoManualPercent]);
+  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
 
   const handleToggleModulo = useCallback((id: string) => {
     setModuloIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -372,18 +377,30 @@ export default function PropostaInteligente() {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Desconto adicional (%)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={descontoManualPercent || ""}
-                  onChange={e => setDescontoManualPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
-                  placeholder="0"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto adicional (%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={descontoManualPercent || ""}
+                    onChange={e => setDescontoManualPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto adicional (R$)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={descontoManualReais || ""}
+                    onChange={e => setDescontoManualReais(Math.max(0, Number(e.target.value) || 0))}
+                    placeholder="0,00"
+                  />
+                </div>
               </div>
-              {(calc.descontoPercent > 0 || descontoManualPercent > 0) && calc.mensalidadeBase > 0 && (
+              {(calc.descontoPercent > 0 || descontoManualPercent > 0 || descontoManualReais > 0) && calc.mensalidadeBase > 0 && (
                 <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 p-3 text-sm space-y-1">
                   <div className="flex justify-between"><span className="text-muted-foreground">Valor original</span><span className="line-through">R$ {calc.mensalidadeBase.toFixed(2)}</span></div>
                   {calc.descontoPercent > 0 && (
@@ -391,6 +408,9 @@ export default function PropostaInteligente() {
                   )}
                   {descontoManualPercent > 0 && (
                     <div className="flex justify-between text-emerald-600 dark:text-emerald-400"><span>Desconto adicional ({descontoManualPercent}%)</span><span>-R$ {calc.descontoManualValor.toFixed(2)}</span></div>
+                  )}
+                  {descontoManualReais > 0 && (
+                    <div className="flex justify-between text-emerald-600 dark:text-emerald-400"><span>Desconto adicional (R$)</span><span>-R$ {descontoManualReais.toFixed(2)}</span></div>
                   )}
                   <Separator />
                   <div className="flex justify-between font-semibold"><span>Valor final</span><span className="text-primary">R$ {calc.mensalidadeFinal.toFixed(2)}</span></div>
@@ -431,6 +451,29 @@ export default function PropostaInteligente() {
                 <div className="space-y-1.5">
                   <Label className="text-xs">Dias</Label>
                   <Input type="number" min={1} value={dias} onChange={e => setDias(Number(e.target.value) || 1)} />
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto implantação (%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={descontoImplPercent || ""}
+                    onChange={e => setDescontoImplPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Desconto implantação (R$)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={descontoImplReais || ""}
+                    onChange={e => setDescontoImplReais(Math.max(0, Number(e.target.value) || 0))}
+                    placeholder="0,00"
+                  />
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">

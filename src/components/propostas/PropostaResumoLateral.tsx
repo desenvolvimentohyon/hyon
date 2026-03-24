@@ -13,6 +13,7 @@ interface ResumoData {
   descontoValor: number;
   descontoManualPercent: number;
   descontoManualValor: number;
+  descontoManualReais: number;
   mensalidadeBase: number;
   mensalidadeFinal: number;
   implantacaoKm: number;
@@ -21,6 +22,10 @@ interface ResumoData {
   implantacaoRegiaoValor: number;
   implantacaoDiarias: number;
   implantacaoDiariasValor: number;
+  implantacaoBruto: number;
+  descontoImplPercent: number;
+  descontoImplPercentVal: number;
+  descontoImplReais: number;
   implantacaoTotal: number;
   parceiroNome: string;
   comissaoImplantacao: number;
@@ -59,7 +64,6 @@ export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props)
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">{data.sistemaNome}</span>
-                <span>{fmt(data.sistemaValor)}</span>
               </div>
             </div>
           )}
@@ -99,6 +103,12 @@ export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props)
                 <span>-{fmt(data.descontoManualValor)}</span>
               </div>
             )}
+            {data.descontoManualReais > 0 && (
+              <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> Desconto adicional (R$)</span>
+                <span>-{fmt(data.descontoManualReais)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-semibold">
               <span>Mensalidade final</span>
               <span className="text-primary">{fmt(data.mensalidadeFinal)}</span>
@@ -129,6 +139,22 @@ export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props)
                 <span>{data.implantacaoDiarias} diária(s)</span>
                 <span>{fmt(data.implantacaoDiariasValor)}</span>
               </div>
+            )}
+            {(data.descontoImplPercent > 0 || data.descontoImplReais > 0) && (
+              <>
+                {data.descontoImplPercent > 0 && (
+                  <div className="flex justify-between text-xs pl-4 text-emerald-600 dark:text-emerald-400">
+                    <span>Desconto ({data.descontoImplPercent}%)</span>
+                    <span>-{fmt(data.descontoImplPercentVal)}</span>
+                  </div>
+                )}
+                {data.descontoImplReais > 0 && (
+                  <div className="flex justify-between text-xs pl-4 text-emerald-600 dark:text-emerald-400">
+                    <span>Desconto (R$)</span>
+                    <span>-{fmt(data.descontoImplReais)}</span>
+                  </div>
+                )}
+              </>
             )}
             <div className="flex justify-between font-semibold">
               <span>Total implantação</span>
