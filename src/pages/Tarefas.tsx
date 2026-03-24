@@ -426,10 +426,10 @@ export default function Tarefas() {
                       <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-sm">{getTecnico(t.responsavelId)?.nome}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                       {t.prazoDataHora ? new Date(t.prazoDataHora).toLocaleDateString("pt-BR") : "—"}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
+                    <TableCell className="hidden md:table-cell">
                       {isAtrasada(t) ? <Badge variant="destructive" className="text-[10px]">Atrasada</Badge> : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                   </TableRow>
