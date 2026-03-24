@@ -124,7 +124,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         valid_days: p.validadeDias, crm_status: p.statusCRM || "Rascunho",
         view_status: p.statusVisualizacao || "nao_enviado",
         acceptance_status: p.statusAceite || "pendente",
-        acceptance_link: `/aceite/${numero}`,
+        acceptance_link: numero,
         notes_internal: p.observacoesInternas, additional_info: p.informacoesAdicionais,
         partner_id: p.partnerId || null,
         partner_commission_percent: p.partnerCommissionPercent || null,
