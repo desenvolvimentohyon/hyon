@@ -32,6 +32,12 @@ import PropostaDetalhe from "./pages/PropostaDetalhe";
 import PropostaInteligente from "./pages/PropostaInteligente";
 import CRM from "./pages/CRM";
 import AceiteProposta from "./pages/AceiteProposta";
+
+function AceiteRedirect() {
+  const { numero } = useParams<{ numero: string }>();
+  return <Navigate to={`/proposta/${numero}`} replace />;
+}
+
 import PropostaPublica from "./pages/PropostaPublica";
 import UsuariosConfig from "./pages/UsuariosConfig";
 
