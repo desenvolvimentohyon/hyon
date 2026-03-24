@@ -173,7 +173,7 @@ export default function PropostaInteligente() {
     formaPagamento: formaPag?.nome || "",
     fluxoImplantacao,
     parcelasImplantacao,
-  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao]);
+  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao, descontoManualPercent]);
 
   const handleToggleModulo = useCallback((id: string) => {
     setModuloIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
