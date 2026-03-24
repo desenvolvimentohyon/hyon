@@ -621,12 +621,48 @@ export default function PropostaPublica() {
                 <AccordionTrigger className="px-4 text-sm">
                   Sobre a empresa
                 </AccordionTrigger>
-                <AccordionContent className="px-4 text-sm text-muted-foreground space-y-1">
-                  <p className="font-medium text-foreground">{companyName}</p>
-                  {company.email && <p>Email: {company.email}</p>}
+                <AccordionContent className="px-4 text-sm text-muted-foreground space-y-2">
+                  <div className="flex items-center gap-3">
+                    {company.logo_path ? (
+                      <img
+                        src={`https://${projectId}.supabase.co/storage/v1/object/public/company-logos/${company.logo_path}`}
+                        alt={companyName}
+                        className="w-12 h-12 rounded-lg object-contain"
+                      />
+                    ) : null}
+                    <div>
+                      <p className="font-semibold text-foreground">{companyName}</p>
+                      {company.legal_name && company.legal_name !== companyName && (
+                        <p className="text-xs">{company.legal_name}</p>
+                      )}
+                    </div>
+                  </div>
+                  {company.cnpj && <p>CNPJ: {company.cnpj}</p>}
+                  {(company.address_street || company.address_city) && (
+                    <p>
+                      {[company.address_street, company.address_number, company.address_neighborhood, company.address_city, company.address_uf].filter(Boolean).join(", ")}
+                      {company.address_cep ? ` — CEP ${company.address_cep}` : ""}
+                    </p>
+                  )}
                   {company.phone && <p>Telefone: {company.phone}</p>}
-                  {company.website && <p>Site: {company.website}</p>}
-                  {company.footer_text && <p className="pt-1">{company.footer_text}</p>}
+                  {company.email && <p>Email: {company.email}</p>}
+                  {company.website && (
+                    <p>
+                      Site:{" "}
+                      <a
+                        href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        {company.website}
+                      </a>
+                    </p>
+                  )}
+                  {company.institutional_text && (
+                    <p className="pt-1 whitespace-pre-wrap">{company.institutional_text}</p>
+                  )}
+                  {company.footer_text && <p className="pt-1 italic">{company.footer_text}</p>}
                 </AccordionContent>
               </AccordionItem>
             )}
