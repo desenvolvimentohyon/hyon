@@ -155,7 +155,7 @@ export default function Tarefas() {
   // Form state
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novoDesc, setNovoDesc] = useState("");
-  const [novoCliente, setNovoCliente] = useState<string>("null");
+  const [novoCliente, setNovoCliente] = useState<string>("");
   const [novoResponsavel, setNovoResponsavel] = useState(tecnicoAtualId);
   const [novoPrioridade, setNovoPrioridade] = useState<Prioridade>("media");
   const [novoPrazo, setNovoPrazo] = useState("");
@@ -243,7 +243,7 @@ export default function Tarefas() {
         await supabase.from("clients").update({ city: novoClienteCidade.trim() }).eq("id", clienteIdFinal);
       }
     } else {
-      clienteIdFinal = novoCliente === "null" || novoCliente === "avulso" ? null : novoCliente;
+      clienteIdFinal = novoCliente === "" ? null : novoCliente;
     }
 
     // Upload photos
@@ -265,7 +265,7 @@ export default function Tarefas() {
     addTarefa({
       titulo: novoTitulo.trim(), descricao: novoDesc,
       clienteId: clienteIdFinal,
-      nomeClienteAvulso: novoCliente === "avulso" ? nomeClienteAvulso.trim() || undefined : undefined,
+      nomeClienteAvulso: undefined,
       responsavelId: novoResponsavel, prioridade: novoPrioridade, status: "a_fazer",
       prazoDataHora: novoPrazo || undefined,
       tags: novoTags.split(",").map(t => t.trim()).filter(Boolean),
@@ -277,7 +277,7 @@ export default function Tarefas() {
     });
     toast({ title: "Tarefa criada com sucesso!" });
     setShowNova(false);
-    setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
+    setNovoTitulo(""); setNovoDesc(""); setNovoCliente(""); setNovoPrazo(""); setNovoTags("");
     setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
     setNovoObservacoes(""); setFotosFiles([]); setFotosPreview([]);
     setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade("");
@@ -476,18 +476,13 @@ export default function Tarefas() {
               </div>
               <div>
                 <Label>Cliente</Label>
-                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "avulso") setNomeClienteAvulso(""); if (v !== "novo") { setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade(""); } }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={novoCliente} onValueChange={v => { setNovoCliente(v); if (v !== "novo") { setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade(""); } }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="null">Avulsa</SelectItem>
-                    <SelectItem value="avulso">Cliente Avulso</SelectItem>
                     <SelectItem value="novo">➕ Cadastrar novo cliente</SelectItem>
                     {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                {novoCliente === "avulso" && (
-                  <Input className="mt-2" placeholder="Nome do cliente avulso" value={nomeClienteAvulso} onChange={e => setNomeClienteAvulso(e.target.value)} />
-                )}
                 {novoCliente === "novo" && (
                   <div className="mt-2 space-y-2 rounded-md border border-border/60 p-3 bg-muted/30">
                     <div><Input placeholder="Nome do cliente *" value={novoClienteNome} onChange={e => setNovoClienteNome(e.target.value)} /></div>
