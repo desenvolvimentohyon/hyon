@@ -1,33 +1,29 @@
 
 
-## Plano: Corrigir auto-seleção de módulos e adicionar descontos em R$ na mensalidade e implantação
+## Plano: Corrigir input de distância e separar forma de pagamento por seção
 
-### Problemas identificados
-1. **Linha 98-106**: `useEffect` seleciona automaticamente todos os módulos ao trocar de sistema — deveria iniciar sem nenhum selecionado
-2. **Desconto em R$**: só existe desconto em percentual, falta opção de desconto em valor fixo (R$)
-3. **Implantação**: não tem campos de desconto (nem % nem R$)
+### Problemas
+1. **Campo "Distância (km)"**: O zero inicial não apaga ao digitar — usa `value={distanciaKm}` com fallback `|| 0`, impedindo limpar o campo
+2. **Forma de pagamento**: Existe um único seletor no final da página, mas deveria haver um para mensalidade e outro para implantação
 
 ### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/PropostaInteligente.tsx` | 3 mudanças abaixo |
+| `src/pages/PropostaInteligente.tsx` | Corrigir inputs numéricos e separar forma de pagamento |
 
-#### 1. Remover auto-seleção de módulos
-Alterar o `useEffect` (linhas 98-106) para apenas limpar os módulos ao trocar de sistema, sem selecionar nenhum automaticamente.
+#### 1. Corrigir inputs numéricos (distância e dias)
+- Usar `value={distanciaKm || ""}` para permitir apagar o zero
+- Mesmo tratamento para o campo de dias: `value={dias || ""}` com fallback para 0
+- Padrão: campo vazio = 0 no estado, mas exibe vazio no input
 
-#### 2. Adicionar desconto em R$ na mensalidade
-- Novo estado `descontoManualReais` (default 0)
-- Novo campo na seção "Plano e Desconto" ao lado do campo de percentual: "Desconto adicional (R$)"
-- Cálculo: `mensalidadeFinal = valorAposPlano - descontoManualValor(%) - descontoManualReais`
-- Quando o usuário preenche um, o outro se mantém (são acumulativos)
+#### 2. Separar forma de pagamento em duas
+- Adicionar estado `formaPagamentoImplId` para forma de pagamento da implantação
+- Mover o seletor atual de forma de pagamento para dentro da seção "Plano e Desconto" (mensalidade)
+- Adicionar novo seletor na seção "Implantação" para forma de pagamento da implantação
+- Remover a card separada "Forma de Pagamento" do final da página
+- Atualizar o resumo lateral para exibir ambas as formas de pagamento
 
-#### 3. Adicionar descontos na seção de Implantação
-- Novos estados `descontoImplPercent` e `descontoImplReais` (default 0)
-- Dois campos na seção de Implantação: "Desconto implantação (%)" e "Desconto implantação (R$)"
-- Cálculo: `implantacaoFinal = implantacaoTotal - descontoImplPercVal - descontoImplReais`
-- Atualizar `calc` para incluir `implantacaoFinal` e usar esse valor na proposta gerada
-
-#### 4. Atualizar resumo lateral
-- Passar novos campos de desconto para `PropostaResumoLateral` e exibir linhas de desconto da implantação
+#### 3. Atualizar resumo lateral
+- `PropostaResumoLateral`: adicionar `formaPagamentoImpl` ao `ResumoData` e exibir separadamente
 
