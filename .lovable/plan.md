@@ -1,20 +1,22 @@
 
 
-## Plano: Limitar altura do select de Cliente e adicionar "Cadastrar novo cliente" na Nova Proposta
+## Plano: Adicionar desconto manual na mensalidade da proposta
 
-### Editar: `src/pages/PropostaInteligente.tsx`
+### Contexto
+O cálculo atual da mensalidade já é dinâmico (sistema + módulos selecionados). O valor de R$600 vem do cadastro do sistema nos parâmetros. O que falta é a possibilidade de aplicar um **desconto manual** na mensalidade, além do desconto automático do plano.
 
-1. **Limitar altura do `SelectContent`** do cliente adicionando `className="max-h-[140px] overflow-y-auto"` — exibe ~3 itens com scroll
-2. **Adicionar opção "➕ Cadastrar novo cliente"** como primeiro item do select (value `"novo"`)
-3. **Adicionar estados** para mini-formulário: `novoClienteNome`, `novoClienteTelefone`, `novoClienteEmail`, `novoClienteCidade`
-4. **Exibir formulário simplificado inline** quando `clienteId === "novo"` com 4 campos: Nome (obrigatório), Telefone, Email, Cidade
-5. **Na submissão da proposta**: se `clienteId === "novo"`, chamar `addCliente` com dados simplificados, vincular o novo ID à proposta
-
-### Detalhes técnicos
+### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/PropostaInteligente.tsx` | Adicionar `max-h` no SelectContent, opção "novo cliente", mini-formulário inline e lógica de criação |
+| `src/pages/PropostaInteligente.tsx` | Adicionar campo de desconto manual (%) na seção "Plano e Desconto" e incluí-lo no cálculo |
+| `src/components/propostas/PropostaResumoLateral.tsx` | Exibir linha do desconto manual no resumo lateral |
 
-Mesmo padrão já implementado no módulo de Tarefas.
+### Detalhes
+
+1. **Novo estado `descontoManualPercent`** (number, default 0) no formulário
+2. **Campo numérico** na seção "Plano e Desconto" com label "Desconto adicional (%)" — permite o usuário inserir um percentual de desconto manual
+3. **Cálculo atualizado**: `mensalidadeFinal = mensalidadeBase - descontoPlano - descontoManual`
+4. **Resumo lateral**: exibir linha separada para desconto manual quando > 0
+5. **Interface `ResumoData`**: adicionar `descontoManualPercent` e `descontoManualValor`
 
