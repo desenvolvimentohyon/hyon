@@ -31,6 +31,7 @@ interface ResumoData {
   comissaoImplantacao: number;
   comissaoRecorrente: number;
   formaPagamento: string;
+  formaPagamentoImpl: string;
   fluxoImplantacao: string;
   parcelasImplantacao: number;
 }
