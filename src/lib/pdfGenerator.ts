@@ -14,6 +14,8 @@ export interface PdfProposalData {
   acceptedByName: string | null;
   acceptanceStatus: string;
   items: { description: string; quantity: number; unitValue: number }[];
+  createdAt: string;
+  validityDays: number | null;
 }
 
 export interface PdfCompanyData {
