@@ -280,6 +280,7 @@ export default function Tarefas() {
     setNovoTitulo(""); setNovoDesc(""); setNovoCliente("null"); setNovoPrazo(""); setNovoTags("");
     setNovoSistema(undefined); setSistemaDetectado(null); setNomeClienteAvulso("");
     setNovoObservacoes(""); setFotosFiles([]); setFotosPreview([]);
+    setNovoClienteNome(""); setNovoClienteTelefone(""); setNovoClienteEmail(""); setNovoClienteCidade("");
     setUploading(false);
   };
 
