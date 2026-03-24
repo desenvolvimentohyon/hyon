@@ -66,7 +66,7 @@ export default function PropostaInteligente() {
   const [planoId, setPlanoId] = useState("");
   const [regiaoId, setRegiaoId] = useState("");
   const [distanciaKm, setDistanciaKm] = useState(0);
-  const [dias, setDias] = useState(1);
+  const [dias, setDias] = useState(0);
   const [parceiroId, setParceiroId] = useState("");
   const [formaPagamentoId, setFormaPagamentoId] = useState("");
   const [fluxoImplantacao, setFluxoImplantacao] = useState<"a_vista" | "parcelado">("a_vista");
@@ -91,7 +91,6 @@ export default function PropostaInteligente() {
       if (rRes.data) setRegions(rRes.data as any);
       if (cRes.data) {
         setCompanyImpl(cRes.data as any);
-        setDias(cRes.data.impl_default_days || 1);
       }
     });
   }, []);
