@@ -167,7 +167,7 @@ export function useSmartCardStats() {
 
       // --- TAREFAS ---
       const [{ count: tasksPending }, { count: tasksProgress }] = await Promise.all([
-        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("status", "pendente"),
+        supabase.from("tasks").select("*", { count: "exact", head: true }).in("status", ["backlog", "a_fazer"]),
         supabase.from("tasks").select("*", { count: "exact", head: true }).eq("status", "em_andamento"),
       ]);
       result["/tarefas"] = {
