@@ -452,7 +452,7 @@ export default function PropostaInteligente() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Dias</Label>
-                  <Input type="number" min={1} value={dias} onChange={e => setDias(Number(e.target.value) || 1)} />
+                  <Input type="number" min={0} value={dias || ""} onChange={e => setDias(Number(e.target.value) || 0)} placeholder="0" />
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
