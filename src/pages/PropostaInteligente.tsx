@@ -177,9 +177,10 @@ export default function PropostaInteligente() {
     comissaoImplantacao: calc.comissaoImpl,
     comissaoRecorrente: calc.comissaoRecur,
     formaPagamento: formaPag?.nome || "",
+    formaPagamentoImpl: formaPagImpl?.nome || "",
     fluxoImplantacao,
     parcelasImplantacao,
-  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, fluxoImplantacao, parcelasImplantacao, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
+  }), [sistema, modulosSelecionados, plano, calc, distanciaKm, regiao, dias, parceiro, formaPag, formaPagImpl, fluxoImplantacao, parcelasImplantacao, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
 
   const handleToggleModulo = useCallback((id: string) => {
     setModuloIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
