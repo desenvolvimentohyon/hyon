@@ -274,13 +274,38 @@ export default function PropostaInteligente() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2"><User className="h-4 w-4 text-blue-500" /> Cliente</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <Select value={clienteId} onValueChange={setClienteId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[140px]">
+                  <SelectItem value="novo">
+                    <span className="flex items-center gap-1 text-primary font-medium">
+                      <Plus className="h-3.5 w-3.5" /> Cadastrar novo cliente
+                    </span>
+                  </SelectItem>
                   {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {clienteId === "novo" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Nome *</Label>
+                    <Input placeholder="Nome do cliente" value={novoClienteNome} onChange={e => setNovoClienteNome(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Telefone</Label>
+                    <Input placeholder="(00) 00000-0000" value={novoClienteTelefone} onChange={e => setNovoClienteTelefone(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Email</Label>
+                    <Input placeholder="email@exemplo.com" value={novoClienteEmail} onChange={e => setNovoClienteEmail(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Cidade</Label>
+                    <Input placeholder="Cidade" value={novoClienteCidade} onChange={e => setNovoClienteCidade(e.target.value)} />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
