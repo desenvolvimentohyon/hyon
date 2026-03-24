@@ -432,9 +432,9 @@ export default function Tarefas() {
 
       {/* Modal Nova Tarefa */}
       <Dialog open={showNova} onOpenChange={setShowNova}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-3 max-h-[80vh] overflow-y-auto pr-1">
             <div><Label>Título *</Label><Input value={novoTitulo} onChange={e => setNovoTitulo(e.target.value)} placeholder="Ex: Configurar servidor" /></div>
             <div><Label>Descrição</Label><Textarea value={novoDesc} onChange={e => setNovoDesc(e.target.value)} rows={3} /></div>
             <div className="grid grid-cols-2 gap-4">
