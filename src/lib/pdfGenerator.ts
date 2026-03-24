@@ -431,6 +431,8 @@ export function gerarPDFProposta(proposta: Proposta, config: CRMConfig) {
         quantity: i.quantidade,
         unitValue: i.valor,
       })),
+      createdAt: proposta.criadoEm,
+      validityDays: proposta.validadeDias,
     },
     {
       tradeName: config.nomeEmpresa,
