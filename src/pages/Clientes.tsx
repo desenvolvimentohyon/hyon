@@ -179,7 +179,9 @@ export default function Clientes() {
                     </div>
                   </TableCell>
                   <TableCell><Badge variant="outline" className="text-[10px]">{c.sistemaUsado?.toUpperCase() || "—"}</Badge></TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {c.mensalidadeAtual || 0}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {(c.mensalidadeAtual || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {(c.custoMensal || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                  <TableCell className={`hidden md:table-cell font-medium ${((c.mensalidadeAtual || 0) - (c.custoMensal || 0)) >= 0 ? "text-green-500" : "text-destructive"}`}>R$ {((c.mensalidadeAtual || 0) - (c.custoMensal || 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
                   <TableCell><Badge className={`text-[10px] ${saude.className}`}>{score}</Badge></TableCell>
                   <TableCell><Badge variant="outline">{tarefas.filter(t => t.clienteId === c.id).length}</Badge></TableCell>
                   <TableCell>
