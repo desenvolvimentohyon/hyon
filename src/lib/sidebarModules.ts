@@ -28,9 +28,9 @@ export const modules: ParentModule[] = [
     directUrl: "/",
     children: [
       { title: "Visão Geral", url: "/", icon: LayoutDashboard, description: "Indicadores e resumo geral" },
-      { title: "Modo Cockpit", url: "/cockpit", icon: Gauge, description: "Central de comando inteligente com IA" },
+      { title: "Modo Cockpit", url: "/cockpit", icon: Gauge, description: "Central de comando com KPIs" },
       { title: "Painel Executivo", url: "/executivo", icon: BarChart3, description: "Métricas estratégicas e KPIs" },
-      { title: "Radar de Crescimento", url: "/radar-crescimento", icon: Rocket, description: "Oportunidades e estratégia com IA" },
+      { title: "Radar de Crescimento", url: "/radar-crescimento", icon: Rocket, description: "Métricas de crescimento" },
     ],
   },
   {
