@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, Loader2, Eye, ClipboardPlus, MoreHorizontal } from "lucide-react";
+import { Search, Plus, Loader2, Eye, ClipboardPlus, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
@@ -27,7 +27,7 @@ import { RowActions } from "@/components/ui/row-actions";
 import { Users } from "lucide-react";
 
 export default function Clientes() {
-  const { clientes, addCliente, tarefas } = useApp();
+  const { clientes, addCliente, deleteCliente, tarefas } = useApp();
   const { sistemas } = useParametros();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
@@ -35,6 +35,8 @@ export default function Clientes() {
   const [busca, setBusca] = useState("");
   const [showNovo, setShowNovo] = useState(searchParams.get("novo") === "1");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteJustificativa, setDeleteJustificativa] = useState("");
 
   // form
   const [nome, setNome] = useState("");
@@ -185,9 +187,10 @@ export default function Clientes() {
                   <TableCell><Badge className={`text-[10px] ${saude.className}`}>{score}</Badge></TableCell>
                   <TableCell><Badge variant="outline">{tarefas.filter(t => t.clienteId === c.id).length}</Badge></TableCell>
                   <TableCell>
-                    <RowActions actions={[
+                     <RowActions actions={[
                       { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
                       { label: "Nova tarefa", icon: ClipboardPlus, onClick: () => navigate(`/tarefas?nova=1`) },
+                      { label: "Excluir", icon: Trash2, onClick: () => setDeleteTarget(c.id), variant: "destructive" },
                     ]} />
                   </TableCell>
                 </TableRow>
