@@ -25,6 +25,7 @@ export interface Cliente {
   perfilCliente?: PerfilCliente;
   // Financeiro
   mensalidadeAtual?: number;
+  custoMensal?: number;
   statusFinanceiro?: StatusFinanceiro;
   riscoCancelamento?: boolean;
 }
