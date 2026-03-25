@@ -89,8 +89,14 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
     }
     setSaving(true);
     const changes = { ...formData };
-    if (changes.metadata && cliente) {
-      changes.metadata = { ...(cliente.metadata || {}), ...(changes.metadata as any) } as any;
+    // Move virtual fields into metadata JSONB
+    const metaKeys = ['billing_plan', 'plan_start_date', 'plan_end_date'];
+    const metaChanges: Record<string, any> = {};
+    for (const k of metaKeys) {
+      if (k in changes) { metaChanges[k] = (changes as any)[k]; delete (changes as any)[k]; }
+    }
+    if (Object.keys(metaChanges).length > 0 || changes.metadata) {
+      changes.metadata = { ...(cliente?.metadata || {}), ...(changes.metadata as any || {}), ...metaChanges } as any;
     }
     // Convert empty strings to null for optional fields
     for (const [key, val] of Object.entries(changes)) {

@@ -125,7 +125,10 @@ export function useClienteDetalhe(clienteId: string | null) {
         supabase.from("client_contacts").select("*").eq("client_id", clienteId).order("created_at"),
         supabase.from("client_attachments").select("*").eq("client_id", clienteId).order("created_at", { ascending: false }),
       ]);
-      if (cRes.data) setCliente(cRes.data as any);
+      if (cRes.data) {
+        const meta = (cRes.data as any).metadata || {};
+        setCliente({ ...cRes.data, billing_plan: meta.billing_plan || null, plan_start_date: meta.plan_start_date || null, plan_end_date: meta.plan_end_date || null } as any);
+      }
       if (contRes.data) setContacts(contRes.data as any);
       if (attRes.data) setAttachments(attRes.data as any);
     } catch (err) {
