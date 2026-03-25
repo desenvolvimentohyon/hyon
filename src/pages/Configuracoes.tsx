@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useReceita } from "@/contexts/ReceitaContext";
@@ -26,7 +26,7 @@ import { SubtabGrid, type SubtabItem } from "@/components/configuracoes/SubtabGr
 import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
-  FileText, BarChart3, Palette, Database, Rocket, Bell
+  FileText, BarChart3, Palette, Database, Rocket, Bell, Filter
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -78,6 +78,13 @@ export default function Configuracoes() {
   const [fSistema, setFSistema] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true });
   const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none", isGlobal: false });
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
+  const [filtroSistemaModulo, setFiltroSistemaModulo] = useState("todos");
+
+  const modulosFiltrados = useMemo(() => {
+    if (filtroSistemaModulo === "todos") return modulos;
+    if (filtroSistemaModulo === "global") return modulos.filter(m => m.isGlobal);
+    return modulos.filter(m => !m.isGlobal && m.sistemaId === filtroSistemaModulo);
+  }, [modulos, filtroSistemaModulo]);
   const [fPlano, setFPlano] = useState({ nomePlano: "", descontoPercentual: 0, validadeMeses: 1, ativo: true });
   const [alertaDias, setAlertaDias] = useState(alertaCertificadoDias);
 
@@ -217,12 +224,31 @@ export default function Configuracoes() {
 
             {/* ── Módulos ── */}
             <TabsContent value="modulos" className="space-y-4">
-              <div className="flex justify-end"><Button size="sm" onClick={openNewModulo} className="gap-1.5"><Plus className="h-4 w-4" />Novo Módulo</Button></div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <Select value={filtroSistemaModulo} onValueChange={setFiltroSistemaModulo}>
+                    <SelectTrigger className="w-[200px] h-9 text-sm">
+                      <SelectValue placeholder="Filtrar por sistema" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os sistemas</SelectItem>
+                      <SelectItem value="global">Módulos Globais</SelectItem>
+                      {sistemas.map(s => (
+                        <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button size="sm" onClick={openNewModulo} className="gap-1.5"><Plus className="h-4 w-4" />Novo Módulo</Button>
+              </div>
               <Card><CardContent className="p-0">
                 <Table>
                   <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Sistema</TableHead><TableHead className="text-right">Custo</TableHead><TableHead className="text-right">Venda</TableHead><TableHead>Status</TableHead><TableHead className="w-20">Ações</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {modulos.map(m => (
+                    {modulosFiltrados.length === 0 ? (
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum módulo encontrado para este filtro.</TableCell></TableRow>
+                    ) : modulosFiltrados.map(m => (
                       <TableRow key={m.id}>
                         <TableCell className="font-medium">{m.nome}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{m.isGlobal ? <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge> : (sistemas.find(s => s.id === m.sistemaId)?.nome || "—")}</TableCell>
