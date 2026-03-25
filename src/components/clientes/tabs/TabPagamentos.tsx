@@ -86,10 +86,10 @@ export default function TabPagamentos({ clienteId }: Props) {
         return d.toISOString().slice(0, 10);
       })();
 
+      const { data: current } = await supabase.from("clients").select("metadata").eq("id", clienteId).maybeSingle();
+      const existingMeta = (current?.metadata as Record<string, any>) || {};
       await supabase.from("clients").update({
-        billing_plan: planType,
-        plan_start_date: startDate,
-        plan_end_date: endDate,
+        metadata: { ...existingMeta, billing_plan: planType, plan_start_date: startDate, plan_end_date: endDate },
       } as any).eq("id", clienteId);
     }
 
