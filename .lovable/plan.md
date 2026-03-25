@@ -1,43 +1,41 @@
 
+Diagnóstico:
+- O dropdown já foi implementado em `src/pages/Parametros.tsx`, mas essa tela não é a que o usuário vê.
+- A rota `/parametros` redireciona para `/configuracoes` em `src/App.tsx`.
+- A tela ativa (`src/pages/Configuracoes.tsx`) ainda mostra apenas o botão `Novo Módulo`, exatamente como aparece no print.
+- Portanto, o problema não é de dados nem de backend; é de interface na página errada.
 
-## Plano: Corrigir erro "plan_end_date column not found"
+Plano de correção:
+1. Atualizar `src/pages/Configuracoes.tsx` para incluir o mesmo filtro já existente em `Parametros.tsx`.
+   - Adicionar `useMemo` e o ícone `Filter` nos imports.
+   - Criar o estado `filtroSistemaModulo`.
+   - Criar `modulosFiltrados` com 3 opções:
+     - `todos`
+     - `global`
+     - `sistemaId` específico
 
-### Problema
-Os campos `billing_plan`, `plan_start_date` e `plan_end_date` **não existem como colunas** na tabela `clients` — eles são armazenados dentro do campo `metadata` (JSONB). Porém, o código tenta salvá-los como colunas diretas em 3 lugares, causando o erro.
+2. Ajustar o cabeçalho da subaba `Configurações Gerais → Módulos`.
+   - Trocar o container atual que só tem `Novo Módulo`
+   - Inserir um layout com:
+     - dropdown “Filtrar por sistema” à esquerda
+     - botão `Novo Módulo` à direita
+   - Manter `flex-wrap` para funcionar bem no viewport atual (~811px)
 
-### Alterações
+3. Atualizar a tabela de módulos em `Configuracoes.tsx`.
+   - Renderizar `modulosFiltrados` no lugar de `modulos`
+   - Adicionar estado vazio coerente quando o filtro não retornar resultados
 
-| Arquivo | Mudança |
-|---------|------|
-| `src/components/clientes/ClienteDetalhe.tsx` | No `handleSave`, interceptar `billing_plan`, `plan_start_date`, `plan_end_date` do `formData` e movê-los para dentro de `changes.metadata` antes de enviar ao banco |
-| `src/components/clientes/tabs/TabPagamentos.tsx` | Alterar o `update` (linha 89-93) para salvar esses campos dentro de `metadata` usando merge JSONB, não como colunas diretas |
-| `src/hooks/useClienteDetalhe.ts` | No fetch, extrair `billing_plan`, `plan_start_date`, `plan_end_date` do `metadata` para o objeto `ClienteFull` (para manter compatibilidade com a UI) |
+4. Garantir consistência entre as duas telas.
+   - Como `Parametros.tsx` está redundante hoje, usar `Configuracoes.tsx` como fonte principal da interface
+   - Manter a mesma experiência visual/padrão para evitar regressão futura
 
-### Detalhes técnicos
+Validação esperada:
+- Ao abrir `Configurações → Configurações Gerais → Módulos`, o dropdown deve aparecer ao lado do botão `Novo Módulo`
+- Ao selecionar um sistema, a tabela deve mostrar apenas os módulos vinculados a ele
+- Ao selecionar `Módulos Globais`, a tabela deve mostrar apenas os globais
+- Em telas menores, filtro e botão devem quebrar linha sem sumir
 
-1. **`ClienteDetalhe.tsx` — `handleSave`**: Antes de chamar `updateCliente`, mover as 3 chaves para `metadata`:
-```typescript
-const metaKeys = ['billing_plan', 'plan_start_date', 'plan_end_date'];
-const metaChanges: Record<string, any> = {};
-for (const k of metaKeys) {
-  if (k in changes) { metaChanges[k] = (changes as any)[k]; delete (changes as any)[k]; }
-}
-if (Object.keys(metaChanges).length > 0) {
-  changes.metadata = { ...(cliente?.metadata || {}), ...(changes.metadata as any || {}), ...metaChanges };
-}
-```
-
-2. **`TabPagamentos.tsx`**: Trocar o update direto por merge no `metadata`:
-```typescript
-const { data: current } = await supabase.from("clients").select("metadata").eq("id", clienteId).single();
-await supabase.from("clients").update({
-  metadata: { ...(current?.data?.metadata || {}), billing_plan: planType, plan_start_date: startDate, plan_end_date: endDate }
-}).eq("id", clienteId);
-```
-
-3. **`useClienteDetalhe.ts`**: Após o fetch, extrair os valores do metadata para o objeto retornado, mantendo a interface `ClienteFull` funcional:
-```typescript
-const meta = cRes.data.metadata || {};
-const enriched = { ...cRes.data, billing_plan: meta.billing_plan, plan_start_date: meta.plan_start_date, plan_end_date: meta.plan_end_date };
-```
-
+Detalhes técnicos:
+- Arquivo principal a corrigir: `src/pages/Configuracoes.tsx`
+- Referência pronta para copiar/adaptar: `src/pages/Parametros.tsx`
+- Nenhuma alteração de banco, autenticação ou contexto é necessária
