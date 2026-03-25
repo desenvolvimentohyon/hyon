@@ -126,7 +126,7 @@ interface AppContextType extends AppState {
   stopTimer: (tarefaId: string) => void;
   addCliente: (c: Omit<Cliente, "id" | "criadoEm">) => void;
   updateCliente: (id: string, changes: Partial<Cliente>) => void;
-  deleteCliente: (id: string) => void;
+  deleteCliente: (id: string, justificativa: string) => void;
   addTecnico: (t: Omit<Tecnico, "id">) => void;
   updateTecnico: (id: string, changes: Partial<Tecnico>) => void;
   deleteTecnico: (id: string) => void;
@@ -382,8 +382,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     fetchAll();
   }, [clientes, fetchAll]);
 
-  const deleteCliente = useCallback(async (id: string) => {
-    const { error } = await supabase.from("clients").delete().eq("id", id);
+  const deleteCliente = useCallback(async (id: string, justificativa: string) => {
+    const { error } = await supabase.from("clients").update({
+      status: "excluido",
+      cancellation_reason: justificativa,
+      cancelled_at: new Date().toISOString().split("T")[0],
+    }).eq("id", id);
     if (error) { toast.error("Erro ao excluir cliente"); return; }
     setClientes(prev => prev.filter(c => c.id !== id));
   }, []);
