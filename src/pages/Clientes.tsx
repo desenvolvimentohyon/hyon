@@ -158,7 +158,7 @@ export default function Clientes() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6}>
+                <TableCell colSpan={8}>
                   <EmptyState
                     icon={Users}
                     title="Nenhum cliente encontrado"
