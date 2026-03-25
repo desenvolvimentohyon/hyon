@@ -166,7 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!initialLoaded) setLoading(true);
     try {
       const [clientsRes, profilesRes, tasksRes, settingsRes] = await Promise.all([
-        supabase.from("clients").select("*"),
+        supabase.from("clients").select("*").neq("status", "excluido"),
         supabase.from("profiles").select("*"),
         supabase.from("tasks").select("*, task_comments(id, text, created_at, author_profile_id), task_history(id, action, details, created_at)"),
         user?.id
