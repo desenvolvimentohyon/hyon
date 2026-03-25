@@ -1,29 +1,43 @@
 
 
-## Plano: Ações inline com ícones e tooltips na tabela de propostas
+## Plano: Corrigir erro "plan_end_date column not found"
 
 ### Problema
-Atualmente as ações da proposta ficam dentro de um dropdown menu (⋯). O usuário quer que as ações principais fiquem como ícones inline na mesma linha, com tooltip ao passar o cursor.
+Os campos `billing_plan`, `plan_start_date` e `plan_end_date` **não existem como colunas** na tabela `clients` — eles são armazenados dentro do campo `metadata` (JSONB). Porém, o código tenta salvá-los como colunas diretas em 3 lugares, causando o erro.
 
 ### Alterações
 
 | Arquivo | Mudança |
 |---------|------|
-| `src/pages/Propostas.tsx` | Substituir o DropdownMenu por ícones inline com Tooltip, agrupados em seções visuais com separadores |
+| `src/components/clientes/ClienteDetalhe.tsx` | No `handleSave`, interceptar `billing_plan`, `plan_start_date`, `plan_end_date` do `formData` e movê-los para dentro de `changes.metadata` antes de enviar ao banco |
+| `src/components/clientes/tabs/TabPagamentos.tsx` | Alterar o `update` (linha 89-93) para salvar esses campos dentro de `metadata` usando merge JSONB, não como colunas diretas |
+| `src/hooks/useClienteDetalhe.ts` | No fetch, extrair `billing_plan`, `plan_start_date`, `plan_end_date` do `metadata` para o objeto `ClienteFull` (para manter compatibilidade com a UI) |
 
-### Detalhes
+### Detalhes técnicos
 
-1. **Substituir DropdownMenu por ícones inline** (linhas 241-261):
-   - Remover `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`
-   - Criar uma `div flex gap-0.5` com botões `ghost` `size="icon"` (`h-7 w-7`)
-   - Cada botão envolto em `<Tooltip>` do shadcn mostrando o nome da ação no hover
+1. **`ClienteDetalhe.tsx` — `handleSave`**: Antes de chamar `updateCliente`, mover as 3 chaves para `metadata`:
+```typescript
+const metaKeys = ['billing_plan', 'plan_start_date', 'plan_end_date'];
+const metaChanges: Record<string, any> = {};
+for (const k of metaKeys) {
+  if (k in changes) { metaChanges[k] = (changes as any)[k]; delete (changes as any)[k]; }
+}
+if (Object.keys(metaChanges).length > 0) {
+  changes.metadata = { ...(cliente?.metadata || {}), ...(changes.metadata as any || {}), ...metaChanges };
+}
+```
 
-2. **Ícones na ordem da screenshot** (com separadores visuais `border-l`):
-   - **Grupo 1**: Abrir (`FileText`), Clonar (`Copy`), Baixar PDF (`Download`), Copiar Link (`ExternalLink`), WhatsApp (`MessageCircle`)
-   - **Grupo 2** (separador): Marcar Enviada (`Send`), Marcar Visualizada (`Eye`), Marcar Não Abriu (`EyeOff`), Marcar Aceita (`ThumbsUp`), Marcar Recusada (`ThumbsDown`)
-   - **Grupo 3** (separador): Excluir (`Trash2`) em vermelho
+2. **`TabPagamentos.tsx`**: Trocar o update direto por merge no `metadata`:
+```typescript
+const { data: current } = await supabase.from("clients").select("metadata").eq("id", clienteId).single();
+await supabase.from("clients").update({
+  metadata: { ...(current?.data?.metadata || {}), billing_plan: planType, plan_start_date: startDate, plan_end_date: endDate }
+}).eq("id", clienteId);
+```
 
-3. **Tooltip**: Usar `<TooltipProvider>` + `<Tooltip>` + `<TooltipTrigger>` + `<TooltipContent>` do shadcn para exibir o nome ao hover
-
-4. **Imports**: Adicionar `Tooltip, TooltipContent, TooltipProvider, TooltipTrigger` de `@/components/ui/tooltip`; remover imports do DropdownMenu não mais usados
+3. **`useClienteDetalhe.ts`**: Após o fetch, extrair os valores do metadata para o objeto retornado, mantendo a interface `ClienteFull` funcional:
+```typescript
+const meta = cRes.data.metadata || {};
+const enriched = { ...cRes.data, billing_plan: meta.billing_plan, plan_start_date: meta.plan_start_date, plan_end_date: meta.plan_end_date };
+```
 
