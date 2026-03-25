@@ -148,6 +148,8 @@ export default function Clientes() {
               <TableHead>Nome</TableHead>
               <TableHead>Sistema</TableHead>
               <TableHead className="hidden md:table-cell">Mensalidade</TableHead>
+              <TableHead className="hidden md:table-cell">Custo</TableHead>
+              <TableHead className="hidden md:table-cell">Margem</TableHead>
               <TableHead>Saúde</TableHead>
               <TableHead>Tarefas</TableHead>
               <TableHead className="w-10"></TableHead>
@@ -156,7 +158,7 @@ export default function Clientes() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6}>
+                <TableCell colSpan={8}>
                   <EmptyState
                     icon={Users}
                     title="Nenhum cliente encontrado"
@@ -177,7 +179,9 @@ export default function Clientes() {
                     </div>
                   </TableCell>
                   <TableCell><Badge variant="outline" className="text-[10px]">{c.sistemaUsado?.toUpperCase() || "—"}</Badge></TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {c.mensalidadeAtual || 0}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {(c.mensalidadeAtual || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {(c.custoMensal || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                  <TableCell className={`hidden md:table-cell font-medium ${((c.mensalidadeAtual || 0) - (c.custoMensal || 0)) >= 0 ? "text-green-500" : "text-destructive"}`}>R$ {((c.mensalidadeAtual || 0) - (c.custoMensal || 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
                   <TableCell><Badge className={`text-[10px] ${saude.className}`}>{score}</Badge></TableCell>
                   <TableCell><Badge variant="outline">{tarefas.filter(t => t.clienteId === c.id).length}</Badge></TableCell>
                   <TableCell>

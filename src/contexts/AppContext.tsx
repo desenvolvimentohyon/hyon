@@ -16,6 +16,7 @@ function dbToCliente(r: any): Cliente {
     sistemaUsado: m.sistemaUsado, usaCloud: m.usaCloud, usaTEF: m.usaTEF,
     usaPagamentoIntegrado: m.usaPagamentoIntegrado, tipoNegocio: m.tipoNegocio,
     perfilCliente: m.perfilCliente, mensalidadeAtual: Number(r.monthly_value_final) || undefined,
+    custoMensal: Number(r.monthly_cost_value) || 0,
     statusFinanceiro: m.statusFinanceiro, riscoCancelamento: m.riscoCancelamento,
   };
 }
