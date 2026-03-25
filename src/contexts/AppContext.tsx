@@ -18,7 +18,6 @@ function dbToCliente(r: any): Cliente {
     perfilCliente: m.perfilCliente, mensalidadeAtual: Number(r.monthly_value_final) || undefined,
     custoMensal: Number(r.monthly_cost_value) || 0,
     statusFinanceiro: m.statusFinanceiro, riscoCancelamento: m.riscoCancelamento,
-    statusFinanceiro: m.statusFinanceiro, riscoCancelamento: m.riscoCancelamento,
   };
 }
 
