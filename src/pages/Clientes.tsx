@@ -148,6 +148,8 @@ export default function Clientes() {
               <TableHead>Nome</TableHead>
               <TableHead>Sistema</TableHead>
               <TableHead className="hidden md:table-cell">Mensalidade</TableHead>
+              <TableHead className="hidden md:table-cell">Custo</TableHead>
+              <TableHead className="hidden md:table-cell">Margem</TableHead>
               <TableHead>Saúde</TableHead>
               <TableHead>Tarefas</TableHead>
               <TableHead className="w-10"></TableHead>
