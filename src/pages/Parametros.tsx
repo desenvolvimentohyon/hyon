@@ -42,6 +42,13 @@ export default function Parametros() {
   const [fPlano, setFPlano] = useState({ nomePlano: "", descontoPercentual: 0, validadeMeses: 1, ativo: true });
   // Alerta
   const [alertaDias, setAlertaDias] = useState(alertaCertificadoDias);
+  const [filtroSistemaModulo, setFiltroSistemaModulo] = useState("todos");
+
+  const modulosFiltrados = useMemo(() => {
+    if (filtroSistemaModulo === "todos") return modulos;
+    if (filtroSistemaModulo === "global") return modulos.filter(m => m.isGlobal);
+    return modulos.filter(m => !m.isGlobal && m.sistemaId === filtroSistemaModulo);
+  }, [modulos, filtroSistemaModulo]);
 
   const openNewSistema = () => { setFSistema({ nome: "", descricao: "", ativo: true }); setModal({ type: "sistema", editing: null }); };
   const openEditSistema = (id: string) => { const s = sistemas.find(x => x.id === id); if (s) { setFSistema(s); setModal({ type: "sistema", editing: id }); } };
