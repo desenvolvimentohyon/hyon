@@ -102,7 +102,24 @@ export default function Parametros() {
 
         {/* Módulos */}
         <TabsContent value="modulos" className="space-y-4">
-          <div className="flex justify-end"><Button size="sm" onClick={openNewModulo} className="gap-1.5"><Plus className="h-4 w-4" />Novo Módulo</Button></div>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={filtroSistemaModulo} onValueChange={setFiltroSistemaModulo}>
+                <SelectTrigger className="w-[200px] h-8 text-sm">
+                  <SelectValue placeholder="Filtrar por sistema" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os sistemas</SelectItem>
+                  <SelectItem value="global">Módulos Globais</SelectItem>
+                  {sistemas.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button size="sm" onClick={openNewModulo} className="gap-1.5"><Plus className="h-4 w-4" />Novo Módulo</Button>
+          </div>
           <Card><CardContent className="p-0">
             <Table>
               <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Sistema</TableHead><TableHead className="text-right">Custo</TableHead><TableHead className="text-right">Venda</TableHead><TableHead>Status</TableHead><TableHead className="w-20">Ações</TableHead></TableRow></TableHeader>
