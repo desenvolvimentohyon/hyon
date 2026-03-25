@@ -124,7 +124,7 @@ export default function Parametros() {
             <Table>
               <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Sistema</TableHead><TableHead className="text-right">Custo</TableHead><TableHead className="text-right">Venda</TableHead><TableHead>Status</TableHead><TableHead className="w-20">Ações</TableHead></TableRow></TableHeader>
               <TableBody>
-                {modulos.map(m => (
+                {modulosFiltrados.map(m => (
                   <TableRow key={m.id}>
                     <TableCell className="font-medium">{m.nome}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{m.isGlobal ? <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge> : (sistemas.find(s => s.id === m.sistemaId)?.nome || "—")}</TableCell>
