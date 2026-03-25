@@ -271,6 +271,43 @@ export default function Clientes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteJustificativa(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação marcará o cliente como excluído. Informe a justificativa abaixo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2">
+            <Label>Justificativa *</Label>
+            <Textarea
+              value={deleteJustificativa}
+              onChange={e => setDeleteJustificativa(e.target.value)}
+              placeholder="Informe o motivo da exclusão..."
+              rows={3}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!deleteJustificativa.trim()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget && deleteJustificativa.trim()) {
+                  deleteCliente(deleteTarget, deleteJustificativa.trim());
+                  toast({ title: "Cliente excluído com sucesso" });
+                  setDeleteTarget(null);
+                  setDeleteJustificativa("");
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
