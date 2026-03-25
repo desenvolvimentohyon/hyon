@@ -1,41 +1,50 @@
 
-Diagnóstico:
-- O dropdown já foi implementado em `src/pages/Parametros.tsx`, mas essa tela não é a que o usuário vê.
-- A rota `/parametros` redireciona para `/configuracoes` em `src/App.tsx`.
-- A tela ativa (`src/pages/Configuracoes.tsx`) ainda mostra apenas o botão `Novo Módulo`, exatamente como aparece no print.
-- Portanto, o problema não é de dados nem de backend; é de interface na página errada.
 
-Plano de correção:
-1. Atualizar `src/pages/Configuracoes.tsx` para incluir o mesmo filtro já existente em `Parametros.tsx`.
-   - Adicionar `useMemo` e o ícone `Filter` nos imports.
-   - Criar o estado `filtroSistemaModulo`.
-   - Criar `modulosFiltrados` com 3 opções:
-     - `todos`
-     - `global`
-     - `sistemaId` específico
+## Plano: Remover toda IA integrada ao sistema (incluindo Jarvis)
 
-2. Ajustar o cabeçalho da subaba `Configurações Gerais → Módulos`.
-   - Trocar o container atual que só tem `Novo Módulo`
-   - Inserir um layout com:
-     - dropdown “Filtrar por sistema” à esquerda
-     - botão `Novo Módulo` à direita
-   - Manter `flex-wrap` para funcionar bem no viewport atual (~811px)
+### Resumo
+Remover todos os componentes, hooks, páginas e edge functions relacionados à IA do sistema — assistente Jarvis, consultora comercial, assistente financeiro, assistente de retenção, assistente de tarefas, cockpit IA e radar de crescimento.
 
-3. Atualizar a tabela de módulos em `Configuracoes.tsx`.
-   - Renderizar `modulosFiltrados` no lugar de `modulos`
-   - Adicionar estado vazio coerente quando o filtro não retornar resultados
+### Arquivos a deletar (componentes e hooks de IA)
+- `src/components/ai/JarvisFloatingButton.tsx`
+- `src/components/ai/JarvisAvatar.tsx`
+- `src/components/ai/JarvisVoiceControls.tsx`
+- `src/components/ai/AiExecutiveAssistant.tsx`
+- `src/components/ai/AiFinanceiroAssistant.tsx`
+- `src/components/ai/AiRetencaoAssistant.tsx`
+- `src/components/tarefas/AiTaskAssistant.tsx`
+- `src/components/propostas/ConsultoraComercialIA.tsx`
+- `src/components/propostas/PropostaComparador.tsx`
+- `src/components/propostas/PropostaSugestoes.tsx`
+- `src/hooks/useJarvisVoice.ts`
+- `src/hooks/useJarvisCommands.ts`
+- `src/hooks/useExecutiveBriefing.ts`
+- `src/hooks/useFinancialDiagnosis.ts`
+- `src/hooks/useChurnAnalysis.ts`
+- `src/hooks/useGrowthRadar.ts`
 
-4. Garantir consistência entre as duas telas.
-   - Como `Parametros.tsx` está redundante hoje, usar `Configuracoes.tsx` como fonte principal da interface
-   - Manter a mesma experiência visual/padrão para evitar regressão futura
+### Edge functions a deletar
+- `supabase/functions/ai-consultant/index.ts`
+- `supabase/functions/ai-task-assistant/index.ts`
 
-Validação esperada:
-- Ao abrir `Configurações → Configurações Gerais → Módulos`, o dropdown deve aparecer ao lado do botão `Novo Módulo`
-- Ao selecionar um sistema, a tabela deve mostrar apenas os módulos vinculados a ele
-- Ao selecionar `Módulos Globais`, a tabela deve mostrar apenas os globais
-- Em telas menores, filtro e botão devem quebrar linha sem sumir
+### Arquivos a editar (remover imports e uso dos componentes IA)
 
-Detalhes técnicos:
-- Arquivo principal a corrigir: `src/pages/Configuracoes.tsx`
-- Referência pronta para copiar/adaptar: `src/pages/Parametros.tsx`
-- Nenhuma alteração de banco, autenticação ou contexto é necessária
+1. **`src/components/layout/AppLayout.tsx`** — Remover import e uso de `JarvisFloatingButton`
+2. **`src/pages/Dashboard.tsx`** — Remover imports e uso de `AiExecutiveAssistant`, `AiFinanceiroAssistant`, `AiRetencaoAssistant`
+3. **`src/pages/Clientes.tsx`** — Remover import e uso de `AiRetencaoAssistant`
+4. **`src/pages/Tarefas.tsx`** — Remover import e uso de `AiTaskAssistant`
+5. **`src/pages/financeiro/FinanceiroVisaoGeral.tsx`** — Remover import e uso de `AiFinanceiroAssistant`
+6. **`src/pages/PropostaInteligente.tsx`** — Remover import e uso de `ConsultoraComercialIA`, `PropostaComparador`, `PropostaSugestoes`
+7. **`src/pages/Cockpit.tsx`** — Remover todos os imports e usos de hooks/componentes IA (briefing, voice, commands, growth, churn, JarvisAvatar, JarvisVoiceControls). A página precisará ser simplificada ou removida.
+8. **`src/pages/RadarCrescimento.tsx`** — Remover uso de `useGrowthRadar` e toda lógica IA. A página precisará ser simplificada ou removida.
+9. **`supabase/config.toml`** — Remover entradas `[functions.ai-consultant]` e `[functions.ai-task-assistant]`
+
+### Páginas que dependem fortemente de IA
+- **Cockpit** (`/cockpit`) e **Radar de Crescimento** (`/radar-crescimento`) são quase inteiramente baseados em IA. Serão esvaziados para exibir apenas uma mensagem informativa ou removidos do roteamento.
+
+### O que NÃO será removido
+- `DashboardExecutiveWidgets` (widgets de KPI que não dependem de IA)
+- `useCockpitCharts` (gráficos baseados em dados reais, não em IA)
+- `PropostaResumoLateral` (resumo lateral que não usa IA)
+- Edge functions não relacionadas a IA (billing-cron, cnpj-lookup, etc.)
+
