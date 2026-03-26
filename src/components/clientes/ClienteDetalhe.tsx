@@ -246,7 +246,7 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
               />
             </TabsContent>
             <TabsContent value="contabilidade" className="mt-0">
-              <TabContabilidade cliente={cliente} formData={formData} onChange={handleChange} clienteId={clienteId} orgId={cliente?.org_id || ""} attachments={attachments} onAddAttachment={addAttachment} onDeleteAttachment={deleteAttachment} />
+              <TabContabilidade cliente={cliente} formData={formData} onChange={handleChange} clienteId={clienteId} orgId={cliente?.org_id || ""} />
             </TabsContent>
             <TabsContent value="mensalidade" className="mt-0">
               <TabMensalidadeNew cliente={cliente} formData={formData} onChange={handleChange} />
