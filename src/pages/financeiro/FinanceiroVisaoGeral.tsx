@@ -22,6 +22,7 @@ export default function Financeiro() {
   const { titulos, movimentos, contasBancarias, getSaldoConta, loading } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [periodo, setPeriodo] = useState<string>("12m");
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos");
 
   const kpis = useMemo(() => {
     const saldoBancos = contasBancarias.filter(c => c.ativo).reduce((s, c) => s + getSaldoConta(c.id), 0);
