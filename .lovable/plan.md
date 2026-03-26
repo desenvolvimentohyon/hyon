@@ -1,26 +1,39 @@
 
 
-## Plano: Adicionar opção de excluir cliente na listagem
+## Plano: Corrigir erro ao excluir cliente
 
 ### Problema
-A página de listagem de clientes (`/clientes` → `ClientesReceita.tsx`) não possui opção de excluir. Existe apenas o botão "Abrir". A funcionalidade de exclusão (soft-delete com justificativa) já existe no `AppContext` mas não está conectada a esta página.
+Há dois bugs:
+1. **Toast de sucesso prematuro**: Em `ClientesReceita.tsx`, a chamada `deleteClienteReceita()` é async mas **não é aguardada** (`await`). O toast "Cliente excluído" aparece imediatamente, antes da operação completar. Quando a operação falha no banco, o `ReceitaContext` mostra o segundo toast "Erro ao excluir cliente" — resultando em dois toasts contraditórios.
+2. **Possível falha de RLS**: A operação de soft-delete usa `.update()` na tabela `clients`. A política UPDATE exige role `admin`, `comercial`, `suporte` ou `implantacao`. Se o usuário não tiver uma dessas roles, a operação falhará silenciosamente.
 
 ### Alterações
 
-**`src/pages/ClientesReceita.tsx`**
+**`src/contexts/ReceitaContext.tsx`**
+- Alterar `deleteClienteReceita` para retornar `boolean` indicando sucesso/falha
+- Remover o `toast.error` daqui (mover responsabilidade para o chamador)
 
-1. Importar componentes necessários: `RowActions`, `AlertDialog`, `Trash2`, `Eye`, ícones, e `deleteCliente` do `ReceitaContext` (ou `AppContext`)
-2. Substituir o botão "Abrir" por `RowActions` com três opções:
-   - "Ver detalhes" → abre o detalhe
-   - "Alterar status" → altera status (já existe o `handleStatusChange`)
-   - "Excluir" → abre diálogo de confirmação (variante destructive)
-3. Adicionar estados `deleteTarget` e `deleteJustificativa`
-4. Adicionar `AlertDialog` de confirmação com campo de justificativa obrigatória (mesmo padrão do `Clientes.tsx`)
-5. Ao confirmar, executar soft-delete: atualizar `status` → `"excluido"`, `cancellation_reason` → justificativa, `cancelled_at` → data atual
-6. Recarregar a lista após exclusão
+**`src/pages/ClientesReceita.tsx`**
+- Tornar o `onClick` do `AlertDialogAction` **async** com `await`
+- Só mostrar toast de sucesso se `deleteClienteReceita` retornar `true`
+- Mostrar toast de erro se retornar `false`
 
 ### Detalhes técnicos
-- O soft-delete já funciona via `supabase.from("clients").update({ status: "excluido", cancellation_reason, cancelled_at })` — mesmo padrão do `AppContext.deleteCliente`
-- O `ReceitaContext` já tem `deleteClienteReceita` mas faz hard-delete (`supabase.from("clients").delete()`). Vou alterar para soft-delete consistente
-- O `TableRow` precisa da classe `group` para que o `RowActions` (opacity on hover) funcione
+```
+// ReceitaContext — retorna boolean
+const deleteClienteReceita = async (id, justificativa) => {
+  const { error } = await supabase.from("clients").update({...}).eq("id", id);
+  if (error) return false;
+  fetchAll();
+  return true;
+};
+
+// ClientesReceita — aguarda resultado
+onClick={async () => {
+  const ok = await deleteClienteReceita(deleteTarget.id, deleteJustificativa);
+  if (ok) toast({ title: "Cliente excluído" });
+  else toast({ title: "Erro ao excluir", variant: "destructive" });
+  setDeleteTarget(null);
+}}
+```
 
