@@ -45,6 +45,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const { profile } = useAuth();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [cepLoading, setCepLoading] = useState(false);
+  const [cnpjLoading, setCnpjLoading] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
