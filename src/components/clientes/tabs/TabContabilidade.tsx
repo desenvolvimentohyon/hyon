@@ -65,7 +65,7 @@ export default function TabContabilidade({ cliente, formData, onChange, clienteI
       });
 
       const { data, error } = await supabase.functions.invoke("parse-client-certificate", {
-        body: { fileBase64: base64, password: certPassword, clientId },
+        body: { fileBase64: base64, password: certPassword, clientId: clienteId },
       });
 
       if (error || !data?.success) {
