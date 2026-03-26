@@ -1,32 +1,26 @@
 
 
-## Plano: Upload de Certificado Digital com leitura automática de vencimento
+## Plano: Adicionar opção de excluir cliente na listagem
 
-### O que muda
-Na aba Contabilidade, a seção de **Anexos genéricos** será substituída por um upload dedicado de **Certificado Digital** (.pfx/.p12). Ao enviar o arquivo com a senha, o sistema extrai automaticamente a data de vencimento e preenche o campo `cert_expires_at`.
+### Problema
+A página de listagem de clientes (`/clientes` → `ClientesReceita.tsx`) não possui opção de excluir. Existe apenas o botão "Abrir". A funcionalidade de exclusão (soft-delete com justificativa) já existe no `AppContext` mas não está conectada a esta página.
 
 ### Alterações
 
-**1. Nova Edge Function `parse-client-certificate`**
-- Recebe: `fileBase64`, `password`, `clientId`
-- Usa `node-forge` para extrair validade do certificado (mesma lógica do `parse-certificate` existente)
-- Armazena o arquivo no bucket `client-attachments` com path `{orgId}/{clientId}/certificado.pfx`
-- Atualiza o campo `cert_expires_at` na tabela `clients`
-- Retorna `cert_valid_from`, `cert_valid_to`, `cert_cn`
+**`src/pages/ClientesReceita.tsx`**
 
-**2. `src/components/clientes/tabs/TabContabilidade.tsx`**
-- Remover a seção de `TabAnexos` genérica
-- Adicionar seção "Certificado Digital" com:
-  - Input de arquivo (aceita apenas `.pfx, .p12`)
-  - Input de senha do certificado
-  - Botão "Enviar Certificado"
-  - Loading state durante o processamento
-- Ao receber resposta com sucesso, preencher automaticamente `cert_expires_at` via `onChange`
-- Exibir dados do certificado atual (CN, validade) quando já houver um salvo
+1. Importar componentes necessários: `RowActions`, `AlertDialog`, `Trash2`, `Eye`, ícones, e `deleteCliente` do `ReceitaContext` (ou `AppContext`)
+2. Substituir o botão "Abrir" por `RowActions` com três opções:
+   - "Ver detalhes" → abre o detalhe
+   - "Alterar status" → altera status (já existe o `handleStatusChange`)
+   - "Excluir" → abre diálogo de confirmação (variante destructive)
+3. Adicionar estados `deleteTarget` e `deleteJustificativa`
+4. Adicionar `AlertDialog` de confirmação com campo de justificativa obrigatória (mesmo padrão do `Clientes.tsx`)
+5. Ao confirmar, executar soft-delete: atualizar `status` → `"excluido"`, `cancellation_reason` → justificativa, `cancelled_at` → data atual
+6. Recarregar a lista após exclusão
 
 ### Detalhes técnicos
-- A edge function reutiliza a mesma lógica de parsing do `parse-certificate` existente (node-forge)
-- Diferença: salva no contexto do cliente (não da empresa) e atualiza `clients.cert_expires_at`
-- O campo de vencimento continua visível mas será preenchido automaticamente (ainda editável manualmente como fallback)
-- Arquivo convertido para base64 no frontend antes do envio
+- O soft-delete já funciona via `supabase.from("clients").update({ status: "excluido", cancellation_reason, cancelled_at })` — mesmo padrão do `AppContext.deleteCliente`
+- O `ReceitaContext` já tem `deleteClienteReceita` mas faz hard-delete (`supabase.from("clients").delete()`). Vou alterar para soft-delete consistente
+- O `TableRow` precisa da classe `group` para que o `RowActions` (opacity on hover) funcione
 
