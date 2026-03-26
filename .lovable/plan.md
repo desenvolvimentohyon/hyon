@@ -1,35 +1,28 @@
 
 
-## Plano: Mostrar contas bancárias das configurações no módulo financeiro
+## Plano: Corrigir FK de bank_account_id na tabela financial_titles
 
 ### Problema
-O módulo financeiro usa a tabela `bank_accounts` para listar contas bancárias, enquanto as contas cadastradas nas Configurações (Minha Empresa) ficam na tabela `company_bank_accounts`. São duas fontes de dados desconectadas.
+A coluna `bank_account_id` em `financial_titles` tem uma foreign key apontando para a tabela `bank_accounts`. Após migrarmos o contexto financeiro para usar `company_bank_accounts`, os IDs inseridos não existem em `bank_accounts`, causando o erro de constraint.
 
 ### Solução
-Alterar o `FinanceiroContext` para buscar contas da tabela `company_bank_accounts` ao invés de `bank_accounts`, unificando a fonte de dados.
+Uma migração SQL para:
+1. Remover a FK antiga (`financial_titles_bank_account_id_fkey` → `bank_accounts`)
+2. Criar nova FK apontando para `company_bank_accounts`
 
-### Alterações
+### Migração SQL
+```sql
+ALTER TABLE public.financial_titles
+  DROP CONSTRAINT financial_titles_bank_account_id_fkey;
 
-**`src/contexts/FinanceiroContext.tsx`**
-
-1. No `fetchAll`, trocar a query de `bank_accounts` para `company_bank_accounts`
-2. Atualizar o mapper `dbToConta` para mapear os campos de `company_bank_accounts` (que tem campos como `bank_name`, `bank_code`, `holder_name`, `pix_key`, `account_type`, `is_default`)
-3. Atualizar `addContaBancaria`, `updateContaBancaria`, `deleteContaBancaria` para operar na tabela `company_bank_accounts`
-
-**Mapeamento de campos:**
-
-```text
-company_bank_accounts    →   ContaBancaria (tipo interno)
-─────────────────────────────────────────────────
-bank_name               →   nome (+ banco)
-bank_code               →   banco
-agency                  →   agencia
-account                 →   conta
-account_type            →   tipoConta
-is_default              →   (novo campo ou lógica)
+ALTER TABLE public.financial_titles
+  ADD CONSTRAINT financial_titles_bank_account_id_fkey
+  FOREIGN KEY (bank_account_id) REFERENCES public.company_bank_accounts(id)
+  ON DELETE SET NULL;
 ```
 
 ### Impacto
-- Todas as telas que usam `contasBancarias` do contexto (Lançamentos, Contas a Receber, Contas a Pagar, Conciliação, Configurações Financeiras, Visão Geral) passarão a mostrar as contas cadastradas em Configurações
-- A tabela `bank_accounts` ficará obsoleta (pode ser removida futuramente)
+- Nenhuma alteração de código necessária
+- Lançamentos existentes que referenciam IDs da tabela `bank_accounts` antiga terão o `bank_account_id` mantido (se os IDs ainda existirem) ou precisarão ser limpos
+- Novos lançamentos passarão a funcionar corretamente com as contas das configurações
 
