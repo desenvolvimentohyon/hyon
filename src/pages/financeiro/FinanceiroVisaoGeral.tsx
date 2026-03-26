@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt } from "lucide-react";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS } from "@/types/financeiro";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
@@ -20,6 +22,7 @@ export default function Financeiro() {
   const { titulos, movimentos, contasBancarias, getSaldoConta, loading } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [periodo, setPeriodo] = useState<string>("12m");
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos");
 
   const kpis = useMemo(() => {
     const saldoBancos = contasBancarias.filter(c => c.ativo).reduce((s, c) => s + getSaldoConta(c.id), 0);
@@ -88,6 +91,22 @@ export default function Financeiro() {
 
   const pieCols = [C.receita, C.conciliacao, C.atraso, C.lucro, C.despesa];
 
+  const lancamentosRecentes = useMemo(() => {
+    return titulos
+      .filter(t => filtroTipo === "todos" || (filtroTipo === "receber" ? t.tipo === "receber" : t.tipo === "pagar"))
+      .sort((a, b) => new Date(b.dataEmissao).getTime() - new Date(a.dataEmissao).getTime())
+      .slice(0, 20);
+  }, [titulos, filtroTipo]);
+
+  const statusColor = (s: string) => {
+    switch (s) {
+      case "pago": return "bg-success/15 text-success border-success/20";
+      case "aberto": return "bg-info/15 text-info border-info/20";
+      case "vencido": return "bg-destructive/15 text-destructive border-destructive/20";
+      case "parcial": return "bg-warning/15 text-warning border-warning/20";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
   if (loading) return (
     <div className="p-6 space-y-4">
       <Skeleton className="h-8 w-64" />
@@ -212,6 +231,56 @@ export default function Financeiro() {
           </CardContent>
         </Card>
       </div>
+      {/* Últimos Lançamentos */}
+      <Card>
+        <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-sm flex items-center gap-2"><Receipt className="h-4 w-4 text-muted-foreground" />Últimos Lançamentos</CardTitle>
+          <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="receber">Receitas</SelectItem>
+              <SelectItem value="pagar">Despesas</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Origem</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lancamentosRecentes.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
+              ) : lancamentosRecentes.map(t => (
+                <TableRow key={t.id}>
+                  <TableCell className="text-xs whitespace-nowrap">{new Date(t.dataEmissao).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell className="max-w-[200px] truncate text-sm">{t.descricao}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={t.tipo === "receber" ? "bg-success/15 text-success border-success/20" : "bg-destructive/15 text-destructive border-destructive/20"}>
+                      {t.tipo === "receber" ? "Receita" : "Despesa"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{ORIGEM_TITULO_LABELS[t.origem] || t.origem}</TableCell>
+                  <TableCell className={`text-right font-medium text-sm ${t.tipo === "receber" ? "text-success" : "text-destructive"}`}>{fmt(t.valorOriginal)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={statusColor(t.status)}>
+                      {STATUS_TITULO_LABELS[t.status] || t.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
