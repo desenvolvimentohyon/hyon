@@ -1,36 +1,34 @@
 
 
-## Plano: Adicionar Forma de Pagamento, Valor Parcial e Cadastro de Cliente no Lançamentos
+## Plano: Forçar atualização imediata do Service Worker (PWA)
 
-### Alterações em `src/pages/financeiro/Lancamentos.tsx`
+### Problema
+O sistema usa PWA com Workbox que cacheia todos os assets (JS, CSS, HTML). Quando há uma atualização, o Service Worker antigo continua servindo os arquivos cacheados até que o novo SW seja ativado — o que pode demorar ou exigir fechar todas as abas. Isso faz o usuário ver a versão antiga ao entrar.
 
-#### 1. Forma de Pagamento
-- Importar `useParametros` do `ParametrosContext` para acessar `formasPagamento`
-- Adicionar state `formaPagamento` no `LancamentoForm`
-- Adicionar campo Select com as formas de pagamento cadastradas em Parâmetros
-- Passar o `payment_method_id` selecionado no `addTitulo` (campo `payment_method_id` já existe na tabela `financial_titles`)
-- Atualizar o metadata para incluir o nome da forma ao invés do enum hardcoded `"pix"`
+### Solução
 
-#### 2. Valor Parcial (Desconto, Juros, Multa)
-- Adicionar states para `desconto`, `juros` e `multa`
-- Adicionar 3 campos `CurrencyInput` no grid do formulário
-- Exibir o **valor final calculado** (Valor - Desconto + Juros + Multa) abaixo dos campos
-- Passar esses valores no `addTitulo` (já suportado pelo contexto)
+**1. `vite.config.ts`** — Configurar Workbox para ativação imediata:
+- Adicionar `skipWaiting: true` e `clientsClaim: true` na config do workbox, forçando o novo SW a tomar controle imediatamente
+- Alterar a estratégia de navegação para `NetworkFirst` (busca sempre do servidor primeiro, usa cache só como fallback offline)
+- Definir `runtimeCaching` com estratégia `NetworkFirst` para requests de navegação e `StaleWhileRevalidate` para assets estáticos com expiração curta
 
-#### 3. Cadastro Simplificado de Cliente (inline)
-- Seguir o padrão existente em `Tarefas.tsx`: ao selecionar "Cadastrar novo cliente" no Select, exibir formulário inline com Nome, Telefone, Email e Cidade
-- No `handleSave`, se `clienteId === "novo"`, criar o cliente via `supabase.from("clients").insert(...)` e usar o ID retornado para vincular ao título
-- Essa funcionalidade se aplica apenas na aba de Receita (tipo "receber")
+**2. `src/main.tsx`** — Detectar atualização e recarregar:
+- Registrar callback `onNeedRefresh` que automaticamente recarrega a página quando um novo SW está pronto
+- Usar `registerSW` do `virtual:pwa-register` para controlar o ciclo de vida
 
-### Detalhes Técnicos
+### Detalhes técnicos
 
-**Arquivo**: `src/pages/financeiro/Lancamentos.tsx`
+```text
+vite.config.ts (workbox section):
+  + skipWaiting: true
+  + clientsClaim: true  
+  + runtimeCaching: NetworkFirst para navegação
+  + cleanupOutdatedCaches: true
 
-- Novos imports: `useParametros` de `@/contexts/ParametrosContext`, `supabase` de `@/integrations/supabase/client`, `useAuth` de `@/contexts/AuthContext`
-- Props do `LancamentoForm`: adicionar `formasPagamento` (lista de `FormaPagamentoCatalogo`)
-- No componente pai `Lancamentos`, puxar `formasPagamento` do `useParametros()` e passar como prop
-- No `handleSave`:
-  - Se `clienteId === "novo"`, inserir cliente com `name`, `trade_name`, `phone`, `email`, `city`, `org_id` e usar o `id` retornado
-  - Enviar `formaPagamento` selecionada via metadata e `payment_method_id`
-  - Enviar `desconto`, `juros`, `multa` nos campos correspondentes
+src/main.tsx:
+  + import { registerSW } from 'virtual:pwa-register'
+  + registerSW({ onNeedRefresh() { window.location.reload() } })
+```
+
+Isso garante que ao abrir o sistema, o browser busque a versão mais recente do servidor e ative o novo SW sem esperar o usuário fechar abas.
 
