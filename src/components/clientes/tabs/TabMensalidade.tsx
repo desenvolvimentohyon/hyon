@@ -67,7 +67,17 @@ export default function TabMensalidade({ cliente, onSave }: Props) {
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Valor Base (R$)</Label><CurrencyInput value={Number(form.monthly_value_base) || 0} onValueChange={v => setForm(p => ({ ...p, monthly_value_base: String(v) }))} /></div>
           <div><Label>Valor Final (R$)</Label><CurrencyInput value={Number(form.monthly_value_final) || 0} onValueChange={v => setForm(p => ({ ...p, monthly_value_final: String(v) }))} /></div>
-          <div><Label>Dia Vencimento</Label><Input type="number" min="1" max="31" value={form.default_due_day} onChange={e => setForm(p => ({ ...p, default_due_day: e.target.value }))} /></div>
+          <div>
+            <Label>Dia Vencimento</Label>
+            <Select value={String(form.default_due_day)} onValueChange={v => setForm(p => ({ ...p, default_due_day: v }))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">Dia 3</SelectItem>
+                <SelectItem value="5">Dia 5</SelectItem>
+                <SelectItem value="7">Dia 7</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <Label>Status Financeiro</Label>
             <Select value={form.statusFinanceiro} onValueChange={v => setForm(p => ({ ...p, statusFinanceiro: v }))}>

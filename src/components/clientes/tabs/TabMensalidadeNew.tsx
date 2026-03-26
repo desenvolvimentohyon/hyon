@@ -65,7 +65,17 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Valor Base (R$) — calculado pelos módulos</Label><CurrencyInput value={Number(formData.monthly_value_base ?? cliente.monthly_value_base ?? 0)} onValueChange={() => {}} disabled className="bg-muted/50" /></div>
           <div><Label>Valor Final (R$)</Label><CurrencyInput value={Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)} onValueChange={v => onChange({ monthly_value_final: v } as any)} /></div>
-          <div><Label>Dia de Vencimento</Label><Input type="number" min="1" max="31" value={String(formData.default_due_day ?? cliente.default_due_day ?? 10)} onChange={e => onChange({ default_due_day: Number(e.target.value) || 10 } as any)} /></div>
+          <div>
+            <Label>Dia de Vencimento</Label>
+            <Select value={String(formData.default_due_day ?? cliente.default_due_day ?? 5)} onValueChange={v => onChange({ default_due_day: Number(v) } as any)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">Dia 3</SelectItem>
+                <SelectItem value="5">Dia 5</SelectItem>
+                <SelectItem value="7">Dia 7</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <Label>Status Financeiro</Label>
             <Select value={meta.statusFinanceiro || "em_dia"} onValueChange={val => setMeta("statusFinanceiro", val)}>
