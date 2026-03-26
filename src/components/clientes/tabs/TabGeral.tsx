@@ -21,7 +21,6 @@ export default function TabGeral({ cliente, onSave }: Props) {
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
-    name: cliente.name,
     trade_name: cliente.trade_name || "",
     legal_name: cliente.legal_name || "",
     document: cliente.document || "",
@@ -41,9 +40,10 @@ export default function TabGeral({ cliente, onSave }: Props) {
   });
 
   const handleSave = async () => {
+    if (!form.trade_name.trim()) return;
     const ok = await onSave({
-      name: form.name,
-      trade_name: form.trade_name || null,
+      name: form.trade_name.trim(),
+      trade_name: form.trade_name.trim(),
       legal_name: form.legal_name || null,
       document: form.document || null,
       state_registration: form.state_registration || null,
@@ -72,7 +72,6 @@ export default function TabGeral({ cliente, onSave }: Props) {
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>Editar</Button>
           </div>
           <div className="grid gap-3 md:grid-cols-2 text-sm">
-            <div><span className="text-muted-foreground">Nome:</span> {cliente.name}</div>
             <div><span className="text-muted-foreground">Nome Fantasia:</span> {cliente.trade_name || "—"}</div>
             <div><span className="text-muted-foreground">Razão Social:</span> {cliente.legal_name || "—"}</div>
             <div><span className="text-muted-foreground">CNPJ/CPF:</span> {cliente.document || "—"}</div>
@@ -104,8 +103,7 @@ export default function TabGeral({ cliente, onSave }: Props) {
       <CardContent className="pt-6 space-y-4">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Editar Dados Gerais</p>
         <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Nome *</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
-          <div><Label>Nome Fantasia</Label><Input value={form.trade_name} onChange={e => setForm(p => ({ ...p, trade_name: e.target.value }))} /></div>
+          <div><Label>Nome Fantasia *</Label><Input value={form.trade_name} onChange={e => setForm(p => ({ ...p, trade_name: e.target.value }))} /></div>
           <div><Label>Razão Social</Label><Input value={form.legal_name} onChange={e => setForm(p => ({ ...p, legal_name: e.target.value }))} /></div>
           <div><Label>CNPJ/CPF</Label><Input value={form.document} onChange={e => setForm(p => ({ ...p, document: maskDocument(e.target.value) }))} /></div>
           <div><Label>Inscrição Estadual</Label><Input value={form.state_registration} onChange={e => setForm(p => ({ ...p, state_registration: e.target.value }))} /></div>
