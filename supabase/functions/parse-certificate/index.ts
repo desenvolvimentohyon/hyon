@@ -194,9 +194,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e: any) {
-    console.error("parse-certificate error:", e);
+    console.error("parse-certificate error:", e?.message, e?.stack);
     return new Response(
-      JSON.stringify({ error: "Erro interno ao processar certificado" }),
+      JSON.stringify({ error: "Erro interno ao processar certificado: " + (e?.message || "unknown") }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
