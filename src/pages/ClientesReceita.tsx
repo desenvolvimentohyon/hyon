@@ -151,6 +151,7 @@ export default function Clientes() {
 
   const filtered = useMemo(() => {
     return clientesReceita.filter(c => {
+      if (filtroStatus === "todos" && c.statusCliente === "cancelado") return false;
       if (busca && !c.nome.toLowerCase().includes(busca.toLowerCase()) && !c.documento?.includes(busca) && !c.sistemaPrincipal.toLowerCase().includes(busca.toLowerCase())) return false;
       if (filtroStatus !== "todos" && c.statusCliente !== filtroStatus) return false;
       if (filtroSistema !== "todos" && c.sistemaPrincipal !== filtroSistema) return false;
