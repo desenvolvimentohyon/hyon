@@ -28,11 +28,13 @@ const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 const C = FINANCEIRO_COLORS.raw;
 
 export default function Financeiro() {
-  const { titulos, movimentos, contasBancarias, getSaldoConta, loading } = useFinanceiro();
+  const { titulos, movimentos, contasBancarias, getSaldoConta, loading, updateTitulo } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [periodo, setPeriodo] = useState<string>("12m");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [tituloSelecionado, setTituloSelecionado] = useState<TituloFinanceiro | null>(null);
+  const [editForm, setEditForm] = useState({ descricao: "", valorOriginal: 0, vencimento: "", status: "", observacoes: "" });
   const POR_PAGINA = 10;
 
   useEffect(() => { setPaginaAtual(1); }, [filtroTipo]);
