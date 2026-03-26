@@ -90,7 +90,7 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
           <div><Label>Valor *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
-          <div><Label>{tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
+          <div><div><Label>Data de Lançamento</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
           <div><Label>Categoria</Label>
             <div className="flex gap-2">
               <Select value={catId} onValueChange={setCatId}>
