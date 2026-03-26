@@ -1,26 +1,31 @@
 
 
-## Plano: Valor base calculado automaticamente pelos módulos
+## Plano: Dia de vencimento com opções fixas (3, 5 e 7)
 
-### Contexto
-Atualmente o `monthly_value_base` é editável manualmente ou puxado do sistema. O usuário quer que o valor base seja **sempre a soma dos módulos ativos** do cliente, e o valor final seja o que o usuário estipular livremente.
+### O que muda
 
-### Alterações
+Substituir o campo numérico livre "Dia de Vencimento" por um `Select` com apenas 3 opções: dia 3, dia 5 e dia 7.
 
-**1. `src/components/clientes/tabs/TabDados.tsx`**
-- No `toggleModule`, ao recalcular, setar `monthly_value_base` = soma dos módulos (venda), em vez de usar o valor do sistema
-- Remover a lógica que soma `baseValue + sumVenda` para o `monthly_value_final`; o final não deve ser alterado automaticamente ao mudar módulos
-- Na seleção de sistema (linha ~204), não setar mais `monthly_value_base` com `sys.valorVenda`
+### Arquivos alterados
 
-**2. `src/components/clientes/tabs/TabMensalidadeNew.tsx`**
-- Tornar o campo "Valor Base (R$)" somente leitura (`readOnly` / `disabled` com `bg-muted/50`)
-- Manter "Valor Final (R$)" editável normalmente
+**1. `src/components/clientes/tabs/TabMensalidadeNew.tsx` (linha 68)**
+- Trocar o `<Input type="number">` por um `<Select>` com 3 opções: `3`, `5`, `7`
+- Default: `5` (ao invés de 10)
 
-**3. `src/pages/CheckoutInterno.tsx`**
-- Ajustar `baseValue` para usar a soma dos módulos do sistema selecionado (se aplicável), ou manter como está se o checkout não trabalha com módulos individuais
+**2. `src/components/clientes/tabs/TabMensalidade.tsx` (linha 70)**
+- Mesma alteração: trocar `<Input type="number">` por `<Select>` com opções 3, 5 e 7
+- Ajustar default de 10 para 5
 
-### Resumo
-- Valor base = soma automática dos módulos ativos (read-only na UI)
-- Valor final = definido manualmente pelo usuário
-- Desconto calculado = `(1 - final/base) * 100`
+### Detalhes técnicos
+```tsx
+<Select value={String(formData.default_due_day ?? cliente.default_due_day ?? 5)}
+        onValueChange={v => onChange({ default_due_day: Number(v) } as any)}>
+  <SelectTrigger><SelectValue /></SelectTrigger>
+  <SelectContent>
+    <SelectItem value="3">Dia 3</SelectItem>
+    <SelectItem value="5">Dia 5</SelectItem>
+    <SelectItem value="7">Dia 7</SelectItem>
+  </SelectContent>
+</Select>
+```
 
