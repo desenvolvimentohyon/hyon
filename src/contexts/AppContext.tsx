@@ -11,7 +11,9 @@ import {
 function dbToCliente(r: any): Cliente {
   const m = r.metadata || {};
   return {
-    id: r.id, nome: r.name, telefone: r.phone || undefined, email: r.email || undefined,
+    id: r.id, nome: r.trade_name || r.legal_name || r.name,
+    nomeFantasia: r.trade_name || undefined, razaoSocial: r.legal_name || undefined,
+    telefone: r.phone || undefined, email: r.email || undefined,
     documento: r.document || undefined, observacoes: r.notes || undefined, criadoEm: r.created_at,
     sistemaUsado: m.sistemaUsado, usaCloud: m.usaCloud, usaTEF: m.usaTEF,
     usaPagamentoIntegrado: m.usaPagamentoIntegrado, tipoNegocio: m.tipoNegocio,
@@ -23,8 +25,9 @@ function dbToCliente(r: any): Cliente {
 
 function clienteToDb(c: Omit<Cliente, "id" | "criadoEm">, orgId: string) {
   return {
-    org_id: orgId, name: c.nome, phone: c.telefone || null, email: c.email || null,
+    org_id: orgId, name: c.nomeFantasia || c.nome, phone: c.telefone || null, email: c.email || null,
     document: c.documento || null, notes: c.observacoes || null,
+    trade_name: c.nomeFantasia || null, legal_name: c.razaoSocial || null,
     monthly_value_final: c.mensalidadeAtual || 0,
     metadata: {
       sistemaUsado: c.sistemaUsado, usaCloud: c.usaCloud, usaTEF: c.usaTEF,

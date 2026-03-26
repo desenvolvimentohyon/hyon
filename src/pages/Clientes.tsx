@@ -39,7 +39,8 @@ export default function Clientes() {
   const [deleteJustificativa, setDeleteJustificativa] = useState("");
 
   // form
-  const [nome, setNome] = useState("");
+  const [nomeFantasia, setNomeFantasia] = useState("");
+  const [razaoSocial, setRazaoSocial] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [documento, setDocumento] = useState("");
@@ -52,11 +53,15 @@ export default function Clientes() {
   const [cnpjLookupData, setCnpjLookupData] = useState<CnpjLookupResult | null>(null);
   const [showCnpjConfirm, setShowCnpjConfirm] = useState(false);
 
-  const filtered = clientes.filter(c => c.nome.toLowerCase().includes(busca.toLowerCase()));
+  const filtered = clientes.filter(c => {
+    const term = busca.toLowerCase();
+    return c.nome.toLowerCase().includes(term) || (c.nomeFantasia || "").toLowerCase().includes(term) || (c.razaoSocial || "").toLowerCase().includes(term);
+  });
   
 
   const applyCnpjData = useCallback((data: CnpjLookupResult) => {
-    if (data.nome) setNome(data.nome);
+    if (data.fantasia) setNomeFantasia(data.fantasia);
+    if (data.nome) setRazaoSocial(data.nome);
     if (data.email) setEmail(data.email);
     if (data.telefone) setTelefone(data.telefone);
     if (data.municipio) {
@@ -90,7 +95,7 @@ export default function Clientes() {
         toast({ title: msg, variant: "destructive" });
         return;
       }
-      const hasExisting = !!(nome || email || telefone);
+      const hasExisting = !!(nomeFantasia || razaoSocial || email || telefone);
       if (hasExisting) {
         setCnpjLookupData(data);
         setShowCnpjConfirm(true);
@@ -102,7 +107,7 @@ export default function Clientes() {
     } finally {
       setCnpjLoading(false);
     }
-  }, [nome, email, telefone, applyCnpjData]);
+  }, [nomeFantasia, razaoSocial, email, telefone, applyCnpjData]);
 
   const getScore = (clienteId: string) => {
     const c = clientes.find(cl => cl.id === clienteId);
@@ -115,16 +120,17 @@ export default function Clientes() {
   };
 
   const handleCriar = () => {
-    if (!nome.trim()) { toast({ title: "Nome obrigatório", variant: "destructive" }); return; }
+    if (!nomeFantasia.trim()) { toast({ title: "Nome Fantasia obrigatório", variant: "destructive" }); return; }
     addCliente({
-      nome: nome.trim(), telefone: telefone || undefined, email: email || undefined,
+      nome: nomeFantasia.trim(), nomeFantasia: nomeFantasia.trim(), razaoSocial: razaoSocial.trim() || undefined,
+      telefone: telefone || undefined, email: email || undefined,
       documento: documento || undefined, observacoes: obs || undefined,
       sistemaUsado, tipoNegocio: tipoNegocio || undefined, perfilCliente,
       mensalidadeAtual: Number(mensalidade) || 0, statusFinanceiro: "em_dia",
     });
     toast({ title: "Cliente cadastrado!" });
     setShowNovo(false);
-    setNome(""); setTelefone(""); setEmail(""); setDocumento(""); setObs(""); setTipoNegocio(""); setMensalidade("");
+    setNomeFantasia(""); setRazaoSocial(""); setTelefone(""); setEmail(""); setDocumento(""); setObs(""); setTipoNegocio(""); setMensalidade("");
   };
 
   if (selectedId) {
@@ -204,7 +210,10 @@ export default function Clientes() {
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Novo Cliente</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div><Label>Nome *</Label><Input value={nome} onChange={e => setNome(e.target.value)} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Nome Fantasia *</Label><Input value={nomeFantasia} onChange={e => setNomeFantasia(e.target.value)} /></div>
+              <div><Label>Razão Social</Label><Input value={razaoSocial} onChange={e => setRazaoSocial(e.target.value)} /></div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div><Label>Telefone</Label><Input value={telefone} onChange={e => setTelefone(e.target.value)} /></div>
               <div><Label>Email</Label><Input value={email} onChange={e => setEmail(e.target.value)} /></div>

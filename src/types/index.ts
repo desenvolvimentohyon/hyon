@@ -11,6 +11,8 @@ export type StatusFinanceiro = "em_dia" | "1_atraso" | "2_mais_atrasos";
 export interface Cliente {
   id: string;
   nome: string;
+  nomeFantasia?: string;
+  razaoSocial?: string;
   telefone?: string;
   email?: string;
   documento?: string;
