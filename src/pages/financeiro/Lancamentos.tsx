@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, ArrowDownLeft, ArrowUpRight, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { OrigemTitulo, CentroCusto, TipoTitulo } from "@/types/financeiro";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
@@ -50,6 +51,7 @@ export default function Lancamentos() {
 }
 
 function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, addTitulo }: any) {
+  const navigate = useNavigate();
   const [desc, setDesc] = useState("");
   const [valor, setValor] = useState("");
   const [venc, setVenc] = useState(new Date().toISOString().split("T")[0]);
@@ -85,10 +87,15 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
           <div><Label>Valor *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
           <div><Label>{tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
           <div><Label>Categoria</Label>
-            <Select value={catId} onValueChange={setCatId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{planoContas.filter((p: any) => p.paiId).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={catId} onValueChange={setCatId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{planoContas.filter((p: any) => p.paiId).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
+              </Select>
+              <Button variant="outline" size="icon" className="shrink-0" onClick={() => navigate("/financeiro/plano-de-contas")} title="Criar nova conta no Plano de Contas">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           {tipo === "receber" ? (
             <div><Label>Cliente</Label>
