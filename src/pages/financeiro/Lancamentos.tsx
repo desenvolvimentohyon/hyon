@@ -64,10 +64,10 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
     contasBancarias.length > 0 ? contasBancarias[0].id : ""
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!desc || !valor) { toast.error("Preencha os campos obrigatórios"); return; }
     const now = new Date();
-    addTitulo({
+    const success = await addTitulo({
       tipo, origem: "outro" as OrigemTitulo, descricao: desc,
       clienteId: clienteId || null, fornecedorNome: fornecedor || null,
       categoriaPlanoContasId: catId,
@@ -77,8 +77,10 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
       status: "aberto" as const, formaPagamento: "pix" as const,
       contaBancariaId: contaBancariaId || null, anexosFake: [], observacoes: obs,
     });
-    toast.success(`${tipo === "receber" ? "Receita" : "Despesa"} registrada!`);
-    setDesc(""); setValor(""); setObs("");
+    if (success) {
+      toast.success(`${tipo === "receber" ? "Receita" : "Despesa"} registrada!`);
+      setDesc(""); setValor(""); setObs("");
+    }
   };
 
   return (

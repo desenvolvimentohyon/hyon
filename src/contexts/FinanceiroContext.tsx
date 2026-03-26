@@ -80,7 +80,7 @@ interface FinanceiroContextType extends FinanceiroState {
   updatePlanoContas: (id: string, changes: Partial<PlanoContas>) => void;
   deletePlanoContas: (id: string) => boolean;
   getFilhosPlanoContas: (paiId: string | null) => PlanoContas[];
-  addTitulo: (t: Omit<TituloFinanceiro, "id" | "criadoEm" | "atualizadoEm">) => void;
+  addTitulo: (t: Omit<TituloFinanceiro, "id" | "criadoEm" | "atualizadoEm">) => Promise<boolean>;
   updateTitulo: (id: string, changes: Partial<TituloFinanceiro>) => void;
   deleteTitulo: (id: string) => void;
   baixarTitulo: (id: string, contaBancariaId: string, valorPago?: number) => void;
@@ -201,20 +201,22 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   }, [planoContas]);
 
   // ===== Títulos =====
-  const addTitulo = useCallback(async (t: Omit<TituloFinanceiro, "id" | "criadoEm" | "atualizadoEm">) => {
-    if (!orgId) return;
+  const addTitulo = useCallback(async (t: Omit<TituloFinanceiro, "id" | "criadoEm" | "atualizadoEm">): Promise<boolean> => {
+    if (!orgId) return false;
+    const valorFinal = t.valorOriginal - (t.desconto || 0) + (t.juros || 0) + (t.multa || 0);
     const { error } = await supabase.from("financial_titles").insert({
       org_id: orgId, type: t.tipo, origin: t.origem, client_id: t.clienteId || null,
       supplier_name: t.fornecedorNome, description: t.descricao,
       plan_account_code: t.categoriaPlanoContasId, competency: t.competenciaMes,
       issued_at: t.dataEmissao || null, due_at: t.vencimento || null,
-      value_original: t.valorOriginal, discount: t.desconto,
-      interest: t.juros, fine: t.multa, status: t.status,
+      value_original: t.valorOriginal, value_final: valorFinal,
+      discount: t.desconto, interest: t.juros, fine: t.multa, status: t.status,
       bank_account_id: t.contaBancariaId || null, notes: t.observacoes,
       metadata: { formaPagamento: t.formaPagamento, anexosFake: t.anexosFake },
     } as any);
-    if (error) { toast.error("Erro ao criar título: " + error.message); return; }
+    if (error) { toast.error("Erro ao criar título: " + error.message); return false; }
     fetchAll();
+    return true;
   }, [orgId, fetchAll]);
 
   const updateTitulo = useCallback(async (id: string, changes: Partial<TituloFinanceiro>) => {
