@@ -1,10 +1,23 @@
 
 
-## Plano: Alterar label de "Vencimento" para "Data de Lançamento" na Receita Avulsa
+## Correção: Campo de data duplicado no formulário de lançamentos
+
+### Problema
+Na linha 93 do `Lancamentos.tsx`, há dois `<Input type="date">` — um dentro de um `<div>` interno e outro solto ao lado, causando a duplicação visível na tela.
 
 ### Alteração
 
-**`src/pages/financeiro/Lancamentos.tsx`**
+**`src/pages/financeiro/Lancamentos.tsx`** — linha 93
 
-Na linha do campo de data dentro do `LancamentoForm`, o label atual usa a condição `tipo === "pagar" ? "Data de Lançamento" : "Vencimento"`, mostrando "Vencimento" para receitas. Será alterado para exibir "Data de Lançamento" em ambos os casos.
+Substituir:
+```tsx
+<div><div><Label>Data de Lançamento</Label><Input type="date" ... /></div><Input type="date" ... /></div>
+```
+
+Por:
+```tsx
+<div><Label>Data de Lançamento</Label><Input type="date" ... /></div>
+```
+
+Apenas remover o `<div>` wrapper extra e o segundo `<Input>` duplicado.
 
