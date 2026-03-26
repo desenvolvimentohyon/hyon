@@ -130,6 +130,23 @@ export default function Financeiro() {
       .sort((a, b) => new Date(b.dataEmissao).getTime() - new Date(a.dataEmissao).getTime());
   }, [titulos, filtroTipo]);
 
+  const lancamentosPorDia = useMemo(() => {
+    const agrupado: Record<string, { date: string; receitas: number; despesas: number }> = {};
+    lancamentosRecentes.forEach(t => {
+      const d = t.dataEmissao.slice(0, 10);
+      if (!agrupado[d]) agrupado[d] = { date: d, receitas: 0, despesas: 0 };
+      if (t.tipo === "receber") agrupado[d].receitas += t.valorOriginal;
+      else agrupado[d].despesas += t.valorOriginal;
+    });
+    return Object.values(agrupado)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-30)
+      .map(item => ({
+        ...item,
+        label: new Date(item.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      }));
+  }, [lancamentosRecentes]);
+
   const totalPaginas = Math.ceil(lancamentosRecentes.length / POR_PAGINA);
   const itensPaginados = useMemo(() => {
     const inicio = (paginaAtual - 1) * POR_PAGINA;
