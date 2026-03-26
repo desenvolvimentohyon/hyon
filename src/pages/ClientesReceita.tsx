@@ -276,7 +276,7 @@ export default function Clientes() {
             {filtered.map(c => {
               const margem = c.valorMensalidade - c.valorCustoMensal;
               return (
-                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(c.id)}>
+                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 group" onClick={() => setSelectedId(c.id)}>
                   <TableCell className="font-medium">{c.nome}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-[10px]" style={{ borderColor: RECEITA_COLORS.sistemas[c.sistemaPrincipal], color: RECEITA_COLORS.sistemas[c.sistemaPrincipal] }}>
@@ -291,7 +291,10 @@ export default function Clientes() {
                   </TableCell>
                   <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">{new Date(c.dataInicio).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setSelectedId(c.id); }}>Abrir</Button>
+                    <RowActions actions={[
+                      { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
+                      { label: "Excluir", icon: Trash2, variant: "destructive", separator: true, onClick: () => { setDeleteTarget(c); setDeleteJustificativa(""); } },
+                    ]} />
                   </TableCell>
                 </TableRow>
               );
