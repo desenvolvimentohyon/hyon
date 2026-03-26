@@ -231,6 +231,56 @@ export default function Financeiro() {
           </CardContent>
         </Card>
       </div>
+      {/* Últimos Lançamentos */}
+      <Card>
+        <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-sm flex items-center gap-2"><Receipt className="h-4 w-4 text-muted-foreground" />Últimos Lançamentos</CardTitle>
+          <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="receber">Receitas</SelectItem>
+              <SelectItem value="pagar">Despesas</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Origem</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lancamentosRecentes.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
+              ) : lancamentosRecentes.map(t => (
+                <TableRow key={t.id}>
+                  <TableCell className="text-xs whitespace-nowrap">{new Date(t.dataEmissao).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell className="max-w-[200px] truncate text-sm">{t.descricao}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={t.tipo === "receber" ? "bg-success/15 text-success border-success/20" : "bg-destructive/15 text-destructive border-destructive/20"}>
+                      {t.tipo === "receber" ? "Receita" : "Despesa"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{ORIGEM_TITULO_LABELS[t.origem] || t.origem}</TableCell>
+                  <TableCell className={`text-right font-medium text-sm ${t.tipo === "receber" ? "text-success" : "text-destructive"}`}>{fmt(t.valorOriginal)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={statusColor(t.status)}>
+                      {STATUS_TITULO_LABELS[t.status] || t.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
