@@ -22,8 +22,9 @@ const defaultConfigFinanceira: ConfigFinanceira = {
 // ===== Mappers =====
 function dbToConta(r: any): ContaBancaria {
   return {
-    id: r.id, nome: r.name, banco: r.bank || "", agencia: r.agency || "",
-    conta: r.account || "", tipoConta: (r.type as any) || "corrente",
+    id: r.id, nome: r.bank_name || "", banco: r.bank_code || "",
+    agencia: r.agency || "", conta: r.account || "",
+    tipoConta: (r.account_type as any) || "corrente",
     saldoInicial: 0, ativo: true,
   };
 }
@@ -112,7 +113,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (!orgId) return;
     setLoading(true);
     const [cbRes, pcRes, tRes, mRes] = await Promise.all([
-      supabase.from("bank_accounts").select("*"),
+      supabase.from("company_bank_accounts").select("*"),
       supabase.from("plan_accounts" as any).select("*"),
       supabase.from("financial_titles").select("*"),
       supabase.from("bank_transactions").select("*"),
@@ -129,9 +130,9 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   // ===== Contas Bancárias =====
   const addContaBancaria = useCallback(async (c: Omit<ContaBancaria, "id">) => {
     if (!orgId) return;
-    const { error } = await supabase.from("bank_accounts").insert({
-      org_id: orgId, name: c.nome, bank: c.banco, agency: c.agencia,
-      account: c.conta, type: c.tipoConta,
+    const { error } = await supabase.from("company_bank_accounts").insert({
+      org_id: orgId, bank_name: c.nome, bank_code: c.banco, agency: c.agencia,
+      account: c.conta, account_type: c.tipoConta,
     });
     if (error) { toast.error("Erro ao criar conta bancária"); return; }
     fetchAll();
@@ -139,18 +140,18 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
 
   const updateContaBancaria = useCallback(async (id: string, changes: Partial<ContaBancaria>) => {
     const upd: any = {};
-    if (changes.nome !== undefined) upd.name = changes.nome;
-    if (changes.banco !== undefined) upd.bank = changes.banco;
+    if (changes.nome !== undefined) upd.bank_name = changes.nome;
+    if (changes.banco !== undefined) upd.bank_code = changes.banco;
     if (changes.agencia !== undefined) upd.agency = changes.agencia;
     if (changes.conta !== undefined) upd.account = changes.conta;
-    if (changes.tipoConta !== undefined) upd.type = changes.tipoConta;
-    const { error } = await supabase.from("bank_accounts").update(upd).eq("id", id);
+    if (changes.tipoConta !== undefined) upd.account_type = changes.tipoConta;
+    const { error } = await supabase.from("company_bank_accounts").update(upd).eq("id", id);
     if (error) { toast.error("Erro ao atualizar conta bancária"); return; }
     fetchAll();
   }, [fetchAll]);
 
   const deleteContaBancaria = useCallback(async (id: string) => {
-    const { error } = await supabase.from("bank_accounts").delete().eq("id", id);
+    const { error } = await supabase.from("company_bank_accounts").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir conta bancária"); return; }
     fetchAll();
   }, [fetchAll]);
