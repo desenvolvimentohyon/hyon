@@ -1,30 +1,17 @@
 
 
-## Plano: Substituir campo "Nome" por "Nome Fantasia" e "Razão Social" no cadastro de clientes
+## Plano: Validação de CNPJ com feedback visual no cadastro de clientes
 
-### Contexto
-O formulário de novo cliente em `Clientes.tsx` usa um campo "Nome" que mapeia para `clients.name`. A tabela já possui `trade_name` (Nome Fantasia) e `legal_name` (Razão Social) que não são usados no cadastro. O usuário quer remover "Nome" e usar apenas esses dois campos.
+### Situação atual
+O formulário já aplica máscara (`maskDocument`) e valida (`validateCNPJ`) para disparar a consulta automática. Porém **não há feedback visual de erro** nem bloqueio de submissão quando o CNPJ é inválido.
 
-### Alterações
+### Alterações em `src/pages/Clientes.tsx`
 
-**1. `src/types/index.ts`** — Adicionar campos ao tipo `Cliente`
-- Adicionar `nomeFantasia?: string` e `razaoSocial?: string` à interface `Cliente`
+1. **Estado de erro** — Adicionar `cnpjError` (string) para mensagem de validação
+2. **Validação no onChange** — Após aplicar a máscara, se o CNPJ tiver 14 dígitos e for inválido, setar `cnpjError = "CNPJ inválido"`; se válido ou incompleto, limpar o erro
+3. **Feedback visual** — Exibir `cnpjError` como texto vermelho abaixo do input, e aplicar borda vermelha ao input quando houver erro
+4. **Bloqueio no submit** — Em `handleCriar`, se `documento` tiver 14+ dígitos e `validateCNPJ` retornar false, exibir toast e bloquear o cadastro
 
-**2. `src/contexts/AppContext.tsx`** — Atualizar mappers
-- `dbToCliente`: mapear `trade_name` → `nomeFantasia`, `legal_name` → `razaoSocial`; usar `trade_name || legal_name || name` como fallback para `nome` (manter retrocompatibilidade com listagens)
-- `clienteToDb`: incluir `trade_name` e `legal_name` no insert/update
-- `updateCliente`: tratar `nomeFantasia` e `razaoSocial` nos updates
-
-**3. `src/pages/Clientes.tsx`** — Alterar formulário de cadastro
-- Remover campo "Nome" e estado `nome`
-- Adicionar estados `nomeFantasia` e `razaoSocial`
-- Substituir o campo por dois campos lado a lado: "Nome Fantasia *" e "Razão Social"
-- No `handleCriar`, usar `nomeFantasia` como `nome` (campo obrigatório) e passar `nomeFantasia` e `razaoSocial`
-- Atualizar `applyCnpjData` para preencher `nomeFantasia` (fantasia) e `razaoSocial` (nome da receita)
-
-**4. Listagem/busca** — Atualizar filtro
-- Busca passará a considerar `nomeFantasia` e `razaoSocial` além de `nome`
-
-### Sem migração necessária
-Os campos `trade_name` e `legal_name` já existem na tabela `clients`.
+### Nenhum outro arquivo precisa ser alterado
+`maskDocument`, `validateCNPJ` e `cleanCNPJ` já existem em `src/lib/cnpjUtils.ts`.
 
