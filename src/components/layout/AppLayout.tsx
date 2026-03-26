@@ -40,7 +40,7 @@ export function AppLayout() {
     <div className="min-h-screen flex flex-col w-full">
       <Topbar />
       <PushNotificationBanner />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden min-h-0">
         <ModuleNavBar />
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
           {hasAccess ? <Outlet /> : <AcessoNegado />}
