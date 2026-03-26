@@ -1,44 +1,41 @@
 
 
-## Plano: Últimos Lançamentos em formato de gráfico
+## Plano: Adicionar botão de excluir lançamento no dialog de detalhes
 
 ### O que será feito
-Adicionar um gráfico de barras acima da tabela existente na seção "Últimos Lançamentos", mostrando os lançamentos agrupados por dia com barras de receita e despesa empilhadas/lado a lado.
+Adicionar um botão "Excluir" no dialog de detalhes do lançamento (Visão Geral), com confirmação via AlertDialog antes de deletar.
 
 ### Alterações
 
 **`src/pages/financeiro/FinanceiroVisaoGeral.tsx`**
 
-1. Criar um `useMemo` chamado `lancamentosPorDia` que agrupa os `lancamentosRecentes` por data de emissão, somando valores de receita e despesa por dia (últimos 30 dias)
-2. Adicionar um gráfico `BarChart` (recharts, já importado) dentro do Card de "Últimos Lançamentos", entre o header e a tabela
-3. O gráfico terá duas barras por dia: **Receitas** (azul) e **Despesas** (vermelho), usando as cores do `FINANCEIRO_COLORS.raw`
-4. O eixo X mostra as datas formatadas (dd/MM), o eixo Y mostra valores em R$
-5. Incluir Tooltip com formatação em moeda
-6. A tabela paginada continua abaixo do gráfico, mantendo toda funcionalidade existente (paginação, clique para editar)
+1. Importar `deleteTitulo` do contexto (já existe no `FinanceiroContext`) e componentes `AlertDialog*`
+2. Adicionar state `confirmarExclusao` (boolean)
+3. No `DialogFooter`, adicionar botão "Excluir" com variante `destructive` ao lado esquerdo, que abre o AlertDialog de confirmação
+4. No AlertDialog, ao confirmar: chamar `deleteTitulo(id)`, fechar ambos os dialogs, exibir toast de sucesso
+5. Importar `Trash2` icon do lucide-react
 
 ### Resultado visual
 
 ```text
-┌──────────────────────────────────────────────┐
-│ Últimos Lançamentos              [Todos ▾]   │
-├──────────────────────────────────────────────┤
-│  ██                                          │
-│  ██ ▓▓    ██         ██                      │
-│  ██ ▓▓ ██ ██    ▓▓   ██ ▓▓                   │
-│  ── ── ── ── ── ── ── ── ──                  │
-│  01  02  03  04  05  06  07                  │
-│         ■ Receitas  ■ Despesas               │
-├──────────────────────────────────────────────┤
-│ Data │ Descrição │ Tipo │ Valor │ Status     │
-│ ...  │ ...       │ ...  │ ...   │ ...        │
-├──────────────────────────────────────────────┤
-│        ← Anterior  Pág 1 de 5  Próximo →     │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│ Detalhes do Lançamento               │
+├──────────────────────────────────────┤
+│ ... campos existentes ...            │
+│                                      │
+│ [🗑 Excluir]    [Cancelar] [Salvar]  │
+└──────────────────────────────────────┘
+
+         ┌─── Confirmação ───┐
+         │ Deseja realmente   │
+         │ excluir este       │
+         │ lançamento?        │
+         │                    │
+         │ [Cancelar] [Excluir]│
+         └────────────────────┘
 ```
 
 ### Detalhes técnicos
-- Reutiliza `lancamentosRecentes` já filtrado pelo `filtroTipo`
-- Agrupa por data, soma receitas e despesas separadamente
-- O filtro "Todos/Receitas/Despesas" afeta tanto o gráfico quanto a tabela
-- Sem novas dependências
+- `deleteTitulo` já existe no `FinanceiroContext` e faz `DELETE` na tabela `financial_titles`
+- RLS permite delete para role `admin` com permissão `financeiro:excluir`
 
