@@ -37,7 +37,7 @@ export function AppLayout() {
   const hasAccess = !requiredPerm || hasPermission(requiredPerm);
 
   return (
-    <div className="min-h-screen flex flex-col w-full">
+    <div className="h-screen flex flex-col w-full overflow-hidden">
       <Topbar />
       <PushNotificationBanner />
       <div className="flex flex-1 overflow-hidden min-h-0">
