@@ -60,6 +60,9 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
   const [fornecedor, setFornecedor] = useState("");
   const [centro, setCentro] = useState<CentroCusto>("administrativo");
   const [obs, setObs] = useState("");
+  const [contaBancariaId, setContaBancariaId] = useState(
+    contasBancarias.length > 0 ? contasBancarias[0].id : ""
+  );
 
   const handleSave = () => {
     if (!desc || !valor) { toast.error("Preencha os campos obrigatórios"); return; }
@@ -72,7 +75,7 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
       dataEmissao: now.toISOString().split("T")[0], vencimento: venc,
       valorOriginal: parseFloat(valor), desconto: 0, juros: 0, multa: 0,
       status: "aberto" as const, formaPagamento: "pix" as const,
-      contaBancariaId: "cb1", anexosFake: [], observacoes: obs,
+      contaBancariaId: contaBancariaId || null, anexosFake: [], observacoes: obs,
     });
     toast.success(`${tipo === "receber" ? "Receita" : "Despesa"} registrada!`);
     setDesc(""); setValor(""); setObs("");
@@ -107,6 +110,12 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
           ) : (
             <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
           )}
+          <div><Label>Conta Bancária</Label>
+            <Select value={contaBancariaId} onValueChange={setContaBancariaId}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{contasBancarias.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
           <div><Label>Centro de custo</Label>
             <Select value={centro} onValueChange={v => setCentro(v as CentroCusto)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
