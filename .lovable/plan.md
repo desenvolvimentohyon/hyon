@@ -1,41 +1,35 @@
 
 
-## Plano: Adicionar botão de excluir lançamento no dialog de detalhes
+## Plano: Mostrar contas bancárias das configurações no módulo financeiro
 
-### O que será feito
-Adicionar um botão "Excluir" no dialog de detalhes do lançamento (Visão Geral), com confirmação via AlertDialog antes de deletar.
+### Problema
+O módulo financeiro usa a tabela `bank_accounts` para listar contas bancárias, enquanto as contas cadastradas nas Configurações (Minha Empresa) ficam na tabela `company_bank_accounts`. São duas fontes de dados desconectadas.
+
+### Solução
+Alterar o `FinanceiroContext` para buscar contas da tabela `company_bank_accounts` ao invés de `bank_accounts`, unificando a fonte de dados.
 
 ### Alterações
 
-**`src/pages/financeiro/FinanceiroVisaoGeral.tsx`**
+**`src/contexts/FinanceiroContext.tsx`**
 
-1. Importar `deleteTitulo` do contexto (já existe no `FinanceiroContext`) e componentes `AlertDialog*`
-2. Adicionar state `confirmarExclusao` (boolean)
-3. No `DialogFooter`, adicionar botão "Excluir" com variante `destructive` ao lado esquerdo, que abre o AlertDialog de confirmação
-4. No AlertDialog, ao confirmar: chamar `deleteTitulo(id)`, fechar ambos os dialogs, exibir toast de sucesso
-5. Importar `Trash2` icon do lucide-react
+1. No `fetchAll`, trocar a query de `bank_accounts` para `company_bank_accounts`
+2. Atualizar o mapper `dbToConta` para mapear os campos de `company_bank_accounts` (que tem campos como `bank_name`, `bank_code`, `holder_name`, `pix_key`, `account_type`, `is_default`)
+3. Atualizar `addContaBancaria`, `updateContaBancaria`, `deleteContaBancaria` para operar na tabela `company_bank_accounts`
 
-### Resultado visual
+**Mapeamento de campos:**
 
 ```text
-┌──────────────────────────────────────┐
-│ Detalhes do Lançamento               │
-├──────────────────────────────────────┤
-│ ... campos existentes ...            │
-│                                      │
-│ [🗑 Excluir]    [Cancelar] [Salvar]  │
-└──────────────────────────────────────┘
-
-         ┌─── Confirmação ───┐
-         │ Deseja realmente   │
-         │ excluir este       │
-         │ lançamento?        │
-         │                    │
-         │ [Cancelar] [Excluir]│
-         └────────────────────┘
+company_bank_accounts    →   ContaBancaria (tipo interno)
+─────────────────────────────────────────────────
+bank_name               →   nome (+ banco)
+bank_code               →   banco
+agency                  →   agencia
+account                 →   conta
+account_type            →   tipoConta
+is_default              →   (novo campo ou lógica)
 ```
 
-### Detalhes técnicos
-- `deleteTitulo` já existe no `FinanceiroContext` e faz `DELETE` na tabela `financial_titles`
-- RLS permite delete para role `admin` com permissão `financeiro:excluir`
+### Impacto
+- Todas as telas que usam `contasBancarias` do contexto (Lançamentos, Contas a Receber, Contas a Pagar, Conciliação, Configurações Financeiras, Visão Geral) passarão a mostrar as contas cadastradas em Configurações
+- A tabela `bank_accounts` ficará obsoleta (pode ser removida futuramente)
 
