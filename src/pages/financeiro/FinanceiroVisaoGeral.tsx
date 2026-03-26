@@ -9,8 +9,16 @@ import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent,
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
 import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS } from "@/types/financeiro";
+import type { TituloFinanceiro } from "@/types/financeiro";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { toast } from "sonner";
 
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from "recharts";
 import { FINANCEIRO_COLORS } from "@/types/financeiro";
@@ -20,14 +28,34 @@ const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 const C = FINANCEIRO_COLORS.raw;
 
 export default function Financeiro() {
-  const { titulos, movimentos, contasBancarias, getSaldoConta, loading } = useFinanceiro();
+  const { titulos, movimentos, contasBancarias, getSaldoConta, loading, updateTitulo } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [periodo, setPeriodo] = useState<string>("12m");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [tituloSelecionado, setTituloSelecionado] = useState<TituloFinanceiro | null>(null);
+  const [editForm, setEditForm] = useState({ descricao: "", valorOriginal: 0, vencimento: "", status: "", observacoes: "" });
   const POR_PAGINA = 10;
 
   useEffect(() => { setPaginaAtual(1); }, [filtroTipo]);
+
+  const abrirDetalhe = (t: TituloFinanceiro) => {
+    setTituloSelecionado(t);
+    setEditForm({ descricao: t.descricao, valorOriginal: t.valorOriginal, vencimento: t.vencimento || "", status: t.status, observacoes: t.observacoes });
+  };
+
+  const salvarDetalhe = async () => {
+    if (!tituloSelecionado) return;
+    await updateTitulo(tituloSelecionado.id, {
+      descricao: editForm.descricao,
+      valorOriginal: editForm.valorOriginal,
+      vencimento: editForm.vencimento,
+      status: editForm.status as TituloFinanceiro["status"],
+      observacoes: editForm.observacoes,
+    });
+    toast.success("Lançamento atualizado!");
+    setTituloSelecionado(null);
+  };
 
   const kpis = useMemo(() => {
     const saldoBancos = contasBancarias.filter(c => c.ativo).reduce((s, c) => s + getSaldoConta(c.id), 0);
@@ -270,7 +298,7 @@ export default function Financeiro() {
               {itensPaginados.length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
               ) : itensPaginados.map(t => (
-                <TableRow key={t.id}>
+                <TableRow key={t.id} className="cursor-pointer" onClick={() => abrirDetalhe(t)}>
                   <TableCell className="text-xs whitespace-nowrap">{new Date(t.dataEmissao).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-sm">{t.descricao}</TableCell>
                   <TableCell>
@@ -317,6 +345,66 @@ export default function Financeiro() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog Detalhes/Edição */}
+      <Dialog open={!!tituloSelecionado} onOpenChange={(open) => !open && setTituloSelecionado(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Lançamento</DialogTitle>
+          </DialogHeader>
+          {tituloSelecionado && (
+            <div className="space-y-4">
+              {/* Read-only info */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Tipo:</span>{" "}
+                  <Badge variant="outline" className={tituloSelecionado.tipo === "receber" ? "bg-success/15 text-success border-success/20" : "bg-destructive/15 text-destructive border-destructive/20"}>
+                    {tituloSelecionado.tipo === "receber" ? "Receita" : "Despesa"}
+                  </Badge>
+                </div>
+                <div><span className="text-muted-foreground">Origem:</span> {ORIGEM_TITULO_LABELS[tituloSelecionado.origem] || tituloSelecionado.origem}</div>
+                <div><span className="text-muted-foreground">Emissão:</span> {new Date(tituloSelecionado.dataEmissao).toLocaleDateString("pt-BR")}</div>
+                <div><span className="text-muted-foreground">Competência:</span> {tituloSelecionado.competenciaMes || "—"}</div>
+              </div>
+
+              {/* Editable fields */}
+              <div className="space-y-3">
+                <div>
+                  <Label>Descrição</Label>
+                  <Input value={editForm.descricao} onChange={e => setEditForm(f => ({ ...f, descricao: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Valor</Label>
+                  <CurrencyInput value={editForm.valorOriginal} onValueChange={v => setEditForm(f => ({ ...f, valorOriginal: v }))} />
+                </div>
+                <div>
+                  <Label>{tituloSelecionado.tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label>
+                  <Input type="date" value={editForm.vencimento} onChange={e => setEditForm(f => ({ ...f, vencimento: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select value={editForm.status} onValueChange={v => setEditForm(f => ({ ...f, status: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(STATUS_TITULO_LABELS).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Observações</Label>
+                  <Textarea value={editForm.observacoes} onChange={e => setEditForm(f => ({ ...f, observacoes: e.target.value }))} rows={3} />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTituloSelecionado(null)}>Cancelar</Button>
+            <Button onClick={salvarDetalhe}>Salvar Alterações</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
