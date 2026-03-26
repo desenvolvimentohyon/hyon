@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Search, Loader2, Plus, Pencil, Trash2, Star } from "lucide-react";
 import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
-import { maskDocument } from "@/lib/cnpjUtils";
+import { maskDocument, validateCNPJ, cleanCNPJ } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { CurrencyInput } from "@/components/ui/currency-input";
