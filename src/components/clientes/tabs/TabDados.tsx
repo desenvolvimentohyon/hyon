@@ -166,8 +166,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Identificação</h3>
         <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Nome do Cliente *</Label><Input value={v("name")} onChange={e => set("name", e.target.value)} placeholder="Nome do cliente" /></div>
-          <div><Label>Nome Fantasia</Label><Input value={v("trade_name")} onChange={e => set("trade_name", e.target.value)} placeholder="Nome fantasia" /></div>
+          <div><Label>Nome Fantasia *</Label><Input value={v("trade_name")} onChange={e => onChange({ trade_name: e.target.value, name: e.target.value })} placeholder="Nome fantasia" /></div>
           <div><Label>Razão Social</Label><Input value={v("legal_name")} onChange={e => set("legal_name", e.target.value)} placeholder="Razão social" /></div>
           <div><Label>CNPJ/CPF</Label><Input value={v("document")} onChange={e => set("document", maskDocument(e.target.value))} placeholder="00.000.000/0000-00" /></div>
           <div><Label>Inscrição Estadual</Label><Input value={v("state_registration")} onChange={e => set("state_registration", e.target.value)} placeholder="Inscrição estadual" /></div>
