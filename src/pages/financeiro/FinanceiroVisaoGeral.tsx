@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt } from "lucide-react";
+import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt, Trash2 } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
 import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS } from "@/types/financeiro";
@@ -13,6 +13,7 @@ import type { TituloFinanceiro } from "@/types/financeiro";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,13 +29,14 @@ const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 const C = FINANCEIRO_COLORS.raw;
 
 export default function Financeiro() {
-  const { titulos, movimentos, contasBancarias, getSaldoConta, loading, updateTitulo } = useFinanceiro();
+  const { titulos, movimentos, contasBancarias, getSaldoConta, loading, updateTitulo, deleteTitulo } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [periodo, setPeriodo] = useState<string>("12m");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [tituloSelecionado, setTituloSelecionado] = useState<TituloFinanceiro | null>(null);
   const [editForm, setEditForm] = useState({ descricao: "", valorOriginal: 0, vencimento: "", status: "", observacoes: "" });
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
   const POR_PAGINA = 10;
 
   useEffect(() => { setPaginaAtual(1); }, [filtroTipo]);
@@ -431,12 +433,44 @@ export default function Financeiro() {
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTituloSelecionado(null)}>Cancelar</Button>
-            <Button onClick={salvarDetalhe}>Salvar Alterações</Button>
+          <DialogFooter className="flex !justify-between">
+            <Button variant="destructive" size="sm" onClick={() => setConfirmarExclusao(true)}>
+              <Trash2 className="h-4 w-4 mr-1" /> Excluir
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setTituloSelecionado(null)}>Cancelar</Button>
+              <Button onClick={salvarDetalhe}>Salvar Alterações</Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AlertDialog de confirmação de exclusão */}
+      <AlertDialog open={confirmarExclusao} onOpenChange={setConfirmarExclusao}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir lançamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja realmente excluir este lançamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!tituloSelecionado) return;
+                await deleteTitulo(tituloSelecionado.id);
+                toast.success("Lançamento excluído com sucesso!");
+                setTituloSelecionado(null);
+                setConfirmarExclusao(false);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
