@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Search, Loader2, Plus, Pencil, Trash2, Star } from "lucide-react";
 import type { ClienteFull, ClienteContact } from "@/hooks/useClienteDetalhe";
-import { maskDocument } from "@/lib/cnpjUtils";
+import { maskDocument, validateCNPJ, cleanCNPJ } from "@/lib/cnpjUtils";
 import { toast } from "@/hooks/use-toast";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -45,6 +45,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const { profile } = useAuth();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const [cepLoading, setCepLoading] = useState(false);
+  const [cnpjLoading, setCnpjLoading] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
@@ -113,6 +114,39 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     }
   }, [profile?.org_id, cliente.id, linkedModuleIds, modulos, currentSystem, formData.monthly_value_base, cliente.monthly_value_base, onChange]);
 
+  const buscarCNPJ = async (cnpjRaw: string) => {
+    const cleaned = cleanCNPJ(cnpjRaw);
+    if (cleaned.length !== 14 || !validateCNPJ(cleaned)) return;
+    setCnpjLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cnpj-lookup", { body: { cnpj: cleaned } });
+      if (error || !data || data.error) {
+        toast({ title: data?.error || "Erro ao consultar CNPJ", variant: "destructive" });
+        return;
+      }
+      const fantasia = data.fantasia || data.nome || "";
+      onChange({
+        trade_name: fantasia,
+        name: fantasia,
+        legal_name: data.nome || "",
+        address_cep: data.cep || v("address_cep"),
+        address_street: data.logradouro || v("address_street"),
+        address_number: data.numero || v("address_number"),
+        address_complement: data.complemento || v("address_complement"),
+        address_neighborhood: data.bairro || v("address_neighborhood"),
+        city: data.municipio || v("city"),
+        address_uf: data.uf || v("address_uf"),
+        email: data.email || v("email"),
+        phone: data.telefone || v("phone"),
+      } as any);
+      toast({ title: "Dados do CNPJ preenchidos com sucesso" });
+    } catch {
+      toast({ title: "Erro ao consultar CNPJ", variant: "destructive" });
+    } finally {
+      setCnpjLoading(false);
+    }
+  };
+
   const buscarCep = async () => {
     const cep = v("address_cep").replace(/\D/g, "");
     if (cep.length !== 8) { toast({ title: "CEP inválido", variant: "destructive" }); return; }
@@ -168,7 +202,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Nome Fantasia *</Label><Input value={v("trade_name")} onChange={e => onChange({ trade_name: e.target.value, name: e.target.value })} placeholder="Nome fantasia" /></div>
           <div><Label>Razão Social</Label><Input value={v("legal_name")} onChange={e => set("legal_name", e.target.value)} placeholder="Razão social" /></div>
-          <div><Label>CNPJ/CPF</Label><Input value={v("document")} onChange={e => set("document", maskDocument(e.target.value))} placeholder="00.000.000/0000-00" /></div>
+          <div className="relative"><Label>CNPJ/CPF</Label><Input value={v("document")} onChange={e => { const masked = maskDocument(e.target.value); set("document", masked); const digits = masked.replace(/\D/g, ""); if (digits.length === 14) buscarCNPJ(digits); }} placeholder="00.000.000/0000-00" />{cnpjLoading && <Loader2 className="absolute right-3 top-8 h-4 w-4 animate-spin text-muted-foreground" />}</div>
           <div><Label>Inscrição Estadual</Label><Input value={v("state_registration")} onChange={e => set("state_registration", e.target.value)} placeholder="Inscrição estadual" /></div>
           <div>
             <Label>Vínculo Empresarial</Label>
