@@ -202,7 +202,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Nome Fantasia *</Label><Input value={v("trade_name")} onChange={e => onChange({ trade_name: e.target.value, name: e.target.value })} placeholder="Nome fantasia" /></div>
           <div><Label>Razão Social</Label><Input value={v("legal_name")} onChange={e => set("legal_name", e.target.value)} placeholder="Razão social" /></div>
-          <div><Label>CNPJ/CPF</Label><Input value={v("document")} onChange={e => set("document", maskDocument(e.target.value))} placeholder="00.000.000/0000-00" /></div>
+          <div className="relative"><Label>CNPJ/CPF</Label><Input value={v("document")} onChange={e => { const masked = maskDocument(e.target.value); set("document", masked); const digits = masked.replace(/\D/g, ""); if (digits.length === 14) buscarCNPJ(digits); }} placeholder="00.000.000/0000-00" />{cnpjLoading && <Loader2 className="absolute right-3 top-8 h-4 w-4 animate-spin text-muted-foreground" />}</div>
           <div><Label>Inscrição Estadual</Label><Input value={v("state_registration")} onChange={e => set("state_registration", e.target.value)} placeholder="Inscrição estadual" /></div>
           <div>
             <Label>Vínculo Empresarial</Label>
