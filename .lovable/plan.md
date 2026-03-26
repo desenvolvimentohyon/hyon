@@ -1,29 +1,20 @@
 
 
-## Plano: Adicionar botão "Nova Subconta" em cada conta mãe
+## Plano: Botão explícito "Nova Conta Mãe"
 
-### O que muda
-Adicionar um botão "+" em cada nó da árvore de contas que, ao ser clicado, abre o modal de criação já com a **conta pai pré-selecionada** e o **tipo herdado** da conta mãe. Também permitir que qualquer conta (não apenas raízes) seja selecionada como pai no modal.
+### Situação atual
+O botão "Nova Conta" já existe e cria contas raiz (sem pai). Porém, não fica claro visualmente que ele serve para criar contas mãe.
 
-### Alterações
+### Alteração
 
 **`src/pages/financeiro/PlanoDeContas.tsx`**
 
-1. **TreeNode** — receber uma nova prop `onAddChild` e exibir um botão `+` ao lado dos botões de editar/excluir (visível no hover):
-   - Ao clicar, chama `onAddChild(item)` passando a conta mãe
-   - Ícone `Plus` com tamanho pequeno (`h-3 w-3`)
-
-2. **PlanoDeContas (componente pai)** — criar função `handleAddChild(parent)`:
-   - Define `editing = null`
-   - Pré-preenche `form.paiId` com o ID da conta mãe
-   - Pré-preenche `form.tipo` com o tipo da conta mãe
-   - Sugere o próximo código (ex: se pai é `1` e já tem filhos `1.01`, `1.02`, sugere `1.03`)
-   - Abre o modal
-
-3. **Select de "Conta pai" no modal** — listar **todas** as contas (não apenas raízes), para permitir hierarquia multinível. Exibir com indentação visual pelo código.
+1. Renomear o botão existente "Nova Conta" para **"Nova Conta Mãe"** com ícone `FolderTree` para deixar claro que cria uma conta raiz
+2. O comportamento permanece o mesmo: abre o modal com `paiId: "none"` e tipo `receita`
+3. Adicionar sugestão automática do próximo código raiz (ex: se já existem contas `1`, `2`, `3`, sugere `4`)
 
 ### Detalhes técnicos
-- A sugestão automática de código conta quantos filhos o pai já tem via `getFilhosPlanoContas(parentId)` e incrementa
-- Formato do código sugerido: `{codigoPai}.{(filhos.length + 1).toString().padStart(2, '0')}`
-- Nenhuma alteração de banco de dados necessária
+- Calcular próximo código raiz: `(raizes.length + 1).toString()` 
+- Pré-preencher `form.codigo` com o valor sugerido ao abrir o modal via esse botão
+- Nenhuma alteração de banco de dados
 
