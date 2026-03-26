@@ -100,9 +100,13 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     if (rolesRes.data) {
       const dbRoles = (rolesRes.data as any[]).map(dbToRole);
       // Add default roles from profile.role if no custom roles exist
+      const ROLE_LABELS: Record<string, string> = {
+        admin: "Administrador", comercial: "Vendedor", suporte: "Técnico",
+        financeiro: "Financeiro", implantacao: "Implantação", leitura: "Leitura",
+      };
       const defaultRoles: Role[] = Object.entries(DEFAULT_ROLE_PERMISSIONS).map(([key, perms]) => ({
-        id: key, nome: key.charAt(0).toUpperCase() + key.slice(1),
-        descricao: `Perfil ${key}`, permissions: perms, sistema: true,
+        id: key, nome: ROLE_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1),
+        descricao: `Perfil ${ROLE_LABELS[key] || key}`, permissions: perms, sistema: true,
       }));
       // Merge: custom roles + default roles (for users without custom_role_id)
       setRoles([...defaultRoles, ...dbRoles]);

@@ -26,13 +26,14 @@ import { SubtabGrid, type SubtabItem } from "@/components/configuracoes/SubtabGr
 import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
-  FileText, BarChart3, Palette, Database, Rocket, Bell, Filter
+  FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 
 const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
 const PushNotificationsSettings = lazy(() => import("@/components/configuracoes/PushNotificationsSettings"));
+const UsuariosConfig = lazy(() => import("@/pages/UsuariosConfig"));
 
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -101,6 +102,7 @@ export default function Configuracoes() {
     { value: "alertas", label: "Alertas", description: "Notificações", icon: AlertTriangle, colorClass: "text-red-500", bgClass: "bg-red-500/10", borderClass: "border-red-500/30" },
     { value: "push", label: "Push", description: "Notificações push", icon: Bell, colorClass: "text-orange-500", bgClass: "bg-orange-500/10", borderClass: "border-orange-500/30" },
     { value: "dados", label: "Dados", description: "Importar / Exportar", icon: Database, colorClass: "text-sky-500", bgClass: "bg-sky-500/10", borderClass: "border-sky-500/30" },
+    { value: "usuarios", label: "Usuários", description: "Acessos e perfis", icon: Users, colorClass: "text-pink-500", bgClass: "bg-pink-500/10", borderClass: "border-pink-500/30" },
   ];
 
   // Subtab state for "Configurações Gerais"
@@ -511,6 +513,13 @@ export default function Configuracoes() {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* ── Usuários ── */}
+            <TabsContent value="usuarios">
+              <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+                <UsuariosConfig />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </TabsContent>
