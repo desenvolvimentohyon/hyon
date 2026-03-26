@@ -14,7 +14,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users } from "lucide-react";
+import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, RefreshCw } from "lucide-react";
+import { RowActions, RowAction } from "@/components/ui/row-actions";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { toast } from "@/hooks/use-toast";
@@ -83,6 +85,8 @@ export default function Clientes() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [ajusteValor, setAjusteValor] = useState("");
   const [ajusteMotivo, setAjusteMotivo] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ClienteReceita | null>(null);
+  const [deleteJustificativa, setDeleteJustificativa] = useState("");
 
   // Form state
   const [form, setForm] = useState({
@@ -272,7 +276,7 @@ export default function Clientes() {
             {filtered.map(c => {
               const margem = c.valorMensalidade - c.valorCustoMensal;
               return (
-                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(c.id)}>
+                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 group" onClick={() => setSelectedId(c.id)}>
                   <TableCell className="font-medium">{c.nome}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-[10px]" style={{ borderColor: RECEITA_COLORS.sistemas[c.sistemaPrincipal], color: RECEITA_COLORS.sistemas[c.sistemaPrincipal] }}>
@@ -287,7 +291,10 @@ export default function Clientes() {
                   </TableCell>
                   <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">{new Date(c.dataInicio).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm" onClick={e => { e.stopPropagation(); setSelectedId(c.id); }}>Abrir</Button>
+                    <RowActions actions={[
+                      { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
+                      { label: "Excluir", icon: Trash2, variant: "destructive", separator: true, onClick: () => { setDeleteTarget(c); setDeleteJustificativa(""); } },
+                    ]} />
                   </TableCell>
                 </TableRow>
               );
@@ -376,6 +383,41 @@ export default function Clientes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={v => { if (!v) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteTarget?.nome}</strong>? Informe a justificativa abaixo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            placeholder="Motivo da exclusão (obrigatório)"
+            value={deleteJustificativa}
+            onChange={e => setDeleteJustificativa(e.target.value)}
+            rows={3}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!deleteJustificativa.trim()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget && deleteJustificativa.trim()) {
+                  deleteClienteReceita(deleteTarget.id, deleteJustificativa.trim());
+                  toast({ title: "Cliente excluído", description: deleteTarget.nome });
+                  setDeleteTarget(null);
+                  setDeleteJustificativa("");
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
