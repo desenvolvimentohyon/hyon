@@ -114,6 +114,39 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     }
   }, [profile?.org_id, cliente.id, linkedModuleIds, modulos, currentSystem, formData.monthly_value_base, cliente.monthly_value_base, onChange]);
 
+  const buscarCNPJ = async (cnpjRaw: string) => {
+    const cleaned = cleanCNPJ(cnpjRaw);
+    if (cleaned.length !== 14 || !validateCNPJ(cleaned)) return;
+    setCnpjLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cnpj-lookup", { body: { cnpj: cleaned } });
+      if (error || !data || data.error) {
+        toast({ title: data?.error || "Erro ao consultar CNPJ", variant: "destructive" });
+        return;
+      }
+      const fantasia = data.fantasia || data.nome || "";
+      onChange({
+        trade_name: fantasia,
+        name: fantasia,
+        legal_name: data.nome || "",
+        address_cep: data.cep || v("address_cep"),
+        address_street: data.logradouro || v("address_street"),
+        address_number: data.numero || v("address_number"),
+        address_complement: data.complemento || v("address_complement"),
+        address_neighborhood: data.bairro || v("address_neighborhood"),
+        city: data.municipio || v("city"),
+        address_uf: data.uf || v("address_uf"),
+        email: data.email || v("email"),
+        phone: data.telefone || v("phone"),
+      } as any);
+      toast({ title: "Dados do CNPJ preenchidos com sucesso" });
+    } catch {
+      toast({ title: "Erro ao consultar CNPJ", variant: "destructive" });
+    } finally {
+      setCnpjLoading(false);
+    }
+  };
+
   const buscarCep = async () => {
     const cep = v("address_cep").replace(/\D/g, "");
     if (cep.length !== 8) { toast({ title: "CEP inválido", variant: "destructive" }); return; }
