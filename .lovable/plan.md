@@ -1,24 +1,20 @@
 
 
-## Plano: Sincronizar campo `name` com `trade_name` para clientes existentes
+## Plano: Remover "Nome do Cliente" da aba Dados
 
 ### Contexto
-O campo `name` foi removido da UI e agora é preenchido automaticamente com `trade_name` ao salvar. Porém, clientes já existentes podem ter `name` diferente de `trade_name`. Precisamos atualizar o banco para manter consistência.
+A aba **TabDados.tsx** (a aba principal de edição) ainda exibe o campo "Nome do Cliente *" (campo `name`). Precisa ser removido, mantendo apenas "Nome Fantasia *" (obrigatório) e "Razão Social".
 
-### Alteração
+### Alterações
 
-**Migração SQL** (via migration tool):
-```sql
-UPDATE public.clients
-SET name = trade_name
-WHERE trade_name IS NOT NULL
-  AND trade_name != '';
-```
+**`src/components/clientes/tabs/TabDados.tsx`**
 
-Isso atualiza todos os clientes existentes que possuem `trade_name` preenchido, igualando `name` ao `trade_name`.
+1. **Linha 169**: Remover o campo `<div><Label>Nome do Cliente *</Label><Input value={v("name")} .../>` 
+2. **Linha 170**: Alterar label de "Nome Fantasia" para "Nome Fantasia *" (obrigatório)
+3. **No `onChange`**: Sempre que `trade_name` for alterado, sincronizar automaticamente `name` com o mesmo valor (para manter compatibilidade com o banco NOT NULL)
 
 ### Detalhes técnicos
-- Apenas uma migração, sem alteração de código
-- Clientes sem `trade_name` mantêm o `name` atual (não há risco de NULL no campo NOT NULL)
-- Novos salvamentos já fazem essa sincronização automaticamente via UI
+- O campo `name` no banco continua existindo mas é preenchido silenciosamente com `trade_name`
+- A busca por CNPJ já preenche `trade_name` e `legal_name` automaticamente -- isso continua funcionando
+- Nenhuma alteração de banco necessária
 
