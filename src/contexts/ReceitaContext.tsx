@@ -130,7 +130,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
 
   const deleteClienteReceita = useCallback(async (id: string, justificativa?: string): Promise<boolean> => {
     const { error } = await supabase.from("clients").update({
-      status: "excluido",
+      status: "cancelado",
       cancellation_reason: justificativa || "Excluído pelo usuário",
       cancelled_at: new Date().toISOString().split("T")[0],
     }).eq("id", id);
