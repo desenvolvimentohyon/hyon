@@ -1,30 +1,44 @@
 
 
-## Plano: Adicionar paginação na tabela de lançamentos
+## Plano: Clicar em lançamento para ver/editar detalhes
 
 ### O que será feito
-Substituir o limite fixo de 20 registros por paginação completa, permitindo navegar por todos os lançamentos.
+Adicionar um Dialog de detalhes/edição que abre ao clicar em uma linha da tabela de "Últimos Lançamentos" na Visão Geral.
 
 ### Alterações
 
 **`src/pages/financeiro/FinanceiroVisaoGeral.tsx`**
 
-1. Remover o `.slice(0, 20)` do `lancamentosRecentes` — retornar todos os registros filtrados/ordenados
-2. Adicionar state `paginaAtual` (inicia em 1), constante `POR_PAGINA = 10`
-3. Criar `useMemo` com os itens paginados: `lancamentosRecentes.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA)`
-4. Calcular `totalPaginas = Math.ceil(lancamentosRecentes.length / POR_PAGINA)`
-5. Resetar `paginaAtual` para 1 quando `filtroTipo` mudar (via `useEffect` ou incluindo no `onValueChange`)
-6. Adicionar abaixo da tabela os componentes `Pagination` com Previous/Next e indicador "Página X de Y — N registros"
-7. Importar `Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext` de `@/components/ui/pagination`
+1. Adicionar state `tituloSelecionado` (`TituloFinanceiro | null`)
+2. Tornar cada `TableRow` clicável com `onClick={() => setTituloSelecionado(t)}` e `cursor-pointer`
+3. Adicionar um `Dialog` de detalhes/edição com:
+   - Campos editáveis: Descrição, Valor, Vencimento, Status, Observações
+   - Campos somente-leitura: Tipo, Origem, Data Emissão, Competência
+   - Botões "Cancelar" e "Salvar Alterações"
+4. No "Salvar", chamar `updateTitulo(id, changes)` do contexto e fechar o dialog
+5. Importar `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogFooter`, `Label`, `Input`, `CurrencyInput`, `Button`, `Select` e `updateTitulo` do contexto
 
 ### Resultado visual
 
 ```text
-┌──────────────────────────────────────────────┐
-│ Tabela com 10 registros por página           │
-├──────────────────────────────────────────────┤
-│           ← Anterior  Página 1 de 5  Próximo → │
-│                   50 registros               │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│ Detalhes do Lançamento               │
+├──────────────────────────────────────┤
+│ Tipo: Despesa    Origem: Outro       │
+│ Emissão: 25/03   Competência: 2026-03│
+│                                      │
+│ Descrição: [___________________]     │
+│ Valor:     [R$ 800,00__________]     │
+│ Vencimento:[2026-03-30_________]     │
+│ Status:    [Aberto ▾]                │
+│ Observações: [_________________]     │
+│                                      │
+│          [Cancelar] [Salvar]         │
+└──────────────────────────────────────┘
 ```
+
+### Detalhes técnicos
+- Reutiliza `updateTitulo` já existente no `FinanceiroContext`
+- Estado local para campos editáveis, inicializados ao abrir o dialog
+- Toast de sucesso ao salvar
 
