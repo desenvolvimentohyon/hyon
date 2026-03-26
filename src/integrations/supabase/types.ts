@@ -1623,7 +1623,7 @@ export type Database = {
             foreignKeyName: "financial_titles_bank_account_id_fkey"
             columns: ["bank_account_id"]
             isOneToOne: false
-            referencedRelation: "bank_accounts"
+            referencedRelation: "company_bank_accounts"
             referencedColumns: ["id"]
           },
           {
