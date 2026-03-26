@@ -128,8 +128,12 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
     fetchAll();
   }, [fetchAll]);
 
-  const deleteClienteReceita = useCallback(async (id: string) => {
-    const { error } = await supabase.from("clients").delete().eq("id", id);
+  const deleteClienteReceita = useCallback(async (id: string, justificativa?: string) => {
+    const { error } = await supabase.from("clients").update({
+      status: "excluido",
+      cancellation_reason: justificativa || "Excluído pelo usuário",
+      cancelled_at: new Date().toISOString().split("T")[0],
+    }).eq("id", id);
     if (error) { toast.error("Erro ao excluir cliente"); return; }
     fetchAll();
   }, [fetchAll]);

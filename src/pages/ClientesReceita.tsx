@@ -14,7 +14,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users } from "lucide-react";
+import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, RefreshCw } from "lucide-react";
+import { RowActions, RowAction } from "@/components/ui/row-actions";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { toast } from "@/hooks/use-toast";
@@ -83,6 +85,8 @@ export default function Clientes() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [ajusteValor, setAjusteValor] = useState("");
   const [ajusteMotivo, setAjusteMotivo] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ClienteReceita | null>(null);
+  const [deleteJustificativa, setDeleteJustificativa] = useState("");
 
   // Form state
   const [form, setForm] = useState({
