@@ -50,6 +50,7 @@ export default function Clientes() {
   const [perfilCliente, setPerfilCliente] = useState<PerfilCliente>("estrategico");
   const [mensalidade, setMensalidade] = useState("");
   const [cnpjLoading, setCnpjLoading] = useState(false);
+  const [cnpjError, setCnpjError] = useState("");
   const [cnpjLookupData, setCnpjLookupData] = useState<CnpjLookupResult | null>(null);
   const [showCnpjConfirm, setShowCnpjConfirm] = useState(false);
 
@@ -85,7 +86,12 @@ export default function Clientes() {
     const masked = maskDocument(value);
     setDocumento(masked);
     const cleaned = cleanCNPJ(masked);
-    if (cleaned.length !== 14 || !validateCNPJ(cleaned)) return;
+    if (cleaned.length === 14 && !validateCNPJ(cleaned)) {
+      setCnpjError("CNPJ inválido");
+      return;
+    }
+    setCnpjError("");
+    if (cleaned.length !== 14) return;
 
     setCnpjLoading(true);
     try {
@@ -121,6 +127,8 @@ export default function Clientes() {
 
   const handleCriar = () => {
     if (!nomeFantasia.trim()) { toast({ title: "Nome Fantasia obrigatório", variant: "destructive" }); return; }
+    const cleanDoc = cleanCNPJ(documento);
+    if (cleanDoc.length >= 14 && !validateCNPJ(cleanDoc)) { toast({ title: "CNPJ inválido. Corrija antes de salvar.", variant: "destructive" }); return; }
     addCliente({
       nome: nomeFantasia.trim(), nomeFantasia: nomeFantasia.trim(), razaoSocial: razaoSocial.trim() || undefined,
       telefone: telefone || undefined, email: email || undefined,
@@ -222,9 +230,10 @@ export default function Clientes() {
               <div className="relative">
                 <Label>Documento (CNPJ)</Label>
                 <div className="relative">
-                  <Input value={documento} onChange={e => handleDocumentoChange(e.target.value)} placeholder="00.000.000/0000-00" />
+                  <Input value={documento} onChange={e => handleDocumentoChange(e.target.value)} placeholder="00.000.000/0000-00" className={cnpjError ? "border-destructive focus-visible:ring-destructive" : ""} />
                   {cnpjLoading && <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
                 </div>
+                {cnpjError && <p className="text-xs text-destructive mt-1">{cnpjError}</p>}
               </div>
               <div>
                 <Label>Sistema</Label>
