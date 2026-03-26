@@ -22,8 +22,9 @@ const defaultConfigFinanceira: ConfigFinanceira = {
 // ===== Mappers =====
 function dbToConta(r: any): ContaBancaria {
   return {
-    id: r.id, nome: r.name, banco: r.bank || "", agencia: r.agency || "",
-    conta: r.account || "", tipoConta: (r.type as any) || "corrente",
+    id: r.id, nome: r.bank_name || "", banco: r.bank_code || "",
+    agencia: r.agency || "", conta: r.account || "",
+    tipoConta: (r.account_type as any) || "corrente",
     saldoInicial: 0, ativo: true,
   };
 }
