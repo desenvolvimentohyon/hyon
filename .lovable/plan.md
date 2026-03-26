@@ -1,54 +1,29 @@
 
 
-## Plano: Remover contas duplicadas no Plano de Contas
+## Plano: Adicionar botão "Nova Subconta" em cada conta mãe
 
-### Problema
-A tabela `plan_accounts` contém 115 registros, mas apenas 23 contas únicas. Cada conta está duplicada 5 vezes (5 árvores completas idênticas). Nenhum título financeiro referencia essas contas, então a exclusão é segura.
+### O que muda
+Adicionar um botão "+" em cada nó da árvore de contas que, ao ser clicado, abre o modal de criação já com a **conta pai pré-selecionada** e o **tipo herdado** da conta mãe. Também permitir que qualquer conta (não apenas raízes) seja selecionada como pai no modal.
 
-### Solução
-Criar uma migração SQL que:
+### Alterações
 
-1. Para cada grupo de duplicatas (mesmo `code`, `name`, `type`), manter apenas o registro com o menor `created_at` (o mais antigo)
-2. Deletar primeiro os filhos duplicados (que possuem `parent_id`), depois os pais duplicados (que não possuem `parent_id`), respeitando a foreign key `parent_id`
+**`src/pages/financeiro/PlanoDeContas.tsx`**
 
-A migração usará um CTE que identifica os IDs a manter (um por grupo `code+name+type`) e deleta todos os demais em ordem segura.
+1. **TreeNode** — receber uma nova prop `onAddChild` e exibir um botão `+` ao lado dos botões de editar/excluir (visível no hover):
+   - Ao clicar, chama `onAddChild(item)` passando a conta mãe
+   - Ícone `Plus` com tamanho pequeno (`h-3 w-3`)
+
+2. **PlanoDeContas (componente pai)** — criar função `handleAddChild(parent)`:
+   - Define `editing = null`
+   - Pré-preenche `form.paiId` com o ID da conta mãe
+   - Pré-preenche `form.tipo` com o tipo da conta mãe
+   - Sugere o próximo código (ex: se pai é `1` e já tem filhos `1.01`, `1.02`, sugere `1.03`)
+   - Abre o modal
+
+3. **Select de "Conta pai" no modal** — listar **todas** as contas (não apenas raízes), para permitir hierarquia multinível. Exibir com indentação visual pelo código.
 
 ### Detalhes técnicos
-
-**Migração SQL:**
-```sql
--- Delete duplicate children first (those with parent_id)
-DELETE FROM plan_accounts
-WHERE id NOT IN (
-  SELECT DISTINCT ON (code, name, type) id
-  FROM plan_accounts
-  ORDER BY code, name, type, created_at ASC
-)
-AND parent_id IS NOT NULL;
-
--- Then delete duplicate parents (those without parent_id)
-DELETE FROM plan_accounts
-WHERE id NOT IN (
-  SELECT DISTINCT ON (code, name, type) id
-  FROM plan_accounts
-  ORDER BY code, name, type, created_at ASC
-)
-AND parent_id IS NULL;
-
--- Re-link children to the surviving parent
--- Update remaining children whose parent_id was deleted
-UPDATE plan_accounts child
-SET parent_id = (
-  SELECT p.id FROM plan_accounts p
-  WHERE p.code = LEFT(child.code, POSITION('.' IN child.code) - 1)
-    AND p.parent_id IS NULL
-  LIMIT 1
-)
-WHERE child.parent_id IS NOT NULL
-AND NOT EXISTS (
-  SELECT 1 FROM plan_accounts WHERE id = child.parent_id
-);
-```
-
-Após a migração, restarão exatamente 23 contas (5 raízes + 18 filhos), sem duplicatas.
+- A sugestão automática de código conta quantos filhos o pai já tem via `getFilhosPlanoContas(parentId)` e incrementa
+- Formato do código sugerido: `{codigoPai}.{(filhos.length + 1).toString().padStart(2, '0')}`
+- Nenhuma alteração de banco de dados necessária
 
