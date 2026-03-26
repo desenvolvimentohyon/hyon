@@ -299,6 +299,21 @@ export default function Financeiro() {
             </SelectContent>
           </Select>
         </CardHeader>
+        {lancamentosPorDia.length > 0 && (
+          <div className="px-6 pb-4">
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={lancamentosPorDia} barGap={2}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v: number) => `R$ ${(v / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Legend />
+                <Bar dataKey="receitas" name="Receitas" fill={C.receita} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="despesas" name="Despesas" fill={C.despesa} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
         <CardContent className="p-0">
           <Table>
             <TableHeader>
