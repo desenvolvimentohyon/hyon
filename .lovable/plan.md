@@ -1,40 +1,23 @@
 
 
-## Plano: Corrigir permissão de exclusão e adicionar aba Usuários em Configurações
+## Plano: Corrigir erro na importação do certificado digital
 
-### Problema 1 — Exclusão bloqueada por RLS
-A política UPDATE da tabela `clients` exige `current_role()` ser `admin`, `comercial`, `suporte` ou `implantacao`. Se o usuário não tem uma dessas roles no campo `profiles.role`, o soft-delete falha silenciosamente. A solução é atualizar a política para aceitar também `has_permission('clientes:cancelar')`.
+### Problema
+Os logs mostram que a versão **deployada** da Edge Function `parse-certificate` ainda contém `supabase.auth.getClaims()` (que não existe), apesar do arquivo no código-fonte já usar `getUser()`. A função precisa ser redeployada.
 
-### Problema 2 — Gestão de usuários fora de Configurações
-A página `UsuariosConfig` já existe mas não está acessível dentro de Configurações Gerais. O usuário quer uma aba "Usuários" dentro de Configurações com perfis pré-definidos (Administrador, Técnico, Vendedor) e a matriz de permissões granulares.
+Além disso, a importação `npm:node-forge@1.3.1` pode causar problemas em Edge Functions. Vou adicionar tratamento mais robusto para garantir estabilidade.
 
 ### Alterações
 
-**1. Migração SQL — Atualizar política UPDATE da tabela `clients`**
-```sql
-DROP POLICY "org_update" ON public.clients;
-CREATE POLICY "org_update" ON public.clients
-  FOR UPDATE TO authenticated
-  USING (
-    org_id = current_org_id() 
-    AND (
-      current_role() = ANY(ARRAY['admin','comercial','suporte','implantacao'])
-      OR has_permission('clientes:editar')
-      OR has_permission('clientes:cancelar')
-    )
-  );
-```
+**`supabase/functions/parse-certificate/index.ts`**
+- Forçar redeploy fazendo uma alteração mínima (adicionar log de diagnóstico no catch)
+- Melhorar o log de erro para incluir `e.stack` além de `e.message`, facilitando debug futuro
+- Garantir que a conversão de datas use fallback seguro caso `toISOString()` falhe
 
-**2. `src/pages/Configuracoes.tsx`**
-- Adicionar item "Usuários" ao `subtabItems` (ícone `Users`)
-- Adicionar `<TabsContent value="usuarios">` que renderiza o componente `UsuariosConfig` (lazy-loaded)
-
-**3. `src/contexts/UsersContext.tsx`**
-- Garantir que os 3 perfis padrão pré-definidos existam: `admin` → "Administrador", `suporte` → "Técnico", `comercial` → "Vendedor" — com permissões já mapeadas
-- O perfil "Administrador" terá todas as permissões
+Nenhuma outra alteração necessária — o componente `CertificadoDigitalUpload.tsx` já reconhece as datas automaticamente (`cert_valid_from`, `cert_valid_to`) e as exibe na UI.
 
 ### Detalhes técnicos
-- A função `has_permission()` já existe como `SECURITY DEFINER` e consulta `custom_roles.permissions` — sem risco de recursão
-- Perfis padrão (`DEFAULT_ROLE_PERMISSIONS`) já existem no `UsersContext` com as keys `admin`, `comercial`, `suporte` — apenas renomear labels para "Administrador", "Técnico", "Vendedor"
-- O `UsuariosConfig` já tem a matriz de permissões com checkboxes granulares por módulo — será reaproveitado
+- A função já salva `cert_valid_from`, `cert_valid_to` e `certificate_expiration` na tabela `company_profile`
+- O componente já lê e exibe essas datas com alertas de vencimento
+- O problema é exclusivamente de deploy — o código correto não foi propagado
 
