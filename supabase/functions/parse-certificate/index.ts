@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import * as forge from "npm:node-forge@1.3.1";
+import forge from "https://esm.sh/node-forge@1.3.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     try {
       const asn1 = forge.asn1.fromDer(derBytes);
       p12 = forge.pkcs12.pkcs12FromAsn1(asn1, password);
-    } catch (e: any) {
+    } catch (_e: unknown) {
       return new Response(
         JSON.stringify({ error: "Senha incorreta ou arquivo inválido" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -141,9 +141,19 @@ Deno.serve(async (req) => {
     const issuerCn = issuer.getField("CN");
     const issuerName = issuerCn ? issuerCn.value : null;
 
-    // Dates
-    const validFrom = cert.validity.notBefore.toISOString().split("T")[0];
-    const validTo = cert.validity.notAfter.toISOString().split("T")[0];
+    // Dates - safe parsing
+    let validFrom: string | null = null;
+    let validTo: string | null = null;
+    try {
+      validFrom = cert.validity.notBefore instanceof Date
+        ? cert.validity.notBefore.toISOString().split("T")[0]
+        : String(cert.validity.notBefore).split("T")[0];
+      validTo = cert.validity.notAfter instanceof Date
+        ? cert.validity.notAfter.toISOString().split("T")[0]
+        : String(cert.validity.notAfter).split("T")[0];
+    } catch (dateErr) {
+      console.error("Date parsing error:", dateErr);
+    }
 
     // Upload file to storage
     const fileBytes = Uint8Array.from(binaryStr, (c) => c.charCodeAt(0));
@@ -160,15 +170,17 @@ Deno.serve(async (req) => {
     });
 
     // Update company_profile
-    const updatePayload = {
+    const updatePayload: Record<string, unknown> = {
       cert_file_path: filePath,
       cert_cn: cn,
       cert_cnpj: cnpj,
       cert_issuer: issuerName,
-      cert_valid_from: validFrom,
-      cert_valid_to: validTo,
-      certificate_expiration: validTo,
     };
+    if (validFrom) updatePayload.cert_valid_from = validFrom;
+    if (validTo) {
+      updatePayload.cert_valid_to = validTo;
+      updatePayload.certificate_expiration = validTo;
+    }
 
     const { error: updateError } = await supabase
       .from("company_profile")
@@ -193,10 +205,12 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (e: any) {
-    console.error("parse-certificate error:", e?.message, e?.stack);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "unknown";
+    const stack = e instanceof Error ? e.stack : undefined;
+    console.error("parse-certificate error:", msg, stack);
     return new Response(
-      JSON.stringify({ error: "Erro interno ao processar certificado: " + (e?.message || "unknown") }),
+      JSON.stringify({ error: "Erro interno ao processar certificado: " + msg }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
