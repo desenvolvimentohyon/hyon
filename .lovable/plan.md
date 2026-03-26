@@ -1,29 +1,32 @@
 
 
-## Plano: Busca automática de CNPJ na aba Dados
+## Plano: Upload de Certificado Digital com leitura automática de vencimento
 
 ### O que muda
-Quando o usuário digitar um CNPJ válido (14 dígitos) no campo CNPJ/CPF da aba Dados, o sistema automaticamente consultará os dados da empresa e preencherá os campos: **Nome Fantasia**, **Razão Social**, **Endereço completo** (CEP, logradouro, número, complemento, bairro, cidade, UF), **Email** e **Telefone**.
-
-Um ícone de loading aparecerá no campo durante a consulta. O usuário verá um toast de sucesso ou erro.
+Na aba Contabilidade, a seção de **Anexos genéricos** será substituída por um upload dedicado de **Certificado Digital** (.pfx/.p12). Ao enviar o arquivo com a senha, o sistema extrai automaticamente a data de vencimento e preenche o campo `cert_expires_at`.
 
 ### Alterações
 
-**`src/components/clientes/tabs/TabDados.tsx`**
+**1. Nova Edge Function `parse-client-certificate`**
+- Recebe: `fileBase64`, `password`, `clientId`
+- Usa `node-forge` para extrair validade do certificado (mesma lógica do `parse-certificate` existente)
+- Armazena o arquivo no bucket `client-attachments` com path `{orgId}/{clientId}/certificado.pfx`
+- Atualiza o campo `cert_expires_at` na tabela `clients`
+- Retorna `cert_valid_from`, `cert_valid_to`, `cert_cn`
 
-1. Adicionar estado `cnpjLoading` para controlar o loading da busca
-2. Importar `validateCNPJ` e `cleanCNPJ` de `@/lib/cnpjUtils`
-3. Criar função `buscarCNPJ` que:
-   - Limpa e valida o CNPJ (14 dígitos, módulo 11)
-   - Chama a edge function `cnpj-lookup` via `supabase.functions.invoke`
-   - Preenche automaticamente: `trade_name` (fantasia), `name` (sync), `legal_name` (razão social), endereço completo, email e telefone
-   - Mostra toast de sucesso/erro
-4. No `onChange` do campo CNPJ/CPF, disparar a busca automaticamente quando o documento tiver 14 dígitos limpos (CNPJ completo)
-5. Adicionar ícone `Loader2` animado no campo CNPJ durante a busca
+**2. `src/components/clientes/tabs/TabContabilidade.tsx`**
+- Remover a seção de `TabAnexos` genérica
+- Adicionar seção "Certificado Digital" com:
+  - Input de arquivo (aceita apenas `.pfx, .p12`)
+  - Input de senha do certificado
+  - Botão "Enviar Certificado"
+  - Loading state durante o processamento
+- Ao receber resposta com sucesso, preencher automaticamente `cert_expires_at` via `onChange`
+- Exibir dados do certificado atual (CN, validade) quando já houver um salvo
 
 ### Detalhes técnicos
-- Reutiliza a edge function `cnpj-lookup` já existente (BrasilAPI + fallback ReceitaWS)
-- Não sobrescreve campos que o usuário já preencheu manualmente (apenas campos vazios ou se veio da busca)
-- A busca só dispara para CNPJ (14 dígitos), não para CPF (11 dígitos)
-- Nenhuma alteração de banco necessária
+- A edge function reutiliza a mesma lógica de parsing do `parse-certificate` existente (node-forge)
+- Diferença: salva no contexto do cliente (não da empresa) e atualiza `clients.cert_expires_at`
+- O campo de vencimento continua visível mas será preenchido automaticamente (ainda editável manualmente como fallback)
+- Arquivo convertido para base64 no frontend antes do envio
 
