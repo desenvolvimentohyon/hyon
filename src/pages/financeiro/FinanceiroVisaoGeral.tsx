@@ -24,6 +24,10 @@ export default function Financeiro() {
   const { clientesReceita } = useReceita();
   const [periodo, setPeriodo] = useState<string>("12m");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const POR_PAGINA = 10;
+
+  useEffect(() => { setPaginaAtual(1); }, [filtroTipo]);
 
   const kpis = useMemo(() => {
     const saldoBancos = contasBancarias.filter(c => c.ativo).reduce((s, c) => s + getSaldoConta(c.id), 0);
