@@ -1,35 +1,43 @@
 
 
-## Plano: Adicionar botão "Nova Conta" no select de Categoria
+## Correção: Erro ao registrar despesa
+
+### Problema
+Na linha 75 de `Lancamentos.tsx`, o campo `contaBancariaId` está hardcoded como `"cb1"`, que não é um UUID válido. Ao inserir no banco, o campo `bank_account_id` recebe esse valor inválido e a operação falha.
+
+### Solução
+Substituir o valor fixo `"cb1"` por `null` (já que o campo é nullable no banco) ou, melhor ainda, permitir que o usuário selecione uma conta bancária no formulário.
 
 ### Alteração
 
-**`src/pages/financeiro/Lancamentos.tsx`** — componente `LancamentoForm`, linhas 87-92
+**`src/pages/financeiro/Lancamentos.tsx`**
 
-1. Importar `useNavigate` do `react-router-dom` e o ícone `FolderTree`
-2. Envolver o `Select` de categoria em um `div` com `flex` e adicionar um botão ao lado que navega para `/financeiro/plano-de-contas`
-3. O botão terá um ícone `Plus` com tooltip/title "Criar nova conta no Plano de Contas"
-
-### Resultado
-
-O campo de categoria terá um botão `+` ao lado que leva o usuário diretamente à página do Plano de Contas para criar uma nova conta.
-
-### Detalhe técnico
+1. Adicionar state para conta bancária selecionada, inicializando com a primeira conta disponível ou string vazia
+2. Adicionar um campo `Select` de "Conta Bancária" no formulário
+3. No `handleSave`, enviar `contaBancariaId` como o valor selecionado ou `null`
 
 ```tsx
+// Novo state
+const [contaBancariaId, setContaBancariaId] = useState(
+  contasBancarias.length > 0 ? contasBancarias[0].id : ""
+);
+
+// No handleSave, linha 75 — de:
+contaBancariaId: "cb1",
+// para:
+contaBancariaId: contaBancariaId || null,
+
+// Novo campo Select no grid do formulário:
 <div>
-  <Label>Categoria</Label>
-  <div className="flex gap-2">
-    <Select value={catId} onValueChange={setCatId}>
-      <SelectTrigger><SelectValue /></SelectTrigger>
-      <SelectContent>...</SelectContent>
-    </Select>
-    <Button variant="outline" size="icon" className="shrink-0"
-      onClick={() => navigate("/financeiro/plano-de-contas")}
-      title="Criar nova conta">
-      <Plus className="h-4 w-4" />
-    </Button>
-  </div>
+  <Label>Conta Bancária</Label>
+  <Select value={contaBancariaId} onValueChange={setContaBancariaId}>
+    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+    <SelectContent>
+      {contasBancarias.map(c => (
+        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
 </div>
 ```
 
