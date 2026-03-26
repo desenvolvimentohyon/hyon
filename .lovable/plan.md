@@ -1,43 +1,36 @@
 
 
-## Correção: Erro ao registrar despesa
+## Plano: Adicionar tabela de lançamentos na Visão Geral
 
-### Problema
-Na linha 75 de `Lancamentos.tsx`, o campo `contaBancariaId` está hardcoded como `"cb1"`, que não é um UUID válido. Ao inserir no banco, o campo `bank_account_id` recebe esse valor inválido e a operação falha.
-
-### Solução
-Substituir o valor fixo `"cb1"` por `null` (já que o campo é nullable no banco) ou, melhor ainda, permitir que o usuário selecione uma conta bancária no formulário.
+### O que será feito
+Adicionar uma seção após os gráficos mostrando os lançamentos recentes (receitas e despesas) em uma tabela com filtro por tipo.
 
 ### Alteração
 
-**`src/pages/financeiro/Lancamentos.tsx`**
+**`src/pages/financeiro/FinanceiroVisaoGeral.tsx`**
 
-1. Adicionar state para conta bancária selecionada, inicializando com a primeira conta disponível ou string vazia
-2. Adicionar um campo `Select` de "Conta Bancária" no formulário
-3. No `handleSave`, enviar `contaBancariaId` como o valor selecionado ou `null`
+1. Adicionar state `filtroTipo` (todos / receber / pagar)
+2. Criar um `useMemo` que filtra os últimos lançamentos (mais recentes primeiro, limitado a ~20), aplicando o filtro de tipo
+3. Adicionar após os gráficos um novo `Card` com:
+   - Header com título "Últimos Lançamentos" + Select para filtrar (Todos / Receitas / Despesas)
+   - Tabela com colunas: Data, Descrição, Tipo (badge colorido), Categoria, Valor, Status (badge)
+   - Receitas em verde, despesas em vermelho
+   - Importar componentes `Table` e `Badge`
 
-```tsx
-// Novo state
-const [contaBancariaId, setContaBancariaId] = useState(
-  contasBancarias.length > 0 ? contasBancarias[0].id : ""
-);
-
-// No handleSave, linha 75 — de:
-contaBancariaId: "cb1",
-// para:
-contaBancariaId: contaBancariaId || null,
-
-// Novo campo Select no grid do formulário:
-<div>
-  <Label>Conta Bancária</Label>
-  <Select value={contaBancariaId} onValueChange={setContaBancariaId}>
-    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-    <SelectContent>
-      {contasBancarias.map(c => (
-        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
+```text
+┌─────────────────────────────────────────────────┐
+│ Últimos Lançamentos          [Todos ▾]          │
+├──────┬──────────────┬────────┬────────┬─────────┤
+│ Data │ Descrição    │ Tipo   │ Valor  │ Status  │
+│ 25/03│ Mensalidade  │Receita │ 1.200  │  Pago   │
+│ 24/03│ Aluguel      │Despesa │   800  │ Aberto  │
+│ ...  │              │        │        │         │
+└──────┴──────────────┴────────┴────────┴─────────┘
 ```
+
+### Detalhes técnicos
+- Dados já disponíveis via `titulos` do `useFinanceiro()`
+- Ordenação por `dataEmissao` decrescente
+- Badge "Receita" com variante success, "Despesa" com variante destructive
+- Status com cores: pago=verde, aberto=azul, vencido=vermelho, cancelado=cinza
 
