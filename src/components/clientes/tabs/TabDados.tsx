@@ -309,7 +309,6 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Contrato</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Data Assinatura</Label><Input type="date" value={v("contract_signed_at")} onChange={e => set("contract_signed_at", e.target.value)} /></div>
-          <div><Label>Data Início</Label><Input type="date" value={v("contract_start_at")} onChange={e => set("contract_start_at", e.target.value)} /></div>
           <div><Label>Data Base Reajuste</Label><Input type="date" value={v("adjustment_base_date")} onChange={e => set("adjustment_base_date", e.target.value)} /></div>
           <div>
             <Label>Tipo Reajuste</Label>

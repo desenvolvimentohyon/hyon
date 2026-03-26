@@ -209,9 +209,7 @@ export default function PortalCliente() {
   };
 
   // Days as client
-  const diasComoCliente = client.contract_start_at
-    ? Math.ceil((Date.now() - new Date(client.contract_start_at).getTime()) / (1000 * 60 * 60 * 24))
-    : client.contract_signed_at
+  const diasComoCliente = client.contract_signed_at
     ? Math.ceil((Date.now() - new Date(client.contract_signed_at).getTime()) / (1000 * 60 * 60 * 24))
     : null;
 

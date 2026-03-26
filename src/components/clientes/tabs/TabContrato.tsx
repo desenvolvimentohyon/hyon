@@ -13,8 +13,8 @@ interface Props {
   onSave: (changes: Partial<ClienteFull>) => Promise<boolean>;
 }
 
-function statusContrato(signedAt: string | null, startAt: string | null): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } {
-  if (!signedAt && !startAt) return { label: "Sem contrato", variant: "outline" };
+function statusContrato(signedAt: string | null): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } {
+  if (!signedAt) return { label: "Sem contrato", variant: "outline" };
   return { label: "Ativo", variant: "default" };
 }
 
@@ -22,18 +22,17 @@ export default function TabContrato({ cliente, onSave }: Props) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     contract_signed_at: cliente.contract_signed_at || "",
-    contract_start_at: cliente.contract_start_at || "",
     adjustment_base_date: cliente.adjustment_base_date || "",
     adjustment_type: cliente.adjustment_type || "",
     adjustment_percent: String(cliente.adjustment_percent || 0),
   });
 
-  const st = statusContrato(cliente.contract_signed_at, cliente.contract_start_at);
+  const st = statusContrato(cliente.contract_signed_at);
 
   const handleSave = async () => {
     const ok = await onSave({
       contract_signed_at: form.contract_signed_at || null,
-      contract_start_at: form.contract_start_at || null,
+      contract_start_at: form.contract_signed_at || null,
       adjustment_base_date: form.adjustment_base_date || null,
       adjustment_type: form.adjustment_type || null,
       adjustment_percent: Number(form.adjustment_percent) || 0,
@@ -54,7 +53,6 @@ export default function TabContrato({ cliente, onSave }: Props) {
           </div>
           <div className="grid gap-2 md:grid-cols-2 text-sm">
             <div><span className="text-muted-foreground">Data assinatura:</span> {cliente.contract_signed_at ? new Date(cliente.contract_signed_at).toLocaleDateString("pt-BR") : "—"}</div>
-            <div><span className="text-muted-foreground">Data início:</span> {cliente.contract_start_at ? new Date(cliente.contract_start_at).toLocaleDateString("pt-BR") : "—"}</div>
             <div><span className="text-muted-foreground">Data base reajuste:</span> {cliente.adjustment_base_date ? new Date(cliente.adjustment_base_date).toLocaleDateString("pt-BR") : "—"}</div>
             <div><span className="text-muted-foreground">Tipo reajuste:</span> {cliente.adjustment_type || "—"}</div>
             <div><span className="text-muted-foreground">% Reajuste:</span> {cliente.adjustment_percent || 0}%</div>
@@ -70,7 +68,6 @@ export default function TabContrato({ cliente, onSave }: Props) {
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Editar Contrato</p>
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Data Assinatura</Label><Input type="date" value={form.contract_signed_at} onChange={e => setForm(p => ({ ...p, contract_signed_at: e.target.value }))} /></div>
-          <div><Label>Data Início</Label><Input type="date" value={form.contract_start_at} onChange={e => setForm(p => ({ ...p, contract_start_at: e.target.value }))} /></div>
           <div><Label>Data Base Reajuste</Label><Input type="date" value={form.adjustment_base_date} onChange={e => setForm(p => ({ ...p, adjustment_base_date: e.target.value }))} /></div>
           <div>
             <Label>Tipo Reajuste</Label>
