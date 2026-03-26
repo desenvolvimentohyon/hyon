@@ -57,7 +57,7 @@ export default function PlanoDeContas() {
   const { planoContas, addPlanoContas, updatePlanoContas, deletePlanoContas, getFilhosPlanoContas, loading, exportFinanceiro } = useFinanceiro();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<PlanoContas | null>(null);
-  const [form, setForm] = useState({ codigo: "", nome: "", tipo: "receita" as TipoPlanoContas, paiId: "" });
+  const [form, setForm] = useState({ codigo: "", nome: "", tipo: "receita" as TipoPlanoContas, paiId: "none" });
 
   const raizes = getFilhosPlanoContas(null);
 
@@ -71,7 +71,7 @@ export default function PlanoDeContas() {
 
   const handleEdit = (p: PlanoContas) => {
     setEditing(p);
-    setForm({ codigo: p.codigo, nome: p.nome, tipo: p.tipo, paiId: p.paiId || "" });
+    setForm({ codigo: p.codigo, nome: p.nome, tipo: p.tipo, paiId: p.paiId || "none" });
     setModalOpen(true);
   };
 
@@ -84,15 +84,15 @@ export default function PlanoDeContas() {
   const handleSave = () => {
     if (!form.codigo || !form.nome) { toast.error("Preencha código e nome"); return; }
     if (editing) {
-      updatePlanoContas(editing.id, { codigo: form.codigo, nome: form.nome, tipo: form.tipo, paiId: form.paiId || null });
+      updatePlanoContas(editing.id, { codigo: form.codigo, nome: form.nome, tipo: form.tipo, paiId: form.paiId === "none" ? null : form.paiId || null });
       toast.success("Conta atualizada");
     } else {
-      addPlanoContas({ codigo: form.codigo, nome: form.nome, tipo: form.tipo, paiId: form.paiId || null, ativo: true });
+      addPlanoContas({ codigo: form.codigo, nome: form.nome, tipo: form.tipo, paiId: form.paiId === "none" ? null : form.paiId || null, ativo: true });
       toast.success("Conta criada");
     }
     setModalOpen(false);
     setEditing(null);
-    setForm({ codigo: "", nome: "", tipo: "receita", paiId: "" });
+    setForm({ codigo: "", nome: "", tipo: "receita", paiId: "none" });
   };
 
   const handleExportJSON = () => {
@@ -114,7 +114,7 @@ export default function PlanoDeContas() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportJSON}><Download className="h-4 w-4 mr-1" /> Exportar</Button>
-          <Button onClick={() => { setEditing(null); setForm({ codigo: "", nome: "", tipo: "receita", paiId: "" }); setModalOpen(true); }}>
+          <Button onClick={() => { setEditing(null); setForm({ codigo: "", nome: "", tipo: "receita", paiId: "none" }); setModalOpen(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Nova Conta
           </Button>
         </div>
@@ -155,7 +155,7 @@ export default function PlanoDeContas() {
               <Select value={form.paiId} onValueChange={v => setForm(p => ({ ...p, paiId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Nenhuma (raiz)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma (raiz)</SelectItem>
+                  <SelectItem value="none">Nenhuma (raiz)</SelectItem>
                   {planoContas.filter(p => p.id !== editing?.id).sort((a, b) => a.codigo.localeCompare(b.codigo)).map(p => (
                     <SelectItem key={p.id} value={p.id}>
                       {"　".repeat((p.codigo.split(".").length - 1))} {p.codigo} - {p.nome}
