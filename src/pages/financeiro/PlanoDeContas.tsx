@@ -22,8 +22,8 @@ const tipoColors: Record<TipoPlanoContas, string> = {
   investimento: "bg-success/10 text-success border-success/20",
 };
 
-function TreeNode({ item, children: filhos, onEdit, onDelete, level = 0 }: {
-  item: PlanoContas; children: PlanoContas[]; onEdit: (p: PlanoContas) => void; onDelete: (id: string) => void; level?: number;
+function TreeNode({ item, onEdit, onDelete, onAddChild, level = 0 }: {
+  item: PlanoContas; onEdit: (p: PlanoContas) => void; onDelete: (id: string) => void; onAddChild: (p: PlanoContas) => void; level?: number;
 }) {
   const [expanded, setExpanded] = useState(true);
   const { getFilhosPlanoContas } = useFinanceiro();
@@ -41,12 +41,13 @@ function TreeNode({ item, children: filhos, onEdit, onDelete, level = 0 }: {
         <span className={`text-sm font-medium flex-1 ${!item.ativo ? "line-through text-muted-foreground" : "text-foreground"}`}>{item.nome}</span>
         <Badge variant="outline" className={`text-[10px] ${tipoColors[item.tipo]}`}>{item.tipo}</Badge>
         <div className="opacity-0 group-hover:opacity-100 flex gap-1">
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onAddChild(item)} title="Nova subconta"><Plus className="h-3 w-3 text-primary" /></Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onEdit(item)}><Edit className="h-3 w-3" /></Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDelete(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
         </div>
       </div>
       {expanded && childItems.map(child => (
-        <TreeNode key={child.id} item={child} children={[]} onEdit={onEdit} onDelete={onDelete} level={level + 1} />
+        <TreeNode key={child.id} item={child} onEdit={onEdit} onDelete={onDelete} onAddChild={onAddChild} level={level + 1} />
       ))}
     </div>
   );
@@ -59,6 +60,14 @@ export default function PlanoDeContas() {
   const [form, setForm] = useState({ codigo: "", nome: "", tipo: "receita" as TipoPlanoContas, paiId: "" });
 
   const raizes = getFilhosPlanoContas(null);
+
+  const handleAddChild = (parent: PlanoContas) => {
+    const filhos = getFilhosPlanoContas(parent.id);
+    const nextSeq = (filhos.length + 1).toString().padStart(2, '0');
+    setEditing(null);
+    setForm({ codigo: `${parent.codigo}.${nextSeq}`, nome: "", tipo: parent.tipo, paiId: parent.id });
+    setModalOpen(true);
+  };
 
   const handleEdit = (p: PlanoContas) => {
     setEditing(p);
@@ -118,7 +127,7 @@ export default function PlanoDeContas() {
         </CardHeader>
         <CardContent>
           {raizes.map(r => (
-            <TreeNode key={r.id} item={r} children={[]} onEdit={handleEdit} onDelete={handleDelete} />
+            <TreeNode key={r.id} item={r} onEdit={handleEdit} onDelete={handleDelete} onAddChild={handleAddChild} />
           ))}
         </CardContent>
       </Card>
@@ -147,7 +156,11 @@ export default function PlanoDeContas() {
                 <SelectTrigger><SelectValue placeholder="Nenhuma (raiz)" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Nenhuma (raiz)</SelectItem>
-                  {planoContas.filter(p => !p.paiId).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}
+                  {planoContas.filter(p => p.id !== editing?.id).sort((a, b) => a.codigo.localeCompare(b.codigo)).map(p => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {"　".repeat((p.codigo.split(".").length - 1))} {p.codigo} - {p.nome}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
