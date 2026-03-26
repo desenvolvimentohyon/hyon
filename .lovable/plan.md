@@ -1,20 +1,23 @@
 
 
-## Plano: Trocar "Vencimento" por "Data de Lançamento" na aba Despesa
+## Correção: Data de Lançamento duplicada
 
-### Alteração
+### Problema
+Na linha 86 de `Lancamentos.tsx`, há dois `<Input type="date">` — um dentro de um `<div>` aninhado e outro solto logo depois.
 
-**`src/pages/financeiro/Lancamentos.tsx`** — componente `LancamentoForm`
+### Correção
 
-1. Na linha 86, condicionar o label do campo de data: quando `tipo === "pagar"` exibir **"Data de Lançamento"**, caso contrário manter **"Vencimento"**
-2. Nenhuma outra alteração necessária — o campo e o state (`venc`) continuam funcionando igual
+**`src/pages/financeiro/Lancamentos.tsx`** — linha 86
 
-### Detalhe técnico
-
+De:
 ```tsx
-// Linha 86 — de:
-<Label>Vencimento</Label>
-// para:
-<Label>{tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label>
+<div><div><Label>{tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
 ```
+
+Para:
+```tsx
+<div><Label>{tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
+```
+
+Remove o `<div>` aninhado extra e o segundo input duplicado.
 
