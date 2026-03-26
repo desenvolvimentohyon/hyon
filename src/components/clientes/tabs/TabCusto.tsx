@@ -2,11 +2,9 @@ import { useState, useEffect } from "react";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
-import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -16,8 +14,6 @@ interface Props {
 }
 
 export default function TabCusto({ cliente, formData, onChange }: Props) {
-  const { sistemas } = useParametros();
-  const sistemasAtivos = sistemas.filter(s => s.ativo);
   const meta = { ...(cliente.metadata || {}), ...(formData.metadata || {}) } as any;
   const setMeta = (key: string, val: any) => onChange({ metadata: { ...meta, [key]: val } } as any);
 
@@ -25,7 +21,7 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
   const [qtdModulos, setQtdModulos] = useState(0);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchModuleCosts = async () => {
       const { data: links } = await supabase
         .from("client_modules")
         .select("module_id")
@@ -40,7 +36,7 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
       setCustoModulos(sum);
       setQtdModulos(ids.length);
     };
-    fetch();
+    fetchModuleCosts();
   }, [cliente.id]);
 
   const costActive = formData.cost_active ?? cliente.cost_active;
@@ -48,6 +44,7 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
   const totalCusto = custoModulos + outrosCustos;
   const mensalidadeFinal = Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0);
   const margem = mensalidadeFinal - totalCusto;
+  const systemName = cliente.system_name || "—";
 
   return (
     <div className="space-y-8">
@@ -59,17 +56,10 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <Label>Sistema de custo</Label>
-            <Select value={(formData.cost_system_name ?? cliente.cost_system_name ?? "") as string} onValueChange={val => {
-              onChange({ cost_system_name: val } as any);
-            }}>
-              <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
-              <SelectContent>
-                {sistemasAtivos.map(s => (
-                  <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Sistema do cliente</Label>
+            <div className="flex h-10 w-full rounded-lg border border-input bg-muted/50 px-3 py-2 text-sm items-center text-muted-foreground cursor-default">
+              {systemName}
+            </div>
           </div>
           <div>
             <Label className="flex items-center gap-2">
