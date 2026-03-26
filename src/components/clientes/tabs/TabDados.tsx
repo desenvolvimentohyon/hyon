@@ -98,13 +98,12 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
       }
       setLinkedModuleIds(newIds);
 
-      // Recalculate and propagate costs
+      // Recalculate: base = sum of active modules (venda), cost = sum of costs
       const linkedMods = modulos.filter(m => newIds.includes(m.id));
       const sumVenda = linkedMods.reduce((s, m) => s + m.valorVenda, 0);
       const sumCusto = linkedMods.reduce((s, m) => s + m.valorCusto, 0);
-      const baseValue = currentSystem?.valorVenda || (formData.monthly_value_base ?? cliente.monthly_value_base) || 0;
       onChange({
-        monthly_value_final: Number(baseValue) + sumVenda,
+        monthly_value_base: sumVenda,
         monthly_cost_value: sumCusto,
       } as any);
     } catch {
@@ -200,8 +199,6 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
             <Label>Sistema</Label>
             <Select value={v("system_name")} onValueChange={val => {
               set("system_name", val);
-              const sys = sistemas.find(s => s.nome === val);
-              if (sys && sys.valorVenda > 0) onChange({ system_name: val, monthly_value_base: sys.valorVenda } as any);
             }}>
               <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
               <SelectContent>
