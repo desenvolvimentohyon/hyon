@@ -32,10 +32,31 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        navigateFallbackDenylist: [/^\/proposta/, /^\/portal/, /^\/aceite/, /^\/~oauth/],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        importScripts: ["sw-push.js"],
-      },
+      skipWaiting: true,
+      clientsClaim: true,
+      cleanupOutdatedCaches: true,
+      navigateFallbackDenylist: [/^\/proposta/, /^\/portal/, /^\/aceite/, /^\/~oauth/],
+      globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+      importScripts: ["sw-push.js"],
+      runtimeCaching: [
+        {
+          urlPattern: ({ request }) => request.mode === 'navigate',
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'pages-cache',
+            expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
+          },
+        },
+        {
+          urlPattern: ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
+          handler: 'StaleWhileRevalidate',
+          options: {
+            cacheName: 'assets-cache',
+            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
+          },
+        },
+      ],
+    },
     }),
   ].filter(Boolean),
   resolve: {
