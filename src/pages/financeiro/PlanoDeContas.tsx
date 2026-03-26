@@ -114,8 +114,8 @@ export default function PlanoDeContas() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportJSON}><Download className="h-4 w-4 mr-1" /> Exportar</Button>
-          <Button onClick={() => { setEditing(null); setForm({ codigo: "", nome: "", tipo: "receita", paiId: "none" }); setModalOpen(true); }}>
-            <Plus className="h-4 w-4 mr-1" /> Nova Conta
+          <Button onClick={() => { setEditing(null); setForm({ codigo: (raizes.length + 1).toString(), nome: "", tipo: "receita", paiId: "none" }); setModalOpen(true); }}>
+            <FolderTree className="h-4 w-4 mr-1" /> Nova Conta Mãe
           </Button>
         </div>
       </div>
