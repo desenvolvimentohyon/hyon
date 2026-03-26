@@ -1,44 +1,44 @@
 
 
-## Plano: Clicar em lançamento para ver/editar detalhes
+## Plano: Últimos Lançamentos em formato de gráfico
 
 ### O que será feito
-Adicionar um Dialog de detalhes/edição que abre ao clicar em uma linha da tabela de "Últimos Lançamentos" na Visão Geral.
+Adicionar um gráfico de barras acima da tabela existente na seção "Últimos Lançamentos", mostrando os lançamentos agrupados por dia com barras de receita e despesa empilhadas/lado a lado.
 
 ### Alterações
 
 **`src/pages/financeiro/FinanceiroVisaoGeral.tsx`**
 
-1. Adicionar state `tituloSelecionado` (`TituloFinanceiro | null`)
-2. Tornar cada `TableRow` clicável com `onClick={() => setTituloSelecionado(t)}` e `cursor-pointer`
-3. Adicionar um `Dialog` de detalhes/edição com:
-   - Campos editáveis: Descrição, Valor, Vencimento, Status, Observações
-   - Campos somente-leitura: Tipo, Origem, Data Emissão, Competência
-   - Botões "Cancelar" e "Salvar Alterações"
-4. No "Salvar", chamar `updateTitulo(id, changes)` do contexto e fechar o dialog
-5. Importar `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogFooter`, `Label`, `Input`, `CurrencyInput`, `Button`, `Select` e `updateTitulo` do contexto
+1. Criar um `useMemo` chamado `lancamentosPorDia` que agrupa os `lancamentosRecentes` por data de emissão, somando valores de receita e despesa por dia (últimos 30 dias)
+2. Adicionar um gráfico `BarChart` (recharts, já importado) dentro do Card de "Últimos Lançamentos", entre o header e a tabela
+3. O gráfico terá duas barras por dia: **Receitas** (azul) e **Despesas** (vermelho), usando as cores do `FINANCEIRO_COLORS.raw`
+4. O eixo X mostra as datas formatadas (dd/MM), o eixo Y mostra valores em R$
+5. Incluir Tooltip com formatação em moeda
+6. A tabela paginada continua abaixo do gráfico, mantendo toda funcionalidade existente (paginação, clique para editar)
 
 ### Resultado visual
 
 ```text
-┌──────────────────────────────────────┐
-│ Detalhes do Lançamento               │
-├──────────────────────────────────────┤
-│ Tipo: Despesa    Origem: Outro       │
-│ Emissão: 25/03   Competência: 2026-03│
-│                                      │
-│ Descrição: [___________________]     │
-│ Valor:     [R$ 800,00__________]     │
-│ Vencimento:[2026-03-30_________]     │
-│ Status:    [Aberto ▾]                │
-│ Observações: [_________________]     │
-│                                      │
-│          [Cancelar] [Salvar]         │
-└──────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│ Últimos Lançamentos              [Todos ▾]   │
+├──────────────────────────────────────────────┤
+│  ██                                          │
+│  ██ ▓▓    ██         ██                      │
+│  ██ ▓▓ ██ ██    ▓▓   ██ ▓▓                   │
+│  ── ── ── ── ── ── ── ── ──                  │
+│  01  02  03  04  05  06  07                  │
+│         ■ Receitas  ■ Despesas               │
+├──────────────────────────────────────────────┤
+│ Data │ Descrição │ Tipo │ Valor │ Status     │
+│ ...  │ ...       │ ...  │ ...   │ ...        │
+├──────────────────────────────────────────────┤
+│        ← Anterior  Pág 1 de 5  Próximo →     │
+└──────────────────────────────────────────────┘
 ```
 
 ### Detalhes técnicos
-- Reutiliza `updateTitulo` já existente no `FinanceiroContext`
-- Estado local para campos editáveis, inicializados ao abrir o dialog
-- Toast de sucesso ao salvar
+- Reutiliza `lancamentosRecentes` já filtrado pelo `filtroTipo`
+- Agrupa por data, soma receitas e despesas separadamente
+- O filtro "Todos/Receitas/Despesas" afeta tanto o gráfico quanto a tabela
+- Sem novas dependências
 
