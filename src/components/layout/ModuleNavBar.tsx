@@ -29,8 +29,8 @@ export function ModuleNavBar() {
   return (
     <TooltipProvider delayDuration={200}>
       <nav
-        className="sticky top-16 z-10 flex items-center justify-center gap-1 sm:gap-3 md:gap-5 px-2 sm:px-4 py-2 bg-background/80 backdrop-blur-md overflow-x-auto scrollbar-none"
-        style={{ borderBottom: "1px solid hsl(var(--border) / 0.4)" }}
+        className="flex flex-col items-center gap-1 py-3 px-1 bg-background/80 backdrop-blur-md overflow-y-auto scrollbar-none w-[60px] shrink-0"
+        style={{ borderRight: "1px solid hsl(var(--border) / 0.4)" }}
       >
         {modules.map((mod) => {
           const active = isModuleActive(mod.id, location.pathname);
@@ -43,7 +43,7 @@ export function ModuleNavBar() {
                 <button
                   onClick={() => navigate(mod.directUrl || mod.children[0]?.url || "/")}
                   className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-300 min-w-[72px] group",
+                    "flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg transition-all duration-300 w-[52px] group",
                     "hover:scale-105",
                     active
                       ? cn("border", palette.border, palette.activeBg, "shadow-sm")
@@ -52,18 +52,18 @@ export function ModuleNavBar() {
                 >
                   <div
                     className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300",
+                      "flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-300",
                       active
                         ? cn(palette.bg, palette.border, palette.color)
                         : cn("bg-muted/50 border-border/40", palette.inactiveColor, "group-hover:border-border", `group-hover:${palette.color}`)
                     )}
                     style={active ? { boxShadow: palette.glow } : undefined}
                   >
-                    <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                   </div>
                   <span
                     className={cn(
-                      "text-[11px] font-medium leading-tight text-center truncate max-w-[80px] transition-colors duration-300",
+                      "text-[9px] font-medium leading-tight text-center truncate max-w-[52px] transition-colors duration-300",
                       active ? palette.color : cn(palette.inactiveColor, "group-hover:" + palette.color.replace("text-", "text-"))
                     )}
                   >
@@ -71,7 +71,7 @@ export function ModuleNavBar() {
                   </span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
+              <TooltipContent side="right" className="text-xs">
                 {mod.title}
               </TooltipContent>
             </Tooltip>

@@ -39,12 +39,13 @@ export function AppLayout() {
   return (
     <div className="min-h-screen flex flex-col w-full">
       <Topbar />
-      <ModuleNavBar />
       <PushNotificationBanner />
-      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
-        {hasAccess ? <Outlet /> : <AcessoNegado />}
-      </main>
-      
+      <div className="flex flex-1 overflow-hidden">
+        <ModuleNavBar />
+        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
+          {hasAccess ? <Outlet /> : <AcessoNegado />}
+        </main>
+      </div>
     </div>
   );
 }
