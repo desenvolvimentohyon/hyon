@@ -39,6 +39,24 @@ export default function Financeiro() {
 
   useEffect(() => { setPaginaAtual(1); }, [filtroTipo]);
 
+  const abrirDetalhe = (t: TituloFinanceiro) => {
+    setTituloSelecionado(t);
+    setEditForm({ descricao: t.descricao, valorOriginal: t.valorOriginal, vencimento: t.vencimento || "", status: t.status, observacoes: t.observacoes });
+  };
+
+  const salvarDetalhe = async () => {
+    if (!tituloSelecionado) return;
+    await updateTitulo(tituloSelecionado.id, {
+      descricao: editForm.descricao,
+      valorOriginal: editForm.valorOriginal,
+      vencimento: editForm.vencimento,
+      status: editForm.status as TituloFinanceiro["status"],
+      observacoes: editForm.observacoes,
+    });
+    toast.success("Lançamento atualizado!");
+    setTituloSelecionado(null);
+  };
+
   const kpis = useMemo(() => {
     const saldoBancos = contasBancarias.filter(c => c.ativo).reduce((s, c) => s + getSaldoConta(c.id), 0);
     const receber = titulos.filter(t => t.tipo === "receber" && (t.status === "aberto" || t.status === "parcial"));
