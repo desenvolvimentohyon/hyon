@@ -54,7 +54,7 @@ interface ReceitaState {
 interface ReceitaContextType extends ReceitaState {
   addClienteReceita: (c: Omit<ClienteReceita, "id">) => void;
   updateClienteReceita: (id: string, changes: Partial<ClienteReceita>) => void;
-  deleteClienteReceita: (id: string, justificativa?: string) => void;
+  deleteClienteReceita: (id: string, justificativa?: string) => Promise<boolean>;
   addMensalidadeAjuste: (clienteId: string, valorNovo: number, motivo: string) => void;
   getAjustesCliente: (clienteId: string) => MensalidadeAjuste[];
   updateMetricasConfig: (c: Partial<MetricasConfig>) => void;
