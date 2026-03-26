@@ -1,13 +1,14 @@
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, AlertTriangle } from "lucide-react";
-import type { ClienteFull, ClienteAttachment } from "@/hooks/useClienteDetalhe";
+import { Copy, AlertTriangle, Upload, Loader2, ShieldCheck, FileKey } from "lucide-react";
+import type { ClienteFull } from "@/hooks/useClienteDetalhe";
 import { toast } from "@/hooks/use-toast";
-import TabAnexos from "./TabAnexos";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   cliente: ClienteFull;
@@ -15,9 +16,6 @@ interface Props {
   onChange: (changes: Partial<ClienteFull>) => void;
   clienteId?: string;
   orgId?: string;
-  attachments?: ClienteAttachment[];
-  onAddAttachment?: (att: { file_path: string; file_type: string; description?: string }) => Promise<void>;
-  onDeleteAttachment?: (id: string, filePath: string) => Promise<void>;
 }
 
 function diasParaVencer(expiresAt: string | null): number | null {
@@ -26,7 +24,7 @@ function diasParaVencer(expiresAt: string | null): number | null {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-export default function TabContabilidade({ cliente, formData, onChange, clienteId, orgId, attachments, onAddAttachment, onDeleteAttachment }: Props) {
+export default function TabContabilidade({ cliente, formData, onChange, clienteId }: Props) {
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
 
@@ -36,12 +34,69 @@ export default function TabContabilidade({ cliente, formData, onChange, clienteI
   const certExpires = (formData.cert_expires_at ?? cliente.cert_expires_at) as string | null;
   const dias = diasParaVencer(certExpires);
 
+  const [certFile, setCertFile] = useState<File | null>(null);
+  const [certPassword, setCertPassword] = useState("");
+  const [certLoading, setCertLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const copyCsc = () => {
     const csc = meta.csc_code || "";
     if (!csc) { toast({ title: "Nenhum código CSC para copiar" }); return; }
     navigator.clipboard.writeText(csc);
     toast({ title: "CSC copiado!" });
   };
+
+  const handleCertUpload = async () => {
+    if (!certFile || !certPassword || !clienteId) {
+      toast({ title: "Selecione o arquivo e informe a senha", variant: "destructive" });
+      return;
+    }
+
+    setCertLoading(true);
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(certFile);
+      });
+
+      const { data, error } = await supabase.functions.invoke("parse-client-certificate", {
+        body: { fileBase64: base64, password: certPassword, clientId: clienteId },
+      });
+
+      if (error || !data?.success) {
+        toast({ title: data?.error || "Erro ao processar certificado", variant: "destructive" });
+        return;
+      }
+
+      onChange({
+        cert_expires_at: data.cert_valid_to,
+        cert_file_path: `${clienteId}/certificado.pfx`,
+        cert_recognition_date: new Date().toISOString().split("T")[0],
+      } as any);
+
+      // Store CN in metadata
+      if (data.cert_cn) {
+        setMeta("cert_cn", data.cert_cn);
+        setMeta("cert_valid_from", data.cert_valid_from);
+      }
+
+      toast({ title: "Certificado processado com sucesso!" });
+      setCertFile(null);
+      setCertPassword("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (e: any) {
+      toast({ title: "Erro ao enviar certificado", variant: "destructive" });
+    } finally {
+      setCertLoading(false);
+    }
+  };
+
+  const hasCert = !!v("cert_file_path") || !!v("cert_expires_at");
 
   return (
     <div className="space-y-8">
@@ -61,14 +116,69 @@ export default function TabContabilidade({ cliente, formData, onChange, clienteI
         </div>
       </section>
 
-      {/* Certificado & Regime */}
+      {/* Certificado Digital - Upload + Regime */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 border-b border-border pb-2">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Certificado e Regime</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Certificado Digital e Regime</h3>
           {dias !== null && dias <= 30 && (
             <Badge variant="destructive" className="text-[10px] gap-1"><AlertTriangle className="h-3 w-3" />{dias} dias para vencer</Badge>
           )}
         </div>
+
+        {/* Current cert info */}
+        {hasCert && (meta.cert_cn || certExpires) && (
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+            <ShieldCheck className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <div className="text-sm space-y-0.5">
+              {meta.cert_cn && <p className="font-medium">{meta.cert_cn}</p>}
+              {meta.cert_valid_from && certExpires && (
+                <p className="text-muted-foreground">Válido de {meta.cert_valid_from} até {certExpires}</p>
+              )}
+              {!meta.cert_valid_from && certExpires && (
+                <p className="text-muted-foreground">Vencimento: {certExpires}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Upload section */}
+        <div className="p-4 rounded-lg border border-dashed border-border space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <FileKey className="h-4 w-4" />
+            {hasCert ? "Substituir Certificado Digital" : "Enviar Certificado Digital"}
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <Label>Arquivo (.pfx / .p12)</Label>
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept=".pfx,.p12"
+                onChange={e => setCertFile(e.target.files?.[0] || null)}
+                disabled={certLoading}
+              />
+            </div>
+            <div>
+              <Label>Senha do Certificado</Label>
+              <Input
+                type="password"
+                value={certPassword}
+                onChange={e => setCertPassword(e.target.value)}
+                placeholder="Senha do certificado"
+                disabled={certLoading}
+              />
+            </div>
+          </div>
+          <Button
+            onClick={handleCertUpload}
+            disabled={!certFile || !certPassword || certLoading}
+            size="sm"
+          >
+            {certLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+            {certLoading ? "Processando..." : "Enviar Certificado"}
+          </Button>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <Label>Vencimento do Certificado Digital</Label>
@@ -108,13 +218,6 @@ export default function TabContabilidade({ cliente, formData, onChange, clienteI
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Observações Fiscais</h3>
         <Textarea value={v("fiscal_notes")} onChange={e => set("fiscal_notes", e.target.value)} rows={3} placeholder="Observações fiscais do cliente..." />
       </section>
-
-      {/* Anexos */}
-      {clienteId && orgId && attachments && onAddAttachment && onDeleteAttachment && (
-        <section className="space-y-4">
-          <TabAnexos clienteId={clienteId} orgId={orgId} attachments={attachments} onAdd={onAddAttachment} onDelete={onDeleteAttachment} />
-        </section>
-      )}
     </div>
   );
 }
