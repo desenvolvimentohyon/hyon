@@ -298,7 +298,7 @@ export default function Financeiro() {
               {itensPaginados.length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
               ) : itensPaginados.map(t => (
-                <TableRow key={t.id}>
+                <TableRow key={t.id} className="cursor-pointer" onClick={() => abrirDetalhe(t)}>
                   <TableCell className="text-xs whitespace-nowrap">{new Date(t.dataEmissao).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-sm">{t.descricao}</TableCell>
                   <TableCell>
