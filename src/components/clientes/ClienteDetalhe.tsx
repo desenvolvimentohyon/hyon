@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Paperclip, Receipt, Settings2, Boxes, Save, Wallet, AlertTriangle, RefreshCw, LucideIcon } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Receipt, Settings2, Boxes, Save, Wallet, AlertTriangle, RefreshCw, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,7 @@ import TabContabilidade from "./tabs/TabContabilidade";
 import TabMensalidadeNew from "./tabs/TabMensalidadeNew";
 import TabCusto from "./tabs/TabCusto";
 import TabEvolucao from "./tabs/TabEvolucao";
-import TabAnexos from "./tabs/TabAnexos";
+
 import TabCobrancas from "./tabs/TabCobrancas";
 import TabControle from "./tabs/TabControle";
 import TabModulos from "./tabs/TabModulos";
@@ -35,7 +35,7 @@ const TAB_COLORS: Record<string, { color: string; inactiveColor: string; bg: str
   mensalidade:    { color: "text-green-500",  inactiveColor: "text-green-500/50",  bg: "bg-green-500/15",  border: "border-green-500/30",  glow: "0 0 12px rgba(34,197,94,0.35)" },
   custo:          { color: "text-red-500",    inactiveColor: "text-red-500/50",    bg: "bg-red-500/15",    border: "border-red-500/30",    glow: "0 0 12px rgba(239,68,68,0.35)" },
   evolucao:       { color: "text-violet-500", inactiveColor: "text-violet-500/50", bg: "bg-violet-500/15", border: "border-violet-500/30", glow: "0 0 12px rgba(139,92,246,0.35)" },
-  anexos:         { color: "text-amber-500",  inactiveColor: "text-amber-500/50",  bg: "bg-amber-500/15",  border: "border-amber-500/30",  glow: "0 0 12px rgba(245,158,11,0.35)" },
+  
   cobrancas:      { color: "text-orange-500", inactiveColor: "text-orange-500/50", bg: "bg-orange-500/15", border: "border-orange-500/30", glow: "0 0 12px rgba(249,115,22,0.35)" },
   controle:       { color: "text-slate-500",  inactiveColor: "text-slate-500/50",  bg: "bg-slate-500/15",  border: "border-slate-500/30",  glow: "0 0 12px rgba(100,116,139,0.35)" },
   modulos:        { color: "text-indigo-500", inactiveColor: "text-indigo-500/50", bg: "bg-indigo-500/15", border: "border-indigo-500/30", glow: "0 0 12px rgba(99,102,241,0.35)" },
@@ -48,7 +48,7 @@ const TABS = [
   { value: "mensalidade", label: "Mensalidade", icon: DollarSign, desc: "Valores, plano e vencimento" },
   { value: "custo", label: "Custo", icon: TrendingDown, desc: "Custos operacionais e margem" },
   { value: "evolucao", label: "Evolução", icon: History, desc: "Histórico de alterações e timeline" },
-  { value: "anexos", label: "Anexos", icon: Paperclip, desc: "Documentos e arquivos do cliente" },
+  
   { value: "cobrancas", label: "Cobranças", icon: Receipt, desc: "Contas a receber e cobranças" },
   { value: "controle", label: "Controle", icon: Settings2, desc: "Tags, observações e preferências" },
   { value: "modulos", label: "Módulos", icon: Boxes, desc: "Módulos contratados e adicionais" },
@@ -246,7 +246,7 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
               />
             </TabsContent>
             <TabsContent value="contabilidade" className="mt-0">
-              <TabContabilidade cliente={cliente} formData={formData} onChange={handleChange} />
+              <TabContabilidade cliente={cliente} formData={formData} onChange={handleChange} clienteId={clienteId} orgId={cliente?.org_id || ""} attachments={attachments} onAddAttachment={addAttachment} onDeleteAttachment={deleteAttachment} />
             </TabsContent>
             <TabsContent value="mensalidade" className="mt-0">
               <TabMensalidadeNew cliente={cliente} formData={formData} onChange={handleChange} />
@@ -256,9 +256,6 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
             </TabsContent>
             <TabsContent value="evolucao" className="mt-0">
               <TabEvolucao clienteId={clienteId} />
-            </TabsContent>
-            <TabsContent value="anexos" className="mt-0">
-              <TabAnexos clienteId={clienteId} orgId={cliente?.org_id || ""} attachments={attachments} onAdd={addAttachment} onDelete={deleteAttachment} />
             </TabsContent>
             <TabsContent value="cobrancas" className="mt-0">
               <TabCobrancas clienteId={clienteId} />
