@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
 import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS } from "@/types/financeiro";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
@@ -94,9 +95,14 @@ export default function Financeiro() {
   const lancamentosRecentes = useMemo(() => {
     return titulos
       .filter(t => filtroTipo === "todos" || (filtroTipo === "receber" ? t.tipo === "receber" : t.tipo === "pagar"))
-      .sort((a, b) => new Date(b.dataEmissao).getTime() - new Date(a.dataEmissao).getTime())
-      .slice(0, 20);
+      .sort((a, b) => new Date(b.dataEmissao).getTime() - new Date(a.dataEmissao).getTime());
   }, [titulos, filtroTipo]);
+
+  const totalPaginas = Math.ceil(lancamentosRecentes.length / POR_PAGINA);
+  const itensPaginados = useMemo(() => {
+    const inicio = (paginaAtual - 1) * POR_PAGINA;
+    return lancamentosRecentes.slice(inicio, inicio + POR_PAGINA);
+  }, [lancamentosRecentes, paginaAtual]);
 
   const statusColor = (s: string) => {
     switch (s) {
@@ -257,9 +263,9 @@ export default function Financeiro() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lancamentosRecentes.length === 0 ? (
+              {itensPaginados.length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
-              ) : lancamentosRecentes.map(t => (
+              ) : itensPaginados.map(t => (
                 <TableRow key={t.id}>
                   <TableCell className="text-xs whitespace-nowrap">{new Date(t.dataEmissao).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-sm">{t.descricao}</TableCell>
@@ -279,6 +285,32 @@ export default function Financeiro() {
               ))}
             </TableBody>
           </Table>
+          {totalPaginas > 1 && (
+            <div className="flex flex-col items-center gap-2 py-4 border-t border-border/50">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+                      className={paginaAtual <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span className="text-sm text-muted-foreground px-3">
+                      Página {paginaAtual} de {totalPaginas}
+                    </span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+                      className={paginaAtual >= totalPaginas ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+              <span className="text-xs text-muted-foreground">{lancamentosRecentes.length} registros</span>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
