@@ -5,13 +5,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, AlertTriangle } from "lucide-react";
-import type { ClienteFull } from "@/hooks/useClienteDetalhe";
+import type { ClienteFull, ClienteAttachment } from "@/hooks/useClienteDetalhe";
 import { toast } from "@/hooks/use-toast";
+import TabAnexos from "./TabAnexos";
 
 interface Props {
   cliente: ClienteFull;
   formData: Partial<ClienteFull>;
   onChange: (changes: Partial<ClienteFull>) => void;
+  clienteId?: string;
+  orgId?: string;
+  attachments?: ClienteAttachment[];
+  onAddAttachment?: (att: { file_path: string; file_type: string; description?: string }) => Promise<void>;
+  onDeleteAttachment?: (id: string, filePath: string) => Promise<void>;
 }
 
 function diasParaVencer(expiresAt: string | null): number | null {
@@ -20,7 +26,7 @@ function diasParaVencer(expiresAt: string | null): number | null {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-export default function TabContabilidade({ cliente, formData, onChange }: Props) {
+export default function TabContabilidade({ cliente, formData, onChange, clienteId, orgId, attachments, onAddAttachment, onDeleteAttachment }: Props) {
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
 
@@ -102,6 +108,13 @@ export default function TabContabilidade({ cliente, formData, onChange }: Props)
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Observações Fiscais</h3>
         <Textarea value={v("fiscal_notes")} onChange={e => set("fiscal_notes", e.target.value)} rows={3} placeholder="Observações fiscais do cliente..." />
       </section>
+
+      {/* Anexos */}
+      {clienteId && orgId && attachments && onAddAttachment && onDeleteAttachment && (
+        <section className="space-y-4">
+          <TabAnexos clienteId={clienteId} orgId={orgId} attachments={attachments} onAdd={onAddAttachment} onDelete={onDeleteAttachment} />
+        </section>
+      )}
     </div>
   );
 }
