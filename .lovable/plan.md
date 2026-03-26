@@ -1,17 +1,25 @@
 
 
-## Plano: Validação de CNPJ com feedback visual no cadastro de clientes
+## Plano: Remover campo "Data Início" do contrato
 
-### Situação atual
-O formulário já aplica máscara (`maskDocument`) e valida (`validateCNPJ`) para disparar a consulta automática. Porém **não há feedback visual de erro** nem bloqueio de submissão quando o CNPJ é inválido.
+### Contexto
+Os campos `contract_signed_at` e `contract_start_at` representam a mesma informação. O usuário quer manter apenas "Data Assinatura" (`contract_signed_at`).
 
-### Alterações em `src/pages/Clientes.tsx`
+### Alterações
 
-1. **Estado de erro** — Adicionar `cnpjError` (string) para mensagem de validação
-2. **Validação no onChange** — Após aplicar a máscara, se o CNPJ tiver 14 dígitos e for inválido, setar `cnpjError = "CNPJ inválido"`; se válido ou incompleto, limpar o erro
-3. **Feedback visual** — Exibir `cnpjError` como texto vermelho abaixo do input, e aplicar borda vermelha ao input quando houver erro
-4. **Bloqueio no submit** — Em `handleCriar`, se `documento` tiver 14+ dígitos e `validateCNPJ` retornar false, exibir toast e bloquear o cadastro
+**1. `src/components/clientes/tabs/TabContrato.tsx`**
+- Remover `contract_start_at` do estado `form` e do `handleSave`
+- Atualizar `statusContrato` para usar apenas `contract_signed_at`
+- Remover linha de exibição "Data início" no modo leitura
+- Remover campo "Data Início" no modo edição
+- No `handleSave`, copiar `contract_signed_at` para `contract_start_at` automaticamente (manter compatibilidade com o banco)
 
-### Nenhum outro arquivo precisa ser alterado
-`maskDocument`, `validateCNPJ` e `cleanCNPJ` já existem em `src/lib/cnpjUtils.ts`.
+**2. `src/components/clientes/tabs/TabDados.tsx`**
+- Remover o campo "Data Início" do formulário de dados
+
+**3. `src/pages/PortalCliente.tsx`**
+- Atualizar `diasComoCliente` para usar apenas `contract_signed_at` (já faz fallback, basta simplificar)
+
+### Sem migração necessária
+O campo `contract_start_at` permanece no banco para compatibilidade; apenas a UI deixa de exibi-lo, e ao salvar o contrato, o valor de `contract_signed_at` é espelhado em `contract_start_at`.
 
