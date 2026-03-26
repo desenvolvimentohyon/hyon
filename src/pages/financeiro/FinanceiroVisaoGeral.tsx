@@ -91,6 +91,22 @@ export default function Financeiro() {
 
   const pieCols = [C.receita, C.conciliacao, C.atraso, C.lucro, C.despesa];
 
+  const lancamentosRecentes = useMemo(() => {
+    return titulos
+      .filter(t => filtroTipo === "todos" || (filtroTipo === "receber" ? t.tipo === "receber" : t.tipo === "pagar"))
+      .sort((a, b) => new Date(b.dataEmissao).getTime() - new Date(a.dataEmissao).getTime())
+      .slice(0, 20);
+  }, [titulos, filtroTipo]);
+
+  const statusColor = (s: string) => {
+    switch (s) {
+      case "pago": return "bg-success/15 text-success border-success/20";
+      case "aberto": return "bg-info/15 text-info border-info/20";
+      case "vencido": return "bg-destructive/15 text-destructive border-destructive/20";
+      case "parcial": return "bg-warning/15 text-warning border-warning/20";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
   if (loading) return (
     <div className="p-6 space-y-4">
       <Skeleton className="h-8 w-64" />
