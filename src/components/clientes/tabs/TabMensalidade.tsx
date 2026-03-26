@@ -19,7 +19,7 @@ export default function TabMensalidade({ cliente, onSave }: Props) {
   const [form, setForm] = useState({
     monthly_value_base: String(cliente.monthly_value_base || 0),
     monthly_value_final: String(cliente.monthly_value_final || 0),
-    default_due_day: String(cliente.default_due_day || 10),
+    default_due_day: String(cliente.default_due_day || 5),
     recurrence_active: cliente.recurrence_active,
     statusFinanceiro: meta.statusFinanceiro || "em_dia",
   });
