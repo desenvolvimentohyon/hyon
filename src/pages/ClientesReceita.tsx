@@ -404,10 +404,15 @@ export default function Clientes() {
             <AlertDialogAction
               disabled={!deleteJustificativa.trim()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
+              onClick={async () => {
                 if (deleteTarget && deleteJustificativa.trim()) {
-                  deleteClienteReceita(deleteTarget.id, deleteJustificativa.trim());
-                  toast({ title: "Cliente excluído", description: deleteTarget.nome });
+                  const nome = deleteTarget.nome;
+                  const ok = await deleteClienteReceita(deleteTarget.id, deleteJustificativa.trim());
+                  if (ok) {
+                    toast({ title: "Cliente excluído", description: nome });
+                  } else {
+                    toast({ title: "Erro ao excluir cliente", description: "Verifique suas permissões ou tente novamente.", variant: "destructive" });
+                  }
                   setDeleteTarget(null);
                   setDeleteJustificativa("");
                 }
