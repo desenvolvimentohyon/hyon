@@ -345,6 +345,66 @@ export default function Financeiro() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog Detalhes/Edição */}
+      <Dialog open={!!tituloSelecionado} onOpenChange={(open) => !open && setTituloSelecionado(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Lançamento</DialogTitle>
+          </DialogHeader>
+          {tituloSelecionado && (
+            <div className="space-y-4">
+              {/* Read-only info */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Tipo:</span>{" "}
+                  <Badge variant="outline" className={tituloSelecionado.tipo === "receber" ? "bg-success/15 text-success border-success/20" : "bg-destructive/15 text-destructive border-destructive/20"}>
+                    {tituloSelecionado.tipo === "receber" ? "Receita" : "Despesa"}
+                  </Badge>
+                </div>
+                <div><span className="text-muted-foreground">Origem:</span> {ORIGEM_TITULO_LABELS[tituloSelecionado.origem] || tituloSelecionado.origem}</div>
+                <div><span className="text-muted-foreground">Emissão:</span> {new Date(tituloSelecionado.dataEmissao).toLocaleDateString("pt-BR")}</div>
+                <div><span className="text-muted-foreground">Competência:</span> {tituloSelecionado.competenciaMes || "—"}</div>
+              </div>
+
+              {/* Editable fields */}
+              <div className="space-y-3">
+                <div>
+                  <Label>Descrição</Label>
+                  <Input value={editForm.descricao} onChange={e => setEditForm(f => ({ ...f, descricao: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Valor</Label>
+                  <CurrencyInput value={editForm.valorOriginal} onValueChange={v => setEditForm(f => ({ ...f, valorOriginal: v }))} />
+                </div>
+                <div>
+                  <Label>{tituloSelecionado.tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label>
+                  <Input type="date" value={editForm.vencimento} onChange={e => setEditForm(f => ({ ...f, vencimento: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select value={editForm.status} onValueChange={v => setEditForm(f => ({ ...f, status: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(STATUS_TITULO_LABELS).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Observações</Label>
+                  <Textarea value={editForm.observacoes} onChange={e => setEditForm(f => ({ ...f, observacoes: e.target.value }))} rows={3} />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTituloSelecionado(null)}>Cancelar</Button>
+            <Button onClick={salvarDetalhe}>Salvar Alterações</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
