@@ -383,6 +383,41 @@ export default function Clientes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={v => { if (!v) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteTarget?.nome}</strong>? Informe a justificativa abaixo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            placeholder="Motivo da exclusão (obrigatório)"
+            value={deleteJustificativa}
+            onChange={e => setDeleteJustificativa(e.target.value)}
+            rows={3}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!deleteJustificativa.trim()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget && deleteJustificativa.trim()) {
+                  deleteClienteReceita(deleteTarget.id, deleteJustificativa.trim());
+                  toast({ title: "Cliente excluído", description: deleteTarget.nome });
+                  setDeleteTarget(null);
+                  setDeleteJustificativa("");
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
