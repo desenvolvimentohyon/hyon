@@ -1,5 +1,4 @@
 import { Topbar } from "@/components/layout/Topbar";
-import { ModuleNavBar } from "@/components/layout/ModuleNavBar";
 import { Outlet, useLocation } from "react-router-dom";
 
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
@@ -8,6 +7,8 @@ import { useUsers } from "@/contexts/UsersContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ROTA_PERMISSAO } from "@/types/users";
 import AcessoNegado from "@/pages/AcessoNegado";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/AppSidebar";
 
 export function AppLayout() {
   const { loading } = useApp();
@@ -31,21 +32,22 @@ export function AppLayout() {
     );
   }
 
-  // Check route permission
   const currentPath = location.pathname;
   const requiredPerm = ROTA_PERMISSAO[currentPath];
   const hasAccess = !requiredPerm || hasPermission(requiredPerm);
 
   return (
-    <div className="h-screen flex flex-col w-full overflow-hidden">
-      <Topbar />
-      <PushNotificationBanner />
-      <div className="flex flex-1 overflow-hidden min-h-0">
-        <ModuleNavBar />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
-          {hasAccess ? <Outlet /> : <AcessoNegado />}
-        </main>
+    <SidebarProvider>
+      <div className="h-screen flex w-full overflow-hidden">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Topbar />
+          <PushNotificationBanner />
+          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto animate-fade-in gradient-bg">
+            {hasAccess ? <Outlet /> : <AcessoNegado />}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

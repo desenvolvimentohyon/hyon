@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, RefreshCw } from "lucide-react";
+import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, RefreshCw, Download } from "lucide-react";
 import { RowActions, RowAction } from "@/components/ui/row-actions";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/ui/page-header";
@@ -25,6 +25,7 @@ import { ClienteReceita, StatusCliente, RECEITA_COLORS, getSystemColor } from "@
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { validateCNPJ, cleanCNPJ, formatCNPJ, maskDocument, type CnpjLookupResult } from "@/lib/cnpjUtils";
+import { ClienteCard } from "@/components/clientes/ClienteCard";
 
 function PortalLinkButton({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(false);
@@ -257,7 +258,12 @@ export default function Clientes() {
         icon={Users}
         iconClassName="text-primary"
         title="Clientes e Receita"
-        actions={<Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5"><Download className="h-4 w-4" />Exportar ({filtered.length})</Button>
+            <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>
+          </div>
+        }
       />
 
       <div className="flex flex-wrap gap-3 items-end">
@@ -289,54 +295,38 @@ export default function Clientes() {
         </Select>
       </div>
 
-      <div className="rounded-lg border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Sistema</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Mensalidade</TableHead>
-              <TableHead className="text-right hidden md:table-cell">Custo</TableHead>
-              <TableHead className="text-right hidden md:table-cell">Margem</TableHead>
-              <TableHead className="hidden lg:table-cell">Início</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map(c => {
-              const margem = c.valorMensalidade - c.valorCustoMensal;
-              return (
-                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 group" onClick={() => setSelectedId(c.id)}>
-                  <TableCell className="font-medium">{c.nome}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-[10px]" style={{ borderColor: getSystemColor(c.sistemaPrincipal), color: getSystemColor(c.sistemaPrincipal) }}>
-                      {c.sistemaPrincipal}
-                    </Badge>
-                  </TableCell>
-                  <TableCell><Badge className={`text-[10px] ${STATUS_COLORS[c.statusCliente]}`}>{STATUS_LABELS[c.statusCliente]}</Badge></TableCell>
-                  <TableCell className="text-right font-medium">{fmt(c.valorMensalidade)}</TableCell>
-                  <TableCell className="text-right hidden md:table-cell text-muted-foreground">{fmt(c.valorCustoMensal)}</TableCell>
-                  <TableCell className="text-right hidden md:table-cell">
-                    <span style={{ color: margem >= 0 ? RECEITA_COLORS.margem : RECEITA_COLORS.custos }}>{fmt(margem)}</span>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">{new Date(c.dataInicio).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell>
-                    <RowActions actions={[
-                      { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
-                      { label: "Excluir", icon: Trash2, variant: "destructive", separator: true, onClick: () => { setDeleteTarget(c); setDeleteJustificativa(""); } },
-                    ]} />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-            {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">Nenhum cliente encontrado</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div className="space-y-2">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">Nenhum cliente encontrado</div>
+        ) : filtered.map(c => {
+          const margem = c.valorMensalidade - c.valorCustoMensal;
+          return (
+            <ClienteCard
+              key={c.id}
+              nome={c.nome}
+              documento={c.documento}
+              telefone={c.telefone}
+              sistema={c.sistemaPrincipal}
+              systemColor={getSystemColor(c.sistemaPrincipal)}
+              statusBadge={<Badge className={`text-[10px] ${STATUS_COLORS[c.statusCliente]}`}>{STATUS_LABELS[c.statusCliente]}</Badge>}
+              extraInfo={
+                <>
+                  <span className="text-xs font-medium">{fmt(c.valorMensalidade)}</span>
+                  <span className={`text-xs ${margem >= 0 ? "text-green-500" : "text-destructive"}`}>
+                    Margem: {fmt(margem)}
+                  </span>
+                </>
+              }
+              onClick={() => setSelectedId(c.id)}
+              actions={
+                <RowActions actions={[
+                  { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
+                  { label: "Excluir", icon: Trash2, variant: "destructive", separator: true, onClick: () => { setDeleteTarget(c); setDeleteJustificativa(""); } },
+                ]} />
+              }
+            />
+          );
+        })}
       </div>
 
       <Dialog open={showNovo} onOpenChange={v => { if (!v) resetForm(); setShowNovo(v); }}>
