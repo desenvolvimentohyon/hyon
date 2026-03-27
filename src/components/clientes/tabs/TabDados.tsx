@@ -254,7 +254,12 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           <div>
             <Label>Sistema</Label>
             <Select value={v("system_name")} onValueChange={val => {
-              set("system_name", val);
+              if (linkedModules.size > 0 && val !== v("system_name")) {
+                setPendingSystem(val);
+                setShowSystemChangeDialog(true);
+              } else {
+                set("system_name", val);
+              }
             }}>
               <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
               <SelectContent>
