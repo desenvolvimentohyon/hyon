@@ -124,7 +124,10 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
           <div className="grid gap-2 md:grid-cols-3 text-sm">
             <div><span className="text-muted-foreground">Desconto calculado:</span> <span className="font-medium">{desconto}%</span></div>
             <div><span className="text-muted-foreground">Valor base:</span> <span className="font-medium">R$ {base.toFixed(2)}</span></div>
-            <div><span className="text-muted-foreground">Valor final:</span> <span className="font-semibold text-primary">R$ {final_.toFixed(2)}</span></div>
+            <div><span className="text-muted-foreground">Valor final mensal:</span> <span className="font-semibold text-primary">R$ {final_.toFixed(2)}</span></div>
+            {isNotMonthly && planTotalValue > 0 && (
+              <div><span className="text-muted-foreground">Valor total do plano:</span> <span className="font-semibold text-primary">R$ {planTotalValue.toFixed(2)}</span></div>
+            )}
           </div>
         </div>
       </section>
