@@ -1,7 +1,7 @@
 import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, ChevronRight, LogOut, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -218,6 +218,7 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-background/80 backdrop-blur-md px-4" style={{ borderBottom: "1px solid hsl(var(--border) / 0.5)" }}>
+      <SidebarTrigger className="shrink-0" />
       {/* Breadcrumb */}
       {breadcrumb && (
         <>
