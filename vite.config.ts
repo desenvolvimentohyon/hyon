@@ -59,9 +59,6 @@ export default defineConfig(({ mode }) => ({
     },
     }),
   ].filter(Boolean),
-  optimizeDeps: {
-    force: true,
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
