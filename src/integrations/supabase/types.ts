@@ -794,6 +794,7 @@ export type Database = {
           id: string
           module_id: string
           org_id: string
+          quantity: number
         }
         Insert: {
           client_id: string
@@ -801,6 +802,7 @@ export type Database = {
           id?: string
           module_id: string
           org_id: string
+          quantity?: number
         }
         Update: {
           client_id?: string
@@ -808,6 +810,7 @@ export type Database = {
           id?: string
           module_id?: string
           org_id?: string
+          quantity?: number
         }
         Relationships: [
           {
