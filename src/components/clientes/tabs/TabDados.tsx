@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { addMonths } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -371,8 +372,12 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Contrato</h3>
         <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Data Assinatura</Label><Input type="date" value={v("contract_signed_at")} onChange={e => set("contract_signed_at", e.target.value)} /></div>
-          <div><Label>Data Base Reajuste</Label><Input type="date" value={v("adjustment_base_date")} onChange={e => set("adjustment_base_date", e.target.value)} /></div>
+          <div><Label>Data Assinatura</Label><Input type="date" value={v("contract_signed_at")} onChange={e => {
+            const val = e.target.value;
+            const calcDate = val ? addMonths(new Date(val + "T00:00:00"), 12).toISOString().split("T")[0] : "";
+            onChange({ contract_signed_at: val, adjustment_base_date: calcDate || null } as any);
+          }} /></div>
+           <div><Label>Data Base Reajuste <span className="text-[10px] text-muted-foreground">(auto: +12 meses)</span></Label><Input type="date" value={v("adjustment_base_date")} readOnly className="bg-muted" /></div>
           <div>
             <Label>Tipo Reajuste</Label>
             <Select value={v("adjustment_type")} onValueChange={val => set("adjustment_type", val)}>

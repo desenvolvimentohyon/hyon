@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { addMonths } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,8 +68,12 @@ export default function TabContrato({ cliente, onSave }: Props) {
       <CardContent className="pt-6 space-y-4">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Editar Contrato</p>
         <div className="grid gap-4 md:grid-cols-2">
-          <div><Label>Data Assinatura</Label><Input type="date" value={form.contract_signed_at} onChange={e => setForm(p => ({ ...p, contract_signed_at: e.target.value }))} /></div>
-          <div><Label>Data Base Reajuste</Label><Input type="date" value={form.adjustment_base_date} onChange={e => setForm(p => ({ ...p, adjustment_base_date: e.target.value }))} /></div>
+          <div><Label>Data Assinatura</Label><Input type="date" value={form.contract_signed_at} onChange={e => {
+            const val = e.target.value;
+            const calcDate = val ? addMonths(new Date(val + "T00:00:00"), 12).toISOString().split("T")[0] : "";
+            setForm(p => ({ ...p, contract_signed_at: val, adjustment_base_date: calcDate }));
+          }} /></div>
+           <div><Label>Data Base Reajuste <span className="text-[10px] text-muted-foreground">(auto: +12 meses)</span></Label><Input type="date" value={form.adjustment_base_date} readOnly className="bg-muted" /></div>
           <div>
             <Label>Tipo Reajuste</Label>
             <Select value={form.adjustment_type} onValueChange={v => setForm(p => ({ ...p, adjustment_type: v }))}>
