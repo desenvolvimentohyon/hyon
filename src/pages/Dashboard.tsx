@@ -15,7 +15,8 @@ import {
   ExternalLink, RefreshCw, Download, Clock, Zap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
+import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
+import { useParametros } from "@/contexts/ParametrosContext";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip,
   ResponsiveContainer, LineChart, Line, CartesianGrid, Legend, Area, AreaChart,
@@ -471,23 +472,28 @@ export default function Dashboard() {
   }, [clientesReceita]);
 
   // ── Systems distribution ────────────────────────────────────────────
+  const { sistemas: sistemaCatalogo } = useParametros();
+  const activeSystemNames = useMemo(() => sistemaCatalogo.filter(s => s.ativo).map(s => s.nome), [sistemaCatalogo]);
+
   const sistemasMini = useMemo(() => {
-    const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
-    return sistemas.map(s => ({
+    const systemsInUse = new Set(clientesReceita.map(c => c.sistemaPrincipal).filter(Boolean));
+    const allSystems = [...new Set([...activeSystemNames, ...systemsInUse])];
+    return allSystems.map(s => ({
       name: s,
       clientes: clientesReceita.filter(c => c.sistemaPrincipal === s).length,
-      color: RECEITA_COLORS.sistemas[s],
+      color: getSystemColor(s),
     })).filter(s => s.clientes > 0);
-  }, [clientesReceita]);
+  }, [clientesReceita, activeSystemNames]);
 
   const custosMini = useMemo(() => {
-    const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
-    return sistemas.map(s => ({
+    const systemsInUse = new Set(clientesReceita.filter(c => c.custoAtivo).map(c => c.sistemaCusto).filter(Boolean));
+    const allSystems = [...new Set([...activeSystemNames, ...systemsInUse])];
+    return allSystems.map(s => ({
       name: s,
       value: clientesReceita.filter(c => c.custoAtivo && c.sistemaCusto === s).reduce((sum, c) => sum + c.valorCustoMensal, 0),
-      color: RECEITA_COLORS.sistemas[s],
+      color: getSystemColor(s),
     })).filter(s => s.value > 0);
-  }, [clientesReceita]);
+  }, [clientesReceita, activeSystemNames]);
 
   // ── Status distribution for donut ───────────────────────────────────
   const statusDistribution = useMemo(() => {

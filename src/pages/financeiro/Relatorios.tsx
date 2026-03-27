@@ -14,7 +14,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart, ComposedChart, Cell, PieChart, Pie, ReferenceLine } from "recharts";
 import { FINANCEIRO_COLORS } from "@/types/financeiro";
-import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
+import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
 import { exportDREPDF, exportMRRPDF } from "@/lib/pdfRelatorioFinanceiro";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Download, TrendingUp, TrendingDown, Target, DollarSign, Users, Percent, Calendar } from "lucide-react";

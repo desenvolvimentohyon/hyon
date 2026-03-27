@@ -11,11 +11,9 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Save, Download, Upload, RotateCcw, Bell, Plus, X } from "lucide-react";
-import { SistemaPrincipal } from "@/types/receita";
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
-
-const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
+import { useParametros } from "@/contexts/ParametrosContext";
 
 interface BillingRules {
   id?: string;
@@ -29,6 +27,8 @@ interface BillingRules {
 
 export default function ConfiguracoesFinanceiras() {
   const { config, updateConfig, resetFinanceiro, exportFinanceiro, importFinanceiro, contasBancarias, loading } = useFinanceiro();
+  const { sistemas: sistemaCatalogo } = useParametros();
+  const sistemasAtivos = sistemaCatalogo.filter(s => s.ativo).map(s => s.nome);
   const [diasAlerta, setDiasAlerta] = useState(String(config.diasAlerta));
   const [diasSuspensao, setDiasSuspensao] = useState(String(config.diasSuspensao));
   const [contaPadrao, setContaPadrao] = useState(config.contaBancariaPadraoId);
@@ -278,10 +278,10 @@ export default function ConfiguracoesFinanceiras() {
         <CardHeader><CardTitle className="text-sm">Custo de Repasse por Sistema (por cliente ativo)</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {sistemas.map(s => (
+            {sistemasAtivos.map(s => (
               <div key={s}>
                 <Label>{s}</Label>
-                <Input type="number" step="0.01" value={custos[s]} onChange={e => setCustos(prev => ({ ...prev, [s]: parseFloat(e.target.value) || 0 }))} />
+                <Input type="number" step="0.01" value={custos[s] || 0} onChange={e => setCustos(prev => ({ ...prev, [s]: parseFloat(e.target.value) || 0 }))} />
               </div>
             ))}
           </div>

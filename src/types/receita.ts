@@ -1,4 +1,4 @@
-export type SistemaPrincipal = "PDV+" | "LinkPro" | "Torge" | "Emissor Fiscal" | "Hyon Hospede";
+export type SistemaPrincipal = string;
 export type StatusCliente = "ativo" | "atraso" | "suspenso" | "cancelado";
 
 export interface ClienteReceita {
@@ -46,7 +46,33 @@ export interface MetricasConfig {
   moeda: string;
 }
 
-// Color palette constants
+// Dynamic color palette for systems
+const SYSTEM_COLOR_PALETTE = [
+  "#3b82f6", "#8b5cf6", "#f59e0b", "#10b981", "#ec4899",
+  "#06b6d4", "#f97316", "#14b8a6", "#a855f7", "#e11d48",
+  "#84cc16", "#6366f1", "#0ea5e9", "#d946ef", "#facc15",
+];
+
+// Cache for consistent color assignment within session
+const systemColorCache = new Map<string, string>();
+
+export function getSystemColor(name: string): string {
+  if (systemColorCache.has(name)) return systemColorCache.get(name)!;
+  const index = systemColorCache.size;
+  const color = SYSTEM_COLOR_PALETTE[index % SYSTEM_COLOR_PALETTE.length];
+  systemColorCache.set(name, color);
+  return color;
+}
+
+// Reset cache (useful when systems list changes)
+export function resetSystemColorCache(systemNames: string[]) {
+  systemColorCache.clear();
+  systemNames.forEach((name, i) => {
+    systemColorCache.set(name, SYSTEM_COLOR_PALETTE[i % SYSTEM_COLOR_PALETTE.length]);
+  });
+}
+
+// Color palette constants (non-system colors remain static)
 export const RECEITA_COLORS = {
   receita: "#3b82f6",     // blue-500
   custos: "#ef4444",      // red-500
@@ -57,11 +83,4 @@ export const RECEITA_COLORS = {
   statusSuspenso: "#c4b5fd", // violet-300
   statusCancelado: "#7c3aed", // violet-600
   suporte: "#06b6d4",     // cyan-500
-  sistemas: {
-    "PDV+": "#3b82f6",
-    "LinkPro": "#8b5cf6",
-    "Torge": "#f59e0b",
-    "Emissor Fiscal": "#10b981",
-    "Hyon Hospede": "#ec4899",
-  } as Record<SistemaPrincipal, string>,
 };
