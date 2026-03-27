@@ -543,6 +543,22 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmação de troca de sistema */}
+      <AlertDialog open={showSystemChangeDialog} onOpenChange={setShowSystemChangeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Trocar sistema?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Trocar o sistema removerá todos os módulos vinculados ao sistema atual e zerará os valores de faturamento e custo. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingSystem(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSystemChange}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
