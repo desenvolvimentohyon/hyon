@@ -217,6 +217,20 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     setShowContactForm(false);
   };
 
+  const handleConfirmSystemChange = async () => {
+    if (!pendingSystem || !cliente.id) return;
+    try {
+      await supabase.from("client_modules").delete().eq("client_id", cliente.id);
+      setLinkedModules(new Map());
+      onChange({ system_name: pendingSystem, monthly_value_base: 0, monthly_cost_value: 0 } as any);
+      toast({ title: "Sistema alterado", description: "Módulos anteriores foram removidos." });
+    } catch {
+      toast({ title: "Erro ao limpar módulos", variant: "destructive" });
+    } finally {
+      setPendingSystem(null);
+      setShowSystemChangeDialog(false);
+    }
+  };
   return (
     <div className="space-y-8">
       {/* Identificação */}
