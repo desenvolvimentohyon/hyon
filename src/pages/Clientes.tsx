@@ -68,7 +68,80 @@ export default function Clientes() {
     const term = busca.toLowerCase();
     return c.nome.toLowerCase().includes(term) || (c.nomeFantasia || "").toLowerCase().includes(term) || (c.razaoSocial || "").toLowerCase().includes(term);
   });
-  
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const resetBatchFields = () => {
+    setBatchDueDay(""); setBatchAdjType(""); setBatchAdjPercent("");
+    setBatchTaxRegime(""); setBatchBillingPlan("");
+  };
+
+  const handleBatchUpdate = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setBatchLoading(true);
+    try {
+      // Build direct field updates
+      const directUpdates: Record<string, any> = {};
+      if (batchDueDay) directUpdates.default_due_day = Number(batchDueDay);
+      if (batchAdjType) directUpdates.adjustment_type = batchAdjType;
+      if (batchAdjPercent) directUpdates.adjustment_percent = Number(batchAdjPercent);
+      if (batchTaxRegime) directUpdates.tax_regime = batchTaxRegime;
+
+      // Apply direct updates in one call if any
+      if (Object.keys(directUpdates).length > 0) {
+        const { error } = await supabase.from("clients").update(directUpdates).in("id", ids);
+        if (error) throw error;
+      }
+
+      // Handle billing_plan in metadata (needs merge per client)
+      if (batchBillingPlan) {
+        const { data: rows, error: fetchErr } = await supabase
+          .from("clients").select("id, metadata").in("id", ids);
+        if (fetchErr) throw fetchErr;
+        for (const row of rows || []) {
+          const meta = (row.metadata as Record<string, any>) || {};
+          const { error: upErr } = await supabase.from("clients")
+            .update({ metadata: { ...meta, billing_plan: batchBillingPlan } })
+            .eq("id", row.id);
+          if (upErr) throw upErr;
+        }
+      }
+
+      const hasAny = Object.keys(directUpdates).length > 0 || batchBillingPlan;
+      if (!hasAny) {
+        toast({ title: "Nenhum campo preenchido para alterar", variant: "destructive" });
+        setBatchLoading(false);
+        return;
+      }
+
+      toast({ title: `${ids.length} cliente(s) atualizado(s) com sucesso!` });
+      setShowBatchDialog(false);
+      setBatchMode(false);
+      setSelectedIds(new Set());
+      resetBatchFields();
+      // Reload page to refresh data
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Erro ao atualizar em lote", description: err.message, variant: "destructive" });
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
 
   const applyCnpjData = useCallback((data: CnpjLookupResult) => {
     if (data.fantasia) setNomeFantasia(data.fantasia);
