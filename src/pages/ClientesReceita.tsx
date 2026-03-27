@@ -21,7 +21,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { PageHeader } from "@/components/ui/page-header";
 import ClienteDetalhe from "@/components/clientes/ClienteDetalhe";
 import { toast } from "@/hooks/use-toast";
-import { ClienteReceita, SistemaPrincipal, StatusCliente, RECEITA_COLORS } from "@/types/receita";
+import { ClienteReceita, StatusCliente, RECEITA_COLORS, getSystemColor } from "@/types/receita";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { validateCNPJ, cleanCNPJ, formatCNPJ, maskDocument, type CnpjLookupResult } from "@/lib/cnpjUtils";
@@ -310,7 +310,7 @@ export default function Clientes() {
                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 group" onClick={() => setSelectedId(c.id)}>
                   <TableCell className="font-medium">{c.nome}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-[10px]" style={{ borderColor: RECEITA_COLORS.sistemas[c.sistemaPrincipal], color: RECEITA_COLORS.sistemas[c.sistemaPrincipal] }}>
+                    <Badge variant="outline" className="text-[10px]" style={{ borderColor: getSystemColor(c.sistemaPrincipal), color: getSystemColor(c.sistemaPrincipal) }}>
                       {c.sistemaPrincipal}
                     </Badge>
                   </TableCell>

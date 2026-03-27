@@ -212,7 +212,7 @@ export function gerarRelatorioPDF(clientes: ClienteReceita[]) {
   <div class="section">
     <h2>Sistemas Mais Usados</h2>
     ${barChart(
-      sistemas.map((s) => ({ label: s.sistema, value: s.count, color: RECEITA_COLORS.sistemas[s.sistema] })),
+      sistemas.map((s) => ({ label: s.sistema, value: s.count, color: getSystemColor(s.sistema) })),
       maxSistema
     )}
   </div>
@@ -262,7 +262,7 @@ export function gerarRelatorioPDF(clientes: ClienteReceita[]) {
           (c) =>
             `<tr>
               <td style="font-weight:500;">${c.nome}</td>
-              <td><span class="badge" style="background:${RECEITA_COLORS.sistemas[c.sistemaPrincipal]}20;color:${RECEITA_COLORS.sistemas[c.sistemaPrincipal]};">${c.sistemaPrincipal}</span></td>
+              <td><span class="badge" style="background:${getSystemColor(c.sistemaPrincipal)}20;color:${getSystemColor(c.sistemaPrincipal)};">${c.sistemaPrincipal}</span></td>
               <td>${c.statusCliente}</td>
               <td style="text-align:right;color:${RECEITA_COLORS.receita};">${fmt(c.valorMensalidade)}</td>
               <td style="text-align:right;color:${RECEITA_COLORS.custos};">${fmt(c.valorCustoMensal)}</td>
