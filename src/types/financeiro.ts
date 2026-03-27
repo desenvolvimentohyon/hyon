@@ -75,7 +75,7 @@ export interface ConfigFinanceira {
   diasSuspensao: number;
   contaBancariaPadraoId: string;
   periodoPadraoRelatorio: "7d" | "30d" | "90d" | "12m";
-  custoPorSistema: Record<SistemaPrincipal, number>;
+  custoPorSistema: Record<string, number>;
 }
 
 // ===== Color Constants =====

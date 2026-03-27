@@ -15,7 +15,8 @@ import {
   ExternalLink, RefreshCw, Download, Clock, Zap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
+import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
+import { useParametros } from "@/contexts/ParametrosContext";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip,
   ResponsiveContainer, LineChart, Line, CartesianGrid, Legend, Area, AreaChart,
