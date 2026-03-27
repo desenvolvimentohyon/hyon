@@ -1,30 +1,27 @@
 
 
-## Plano: Corrigir perda de módulos ao trocar o sistema do cliente
+## Plano: Adicionar coluna `quantity` à tabela `client_modules`
 
-### Problema
+### Causa Raiz
 
-Quando o usuário troca o sistema do cliente (campo "Sistema" na aba Dados), a lista de módulos exibida muda para os módulos do novo sistema. Os módulos do sistema anterior continuam salvos no banco (`client_modules`), mas ficam invisíveis na UI — e os módulos do novo sistema aparecem todos desmarcados. Não há lógica de limpeza dos módulos antigos nem recálculo dos totais.
+A tabela `client_modules` no banco de dados possui apenas: `id`, `org_id`, `client_id`, `module_id`, `created_at`. Não existe a coluna `quantity`.
 
-### Solução
+O código em `TabCusto.tsx`, `TabModulos.tsx` e `TabDados.tsx` faz queries como:
+```
+SELECT module_id, quantity FROM client_modules WHERE client_id = ...
+```
+Isso retorna **erro 400** (`column client_modules.quantity does not exist`), fazendo com que todos os módulos e custos apareçam zerados.
 
-Ao trocar o sistema, adicionar uma confirmação e limpar os módulos vinculados do sistema anterior, resetando os totais.
+### Correção
 
-### Alteração
+**1. Migração de banco de dados**
+```sql
+ALTER TABLE public.client_modules 
+ADD COLUMN quantity integer NOT NULL DEFAULT 1;
+```
 
-**`src/components/clientes/tabs/TabDados.tsx`**
-
-1. No `onValueChange` do Select de Sistema (linha 254), ao trocar de sistema:
-   - Exibir um `AlertDialog` de confirmação: _"Trocar o sistema removerá os módulos vinculados ao sistema atual. Deseja continuar?"_
-   - Se confirmado:
-     - Deletar todos os registros de `client_modules` do cliente no banco
-     - Limpar o state `linkedModules` (Map vazio)
-     - Recalcular totais para zero (`monthly_value_base: 0, monthly_cost_value: 0`)
-     - Setar o novo `system_name`
-   - Se cancelado: não alterar nada
-
-2. Adicionar state para controlar o dialog de confirmação (`pendingSystem`, `showSystemChangeDialog`)
+Apenas isso. Uma única coluna com default 1 (todos os registros existentes ganham quantidade 1 automaticamente).
 
 ### Arquivo afetado
-1. `src/components/clientes/tabs/TabDados.tsx`
+Nenhum arquivo de código precisa ser alterado — o código já está correto, só falta a coluna no banco.
 
