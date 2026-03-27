@@ -56,6 +56,8 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const [showNewModuleDialog, setShowNewModuleDialog] = useState(false);
   const [newModuleForm, setNewModuleForm] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0 });
   const [savingModule, setSavingModule] = useState(false);
+  const [pendingSystem, setPendingSystem] = useState<string | null>(null);
+  const [showSystemChangeDialog, setShowSystemChangeDialog] = useState(false);
 
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
