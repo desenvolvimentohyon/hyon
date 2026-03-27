@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -108,10 +108,11 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   const [titulos, setTitulos] = useState<TituloFinanceiro[]>([]);
   const [movimentos, setMovimentos] = useState<MovimentoBancario[]>([]);
   const [config, setConfig] = useState<ConfigFinanceira>(defaultConfigFinanceira);
+  const initialLoadedRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
-    setLoading(true);
+    if (!initialLoadedRef.current) setLoading(true);
     const [cbRes, pcRes, tRes, mRes] = await Promise.all([
       supabase.from("company_bank_accounts").select("*"),
       supabase.from("plan_accounts" as any).select("*"),
@@ -123,6 +124,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (tRes.data) setTitulos(tRes.data.map(dbToTitulo));
     if (mRes.data) setMovimentos(mRes.data.map(dbToMovimento));
     setLoading(false);
+    initialLoadedRef.current = true;
   }, [orgId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -270,12 +272,10 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     // === Auto recurring commission on_invoice_paid ===
     if (titulo.tipo === "receber" && !isParcial && titulo.clienteId) {
       try {
-        // Get the raw title to access competency and client ref_partner data
         const { data: rawTitle } = await supabase.from("financial_titles").select("competency, client_id").eq("id", id).single();
         if (rawTitle?.client_id && rawTitle?.competency) {
           const { data: client } = await supabase.from("clients").select("ref_partner_id, ref_partner_start_at, ref_partner_recur_percent, ref_partner_recur_months, ref_partner_recur_apply_on, status").eq("id", rawTitle.client_id).single();
           if (client?.ref_partner_id && client.ref_partner_recur_apply_on === "on_invoice_paid" && client.ref_partner_recur_percent && client.ref_partner_recur_percent > 0 && client.status !== "cancelado") {
-            // Check period eligibility
             let eligible = true;
             if (client.ref_partner_recur_months && client.ref_partner_recur_months > 0 && client.ref_partner_start_at) {
               const startDate = new Date(client.ref_partner_start_at);
@@ -374,18 +374,23 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     return false;
   }, []);
 
-  return (
-    <FinanceiroContext.Provider value={{
-      contasBancarias, planoContas, titulos, movimentos, config, loading,
-      addContaBancaria, updateContaBancaria, deleteContaBancaria, getSaldoConta,
-      addPlanoContas, updatePlanoContas, deletePlanoContas, getFilhosPlanoContas,
-      addTitulo, updateTitulo, deleteTitulo, baixarTitulo,
-      addMovimento, updateMovimento, conciliarMovimento, desconciliarMovimento, importarExtrato,
-      updateConfig, resetFinanceiro, exportFinanceiro, importFinanceiro,
-    }}>
-      {children}
-    </FinanceiroContext.Provider>
-  );
+  const value = useMemo<FinanceiroContextType>(() => ({
+    contasBancarias, planoContas, titulos, movimentos, config, loading,
+    addContaBancaria, updateContaBancaria, deleteContaBancaria, getSaldoConta,
+    addPlanoContas, updatePlanoContas, deletePlanoContas, getFilhosPlanoContas,
+    addTitulo, updateTitulo, deleteTitulo, baixarTitulo,
+    addMovimento, updateMovimento, conciliarMovimento, desconciliarMovimento, importarExtrato,
+    updateConfig, resetFinanceiro, exportFinanceiro, importFinanceiro,
+  }), [
+    contasBancarias, planoContas, titulos, movimentos, config, loading,
+    addContaBancaria, updateContaBancaria, deleteContaBancaria, getSaldoConta,
+    addPlanoContas, updatePlanoContas, deletePlanoContas, getFilhosPlanoContas,
+    addTitulo, updateTitulo, deleteTitulo, baixarTitulo,
+    addMovimento, updateMovimento, conciliarMovimento, desconciliarMovimento, importarExtrato,
+    updateConfig, resetFinanceiro, exportFinanceiro, importFinanceiro,
+  ]);
+
+  return <FinanceiroContext.Provider value={value}>{children}</FinanceiroContext.Provider>;
 }
 
 export function useFinanceiro() {

@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Role, AppUser, ALL_PERMISSIONS } from "@/types/users";
 
-// Default permission sets mapped to profile.role
 const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   admin: [...ALL_PERMISSIONS],
   financeiro: [
@@ -34,7 +33,6 @@ const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 };
 
-// ===== Mappers =====
 function dbToRole(r: any): Role {
   return {
     id: r.id, nome: r.name, descricao: r.description,
@@ -84,6 +82,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
+  const initialLoadedRef = useRef(false);
 
   useEffect(() => {
     if (user?.id) setCurrentUserId(user.id);
@@ -91,7 +90,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
-    setLoading(true);
+    if (!initialLoadedRef.current) setLoading(true);
     const [profilesRes, rolesRes] = await Promise.all([
       supabase.from("profiles").select("*"),
       supabase.from("custom_roles" as any).select("*"),
@@ -99,7 +98,6 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     if (profilesRes.data) setUsers(profilesRes.data.map(dbToUser));
     if (rolesRes.data) {
       const dbRoles = (rolesRes.data as any[]).map(dbToRole);
-      // Add default roles from profile.role if no custom roles exist
       const ROLE_LABELS: Record<string, string> = {
         admin: "Administrador", comercial: "Vendedor", suporte: "Técnico",
         financeiro: "Financeiro", implantacao: "Implantação", leitura: "Leitura",
@@ -108,10 +106,10 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
         id: key, nome: ROLE_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1),
         descricao: `Perfil ${ROLE_LABELS[key] || key}`, permissions: perms, sistema: true,
       }));
-      // Merge: custom roles + default roles (for users without custom_role_id)
       setRoles([...defaultRoles, ...dbRoles]);
     }
     setLoading(false);
+    initialLoadedRef.current = true;
   }, [orgId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -125,12 +123,10 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     if (changes.nome !== undefined) upd.full_name = changes.nome;
     if (changes.ativo !== undefined) upd.is_active = changes.ativo;
     if (changes.roleId !== undefined) {
-      // If roleId matches a default role name, update profile.role
       if (DEFAULT_ROLE_PERMISSIONS[changes.roleId]) {
         upd.role = changes.roleId;
         upd.custom_role_id = null;
       } else {
-        // It's a custom role UUID
         upd.custom_role_id = changes.roleId;
       }
     }
@@ -147,7 +143,6 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   const getUser = useCallback((id: string) => users.find(u => u.id === id), [users]);
   const getCurrentUser = useCallback(() => users.find(u => u.id === currentUserId), [users, currentUserId]);
 
-  // ===== Roles =====
   const addRole = useCallback(async (r: Omit<Role, "id" | "sistema">) => {
     if (!orgId) return;
     const { error } = await supabase.from("custom_roles" as any).insert({
@@ -158,7 +153,6 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   }, [orgId, fetchAll]);
 
   const updateRole = useCallback(async (id: string, changes: Partial<Role>) => {
-    // Don't update default roles
     if (DEFAULT_ROLE_PERMISSIONS[id]) {
       toast.error("Perfis padrão não podem ser editados.");
       return;
@@ -187,10 +181,8 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   const getCurrentPermissions = useCallback(() => {
     const currentUser = users.find(u => u.id === currentUserId);
     if (!currentUser) return DEFAULT_ROLE_PERMISSIONS["leitura"] || [];
-    // Find role by roleId
     const role = roles.find(r => r.id === currentUser.roleId);
     if (role) return role.permissions;
-    // Fallback to profile role text
     const profileRole = profile?.role || "leitura";
     return DEFAULT_ROLE_PERMISSIONS[profileRole] || DEFAULT_ROLE_PERMISSIONS["leitura"] || [];
   }, [users, roles, currentUserId, profile?.role]);
@@ -208,13 +200,19 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
-  const value: UsersContextType = {
+  const value = useMemo<UsersContextType>(() => ({
     users, roles, currentUserId, loading,
     addUser, updateUser, deleteUser, setCurrentUser, getUser, getCurrentUser,
     addRole, updateRole, deleteRole, getRole,
     hasPermission, hasAnyPermission, getCurrentPermissions,
     resetUsers,
-  };
+  }), [
+    users, roles, currentUserId, loading,
+    addUser, updateUser, deleteUser, setCurrentUser, getUser, getCurrentUser,
+    addRole, updateRole, deleteRole, getRole,
+    hasPermission, hasAnyPermission, getCurrentPermissions,
+    resetUsers,
+  ]);
 
   return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
 }
