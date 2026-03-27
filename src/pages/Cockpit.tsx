@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { useApp } from "@/contexts/AppContext";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 
@@ -88,6 +89,7 @@ export default function Cockpit() {
           </div>
         }
       />
+      <ModuleNavGrid moduleId="dashboard" />
 
       {/* ── TOP: KPIs ─────────────────────── */}
       <Card className="bg-gradient-to-r from-card via-card/95 to-card border-border/30">
