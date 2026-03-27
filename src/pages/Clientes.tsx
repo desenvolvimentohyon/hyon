@@ -283,7 +283,8 @@ export default function Clientes() {
             ) : filtered.map(c => {
               const { score, saude } = getScore(c.id);
               return (
-                <TableRow key={c.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => setSelectedId(c.id)}>
+                <TableRow key={c.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => batchMode ? toggleSelect(c.id) : setSelectedId(c.id)}>
+                  {batchMode && <TableCell onClick={e => e.stopPropagation()}><Checkbox checked={selectedIds.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>}
                   <TableCell>
                     <div>
                       <span className="font-medium">{c.nome}</span>
