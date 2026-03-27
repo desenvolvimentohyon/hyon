@@ -21,6 +21,10 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
   const recurrence = formData.recurrence_active ?? cliente.recurrence_active;
 
   const billingPlan = (formData as any).billing_plan ?? cliente.billing_plan ?? "mensal";
+  const isNotMonthly = billingPlan !== "mensal";
+  const planMonths: Record<string, number> = { trimestral: 3, semestral: 6, anual: 12 };
+  const divisor = planMonths[billingPlan] || 1;
+  const planTotalValue = Number(meta.plan_total_value ?? 0);
   const planStartDate = (formData as any).plan_start_date ?? cliente.plan_start_date ?? "";
   const planEndDate = (formData as any).plan_end_date ?? cliente.plan_end_date ?? "";
 
@@ -34,12 +38,25 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
 
   const handlePlanChange = (plan: string) => {
     const end = calcEndDate(planStartDate, plan);
-    onChange({ billing_plan: plan, plan_end_date: end || null } as any);
+    const months = planMonths[plan] || 1;
+    const currentTotal = Number(meta.plan_total_value ?? 0);
+    if (plan !== "mensal" && currentTotal > 0) {
+      const monthly = Math.round((currentTotal / months) * 100) / 100;
+      onChange({ billing_plan: plan, plan_end_date: end || null, monthly_value_final: monthly } as any);
+    } else {
+      onChange({ billing_plan: plan, plan_end_date: end || null } as any);
+    }
   };
 
   const handleStartChange = (date: string) => {
     const end = calcEndDate(date, billingPlan);
     onChange({ plan_start_date: date || null, plan_end_date: end || null } as any);
+  };
+
+  const handleTotalValueChange = (total: number) => {
+    const monthly = Math.round((total / divisor) * 100) / 100;
+    setMeta("plan_total_value", total);
+    onChange({ monthly_value_final: monthly, metadata: { ...meta, plan_total_value: total } } as any);
   };
 
   return (
@@ -64,7 +81,18 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Valor Base (R$) — calculado pelos módulos</Label><CurrencyInput value={Number(formData.monthly_value_base ?? cliente.monthly_value_base ?? 0)} onValueChange={() => {}} disabled className="bg-muted/50" /></div>
-          <div><Label>Valor Final (R$)</Label><CurrencyInput value={Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)} onValueChange={v => onChange({ monthly_value_final: v } as any)} /></div>
+          {isNotMonthly && (
+            <div><Label>Valor Total do Plano (R$)</Label><CurrencyInput value={planTotalValue} onValueChange={handleTotalValueChange} /></div>
+          )}
+          <div>
+            <Label>Valor Final Mensal (R$){isNotMonthly ? " — calculado" : ""}</Label>
+            <CurrencyInput
+              value={Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)}
+              onValueChange={v => onChange({ monthly_value_final: v } as any)}
+              disabled={isNotMonthly}
+              className={isNotMonthly ? "bg-muted/50" : ""}
+            />
+          </div>
           <div>
             <Label>Dia de Vencimento</Label>
             <Select value={String(formData.default_due_day ?? cliente.default_due_day ?? 5)} onValueChange={v => onChange({ default_due_day: Number(v) } as any)}>
@@ -96,7 +124,10 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
           <div className="grid gap-2 md:grid-cols-3 text-sm">
             <div><span className="text-muted-foreground">Desconto calculado:</span> <span className="font-medium">{desconto}%</span></div>
             <div><span className="text-muted-foreground">Valor base:</span> <span className="font-medium">R$ {base.toFixed(2)}</span></div>
-            <div><span className="text-muted-foreground">Valor final:</span> <span className="font-semibold text-primary">R$ {final_.toFixed(2)}</span></div>
+            <div><span className="text-muted-foreground">Valor final mensal:</span> <span className="font-semibold text-primary">R$ {final_.toFixed(2)}</span></div>
+            {isNotMonthly && planTotalValue > 0 && (
+              <div><span className="text-muted-foreground">Valor total do plano:</span> <span className="font-semibold text-primary">R$ {planTotalValue.toFixed(2)}</span></div>
+            )}
           </div>
         </div>
       </section>
