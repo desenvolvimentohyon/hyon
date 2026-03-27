@@ -1,22 +1,23 @@
 
 
-## Plano: Remover descrição da aba ativa no detalhe do cliente
+## Plano: Exibir custo de cada cliente na listagem
 
-O usuário quer aplicar a mesma lógica da remoção do breadcrumb do Topbar — eliminar informações descritivas/redundantes.
-
-No componente `ClienteDetalhe.tsx`, há uma linha de texto descritivo abaixo das abas (ex: "Informações cadastrais, endereço e contatos") que será removida.
+O campo `custoMensal` já está carregado no contexto (`monthly_cost_value`), mas não é exibido na listagem — só aparece a mensalidade e a margem.
 
 ### Alteração
 
-**`src/components/clientes/ClienteDetalhe.tsx`**
-- Remover o bloco de descrição da aba ativa (linhas 232–234):
-  ```tsx
-  {currentTabMeta && (
-    <p className="text-xs text-muted-foreground mt-2 mb-4">{currentTabMeta.desc}</p>
-  )}
-  ```
-- Remover a variável `currentTabMeta` (linha 130) e o campo `desc` de cada item do array `TABS` (linhas 46–55), já que não serão mais utilizados.
+**`src/pages/Clientes.tsx`** (linhas 287-293)
+- Adicionar uma linha mostrando o custo mensal entre a mensalidade e a margem
+- Layout: três informações visíveis no `extraInfo` do card:
+  - **Mensalidade**: R$ X (já existe)
+  - **Custo**: R$ X (novo)
+  - **Margem**: R$ X (já existe, com cor condicional)
+
+O resultado será algo como:
+```
+R$ 500,00  •  Custo: R$ 200,00  •  Margem: R$ 300,00
+```
 
 ### Arquivo afetado
-1. `src/components/clientes/ClienteDetalhe.tsx`
+1. `src/pages/Clientes.tsx` — bloco `extraInfo` do `ClienteCard`
 
