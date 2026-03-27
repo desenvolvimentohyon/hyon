@@ -43,16 +43,16 @@ const TAB_COLORS: Record<string, { color: string; inactiveColor: string; bg: str
 };
 
 const TABS = [
-  { value: "dados", label: "Dados", icon: FileText, desc: "Informações cadastrais, endereço e contatos" },
-  { value: "contabilidade", label: "Contabilidade", icon: Calculator, desc: "Dados do contador, certificado e regime tributário" },
-  { value: "mensalidade", label: "Mensalidade", icon: DollarSign, desc: "Valores, plano e vencimento" },
-  { value: "custo", label: "Custo", icon: TrendingDown, desc: "Custos operacionais e margem" },
-  { value: "evolucao", label: "Evolução", icon: History, desc: "Histórico de alterações e timeline" },
+  { value: "dados", label: "Dados", icon: FileText },
+  { value: "contabilidade", label: "Contabilidade", icon: Calculator },
+  { value: "mensalidade", label: "Mensalidade", icon: DollarSign },
+  { value: "custo", label: "Custo", icon: TrendingDown },
+  { value: "evolucao", label: "Evolução", icon: History },
   
-  { value: "cobrancas", label: "Cobranças", icon: Receipt, desc: "Contas a receber e cobranças" },
-  { value: "controle", label: "Controle", icon: Settings2, desc: "Tags, observações e preferências" },
-  { value: "modulos", label: "Módulos", icon: Boxes, desc: "Módulos contratados e adicionais" },
-  { value: "pagamentos", label: "Pagamentos", icon: Wallet, desc: "Pagamentos registrados e comprovantes" },
+  { value: "cobrancas", label: "Cobranças", icon: Receipt },
+  { value: "controle", label: "Controle", icon: Settings2 },
+  { value: "modulos", label: "Módulos", icon: Boxes },
+  { value: "pagamentos", label: "Pagamentos", icon: Wallet },
 ];
 
 export default function ClienteDetalhe({ clienteId, onBack }: Props) {
@@ -127,7 +127,7 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
   }
 
   const saude = scoreSaudeLabel(cliente.health_score || 0);
-  const currentTabMeta = TABS.find(t => t.value === activeTab);
+  
 
   // Plan expiry banner
   const daysToExpiry = (() => {
@@ -229,9 +229,6 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
             })}
           </TabsList>
 
-          {currentTabMeta && (
-            <p className="text-xs text-muted-foreground mt-2 mb-4">{currentTabMeta.desc}</p>
-          )}
 
           <div className="rounded-lg border border-border p-6 bg-card">
             <TabsContent value="dados" className="mt-0">
