@@ -21,6 +21,10 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
   const recurrence = formData.recurrence_active ?? cliente.recurrence_active;
 
   const billingPlan = (formData as any).billing_plan ?? cliente.billing_plan ?? "mensal";
+  const isNotMonthly = billingPlan !== "mensal";
+  const planMonths: Record<string, number> = { trimestral: 3, semestral: 6, anual: 12 };
+  const divisor = planMonths[billingPlan] || 1;
+  const planTotalValue = Number(meta.plan_total_value ?? 0);
   const planStartDate = (formData as any).plan_start_date ?? cliente.plan_start_date ?? "";
   const planEndDate = (formData as any).plan_end_date ?? cliente.plan_end_date ?? "";
 
