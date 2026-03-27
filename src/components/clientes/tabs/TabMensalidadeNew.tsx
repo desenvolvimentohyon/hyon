@@ -81,7 +81,18 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div><Label>Valor Base (R$) — calculado pelos módulos</Label><CurrencyInput value={Number(formData.monthly_value_base ?? cliente.monthly_value_base ?? 0)} onValueChange={() => {}} disabled className="bg-muted/50" /></div>
-          <div><Label>Valor Final (R$)</Label><CurrencyInput value={Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)} onValueChange={v => onChange({ monthly_value_final: v } as any)} /></div>
+          {isNotMonthly && (
+            <div><Label>Valor Total do Plano (R$)</Label><CurrencyInput value={planTotalValue} onValueChange={handleTotalValueChange} /></div>
+          )}
+          <div>
+            <Label>Valor Final Mensal (R$){isNotMonthly ? " — calculado" : ""}</Label>
+            <CurrencyInput
+              value={Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)}
+              onValueChange={v => onChange({ monthly_value_final: v } as any)}
+              disabled={isNotMonthly}
+              className={isNotMonthly ? "bg-muted/50" : ""}
+            />
+          </div>
           <div>
             <Label>Dia de Vencimento</Label>
             <Select value={String(formData.default_due_day ?? cliente.default_due_day ?? 5)} onValueChange={v => onChange({ default_due_day: Number(v) } as any)}>
