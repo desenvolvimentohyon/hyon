@@ -27,6 +27,8 @@ interface BillingRules {
 
 export default function ConfiguracoesFinanceiras() {
   const { config, updateConfig, resetFinanceiro, exportFinanceiro, importFinanceiro, contasBancarias, loading } = useFinanceiro();
+  const { sistemas: sistemaCatalogo } = useParametros();
+  const sistemasAtivos = sistemaCatalogo.filter(s => s.ativo).map(s => s.nome);
   const [diasAlerta, setDiasAlerta] = useState(String(config.diasAlerta));
   const [diasSuspensao, setDiasSuspensao] = useState(String(config.diasSuspensao));
   const [contaPadrao, setContaPadrao] = useState(config.contaBancariaPadraoId);
