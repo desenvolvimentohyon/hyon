@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, Star } from "lucide-react";
+import { Search, Star, ChevronRight } from "lucide-react";
 import logoHyon from "@/assets/logo-hyon.png";
 import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 import { NavLink } from "@/components/NavLink";
@@ -9,12 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ROTA_PERMISSAO } from "@/types/users";
 import { modules } from "@/lib/sidebarModules";
 import {
-  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const FAVORITES_KEY = "sidebar-favorites";
@@ -81,7 +81,8 @@ export function AppSidebar() {
   const filteredModules = useMemo(() => {
     if (!lowerSearch) return modules;
     return modules.filter((mod) =>
-      mod.title.toLowerCase().includes(lowerSearch)
+      mod.title.toLowerCase().includes(lowerSearch) ||
+      mod.children.some(c => c.title.toLowerCase().includes(lowerSearch))
     );
   }, [lowerSearch]);
 
@@ -99,7 +100,6 @@ export function AppSidebar() {
     return items;
   }, [favorites]);
 
-  // Find parent module for a child URL (for color mapping)
   const findParentId = (url: string) => {
     return modules.find((m) => m.children.some((c) => c.url === url))?.id || "dashboard";
   };
@@ -154,19 +154,14 @@ export function AppSidebar() {
                           to={item.url}
                           end={item.url === "/" || item.url === "/financeiro"}
                           className={cn(
-                            "relative flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-all duration-200 text-[12px] mx-1",
+                            "relative flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all duration-200 text-[12px] mx-1",
                             active
                               ? cn(palette.active, palette.glow, "font-medium")
-                              : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 hover:border-sidebar-border/30"
+                              : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
                           )}
                           activeClassName=""
                         >
-                          <div className={cn(
-                            "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors",
-                            active ? palette.active.split(" ")[0] : "bg-sidebar-accent/30"
-                          )}>
-                            <item.icon className={cn("h-3 w-3", active ? palette.icon : "text-sidebar-foreground/50")} />
-                          </div>
+                          <item.icon className={cn("h-4 w-4", active ? palette.icon : "text-sidebar-foreground/50")} />
                           <span>{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>
@@ -179,85 +174,119 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Module groups — card grid */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            {collapsed ? (
-              <SidebarMenu>
-                <TooltipProvider delayDuration={300}>
-                  {filteredModules.map((mod) => {
-                    const hasAccess = mod.children.some((c) => canAccess(c.url));
-                    if (!hasAccess) return null;
-                    const isParentActive = activeParentId === mod.id;
-                    const palette = MODULE_SIDEBAR_COLORS[mod.id] || MODULE_SIDEBAR_COLORS.dashboard;
-                    const targetUrl = mod.directUrl || mod.children[0].url;
-                    return (
-                      <SidebarMenuItem key={mod.id}>
-                        <SidebarMenuButton asChild isActive={isParentActive} tooltip={mod.title}>
-                          <NavLink
-                            to={targetUrl}
-                            end={targetUrl === "/"}
-                            className={cn(
-                              "relative flex items-center justify-center px-3 py-2.5 rounded-xl mx-1 transition-all duration-200 border",
-                              isParentActive
-                                ? cn(palette.active, palette.glow, "font-semibold")
-                                : "border-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-sidebar-border/30"
-                            )}
-                            activeClassName=""
-                          >
-                            <div className={cn(
-                              "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-                              isParentActive ? palette.active.split(" ")[0] : "bg-sidebar-accent/30"
-                            )}>
-                              <mod.icon className={cn("h-3.5 w-3.5", isParentActive ? palette.icon : "text-sidebar-foreground/50")} />
-                            </div>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </TooltipProvider>
-              </SidebarMenu>
-            ) : (
-              <div className="px-2 grid grid-cols-2 gap-1.5">
-                {filteredModules.map((mod) => {
-                  const hasAccess = mod.children.some((c) => canAccess(c.url));
-                  if (!hasAccess) return null;
-                  const isParentActive = activeParentId === mod.id;
-                  const palette = MODULE_SIDEBAR_COLORS[mod.id] || MODULE_SIDEBAR_COLORS.dashboard;
-                  const targetUrl = mod.directUrl || mod.children[0].url;
-                  return (
-                    <NavLink
-                      key={mod.id}
-                      to={targetUrl}
-                      end={targetUrl === "/"}
-                      className={cn(
-                        "flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border transition-all duration-200 group",
-                        isParentActive
-                          ? cn(palette.active, palette.glow, "font-semibold")
-                          : "border-sidebar-border/20 bg-sidebar-accent/10 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/40 hover:border-sidebar-border/40"
-                      )}
-                      activeClassName=""
-                    >
-                      <div className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200",
-                        isParentActive
-                          ? cn("border-current/20", palette.active.split(" ")[0])
-                          : "border-sidebar-border/30 bg-sidebar-accent/30 group-hover:border-sidebar-border/50"
-                      )}>
-                        <mod.icon className={cn(
-                          "h-5 w-5 transition-colors",
-                          isParentActive ? palette.icon : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/70"
-                        )} />
-                      </div>
-                      <span className="text-[11px] leading-tight text-center">{mod.title}</span>
-                    </NavLink>
-                  );
-                })}
-              </div>
-            )}
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Module groups — collapsible list */}
+        {filteredModules.map((mod) => {
+          const hasAccess = mod.children.some((c) => canAccess(c.url));
+          if (!hasAccess) return null;
+          const isParentActive = activeParentId === mod.id;
+          const palette = MODULE_SIDEBAR_COLORS[mod.id] || MODULE_SIDEBAR_COLORS.dashboard;
+
+          if (collapsed) {
+            const targetUrl = mod.directUrl || mod.children[0].url;
+            return (
+              <SidebarGroup key={mod.id} className="p-1">
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isParentActive} tooltip={mod.title}>
+                      <NavLink
+                        to={targetUrl}
+                        end={targetUrl === "/"}
+                        className={cn(
+                          "flex items-center justify-center p-2 rounded-lg transition-all duration-200",
+                          isParentActive
+                            ? cn(palette.active, palette.glow)
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
+                        )}
+                        activeClassName=""
+                      >
+                        <mod.icon className={cn("h-4 w-4", isParentActive ? palette.icon : "text-sidebar-foreground/50")} />
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroup>
+            );
+          }
+
+          // Single child: no collapsible needed
+          if (mod.children.length <= 1) {
+            const child = mod.children[0];
+            const active = isActive(child.url);
+            return (
+              <SidebarGroup key={mod.id} className="py-0.5">
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={active}>
+                      <NavLink
+                        to={child.url}
+                        end={child.url === "/" || child.url === "/financeiro"}
+                        className={cn(
+                          "flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-[13px] mx-1",
+                          active
+                            ? cn(palette.active, palette.glow, "font-medium border", palette.active.split(" ")[1])
+                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
+                        )}
+                        activeClassName=""
+                      >
+                        <mod.icon className={cn("h-4 w-4", active ? palette.icon : "text-sidebar-foreground/50")} />
+                        <span>{mod.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroup>
+            );
+          }
+
+          return (
+            <Collapsible key={mod.id} defaultOpen={isParentActive} className="group/collapsible">
+              <SidebarGroup className="py-0.5">
+                <CollapsibleTrigger className="w-full">
+                  <SidebarGroupLabel className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 text-[13px] font-semibold mx-1",
+                    isParentActive
+                      ? cn("text-sidebar-foreground", palette.icon)
+                      : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30"
+                  )}>
+                    <mod.icon className={cn("h-4 w-4 shrink-0", isParentActive ? palette.icon : "text-sidebar-foreground/50")} />
+                    <span className="flex-1 text-left">{mod.title}</span>
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-sidebar-foreground/30 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </SidebarGroupLabel>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu className="pl-4 mt-0.5">
+                      {mod.children.map((child) => {
+                        if (!canAccess(child.url)) return null;
+                        const active = isActive(child.url);
+                        return (
+                          <SidebarMenuItem key={child.url}>
+                            <SidebarMenuButton asChild isActive={active} size="sm">
+                              <NavLink
+                                to={child.url}
+                                end={child.url === "/" || child.url === "/financeiro"}
+                                className={cn(
+                                  "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 text-[12px] mx-1",
+                                  active
+                                    ? cn(palette.active, "font-medium border", palette.active.split(" ")[1])
+                                    : "text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 border border-transparent"
+                                )}
+                                activeClassName=""
+                              >
+                                <child.icon className={cn("h-3.5 w-3.5", active ? palette.icon : "text-sidebar-foreground/40")} />
+                                <span>{child.title}</span>
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className="p-3 pt-2">
