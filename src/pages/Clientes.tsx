@@ -287,6 +287,9 @@ export default function Clientes() {
               extraInfo={
                 <>
                   <span className="text-xs text-muted-foreground">R$ {(c.mensalidadeAtual || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">Custo: R$ {(c.custoMensal || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <span className="text-muted-foreground">•</span>
                   <span className={`text-xs font-medium ${((c.mensalidadeAtual || 0) - (c.custoMensal || 0)) >= 0 ? "text-green-500" : "text-destructive"}`}>
                     Margem: R$ {((c.mensalidadeAtual || 0) - (c.custoMensal || 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </span>
