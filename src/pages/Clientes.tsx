@@ -37,6 +37,17 @@ export default function Clientes() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteJustificativa, setDeleteJustificativa] = useState("");
 
+  // Batch edit state
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBatchDialog, setShowBatchDialog] = useState(false);
+  const [batchDueDay, setBatchDueDay] = useState("");
+  const [batchAdjType, setBatchAdjType] = useState("");
+  const [batchAdjPercent, setBatchAdjPercent] = useState("");
+  const [batchTaxRegime, setBatchTaxRegime] = useState("");
+  const [batchBillingPlan, setBatchBillingPlan] = useState("");
+  const [batchLoading, setBatchLoading] = useState(false);
+
   // form
   const [nomeFantasia, setNomeFantasia] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
