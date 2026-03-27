@@ -1,0 +1,1 @@
+ALTER TABLE public.client_modules ADD COLUMN quantity integer NOT NULL DEFAULT 1;
