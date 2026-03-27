@@ -270,7 +270,7 @@ export default function Clientes() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8}>
+                <TableCell colSpan={batchMode ? 9 : 8}>
                   <EmptyState
                     icon={Users}
                     title="Nenhum cliente encontrado"
