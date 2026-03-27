@@ -1,4 +1,4 @@
-import { SistemaPrincipal } from "./receita";
+// Types for financial module
 
 // ===== Enums / Unions =====
 export type TipoContaBancaria = "corrente" | "poupanca" | "investimento";
