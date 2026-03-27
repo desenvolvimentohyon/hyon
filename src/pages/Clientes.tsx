@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, Loader2, Eye, ClipboardPlus, Trash2 } from "lucide-react";
+import { Search, Plus, Loader2, Eye, ClipboardPlus, Trash2, Users, ListChecks } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
@@ -24,8 +25,6 @@ import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RowActions } from "@/components/ui/row-actions";
 
-import { Users } from "lucide-react";
-
 export default function Clientes() {
   const { clientes, addCliente, deleteCliente, tarefas } = useApp();
   const { sistemas } = useParametros();
@@ -37,6 +36,17 @@ export default function Clientes() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteJustificativa, setDeleteJustificativa] = useState("");
+
+  // Batch edit state
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBatchDialog, setShowBatchDialog] = useState(false);
+  const [batchDueDay, setBatchDueDay] = useState("");
+  const [batchAdjType, setBatchAdjType] = useState("");
+  const [batchAdjPercent, setBatchAdjPercent] = useState("");
+  const [batchTaxRegime, setBatchTaxRegime] = useState("");
+  const [batchBillingPlan, setBatchBillingPlan] = useState("");
+  const [batchLoading, setBatchLoading] = useState(false);
 
   // form
   const [nomeFantasia, setNomeFantasia] = useState("");
@@ -58,7 +68,80 @@ export default function Clientes() {
     const term = busca.toLowerCase();
     return c.nome.toLowerCase().includes(term) || (c.nomeFantasia || "").toLowerCase().includes(term) || (c.razaoSocial || "").toLowerCase().includes(term);
   });
-  
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const resetBatchFields = () => {
+    setBatchDueDay(""); setBatchAdjType(""); setBatchAdjPercent("");
+    setBatchTaxRegime(""); setBatchBillingPlan("");
+  };
+
+  const handleBatchUpdate = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setBatchLoading(true);
+    try {
+      // Build direct field updates
+      const directUpdates: Record<string, any> = {};
+      if (batchDueDay) directUpdates.default_due_day = Number(batchDueDay);
+      if (batchAdjType) directUpdates.adjustment_type = batchAdjType;
+      if (batchAdjPercent) directUpdates.adjustment_percent = Number(batchAdjPercent);
+      if (batchTaxRegime) directUpdates.tax_regime = batchTaxRegime;
+
+      // Apply direct updates in one call if any
+      if (Object.keys(directUpdates).length > 0) {
+        const { error } = await supabase.from("clients").update(directUpdates).in("id", ids);
+        if (error) throw error;
+      }
+
+      // Handle billing_plan in metadata (needs merge per client)
+      if (batchBillingPlan) {
+        const { data: rows, error: fetchErr } = await supabase
+          .from("clients").select("id, metadata").in("id", ids);
+        if (fetchErr) throw fetchErr;
+        for (const row of rows || []) {
+          const meta = (row.metadata as Record<string, any>) || {};
+          const { error: upErr } = await supabase.from("clients")
+            .update({ metadata: { ...meta, billing_plan: batchBillingPlan } })
+            .eq("id", row.id);
+          if (upErr) throw upErr;
+        }
+      }
+
+      const hasAny = Object.keys(directUpdates).length > 0 || batchBillingPlan;
+      if (!hasAny) {
+        toast({ title: "Nenhum campo preenchido para alterar", variant: "destructive" });
+        setBatchLoading(false);
+        return;
+      }
+
+      toast({ title: `${ids.length} cliente(s) atualizado(s) com sucesso!` });
+      setShowBatchDialog(false);
+      setBatchMode(false);
+      setSelectedIds(new Set());
+      resetBatchFields();
+      // Reload page to refresh data
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Erro ao atualizar em lote", description: err.message, variant: "destructive" });
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
 
   const applyCnpjData = useCallback((data: CnpjLookupResult) => {
     if (data.fantasia) setNomeFantasia(data.fantasia);
@@ -149,7 +232,19 @@ export default function Clientes() {
     <div className="space-y-4">
       <PageHeader
         title="Clientes"
-        actions={<Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant={batchMode ? "secondary" : "outline"} onClick={() => { setBatchMode(!batchMode); setSelectedIds(new Set()); }} className="gap-1.5">
+              <ListChecks className="h-4 w-4" />{batchMode ? "Cancelar Seleção" : "Alterar em Lote"}
+            </Button>
+            {batchMode && selectedIds.size > 0 && (
+              <Button size="sm" onClick={() => setShowBatchDialog(true)} className="gap-1.5">
+                Editar {selectedIds.size} selecionado(s)
+              </Button>
+            )}
+            {!batchMode && <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
+          </div>
+        }
       />
       <ModuleNavGrid moduleId="clientes" />
       
@@ -161,6 +256,7 @@ export default function Clientes() {
         <Table>
           <TableHeader>
             <TableRow>
+              {batchMode && <TableHead className="w-10"><Checkbox checked={filtered.length > 0 && selectedIds.size === filtered.length} onCheckedChange={toggleSelectAll} /></TableHead>}
               <TableHead>Nome</TableHead>
               <TableHead>Sistema</TableHead>
               <TableHead className="hidden md:table-cell">Mensalidade</TableHead>
@@ -174,7 +270,7 @@ export default function Clientes() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8}>
+                <TableCell colSpan={batchMode ? 9 : 8}>
                   <EmptyState
                     icon={Users}
                     title="Nenhum cliente encontrado"
@@ -187,7 +283,8 @@ export default function Clientes() {
             ) : filtered.map(c => {
               const { score, saude } = getScore(c.id);
               return (
-                <TableRow key={c.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => setSelectedId(c.id)}>
+                <TableRow key={c.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => batchMode ? toggleSelect(c.id) : setSelectedId(c.id)}>
+                  {batchMode && <TableCell onClick={e => e.stopPropagation()}><Checkbox checked={selectedIds.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>}
                   <TableCell>
                     <div>
                       <span className="font-medium">{c.nome}</span>
@@ -326,6 +423,75 @@ export default function Clientes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Batch Edit Dialog */}
+      <Dialog open={showBatchDialog} onOpenChange={(open) => { if (!open) setShowBatchDialog(false); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Alterar em Lote — {selectedIds.size} cliente(s)</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Preencha apenas os campos que deseja alterar. Campos vazios serão ignorados.</p>
+          <div className="space-y-4 mt-2">
+            <div>
+              <Label>Dia de Vencimento</Label>
+              <Select value={batchDueDay} onValueChange={setBatchDueDay}>
+                <SelectTrigger><SelectValue placeholder="Selecione o dia" /></SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                    <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Índice de Reajuste</Label>
+                <Select value={batchAdjType} onValueChange={setBatchAdjType}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="IGPM">IGPM</SelectItem>
+                    <SelectItem value="IPCA">IPCA</SelectItem>
+                    <SelectItem value="Personalizado">Personalizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Percentual (%)</Label>
+                <Input type="number" placeholder="Ex: 5.5" value={batchAdjPercent} onChange={e => setBatchAdjPercent(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>Regime da Empresa</Label>
+              <Select value={batchTaxRegime} onValueChange={setBatchTaxRegime}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
+                  <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
+                  <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                  <SelectItem value="MEI">MEI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Plano de Cobrança</Label>
+              <Select value={batchBillingPlan} onValueChange={setBatchBillingPlan}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBatchDialog(false)}>Cancelar</Button>
+            <Button onClick={handleBatchUpdate} disabled={batchLoading}>
+              {batchLoading && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Aplicar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
