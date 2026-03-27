@@ -232,7 +232,19 @@ export default function Clientes() {
     <div className="space-y-4">
       <PageHeader
         title="Clientes"
-        actions={<Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant={batchMode ? "secondary" : "outline"} onClick={() => { setBatchMode(!batchMode); setSelectedIds(new Set()); }} className="gap-1.5">
+              <ListChecks className="h-4 w-4" />{batchMode ? "Cancelar Seleção" : "Alterar em Lote"}
+            </Button>
+            {batchMode && selectedIds.size > 0 && (
+              <Button size="sm" onClick={() => setShowBatchDialog(true)} className="gap-1.5">
+                Editar {selectedIds.size} selecionado(s)
+              </Button>
+            )}
+            {!batchMode && <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
+          </div>
+        }
       />
       <ModuleNavGrid moduleId="clientes" />
       
