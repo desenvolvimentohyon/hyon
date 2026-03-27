@@ -93,7 +93,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
   const addClienteReceita = useCallback(async (c: Omit<ClienteReceita, "id">) => {
     if (!orgId) return;
     const { error } = await supabase.from("clients").insert({
-      org_id: orgId, name: c.nome, document: c.documento || null,
+      org_id: orgId, name: c.nome, trade_name: c.nome, document: c.documento || null,
       phone: c.telefone || null, email: c.email || null, city: c.cidade || null,
       system_name: c.sistemaPrincipal, status: c.statusCliente,
       recurrence_active: c.mensalidadeAtiva, monthly_value_final: c.valorMensalidade,
