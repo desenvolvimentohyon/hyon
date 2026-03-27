@@ -56,6 +56,8 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const [showNewModuleDialog, setShowNewModuleDialog] = useState(false);
   const [newModuleForm, setNewModuleForm] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0 });
   const [savingModule, setSavingModule] = useState(false);
+  const [pendingSystem, setPendingSystem] = useState<string | null>(null);
+  const [showSystemChangeDialog, setShowSystemChangeDialog] = useState(false);
 
   const v = (key: keyof ClienteFull) => (formData[key] ?? cliente[key] ?? "") as string;
   const set = (key: keyof ClienteFull, val: any) => onChange({ [key]: val });
@@ -215,6 +217,20 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     setShowContactForm(false);
   };
 
+  const handleConfirmSystemChange = async () => {
+    if (!pendingSystem || !cliente.id) return;
+    try {
+      await supabase.from("client_modules").delete().eq("client_id", cliente.id);
+      setLinkedModules(new Map());
+      onChange({ system_name: pendingSystem, monthly_value_base: 0, monthly_cost_value: 0 } as any);
+      toast({ title: "Sistema alterado", description: "Módulos anteriores foram removidos." });
+    } catch {
+      toast({ title: "Erro ao limpar módulos", variant: "destructive" });
+    } finally {
+      setPendingSystem(null);
+      setShowSystemChangeDialog(false);
+    }
+  };
   return (
     <div className="space-y-8">
       {/* Identificação */}
@@ -252,7 +268,12 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           <div>
             <Label>Sistema</Label>
             <Select value={v("system_name")} onValueChange={val => {
-              set("system_name", val);
+              if (linkedModules.size > 0 && val !== v("system_name")) {
+                setPendingSystem(val);
+                setShowSystemChangeDialog(true);
+              } else {
+                set("system_name", val);
+              }
             }}>
               <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
               <SelectContent>
@@ -522,6 +543,22 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmação de troca de sistema */}
+      <AlertDialog open={showSystemChangeDialog} onOpenChange={setShowSystemChangeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Trocar sistema?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Trocar o sistema removerá todos os módulos vinculados ao sistema atual e zerará os valores de faturamento e custo. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingSystem(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSystemChange}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
