@@ -38,12 +38,25 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
 
   const handlePlanChange = (plan: string) => {
     const end = calcEndDate(planStartDate, plan);
-    onChange({ billing_plan: plan, plan_end_date: end || null } as any);
+    const months = planMonths[plan] || 1;
+    const currentTotal = Number(meta.plan_total_value ?? 0);
+    if (plan !== "mensal" && currentTotal > 0) {
+      const monthly = Math.round((currentTotal / months) * 100) / 100;
+      onChange({ billing_plan: plan, plan_end_date: end || null, monthly_value_final: monthly } as any);
+    } else {
+      onChange({ billing_plan: plan, plan_end_date: end || null } as any);
+    }
   };
 
   const handleStartChange = (date: string) => {
     const end = calcEndDate(date, billingPlan);
     onChange({ plan_start_date: date || null, plan_end_date: end || null } as any);
+  };
+
+  const handleTotalValueChange = (total: number) => {
+    const monthly = Math.round((total / divisor) * 100) / 100;
+    setMeta("plan_total_value", total);
+    onChange({ monthly_value_final: monthly, metadata: { ...meta, plan_total_value: total } } as any);
   };
 
   return (
