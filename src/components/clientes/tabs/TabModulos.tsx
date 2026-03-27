@@ -19,6 +19,7 @@ interface LinkedModule {
   active: boolean;
   system_id: string | null;
   is_global: boolean;
+  quantity: number;
 }
 
 interface SystemGroup {
@@ -41,7 +42,7 @@ export default function TabModulos({ clienteId }: Props) {
       setLoading(true);
       const { data: links } = await supabase
         .from("client_modules")
-        .select("module_id")
+        .select("module_id, quantity")
         .eq("client_id", clienteId);
 
       if (!links || links.length === 0) {
@@ -51,6 +52,9 @@ export default function TabModulos({ clienteId }: Props) {
       }
 
       const moduleIds = links.map((l: any) => l.module_id);
+      const qtyMap = new Map<string, number>();
+      links.forEach((l: any) => qtyMap.set(l.module_id, l.quantity ?? 1));
+
       const { data: mods } = await supabase
         .from("system_modules")
         .select("id, name, description, sale_value, cost_value, active, system_id, is_global")
@@ -68,6 +72,7 @@ export default function TabModulos({ clienteId }: Props) {
           active: m.active,
           system_id: m.system_id,
           is_global: m.is_global,
+          quantity: qtyMap.get(m.id) || 1,
         })));
       }
       setLoading(false);
@@ -99,8 +104,8 @@ export default function TabModulos({ clienteId }: Props) {
       systemName: sys?.nome || "Sem sistema",
       isGlobal: false,
       modules: mods,
-      totalSale: mods.reduce((s, m) => s + m.sale_value, 0),
-      totalCost: mods.reduce((s, m) => s + m.cost_value, 0),
+      totalSale: mods.reduce((s, m) => s + m.sale_value * m.quantity, 0),
+      totalCost: mods.reduce((s, m) => s + m.cost_value * m.quantity, 0),
     });
   }
 
@@ -110,13 +115,13 @@ export default function TabModulos({ clienteId }: Props) {
       systemName: "Módulos Globais",
       isGlobal: true,
       modules: globalModules,
-      totalSale: globalModules.reduce((s, m) => s + m.sale_value, 0),
-      totalCost: globalModules.reduce((s, m) => s + m.cost_value, 0),
+      totalSale: globalModules.reduce((s, m) => s + m.sale_value * m.quantity, 0),
+      totalCost: globalModules.reduce((s, m) => s + m.cost_value * m.quantity, 0),
     });
   }
 
-  const totalSale = modules.reduce((s, m) => s + m.sale_value, 0);
-  const totalCost = modules.reduce((s, m) => s + m.cost_value, 0);
+  const totalSale = modules.reduce((s, m) => s + m.sale_value * m.quantity, 0);
+  const totalCost = modules.reduce((s, m) => s + m.cost_value * m.quantity, 0);
 
   // Detail view for a selected system
   if (selectedSystem) {
@@ -142,12 +147,15 @@ export default function TabModulos({ clienteId }: Props) {
                 {m.active ? "Ativo" : "Inativo"}
               </Badge>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{m.module_name}</p>
+                <p className="text-sm font-medium">
+                  {m.module_name}
+                  {m.quantity > 1 && <span className="text-muted-foreground ml-1">×{m.quantity}</span>}
+                </p>
                 {m.module_description && <p className="text-[10px] text-muted-foreground truncate">{m.module_description}</p>}
               </div>
               <div className="text-right text-xs">
-                <div>Venda: <span className="font-medium">R$ {m.sale_value.toFixed(2)}</span></div>
-                <div className="text-muted-foreground">Custo: R$ {m.cost_value.toFixed(2)}</div>
+                <div>Venda: <span className="font-medium">R$ {(m.sale_value * m.quantity).toFixed(2)}</span></div>
+                <div className="text-muted-foreground">Custo: R$ {(m.cost_value * m.quantity).toFixed(2)}</div>
               </div>
             </div>
           ))}
@@ -194,7 +202,7 @@ export default function TabModulos({ clienteId }: Props) {
                     )}
                     <div>
                       <p className="text-sm font-semibold leading-tight group-hover:text-primary transition-colors">{g.systemName}</p>
-                      <p className="text-[11px] text-muted-foreground">{g.modules.length} módulo{g.modules.length > 1 ? "s" : ""}</p>
+                      <p className="text-[11px] text-muted-foreground">{g.modules.reduce((s, m) => s + m.quantity, 0)} módulo{g.modules.reduce((s, m) => s + m.quantity, 0) > 1 ? "s" : ""}</p>
                     </div>
                   </div>
                 </div>
@@ -214,7 +222,7 @@ export default function TabModulos({ clienteId }: Props) {
 
           <div className="rounded-lg border border-border p-4 bg-muted/30">
             <div className="grid gap-3 md:grid-cols-2 text-sm">
-              <div><span className="text-muted-foreground"><div><span className="text-muted-foreground">Total sugerido de venda:</span> <span className="font-semibold">R$ {totalSale.toFixed(2)}</span></div></span> <span className="font-semibold">R$ {totalSale.toFixed(2)}</span></div>
+              <div><span className="text-muted-foreground">Total sugerido de venda:</span> <span className="font-semibold">R$ {totalSale.toFixed(2)}</span></div>
               <div><span className="text-muted-foreground">Total custo geral:</span> <span className="font-semibold">R$ {totalCost.toFixed(2)}</span></div>
             </div>
           </div>
