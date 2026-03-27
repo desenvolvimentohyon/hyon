@@ -256,6 +256,7 @@ export default function Clientes() {
         <Table>
           <TableHeader>
             <TableRow>
+              {batchMode && <TableHead className="w-10"><Checkbox checked={filtered.length > 0 && selectedIds.size === filtered.length} onCheckedChange={toggleSelectAll} /></TableHead>}
               <TableHead>Nome</TableHead>
               <TableHead>Sistema</TableHead>
               <TableHead className="hidden md:table-cell">Mensalidade</TableHead>
