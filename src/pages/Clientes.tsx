@@ -423,6 +423,75 @@ export default function Clientes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Batch Edit Dialog */}
+      <Dialog open={showBatchDialog} onOpenChange={(open) => { if (!open) setShowBatchDialog(false); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Alterar em Lote — {selectedIds.size} cliente(s)</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Preencha apenas os campos que deseja alterar. Campos vazios serão ignorados.</p>
+          <div className="space-y-4 mt-2">
+            <div>
+              <Label>Dia de Vencimento</Label>
+              <Select value={batchDueDay} onValueChange={setBatchDueDay}>
+                <SelectTrigger><SelectValue placeholder="Selecione o dia" /></SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                    <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Índice de Reajuste</Label>
+                <Select value={batchAdjType} onValueChange={setBatchAdjType}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="IGPM">IGPM</SelectItem>
+                    <SelectItem value="IPCA">IPCA</SelectItem>
+                    <SelectItem value="Personalizado">Personalizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Percentual (%)</Label>
+                <Input type="number" placeholder="Ex: 5.5" value={batchAdjPercent} onChange={e => setBatchAdjPercent(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>Regime da Empresa</Label>
+              <Select value={batchTaxRegime} onValueChange={setBatchTaxRegime}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
+                  <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
+                  <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                  <SelectItem value="MEI">MEI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Plano de Cobrança</Label>
+              <Select value={batchBillingPlan} onValueChange={setBatchBillingPlan}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBatchDialog(false)}>Cancelar</Button>
+            <Button onClick={handleBatchUpdate} disabled={batchLoading}>
+              {batchLoading && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Aplicar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
