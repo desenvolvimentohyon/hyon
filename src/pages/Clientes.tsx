@@ -8,10 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, Loader2, Eye, ClipboardPlus, Trash2, Users, ListChecks } from "lucide-react";
+import { Search, Plus, Loader2, Eye, ClipboardPlus, Trash2, Users, ListChecks, Download, Filter } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { calcularScoreSaude, scoreSaudeLabel } from "@/lib/constants";
@@ -24,6 +23,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RowActions } from "@/components/ui/row-actions";
+import { ClienteCard } from "@/components/clientes/ClienteCard";
+import { getSystemColor } from "@/types/receita";
 
 export default function Clientes() {
   const { clientes, addCliente, deleteCliente, tarefas } = useApp();
@@ -242,6 +243,9 @@ export default function Clientes() {
                 Editar {selectedIds.size} selecionado(s)
               </Button>
             )}
+            <Button size="sm" variant="outline" className="gap-1.5">
+              <Download className="h-4 w-4" />Exportar ({filtered.length})
+            </Button>
             {!batchMode && <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>}
           </div>
         }
@@ -252,63 +256,53 @@ export default function Clientes() {
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input placeholder="Buscar cliente..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-9" />
       </div>
-      <div className="rounded-lg border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {batchMode && <TableHead className="w-10"><Checkbox checked={filtered.length > 0 && selectedIds.size === filtered.length} onCheckedChange={toggleSelectAll} /></TableHead>}
-              <TableHead>Nome</TableHead>
-              <TableHead>Sistema</TableHead>
-              <TableHead className="hidden md:table-cell">Mensalidade</TableHead>
-              <TableHead className="hidden md:table-cell">Custo</TableHead>
-              <TableHead className="hidden md:table-cell">Margem</TableHead>
-              <TableHead>Saúde</TableHead>
-              <TableHead>Tarefas</TableHead>
-              <TableHead className="w-10"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={batchMode ? 9 : 8}>
-                  <EmptyState
-                    icon={Users}
-                    title="Nenhum cliente encontrado"
-                    description={busca ? "Tente outro termo de busca" : "Cadastre seu primeiro cliente para começar"}
-                    actionLabel={!busca ? "Cadastrar primeiro cliente" : undefined}
-                    onAction={!busca ? () => setShowNovo(true) : undefined}
-                  />
-                </TableCell>
-              </TableRow>
-            ) : filtered.map(c => {
-              const { score, saude } = getScore(c.id);
-              return (
-                <TableRow key={c.id} className="group cursor-pointer hover:bg-accent/40 transition-colors duration-150" onClick={() => batchMode ? toggleSelect(c.id) : setSelectedId(c.id)}>
-                  {batchMode && <TableCell onClick={e => e.stopPropagation()}><Checkbox checked={selectedIds.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>}
-                  <TableCell>
-                    <div>
-                      <span className="font-medium">{c.nome}</span>
-                      {c.riscoCancelamento && <Badge variant="destructive" className="text-[9px] ml-2">Risco</Badge>}
-                    </div>
-                  </TableCell>
-                  <TableCell><Badge variant="outline" className="text-[10px]">{c.sistemaUsado?.toUpperCase() || "—"}</Badge></TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {(c.mensalidadeAtual || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">R$ {(c.custoMensal || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
-                  <TableCell className={`hidden md:table-cell font-medium ${((c.mensalidadeAtual || 0) - (c.custoMensal || 0)) >= 0 ? "text-green-500" : "text-destructive"}`}>R$ {((c.mensalidadeAtual || 0) - (c.custoMensal || 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
-                  <TableCell><Badge className={`text-[10px] ${saude.className}`}>{score}</Badge></TableCell>
-                  <TableCell><Badge variant="outline">{tarefas.filter(t => t.clienteId === c.id).length}</Badge></TableCell>
-                  <TableCell>
-                     <RowActions actions={[
-                      { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
-                      { label: "Nova tarefa", icon: ClipboardPlus, onClick: () => navigate(`/tarefas?nova=1`) },
-                      { label: "Excluir", icon: Trash2, onClick: () => setDeleteTarget(c.id), variant: "destructive" },
-                    ]} />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+      <div className="space-y-2">
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="Nenhum cliente encontrado"
+            description={busca ? "Tente outro termo de busca" : "Cadastre seu primeiro cliente para começar"}
+            actionLabel={!busca ? "Cadastrar primeiro cliente" : undefined}
+            onAction={!busca ? () => setShowNovo(true) : undefined}
+          />
+        ) : filtered.map(c => {
+          const { score, saude } = getScore(c.id);
+          return (
+            <ClienteCard
+              key={c.id}
+              nome={c.nome}
+              nomeFantasia={c.nomeFantasia}
+              documento={c.documento}
+              telefone={c.telefone}
+              sistema={c.sistemaUsado || undefined}
+              systemColor={getSystemColor(c.sistemaUsado || "")}
+              selected={batchMode && selectedIds.has(c.id)}
+              checkbox={batchMode ? <Checkbox checked={selectedIds.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /> : undefined}
+              statusBadge={
+                <>
+                  {c.riscoCancelamento && <Badge variant="destructive" className="text-[9px]">Risco</Badge>}
+                  <Badge className={`text-[10px] ${saude.className}`}>{score}</Badge>
+                </>
+              }
+              extraInfo={
+                <>
+                  <span className="text-xs text-muted-foreground">R$ {(c.mensalidadeAtual || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <span className={`text-xs font-medium ${((c.mensalidadeAtual || 0) - (c.custoMensal || 0)) >= 0 ? "text-green-500" : "text-destructive"}`}>
+                    Margem: R$ {((c.mensalidadeAtual || 0) - (c.custoMensal || 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </>
+              }
+              onClick={() => batchMode ? toggleSelect(c.id) : setSelectedId(c.id)}
+              actions={
+                <RowActions actions={[
+                  { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
+                  { label: "Nova tarefa", icon: ClipboardPlus, onClick: () => navigate(`/tarefas?nova=1`) },
+                  { label: "Excluir", icon: Trash2, onClick: () => setDeleteTarget(c.id), variant: "destructive" },
+                ]} />
+              }
+            />
+          );
+        })}
       </div>
 
       <Dialog open={showNovo} onOpenChange={setShowNovo}>
