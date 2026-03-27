@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, RefreshCw } from "lucide-react";
 import { RowActions, RowAction } from "@/components/ui/row-actions";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
@@ -74,7 +75,7 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 
 export default function Clientes() {
   const { clientesReceita, suporteEventos, addClienteReceita, updateClienteReceita, deleteClienteReceita, addMensalidadeAjuste, getAjustesCliente, loading } = useReceita();
-  const { sistemas } = useParametros();
+  const { sistemas, modulos } = useParametros();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
@@ -94,6 +95,34 @@ export default function Clientes() {
     sistemaPrincipal: "",
     valorMensalidade: "", valorCustoMensal: "", observacoes: "",
   });
+  const [selectedModuleIds, setSelectedModuleIds] = useState<Set<string>>(new Set());
+
+  // Filtered modules based on selected system
+  const selectedSistema = sistemas.find(s => s.nome === form.sistemaPrincipal);
+  const availableModules = useMemo(() => {
+    if (!selectedSistema) return [];
+    return modulos.filter(m => m.ativo && (m.sistemaId === selectedSistema.id || m.isGlobal));
+  }, [modulos, selectedSistema]);
+
+  // Recalculate values when modules change
+  const recalcFromModules = useCallback((moduleIds: Set<string>) => {
+    let totalVenda = 0;
+    let totalCusto = 0;
+    moduleIds.forEach(id => {
+      const mod = modulos.find(m => m.id === id);
+      if (mod) { totalVenda += mod.valorVenda; totalCusto += mod.valorCusto; }
+    });
+    setForm(f => ({ ...f, valorMensalidade: String(totalVenda), valorCustoMensal: String(totalCusto) }));
+  }, [modulos]);
+
+  const toggleModule = useCallback((moduleId: string) => {
+    setSelectedModuleIds(prev => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) next.delete(moduleId); else next.add(moduleId);
+      recalcFromModules(next);
+      return next;
+    });
+  }, [recalcFromModules]);
 
   // CNPJ lookup state
   const [cnpjLoading, setCnpjLoading] = useState(false);
@@ -103,6 +132,7 @@ export default function Clientes() {
 
   const resetForm = () => {
     setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
+    setSelectedModuleIds(new Set());
     setCnpjLookupData(null);
   };
 
@@ -183,7 +213,7 @@ export default function Clientes() {
       custoAtivo: true,
       valorCustoMensal: Number(form.valorCustoMensal) || 0,
       sistemaCusto: form.sistemaPrincipal as any,
-    });
+    }, Array.from(selectedModuleIds));
     toast({ title: "Cliente cadastrado!" });
     setShowNovo(false);
     resetForm();
@@ -336,8 +366,8 @@ export default function Clientes() {
               <div>
                 <Label>Sistema</Label>
                 <Select value={form.sistemaPrincipal} onValueChange={v => {
-                  const sys = sistemas.find(s => s.nome === v);
-                  setForm(f => ({ ...f, sistemaPrincipal: v, ...(sys && sys.valorVenda > 0 ? { valorMensalidade: String(sys.valorVenda) } : {}) }));
+                  setForm(f => ({ ...f, sistemaPrincipal: v, valorMensalidade: "0", valorCustoMensal: "0" }));
+                  setSelectedModuleIds(new Set());
                 }}>
                   <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                   <SelectContent>
@@ -347,6 +377,24 @@ export default function Clientes() {
               </div>
               <div><Label>Mensalidade (R$)</Label><CurrencyInput value={Number(form.valorMensalidade) || 0} onValueChange={v => setForm(f => ({ ...f, valorMensalidade: String(v) }))} /></div>
             </div>
+            {availableModules.length > 0 && (
+              <div className="space-y-2">
+                <Label>Módulos</Label>
+                <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
+                  {availableModules.map(m => (
+                    <label key={m.id} className="flex items-center gap-3 py-1 cursor-pointer hover:bg-muted/50 rounded px-1">
+                      <Checkbox
+                        checked={selectedModuleIds.has(m.id)}
+                        onCheckedChange={() => toggleModule(m.id)}
+                      />
+                      <span className="flex-1 text-sm">{m.nome}</span>
+                      <span className="text-xs text-muted-foreground">{fmt(m.valorVenda)}</span>
+                      <span className="text-xs text-muted-foreground/60">custo {fmt(m.valorCusto)}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <div><Label>Custo Mensal (R$)</Label><CurrencyInput value={Number(form.valorCustoMensal) || 0} onValueChange={v => setForm(f => ({ ...f, valorCustoMensal: String(v) }))} /></div>
             <div><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
           </div>
