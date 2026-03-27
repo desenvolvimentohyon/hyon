@@ -219,29 +219,6 @@ export function Topbar() {
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-background/80 backdrop-blur-md px-4" style={{ borderBottom: "1px solid hsl(var(--border) / 0.5)" }}>
       <SidebarTrigger className="shrink-0" />
-      {/* Breadcrumb */}
-      {breadcrumb && (
-        <>
-          <Separator orientation="vertical" className="h-5 mx-1" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to={breadcrumb.parent.directUrl || breadcrumb.parent.children[0]?.url || "/"} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    {breadcrumb.parent.title}
-                  </Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-xs font-medium">
-                  {breadcrumb.child.title}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </>
-      )}
 
       <form onSubmit={handleSearch} className="flex-1 max-w-xl ml-auto">
         <div className="relative">
