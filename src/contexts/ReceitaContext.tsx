@@ -52,7 +52,7 @@ interface ReceitaState {
 }
 
 interface ReceitaContextType extends ReceitaState {
-  addClienteReceita: (c: Omit<ClienteReceita, "id">) => void;
+  addClienteReceita: (c: Omit<ClienteReceita, "id">, moduleIds?: string[]) => void;
   updateClienteReceita: (id: string, changes: Partial<ClienteReceita>) => void;
   deleteClienteReceita: (id: string, justificativa?: string) => Promise<boolean>;
   addMensalidadeAjuste: (clienteId: string, valorNovo: number, motivo: string) => void;
@@ -90,19 +90,29 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const addClienteReceita = useCallback(async (c: Omit<ClienteReceita, "id">) => {
+  const addClienteReceita = useCallback(async (c: Omit<ClienteReceita, "id">, moduleIds?: string[]) => {
     if (!orgId) return;
-    const { error } = await supabase.from("clients").insert({
+    const { data, error } = await supabase.from("clients").insert({
       org_id: orgId, name: c.nome, trade_name: c.nome, document: c.documento || null,
       phone: c.telefone || null, email: c.email || null, city: c.cidade || null,
       system_name: c.sistemaPrincipal, status: c.statusCliente,
       recurrence_active: c.mensalidadeAtiva, monthly_value_final: c.valorMensalidade,
+      monthly_value_base: c.valorMensalidade,
       contract_signed_at: c.dataInicio || null, cancelled_at: c.dataCancelamento || null,
       cancellation_reason: c.motivoCancelamento || null, notes: c.observacoes || null,
       cost_active: c.custoAtivo, monthly_cost_value: c.valorCustoMensal,
       cost_system_name: c.sistemaCusto,
-    } as any);
+    } as any).select("id").single();
     if (error) { toast.error("Erro ao criar cliente: " + error.message); return; }
+    // Insert selected modules
+    if (data && moduleIds && moduleIds.length > 0) {
+      const moduleInserts = moduleIds.map(moduleId => ({
+        org_id: orgId,
+        client_id: data.id,
+        module_id: moduleId,
+      }));
+      await supabase.from("client_modules").insert(moduleInserts);
+    }
     fetchAll();
   }, [orgId, fetchAll]);
 
