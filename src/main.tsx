@@ -1,10 +1,10 @@
+import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "next-themes";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import { PwaUpdateBanner } from "./components/PwaUpdateBanner.tsx";
 import "./index.css";
-import { useState } from "react";
 
 const isInIframe = (() => {
   try { return window.self !== window.top; } catch { return true; }
