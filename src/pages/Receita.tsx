@@ -100,13 +100,17 @@ export default function Receita() {
     return months;
   }, [clientesReceita]);
 
+  const { sistemas: sistemaCatalogo } = useParametros();
+  const activeSystemNames = useMemo(() => sistemaCatalogo.filter(s => s.ativo).map(s => s.nome), [sistemaCatalogo]);
+
   const custosPorSistema = useMemo(() => {
-    const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
-    return sistemas.map(s => ({
+    const systemsInUse = new Set(clientesReceita.filter(c => c.custoAtivo).map(c => c.sistemaCusto).filter(Boolean));
+    const allSystems = [...new Set([...activeSystemNames, ...systemsInUse])];
+    return allSystems.map(s => ({
       name: s,
       value: clientesReceita.filter(c => c.custoAtivo && c.sistemaCusto === s).reduce((sum, c) => sum + c.valorCustoMensal, 0),
     })).filter(s => s.value > 0);
-  }, [clientesReceita]);
+  }, [clientesReceita, activeSystemNames]);
 
   const margemData = useMemo(() => {
     return mrrTimeline.map((m, i) => {
@@ -131,13 +135,14 @@ export default function Receita() {
   }, [clientesReceita]);
 
   const sistemasMaisUsados = useMemo(() => {
-    const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
-    return sistemas.map(s => ({
+    const systemsInUse = new Set(clientesReceita.map(c => c.sistemaPrincipal).filter(Boolean));
+    const allSystems = [...new Set([...activeSystemNames, ...systemsInUse])];
+    return allSystems.map(s => ({
       name: s,
       clientes: clientesReceita.filter(c => c.sistemaPrincipal === s).length,
-      color: RECEITA_COLORS.sistemas[s],
+      color: getSystemColor(s),
     })).sort((a, b) => b.clientes - a.clientes);
-  }, [clientesReceita]);
+  }, [clientesReceita, activeSystemNames]);
 
   const topSuporteClientes = useMemo(() => {
     const map: Record<string, number> = {};
@@ -302,7 +307,7 @@ export default function Receita() {
               <PieChart>
                 <Pie data={custosPorSistema} cx="50%" cy="50%" outerRadius={90} innerRadius={50} dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${fmt(value)}`} labelLine={false}>
                   {custosPorSistema.map((entry) => (
-                    <Cell key={entry.name} fill={RECEITA_COLORS.sistemas[entry.name as SistemaPrincipal] || "#888"} />
+                    <Cell key={entry.name} fill={getSystemColor(entry.name)} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(v: number) => fmt(v)} />

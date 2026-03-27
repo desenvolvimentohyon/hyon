@@ -1,4 +1,4 @@
-import { ClienteReceita, RECEITA_COLORS, SistemaPrincipal } from "@/types/receita";
+import { ClienteReceita, RECEITA_COLORS, getSystemColor } from "@/types/receita";
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -51,14 +51,17 @@ function calcularMetricas(clientes: ClienteReceita[]): RelatorioMetricas {
 }
 
 function custosPorSistema(clientes: ClienteReceita[]): CustoSistema[] {
-  const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
-  return sistemas
-    .map((s) => ({
-      sistema: s,
-      valor: clientes.filter((c) => c.custoAtivo && c.sistemaCusto === s).reduce((sum, c) => sum + c.valorCustoMensal, 0),
-      cor: RECEITA_COLORS.sistemas[s],
-    }))
-    .filter((s) => s.valor > 0);
+  const systemMap: Record<string, number> = {};
+  clientes.filter(c => c.custoAtivo).forEach(c => {
+    systemMap[c.sistemaCusto] = (systemMap[c.sistemaCusto] || 0) + c.valorCustoMensal;
+  });
+  return Object.entries(systemMap)
+    .filter(([, valor]) => valor > 0)
+    .map(([sistema, valor]) => ({
+      sistema,
+      valor,
+      cor: getSystemColor(sistema),
+    }));
 }
 
 function clientesPorStatus(clientes: ClienteReceita[]): ClienteStatus[] {
@@ -70,9 +73,10 @@ function clientesPorStatus(clientes: ClienteReceita[]): ClienteStatus[] {
 }
 
 function sistemasMaisUsados(clientes: ClienteReceita[]) {
-  const sistemas: SistemaPrincipal[] = ["PDV+", "LinkPro", "Torge", "Emissor Fiscal", "Hyon Hospede"];
-  return sistemas
-    .map((s) => ({ sistema: s, count: clientes.filter((c) => c.sistemaPrincipal === s).length }))
+  const sysMap: Record<string, number> = {};
+  clientes.forEach(c => { sysMap[c.sistemaPrincipal] = (sysMap[c.sistemaPrincipal] || 0) + 1; });
+  return Object.entries(sysMap)
+    .map(([sistema, count]) => ({ sistema, count }))
     .sort((a, b) => b.count - a.count);
 }
 
