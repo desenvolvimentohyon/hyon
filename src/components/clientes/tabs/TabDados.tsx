@@ -50,7 +50,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
   const [contactForm, setContactForm] = useState({ name: "", phone: "", email: "", roles: [] as string[], is_billing_preferred: false, is_support_preferred: false });
-  const [linkedModuleIds, setLinkedModuleIds] = useState<string[]>([]);
+  const [linkedModules, setLinkedModules] = useState<Map<string, number>>(new Map());
   const [modulesLoading, setModulesLoading] = useState(false);
   const [showNewModuleDialog, setShowNewModuleDialog] = useState(false);
   const [newModuleForm, setNewModuleForm] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0 });
@@ -64,13 +64,18 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   const currentSystem = sistemas.find(s => s.nome === currentSystemName);
   const systemModules = modulos.filter(m => m.ativo && (m.sistemaId === currentSystem?.id || m.isGlobal));
 
+  const linkedModuleIds = useMemo(() => Array.from(linkedModules.keys()), [linkedModules]);
+
   // Calculate totals from linked modules in real time
   const moduleTotals = useMemo(() => {
-    const linked = modulos.filter(m => linkedModuleIds.includes(m.id));
-    const totalVenda = linked.reduce((sum, m) => sum + m.valorVenda, 0);
-    const totalCusto = linked.reduce((sum, m) => sum + m.valorCusto, 0);
+    const totalVenda = modulos
+      .filter(m => linkedModules.has(m.id))
+      .reduce((sum, m) => sum + m.valorVenda * (linkedModules.get(m.id) || 1), 0);
+    const totalCusto = modulos
+      .filter(m => linkedModules.has(m.id))
+      .reduce((sum, m) => sum + m.valorCusto * (linkedModules.get(m.id) || 1), 0);
     return { totalVenda, totalCusto };
-  }, [linkedModuleIds, modulos]);
+  }, [linkedModules, modulos]);
 
   // Load linked modules for this client
   useEffect(() => {
@@ -78,41 +83,56 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
       if (!cliente.id) return;
       const { data } = await supabase
         .from("client_modules")
-        .select("module_id")
+        .select("module_id, quantity")
         .eq("client_id", cliente.id);
-      if (data) setLinkedModuleIds(data.map((d: any) => d.module_id));
+      if (data) {
+        const map = new Map<string, number>();
+        data.forEach((d: any) => map.set(d.module_id, d.quantity ?? 1));
+        setLinkedModules(map);
+      }
     };
     loadLinkedModules();
   }, [cliente.id]);
+
+  const recalcFromMap = useCallback((map: Map<string, number>) => {
+    const sumVenda = modulos.filter(m => map.has(m.id)).reduce((s, m) => s + m.valorVenda * (map.get(m.id) || 1), 0);
+    const sumCusto = modulos.filter(m => map.has(m.id)).reduce((s, m) => s + m.valorCusto * (map.get(m.id) || 1), 0);
+    onChange({ monthly_value_base: sumVenda, monthly_cost_value: sumCusto } as any);
+  }, [modulos, onChange]);
 
   const toggleModule = useCallback(async (moduleId: string, checked: boolean) => {
     if (!profile?.org_id || !cliente.id) return;
     setModulesLoading(true);
     try {
-      let newIds: string[];
+      const newMap = new Map(linkedModules);
       if (checked) {
         await supabase.from("client_modules").insert({ org_id: profile.org_id, client_id: cliente.id, module_id: moduleId });
-        newIds = [...linkedModuleIds, moduleId];
+        newMap.set(moduleId, 1);
       } else {
         await supabase.from("client_modules").delete().eq("client_id", cliente.id).eq("module_id", moduleId);
-        newIds = linkedModuleIds.filter(id => id !== moduleId);
+        newMap.delete(moduleId);
       }
-      setLinkedModuleIds(newIds);
-
-      // Recalculate: base = sum of active modules (venda), cost = sum of costs
-      const linkedMods = modulos.filter(m => newIds.includes(m.id));
-      const sumVenda = linkedMods.reduce((s, m) => s + m.valorVenda, 0);
-      const sumCusto = linkedMods.reduce((s, m) => s + m.valorCusto, 0);
-      onChange({
-        monthly_value_base: sumVenda,
-        monthly_cost_value: sumCusto,
-      } as any);
+      setLinkedModules(newMap);
+      recalcFromMap(newMap);
     } catch {
       toast({ title: "Erro ao atualizar módulo", variant: "destructive" });
     } finally {
       setModulesLoading(false);
     }
-  }, [profile?.org_id, cliente.id, linkedModuleIds, modulos, currentSystem, formData.monthly_value_base, cliente.monthly_value_base, onChange]);
+  }, [profile?.org_id, cliente.id, linkedModules, modulos, recalcFromMap]);
+
+  const updateModuleQuantity = useCallback(async (moduleId: string, qty: number) => {
+    if (!cliente.id || qty < 1) return;
+    const newMap = new Map(linkedModules);
+    newMap.set(moduleId, qty);
+    setLinkedModules(newMap);
+    recalcFromMap(newMap);
+    try {
+      await supabase.from("client_modules").update({ quantity: qty } as any).eq("client_id", cliente.id).eq("module_id", moduleId);
+    } catch {
+      toast({ title: "Erro ao atualizar quantidade", variant: "destructive" });
+    }
+  }, [cliente.id, linkedModules, recalcFromMap]);
 
   const buscarCNPJ = async (cnpjRaw: string) => {
     const cleaned = cleanCNPJ(cnpjRaw);
@@ -260,26 +280,39 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
           ) : (
             <div className="space-y-3">
               <div className="grid gap-2 md:grid-cols-2">
-                {systemModules.map(m => (
-                  <label key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border cursor-pointer hover:bg-accent/40 transition-colors">
-                    <Checkbox
-                      checked={linkedModuleIds.includes(m.id)}
-                      onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
-                      disabled={modulesLoading}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-medium">{m.nome}</p>
-                        {m.isGlobal && <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Global</Badge>}
+                {systemModules.map(m => {
+                  const isLinked = linkedModules.has(m.id);
+                  const qty = linkedModules.get(m.id) || 1;
+                  return (
+                    <div key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-accent/40 transition-colors">
+                      <Checkbox
+                        checked={isLinked}
+                        onCheckedChange={(checked) => toggleModule(m.id, !!checked)}
+                        disabled={modulesLoading}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-medium">{m.nome}</p>
+                          {m.isGlobal && <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Global</Badge>}
+                        </div>
+                        {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
                       </div>
-                      {m.descricao && <p className="text-[10px] text-muted-foreground truncate">{m.descricao}</p>}
+                      {isLinked && (
+                        <Input
+                          type="number"
+                          min={1}
+                          value={qty}
+                          onChange={e => updateModuleQuantity(m.id, Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-16 h-8 text-center text-xs"
+                        />
+                      )}
+                      <div className="text-right min-w-[80px]">
+                        <span className="text-xs font-medium whitespace-nowrap">R$ {(m.valorVenda * (isLinked ? qty : 1)).toFixed(2)}</span>
+                        <p className="text-[10px] text-muted-foreground">Custo: R$ {(m.valorCusto * (isLinked ? qty : 1)).toFixed(2)}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-xs font-medium whitespace-nowrap">R$ {m.valorVenda.toFixed(2)}</span>
-                      <p className="text-[10px] text-muted-foreground">Custo: R$ {m.valorCusto.toFixed(2)}</p>
-                    </div>
-                  </label>
-                ))}
+                  );
+                })}
               </div>
               {linkedModuleIds.length > 0 && (
                 <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border border-border text-sm">

@@ -24,17 +24,19 @@ export default function TabCusto({ cliente, formData, onChange }: Props) {
     const fetchModuleCosts = async () => {
       const { data: links } = await supabase
         .from("client_modules")
-        .select("module_id")
+        .select("module_id, quantity")
         .eq("client_id", cliente.id);
       if (!links || links.length === 0) { setCustoModulos(0); setQtdModulos(0); return; }
       const ids = links.map((l: any) => l.module_id);
+      const qtyMap = new Map<string, number>();
+      links.forEach((l: any) => qtyMap.set(l.module_id, l.quantity ?? 1));
       const { data: mods } = await supabase
         .from("system_modules")
-        .select("cost_value")
+        .select("id, cost_value")
         .in("id", ids);
-      const sum = (mods || []).reduce((s: number, m: any) => s + (m.cost_value || 0), 0);
+      const sum = (mods || []).reduce((s: number, m: any) => s + (m.cost_value || 0) * (qtyMap.get(m.id) || 1), 0);
       setCustoModulos(sum);
-      setQtdModulos(ids.length);
+      setQtdModulos(links.reduce((s: number, l: any) => s + (l.quantity ?? 1), 0));
     };
     fetchModuleCosts();
   }, [cliente.id]);
