@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -30,7 +30,6 @@ function dbToProposta(r: any): Proposta {
     partnerCommissionPercent: r.partner_commission_percent != null ? Number(r.partner_commission_percent) : null,
     partnerCommissionValue: r.partner_commission_value != null ? Number(r.partner_commission_value) : null,
     commissionGenerated: r.commission_generated || false,
-    // Advanced fields
     partnerCommissionImplantPercent: r.partner_commission_implant_percent != null ? Number(r.partner_commission_implant_percent) : null,
     partnerCommissionImplantValue: r.partner_commission_implant_value != null ? Number(r.partner_commission_implant_value) : null,
     partnerCommissionRecurPercent: r.partner_commission_recur_percent != null ? Number(r.partner_commission_recur_percent) : null,
@@ -88,10 +87,11 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [propostas, setPropostas] = useState<Proposta[]>([]);
   const [crmConfig, setCRMConfig] = useState<CRMConfig>({ ...DEFAULT_CRM_CONFIG });
+  const initialLoadedRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
-    setLoading(true);
+    if (!initialLoadedRef.current) setLoading(true);
     const [pRes, sRes, csRes] = await Promise.all([
       supabase.from("proposals").select("*, proposal_items(*)"),
       supabase.from("proposal_settings").select("*").maybeSingle(),
@@ -102,6 +102,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       setCRMConfig(dbToCRMConfig(sRes.data, csRes.data || []));
     }
     setLoading(false);
+    initialLoadedRef.current = true;
   }, [orgId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -172,7 +173,6 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
     if (changes.partnerCommissionPercent !== undefined) upd.partner_commission_percent = changes.partnerCommissionPercent;
     if (changes.partnerCommissionValue !== undefined) upd.partner_commission_value = changes.partnerCommissionValue;
     if (changes.commissionGenerated !== undefined) upd.commission_generated = changes.commissionGenerated;
-    // Advanced fields
     if (changes.partnerCommissionImplantPercent !== undefined) upd.partner_commission_implant_percent = changes.partnerCommissionImplantPercent;
     if (changes.partnerCommissionImplantValue !== undefined) upd.partner_commission_implant_value = changes.partnerCommissionImplantValue;
     if (changes.partnerCommissionRecurPercent !== undefined) upd.partner_commission_recur_percent = changes.partnerCommissionRecurPercent;
@@ -186,7 +186,6 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.from("proposals").update(upd).eq("id", id);
       if (error) { toast.error("Erro ao atualizar proposta"); return; }
     }
-    // Update items if changed
     if (changes.itens && orgId) {
       await supabase.from("proposal_items").delete().eq("proposal_id", id);
       if (changes.itens.length > 0) {
@@ -212,7 +211,6 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
       const mergedRecurMonths = changes.partnerCommissionRecurMonths !== undefined ? changes.partnerCommissionRecurMonths : current?.partnerCommissionRecurMonths;
       const mergedRecurApplyOn = changes.partnerCommissionRecurApplyOn !== undefined ? changes.partnerCommissionRecurApplyOn : current?.partnerCommissionRecurApplyOn;
 
-      // Generate implantation commission
       if (mergedPartnerId && mergedImplantacao && mergedImplantacao > 0 && mergedCommissionImplantValue && mergedCommissionImplantValue > 0 && !mergedCommissionImplantGenerated && orgId) {
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + 7);
@@ -241,7 +239,6 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Bind partner to client (ref_partner_*)
       if (mergedPartnerId && mergedClienteId && orgId) {
         const { data: clientData } = await supabase.from("clients").select("ref_partner_id").eq("id", mergedClienteId).single();
         if (clientData && !clientData.ref_partner_id) {
@@ -262,9 +259,9 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
   }, [orgId, propostas, fetchAll]);
 
   const deleteProposta = useCallback(async (id: string) => {
+    setPropostas(prev => prev.filter(p => p.id !== id));
     const { error } = await supabase.from("proposals").delete().eq("id", id);
-    if (error) { toast.error("Erro ao excluir proposta"); return; }
-    fetchAll();
+    if (error) { toast.error("Erro ao excluir proposta"); fetchAll(); }
   }, [fetchAll]);
 
   const cloneProposta = useCallback((id: string): Proposta | null => {
@@ -334,12 +331,17 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
     toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
-  const value: PropostasContextType = {
+  const value = useMemo<PropostasContextType>(() => ({
     propostas, crmConfig, loading,
     addProposta, updateProposta, deleteProposta, cloneProposta,
     getProposta, getPropostaByNumero,
     updateCRMConfig, resetCRMConfig, resetPropostas,
-  };
+  }), [
+    propostas, crmConfig, loading,
+    addProposta, updateProposta, deleteProposta, cloneProposta,
+    getProposta, getPropostaByNumero,
+    updateCRMConfig, resetCRMConfig, resetPropostas,
+  ]);
 
   return <PropostasContext.Provider value={value}>{children}</PropostasContext.Provider>;
 }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -73,10 +73,11 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
   const [suporteEventos, setSuporteEventos] = useState<SuporteEvento[]>([]);
   const [mensalidadeAjustes, setMensalidadeAjustes] = useState<MensalidadeAjuste[]>([]);
   const [metricasConfig, setMetricasConfig] = useState<MetricasConfig>(defaultMetricasConfig);
+  const initialLoadedRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
-    setLoading(true);
+    if (!initialLoadedRef.current) setLoading(true);
     const [cRes, seRes, maRes] = await Promise.all([
       supabase.from("clients").select("*"),
       supabase.from("support_events").select("*"),
@@ -86,6 +87,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
     if (seRes.data) setSuporteEventos(seRes.data.map(dbToSuporteEvento));
     if (maRes.data) setMensalidadeAjustes((maRes.data as any[]).map(dbToAjuste));
     setLoading(false);
+    initialLoadedRef.current = true;
   }, [orgId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -104,7 +106,6 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
       cost_system_name: c.sistemaCusto,
     } as any).select("id").single();
     if (error) { toast.error("Erro ao criar cliente: " + error.message); return; }
-    // Insert selected modules
     if (data && moduleIds && moduleIds.length > 0) {
       const moduleInserts = moduleIds.map(moduleId => ({
         org_id: orgId,
@@ -117,6 +118,9 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
   }, [orgId, fetchAll]);
 
   const updateClienteReceita = useCallback(async (id: string, changes: Partial<ClienteReceita>) => {
+    // Optimistic
+    setClientesReceita(prev => prev.map(c => c.id === id ? { ...c, ...changes } : c));
+
     const upd: any = {};
     if (changes.nome !== undefined) upd.name = changes.nome;
     if (changes.documento !== undefined) upd.document = changes.documento;
@@ -134,18 +138,17 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
     if (changes.valorCustoMensal !== undefined) upd.monthly_cost_value = changes.valorCustoMensal;
     if (changes.sistemaCusto !== undefined) upd.cost_system_name = changes.sistemaCusto;
     const { error } = await supabase.from("clients").update(upd).eq("id", id);
-    if (error) { toast.error("Erro ao atualizar cliente"); return; }
-    fetchAll();
+    if (error) { toast.error("Erro ao atualizar cliente"); fetchAll(); }
   }, [fetchAll]);
 
   const deleteClienteReceita = useCallback(async (id: string, justificativa?: string): Promise<boolean> => {
+    setClientesReceita(prev => prev.filter(c => c.id !== id));
     const { error } = await supabase.from("clients").update({
       status: "cancelado",
       cancellation_reason: justificativa || "Excluído pelo usuário",
       cancelled_at: new Date().toISOString().split("T")[0],
     }).eq("id", id);
-    if (error) { console.error("Error deleting client:", error); return false; }
-    await fetchAll();
+    if (error) { console.error("Error deleting client:", error); fetchAll(); return false; }
     return true;
   }, [fetchAll]);
 
@@ -176,16 +179,19 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
 
   const getClienteReceita = useCallback((id: string) => clientesReceita.find(c => c.id === id), [clientesReceita]);
 
-  return (
-    <ReceitaContext.Provider value={{
-      clientesReceita, suporteEventos, mensalidadeAjustes, metricasConfig, loading,
-      addClienteReceita, updateClienteReceita, deleteClienteReceita,
-      addMensalidadeAjuste, getAjustesCliente,
-      updateMetricasConfig, resetReceita, getClienteReceita,
-    }}>
-      {children}
-    </ReceitaContext.Provider>
-  );
+  const value = useMemo<ReceitaContextType>(() => ({
+    clientesReceita, suporteEventos, mensalidadeAjustes, metricasConfig, loading,
+    addClienteReceita, updateClienteReceita, deleteClienteReceita,
+    addMensalidadeAjuste, getAjustesCliente,
+    updateMetricasConfig, resetReceita, getClienteReceita,
+  }), [
+    clientesReceita, suporteEventos, mensalidadeAjustes, metricasConfig, loading,
+    addClienteReceita, updateClienteReceita, deleteClienteReceita,
+    addMensalidadeAjuste, getAjustesCliente,
+    updateMetricasConfig, resetReceita, getClienteReceita,
+  ]);
+
+  return <ReceitaContext.Provider value={value}>{children}</ReceitaContext.Provider>;
 }
 
 export function useReceita() {

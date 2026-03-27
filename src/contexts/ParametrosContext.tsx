@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -84,7 +84,6 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // ===== Sistemas =====
   const addSistema = useCallback(async (s: Omit<SistemaCatalogo, "id">) => {
     if (!orgId) return;
     const { error } = await supabase.from("systems_catalog").insert({
@@ -113,7 +112,6 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
     fetchAll();
   }, [fetchAll]);
 
-  // ===== Módulos =====
   const addModulo = useCallback(async (m: Omit<ModuloCatalogo, "id">) => {
     if (!orgId) return;
     const { error } = await supabase.from("system_modules").insert({
@@ -145,7 +143,6 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
     fetchAll();
   }, [fetchAll]);
 
-  // ===== Formas de Pagamento =====
   const addFormaPagamento = useCallback(async (f: Omit<FormaPagamentoCatalogo, "id">) => {
     if (!orgId) return;
     const { error } = await supabase.from("payment_methods").insert({
@@ -171,7 +168,6 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
     fetchAll();
   }, [fetchAll]);
 
-  // ===== Planos =====
   const addPlano = useCallback(async (p: Omit<PlanoCatalogo, "id">) => {
     if (!orgId) return;
     const { error } = await supabase.from("plans").insert({
@@ -214,14 +210,21 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
     toast.info("Funcionalidade de reset não disponível.");
   }, []);
 
-  const value: ParametrosContextType = {
+  const value = useMemo<ParametrosContextType>(() => ({
     sistemas, modulos, formasPagamento, planos, alertaCertificadoDias,
     addSistema, updateSistema, deleteSistema,
     addModulo, updateModulo, deleteModulo,
     addFormaPagamento, updateFormaPagamento, deleteFormaPagamento,
     addPlano, updatePlano, deletePlano,
     setAlertaCertificadoDias, getSistema, getPlano, calcularDesconto, resetParametros,
-  };
+  }), [
+    sistemas, modulos, formasPagamento, planos, alertaCertificadoDias,
+    addSistema, updateSistema, deleteSistema,
+    addModulo, updateModulo, deleteModulo,
+    addFormaPagamento, updateFormaPagamento, deleteFormaPagamento,
+    addPlano, updatePlano, deletePlano,
+    setAlertaCertificadoDias, getSistema, getPlano, calcularDesconto, resetParametros,
+  ]);
 
   return <ParametrosContext.Provider value={value}>{children}</ParametrosContext.Provider>;
 }

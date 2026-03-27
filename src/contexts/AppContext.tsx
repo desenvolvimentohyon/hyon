@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -179,7 +179,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       if (clientsRes.data) setClientes(clientsRes.data.map(dbToCliente));
       if (profilesRes.data) {
-        // Enrich comments with author names
         const profileMap = new Map(profilesRes.data.map((p: any) => [p.id, p.full_name]));
         setTecnicos(profilesRes.data.map(dbToTecnico));
 
@@ -211,7 +210,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // ===== Tarefas =====
+  // ===== Tarefas — Optimistic updates =====
   const addTarefa = useCallback(async (t: any) => {
     if (!orgId) return;
     const dbData = tarefaToDb(t, orgId);
@@ -221,22 +220,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await supabase.from("task_history").insert({
       org_id: orgId, task_id: data.id, action: "Criação", details: "Tarefa criada",
     });
-    // Auto-start timer on the newly created task
     const now = Date.now();
-    // Stop any running timers first
+    // Stop any running timers first (optimistic)
     const running = tarefas.find(t => t.timerRodando);
     if (running) {
       const elapsed = Math.floor((now - (running.timerInicioTimestamp || now)) / 1000);
-      await supabase.from("tasks").update({
+      setTarefas(prev => prev.map(t => t.id === running.id ? {
+        ...t, timerRodando: false, timerInicioTimestamp: undefined,
+        tempoTotalSegundos: t.tempoTotalSegundos + elapsed,
+      } : t));
+      supabase.from("tasks").update({
         timer_running: false, timer_started_at: null,
         total_seconds: running.tempoTotalSegundos + elapsed,
-      }).eq("id", running.id);
+      }).eq("id", running.id).then();
     }
+    // Start timer on new task & add to state
     await supabase.from("tasks").update({
       timer_running: true, timer_started_at: new Date(now).toISOString(),
     }).eq("id", data.id);
+    // Re-fetch to get complete task with comments/history
     fetchAll();
-  }, [orgId, fetchAll]);
+  }, [orgId, tarefas, fetchAll]);
 
   const updateTarefa = useCallback(async (id: string, changes: Partial<Tarefa>, acao?: string) => {
     if (!orgId) return;
@@ -244,7 +248,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!existing) return;
     const merged = { ...existing, ...changes };
 
-    // Auto-adjust on completion: force priority to low and stop timer
+    // Auto-adjust on completion
     const finalStatus = changes.status ?? existing.status;
     if (finalStatus === "concluida") {
       changes.prioridade = "baixa";
@@ -260,6 +264,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         merged.timerInicioTimestamp = undefined;
       }
     }
+
+    // Optimistic update
+    setTarefas(prev => prev.map(t => t.id === id ? { ...t, ...changes } : t));
 
     const dbUpdate: any = {};
     if (changes.titulo !== undefined) dbUpdate.title = changes.titulo;
@@ -278,7 +285,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (changes.timerInicioTimestamp !== undefined) {
       dbUpdate.timer_started_at = changes.timerInicioTimestamp ? new Date(changes.timerInicioTimestamp).toISOString() : null;
     }
-    // Update metadata for extended fields
     const metaFields = ["nomeClienteAvulso", "checklist", "anexosFake", "moduloRelacionado", "slaHoras", "reincidente",
       "geraCobrancaExtra", "valorCobrancaExtra", "etapaImplantacao", "riscoCancelamento",
       "valorProposta", "tipoPlano", "dataPrevisaoFechamento", "origemLead", "statusComercial",
@@ -297,7 +303,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (Object.keys(dbUpdate).length > 0) {
       const { error } = await supabase.from("tasks").update(dbUpdate).eq("id", id);
-      if (error) { toast.error("Erro ao atualizar tarefa: " + error.message); return; }
+      if (error) { toast.error("Erro ao atualizar tarefa: " + error.message); fetchAll(); return; }
     }
     if (acao) {
       await supabase.from("task_history").insert({
@@ -314,54 +320,75 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           author_profile_id: user?.id || "",
         });
       }
+      // Re-fetch to get server-generated IDs for comments/history
+      fetchAll();
     }
-    fetchAll();
   }, [orgId, tarefas, user?.id, fetchAll]);
 
   const deleteTarefa = useCallback(async (id: string) => {
-    const { error } = await supabase.from("tasks").delete().eq("id", id);
-    if (error) { toast.error("Erro ao excluir tarefa"); return; }
     setTarefas(prev => prev.filter(t => t.id !== id));
-  }, []);
+    const { error } = await supabase.from("tasks").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir tarefa"); fetchAll(); }
+  }, [fetchAll]);
 
   const startTimer = useCallback(async (tarefaId: string) => {
     if (!orgId) return;
     const now = Date.now();
-    // Stop any running timers first
+    // Optimistic: stop any running timers and start the new one
+    setTarefas(prev => prev.map(t => {
+      if (t.id === tarefaId) {
+        return { ...t, timerRodando: true, timerInicioTimestamp: now };
+      }
+      if (t.timerRodando) {
+        const elapsed = Math.floor((now - (t.timerInicioTimestamp || now)) / 1000);
+        return { ...t, timerRodando: false, timerInicioTimestamp: undefined, tempoTotalSegundos: t.tempoTotalSegundos + elapsed };
+      }
+      return t;
+    }));
+    // Background DB sync
     const running = tarefas.find(t => t.timerRodando && t.id !== tarefaId);
     if (running) {
       const elapsed = Math.floor((now - (running.timerInicioTimestamp || now)) / 1000);
-      await supabase.from("tasks").update({
+      supabase.from("tasks").update({
         timer_running: false, timer_started_at: null,
         total_seconds: running.tempoTotalSegundos + elapsed,
-      }).eq("id", running.id);
+      }).eq("id", running.id).then();
     }
-    await supabase.from("tasks").update({
+    const { error } = await supabase.from("tasks").update({
       timer_running: true, timer_started_at: new Date(now).toISOString(),
     }).eq("id", tarefaId);
-    fetchAll();
+    if (error) fetchAll();
   }, [orgId, tarefas, fetchAll]);
 
   const stopTimer = useCallback(async (tarefaId: string) => {
     const task = tarefas.find(t => t.id === tarefaId);
     if (!task?.timerRodando) return;
     const elapsed = Math.floor((Date.now() - (task.timerInicioTimestamp || Date.now())) / 1000);
-    await supabase.from("tasks").update({
-      timer_running: false, timer_started_at: null,
-      total_seconds: task.tempoTotalSegundos + elapsed,
+    const newTotal = task.tempoTotalSegundos + elapsed;
+    // Optimistic
+    setTarefas(prev => prev.map(t => t.id === tarefaId ? {
+      ...t, timerRodando: false, timerInicioTimestamp: undefined, tempoTotalSegundos: newTotal,
+    } : t));
+    const { error } = await supabase.from("tasks").update({
+      timer_running: false, timer_started_at: null, total_seconds: newTotal,
     }).eq("id", tarefaId);
-    fetchAll();
+    if (error) fetchAll();
   }, [tarefas, fetchAll]);
 
-  // ===== Clientes =====
+  // ===== Clientes — Optimistic updates =====
   const addCliente = useCallback(async (c: Omit<Cliente, "id" | "criadoEm">) => {
     if (!orgId) return;
-    const { error } = await supabase.from("clients").insert(clienteToDb(c, orgId));
+    const { data, error } = await supabase.from("clients").insert(clienteToDb(c, orgId)).select().single();
     if (error) { toast.error("Erro ao criar cliente: " + error.message); return; }
-    fetchAll();
-  }, [orgId, fetchAll]);
+    if (data) {
+      setClientes(prev => [...prev, dbToCliente(data)]);
+    }
+  }, [orgId]);
 
   const updateCliente = useCallback(async (id: string, changes: Partial<Cliente>) => {
+    // Optimistic
+    setClientes(prev => prev.map(c => c.id === id ? { ...c, ...changes } : c));
+
     const upd: any = {};
     if (changes.nome !== undefined) upd.name = changes.nome;
     if (changes.telefone !== undefined) upd.phone = changes.telefone;
@@ -369,7 +396,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (changes.documento !== undefined) upd.document = changes.documento;
     if (changes.observacoes !== undefined) upd.notes = changes.observacoes;
     if (changes.mensalidadeAtual !== undefined) upd.monthly_value_final = changes.mensalidadeAtual;
-    // Metadata fields
     const existing = clientes.find(c => c.id === id);
     const meta = { ...(existing as any)?.metadata };
     const metaKeys = ["sistemaUsado", "usaCloud", "usaTEF", "usaPagamentoIntegrado", "tipoNegocio", "perfilCliente", "statusFinanceiro", "riscoCancelamento"];
@@ -380,20 +406,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (metaChanged) upd.metadata = meta;
     if (Object.keys(upd).length > 0) {
       const { error } = await supabase.from("clients").update(upd).eq("id", id);
-      if (error) { toast.error("Erro ao atualizar cliente"); return; }
+      if (error) { toast.error("Erro ao atualizar cliente"); fetchAll(); return; }
     }
-    fetchAll();
   }, [clientes, fetchAll]);
 
   const deleteCliente = useCallback(async (id: string, justificativa: string) => {
+    setClientes(prev => prev.filter(c => c.id !== id));
     const { error } = await supabase.from("clients").update({
       status: "excluido",
       cancellation_reason: justificativa,
       cancelled_at: new Date().toISOString().split("T")[0],
     }).eq("id", id);
-    if (error) { toast.error("Erro ao excluir cliente"); return; }
-    setClientes(prev => prev.filter(c => c.id !== id));
-  }, []);
+    if (error) { toast.error("Erro ao excluir cliente"); fetchAll(); }
+  }, [fetchAll]);
 
   // ===== Técnicos (profiles) =====
   const addTecnico = useCallback(async (_t: Omit<Tecnico, "id">) => {
@@ -401,12 +426,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateTecnico = useCallback(async (id: string, changes: Partial<Tecnico>) => {
+    setTecnicos(prev => prev.map(t => t.id === id ? { ...t, ...changes } : t));
     const upd: any = {};
     if (changes.nome !== undefined) upd.full_name = changes.nome;
     if (changes.ativo !== undefined) upd.is_active = changes.ativo;
     const { error } = await supabase.from("profiles").update(upd).eq("id", id);
-    if (error) { toast.error("Erro ao atualizar técnico"); return; }
-    fetchAll();
+    if (error) { toast.error("Erro ao atualizar técnico"); fetchAll(); }
   }, [fetchAll]);
 
   const deleteTecnico = useCallback(async (_id: string) => {
@@ -445,14 +470,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const getStatusLabel = useCallback((s: StatusTarefa) => configuracoes.labelsStatus[s] || s, [configuracoes]);
   const getPrioridadeLabel = useCallback((p: Prioridade) => configuracoes.labelsPrioridade[p] || p, [configuracoes]);
 
-  const value: AppContextType = {
+  const value = useMemo<AppContextType>(() => ({
     clientes, tecnicos, tarefas, configuracoes, tecnicoAtualId, loading,
     addTarefa, updateTarefa, deleteTarefa, startTimer, stopTimer,
     addCliente, updateCliente, deleteCliente,
     addTecnico, updateTecnico, deleteTecnico, setTecnicoAtual,
     updateConfiguracoes, resetDados, exportJSON, importJSON,
     getCliente, getTecnico, getStatusLabel, getPrioridadeLabel,
-  };
+  }), [
+    clientes, tecnicos, tarefas, configuracoes, tecnicoAtualId, loading,
+    addTarefa, updateTarefa, deleteTarefa, startTimer, stopTimer,
+    addCliente, updateCliente, deleteCliente,
+    addTecnico, updateTecnico, deleteTecnico, setTecnicoAtual,
+    updateConfiguracoes, resetDados, exportJSON, importJSON,
+    getCliente, getTecnico, getStatusLabel, getPrioridadeLabel,
+  ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
