@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ArrowRight, ArrowLeft, CheckCircle, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { maskDocument } from "@/lib/cnpjUtils";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -152,6 +153,7 @@ export default function CheckoutInterno() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <ModuleNavGrid moduleId="clientes" />
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2"><ShoppingCart className="h-6 w-6" /> Checkout Interno</h1>
         <p className="text-muted-foreground text-sm">Fluxo guiado para nova venda</p>

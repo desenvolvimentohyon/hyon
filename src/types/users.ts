@@ -95,7 +95,6 @@ export interface AppUser {
 
 // Mapeamento de permissões para rotas do sidebar
 export const ROTA_PERMISSAO: Record<string, string> = {
-  "/": "tarefas:visualizar",
   "/tarefas": "tarefas:visualizar",
   "/comercial": "propostas:visualizar",
   "/implantacao": "tarefas:visualizar",

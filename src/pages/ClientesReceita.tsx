@@ -26,6 +26,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { supabase } from "@/integrations/supabase/client";
 import { validateCNPJ, cleanCNPJ, formatCNPJ, maskDocument, type CnpjLookupResult } from "@/lib/cnpjUtils";
 import { ClienteCard } from "@/components/clientes/ClienteCard";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 function PortalLinkButton({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(false);
@@ -265,6 +266,7 @@ export default function Clientes() {
           </div>
         }
       />
+      <ModuleNavGrid moduleId="clientes" />
 
       <div className="flex flex-wrap gap-3 items-end">
         <div className="relative flex-1 min-w-[200px] max-w-sm">

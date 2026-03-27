@@ -29,6 +29,7 @@ import {
   FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 
 const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"));
 const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
@@ -190,6 +191,7 @@ export default function Configuracoes() {
   return (
     <div className="space-y-6">
       <PageHeader icon={Settings} iconClassName="text-muted-foreground" title="Configurações" />
+      <ModuleNavGrid moduleId="configuracoes" />
 
       <Tabs defaultValue="empresa" className="w-full">
         <TabsList className="mb-4">
