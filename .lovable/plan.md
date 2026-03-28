@@ -1,34 +1,43 @@
 
 
-## Plano: Corrigir Contagem de Clientes Ativos no Cockpit
+## Plano: Adicionar Opção de Inativar Cliente com Justificativa
 
-### Causa Raiz
+### Resumo
+Adicionar o status "inativo" ao sistema de clientes, com um fluxo similar ao de exclusão (cancelamento): o usuário clica em "Inativar" no menu de ações do card, preenche uma justificativa obrigatória, e o cliente é movido para o status "inativo". Clientes inativos ficam ocultos da visão padrão "Todos", assim como os cancelados.
 
-No `Cockpit.tsx` (linha 65), a contagem de clientes ativos usa:
+### Alterações
+
+**1. `src/types/receita.ts`** — Adicionar "inativo" ao tipo `StatusCliente`
 ```typescript
-const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
+export type StatusCliente = "ativo" | "atraso" | "suspenso" | "cancelado" | "inativo";
 ```
 
-Isso filtra pelo campo `recurrence_active` do banco, e não pelo `status = 'ativo'`. Clientes com status ativo mas com recorrência desativada (ex: pagamento anual, contrato especial) são excluídos da contagem.
+**2. `src/pages/ClientesReceita.tsx`** — 4 mudanças:
+- Adicionar "inativo" ao array `STATUSES`, `STATUS_LABELS` ("Inativo") e `STATUS_COLORS` (estilo cinza/neutral)
+- Adicionar estado `inativarTarget` e `inativarJustificativa` (similar ao `deleteTarget`)
+- Adicionar ação "Inativar" no `RowActions` do card (ícone `UserX`, entre "Ver detalhes" e "Excluir")
+- Adicionar `AlertDialog` de confirmação com textarea para justificativa obrigatória
+- No filtro padrão "todos", ocultar também clientes inativos (já oculta cancelados)
 
-### Correção
+**3. `src/contexts/ReceitaContext.tsx`** — Adicionar função `inativarCliente`:
+- Atualiza o status para "inativo" no banco (`clients.status = 'inativo'`)
+- Salva a justificativa em `cancellation_reason` (reusa o campo existente)
+- Salva a data em `cancelled_at`
+- Mapeamento no `dbToClienteReceita` para reconhecer status "inativo"
 
-**Arquivo: `src/pages/Cockpit.tsx`** (linha 65)
+**4. `src/components/clientes/ClienteCard.tsx`** — Garantir que o badge de status renderize corretamente o novo valor "inativo"
 
-Alterar o filtro para usar o status do cliente:
+### Comportamento
+- Clientes inativos ficam ocultos na aba "Todos" (junto com cancelados)
+- Visíveis apenas quando o filtro "Inativo" é selecionado
+- Podem ser reativados alterando o status de volta para "ativo" nos detalhes
+- A justificativa é obrigatória antes de confirmar
 
-```typescript
-// De:
-const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
-
-// Para:
-const ativos = clientesReceita.filter(c => c.statusCliente === "ativo");
-```
-
-O cálculo de MRR na linha 66 continuará correto pois soma `valorMensalidade` dos clientes ativos (que é o comportamento esperado — clientes ativos contribuem para o MRR independentemente do flag de recorrência).
-
-### Arquivo Afetado
+### Arquivos Afetados
 | Arquivo | Alteração |
 |---|---|
-| `src/pages/Cockpit.tsx` | Filtro de clientes ativos: `mensalidadeAtiva` → `statusCliente === "ativo"` |
+| `src/types/receita.ts` | Adicionar "inativo" ao `StatusCliente` |
+| `src/pages/ClientesReceita.tsx` | Ação no card, dialog de confirmação, filtro |
+| `src/contexts/ReceitaContext.tsx` | Função `inativarCliente`, mapeamento do status |
+| `src/components/clientes/ClienteCard.tsx` | Badge do novo status |
 
