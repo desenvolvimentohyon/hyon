@@ -1,47 +1,30 @@
 
 
-## Plano: Corrigir Cache PWA que Serve Versão Antiga ao Atualizar
+## Plano: Corrigir Botão "Atualizar" do Banner PWA
 
-### Causa Raiz
+### Problema
 
-O problema está na estratégia de cache do Service Worker. A configuração atual usa **`StaleWhileRevalidate`** para assets JS/CSS (linha 51-57 do `vite.config.ts`), o que significa:
+No `PwaUpdateBanner`, o botão "Atualizar" chama `updateSW()` mas não executa `window.location.reload()`. Se o usuário clica no botão antes do timeout automático de 2s, o SW é atualizado mas a página não recarrega.
 
-1. Ao atualizar a página, o SW serve os arquivos JS/CSS **do cache antigo** imediatamente
-2. Só depois busca a versão nova no servidor e atualiza o cache
-3. Resultado: o usuário vê a versão antiga até fazer F5 duas vezes
+### Correção
 
-Isso é inaceitável para um SaaS comercial.
+**Arquivo: `src/main.tsx`** (linha 47)
 
-### Correções
+Alterar o `onUpdate` para também fazer reload após chamar `updateSW`:
 
-**1. `vite.config.ts` — Mudar estratégia de cache de assets**
+```typescript
+// De:
+onUpdate={() => { updateSW?.(); }}
 
-Trocar `StaleWhileRevalidate` por `NetworkFirst` para assets JS/CSS. Como o Vite gera nomes de arquivo com hash (ex: `index-a1b2c3.js`), arquivos novos nunca colidem com antigos. A estratégia `NetworkFirst` garante que o browser sempre tente buscar do servidor primeiro.
+// Para:
+onUpdate={async () => {
+  try { await updateSW?.(); } catch {}
+  window.location.reload();
+}}
+```
 
-Além disso, reduzir o `maxAgeSeconds` do cache de assets para 1 hora (em vez de 24h).
-
-**2. `src/main.tsx` — Auto-reload ao detectar nova versão**
-
-Atualmente o `onNeedRefresh` apenas mostra um banner pedindo ao usuário para clicar "Atualizar". Para um SaaS, a atualização deve ser automática:
-
-- Manter o banner como feedback visual (2 segundos)
-- Disparar `updateSW()` automaticamente após breve delay
-- Forçar `window.location.reload()` após o SW ser atualizado
-
-**3. `vite.config.ts` — Adicionar `navigateFallback` com exclusões corretas**
-
-Garantir que rotas públicas (proposta, portal, aceite) não sejam interceptadas pelo SW, mantendo o `navigateFallbackDenylist` atual.
-
-### Arquivos Afetados
-
+### Arquivo Afetado
 | Arquivo | Alteração |
 |---|---|
-| `vite.config.ts` | `StaleWhileRevalidate` → `NetworkFirst` para assets, reduzir TTL do cache |
-| `src/main.tsx` | Auto-reload ao detectar nova versão (sem depender de clique do usuário) |
-
-### Impacto
-
-- Ao atualizar a página, o usuário **sempre** verá a versão mais recente
-- Novas versões publicadas serão aplicadas automaticamente sem intervenção
-- Comportamento adequado para um produto SaaS comercial
+| `src/main.tsx` | Adicionar `window.location.reload()` ao handler do botão manual |
 
