@@ -314,6 +314,9 @@ export default function Clientes() {
               extraInfo={
                 <>
                   <span className="text-xs font-medium">{fmt(c.valorMensalidade)}</span>
+                  {c.custoAtivo && (
+                    <span className="text-xs text-orange-400">Custo: {fmt(c.valorCustoMensal)}</span>
+                  )}
                   <span className={`text-xs ${margem >= 0 ? "text-green-500" : "text-destructive"}`}>
                     Margem: {fmt(margem)}
                   </span>
