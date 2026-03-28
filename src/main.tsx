@@ -24,6 +24,13 @@ if (isPreviewHost || isInIframe) {
   updateSW = registerSW({
     onNeedRefresh() {
       showUpdateBanner?.(true);
+      // Auto-update after brief visual feedback
+      setTimeout(async () => {
+        try {
+          await updateSW?.();
+        } catch { /* ignore */ }
+        window.location.reload();
+      }, 2000);
     },
   });
 }
