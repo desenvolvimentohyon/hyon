@@ -44,7 +44,10 @@ function Root() {
       <App />
       {needsUpdate && (
         <PwaUpdateBanner
-          onUpdate={() => { updateSW?.(); }}
+          onUpdate={async () => {
+            try { await updateSW?.(); } catch {}
+            window.location.reload();
+          }}
           onDismiss={() => setNeedsUpdate(false)}
         />
       )}
