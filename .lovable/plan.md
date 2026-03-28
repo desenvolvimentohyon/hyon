@@ -1,121 +1,40 @@
 
 
-## Plano: Melhoria Severa de Fluidez do Sistema
+## Plano: Corrigir Cálculo Base do Sistema no Cadastro de Clientes
 
-### Diagnóstico dos Gargalos
+### Problemas Identificados
 
-Após análise detalhada dos 6 contexts e da arquitetura, identifiquei **5 problemas críticos** que causam lentidão:
+Após análise completa dos arquivos `TabDados.tsx`, `TabCusto.tsx`, `TabMensalidadeNew.tsx`, `TabModulos.tsx` e `ClienteDetalhe.tsx`, identifiquei **3 falhas** no fluxo de cálculo:
 
-1. **Toda mutação dispara `fetchAll()` que re-busca TUDO** — criar uma tarefa re-busca clientes, perfis, tarefas, comentários e histórico inteiro
-2. **Tabela `clients` é carregada 2x simultaneamente** — `AppContext` e `ReceitaContext` fazem fetch de `clients.*` na inicialização
-3. **`setLoading(true)` em toda operação** — PropostasContext e FinanceiroContext mostram skeleton a cada fetchAll, mesmo em mutations
-4. **Nenhuma página tem lazy loading** — todas as 40+ páginas são importadas eagerly no App.tsx
-5. **Valor do contexto recriado a cada render** — nenhum `useMemo` no objeto `value` dos providers, causando re-renders em cascata
+**1. Valores não recalculados ao carregar a página**
+Em `TabDados.tsx` (linhas 84-98), ao carregar os módulos vinculados do cliente, o `useEffect` popula o `linkedModules` Map mas **nunca chama `recalcFromMap`**. Resultado: os campos `monthly_value_base` e `monthly_cost_value` exibem valores antigos do banco, mesmo que os preços dos módulos tenham mudado no catálogo.
+
+**2. Toggle de módulo grava no banco mas totais dependem de "Salvar"**
+Quando o usuário marca/desmarca um módulo (função `toggleModule`, linha 106), a operação INSERT/DELETE no `client_modules` é feita imediatamente no banco. Porém, os totais recalculados (`monthly_value_base`, `monthly_cost_value`) vão apenas para o `formData` local — só são persistidos se o usuário clicar "Salvar Alterações". Se ele navegar para outra aba ou fechar, os totais ficam dessincronizados.
+
+**3. Mesmo problema na atualização de quantidade**
+`updateModuleQuantity` (linha 127) atualiza `client_modules.quantity` no banco imediatamente, mas os totais recalculados ficam apenas no `formData`.
 
 ### Correções
 
----
+**Arquivo: `src/components/clientes/tabs/TabDados.tsx`**
 
-**1. App.tsx — Lazy loading de TODAS as páginas**
+1. **Recalcular ao carregar módulos** — No `useEffect` que carrega `linkedModules` (linha 84), após popular o Map, chamar `recalcFromMap(map)` para sincronizar os valores exibidos com os preços atuais do catálogo.
 
-Converter todas as importações de páginas para `React.lazy()` com `Suspense`. Isso reduz o bundle inicial de ~40 páginas para carregar apenas a página atual.
+2. **Auto-salvar totais no banco após toggle/quantidade** — Nas funções `toggleModule` e `updateModuleQuantity`, após recalcular os totais, fazer um `supabase.from("clients").update({ monthly_value_base, monthly_cost_value })` diretamente, garantindo que os valores no banco estejam sempre sincronizados com os módulos vinculados, independentemente de o usuário clicar "Salvar".
 
-```typescript
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Tarefas = lazy(() => import("./pages/Tarefas"));
-// ... todas as demais
+```text
+Fluxo atual (quebrado):
+  Toggle módulo → INSERT client_modules (DB) → recalcFromMap → formData (local apenas)
+  Usuário sai sem salvar → clients.monthly_value_base = valor antigo
+
+Fluxo corrigido:
+  Toggle módulo → INSERT client_modules (DB) → recalcFromMap → formData (local)
+                                                             → UPDATE clients (DB) ← NOVO
 ```
 
-Envolver as `Routes` em `<Suspense fallback={<PageSkeleton />}>`.
-
----
-
-**2. AppContext — Optimistic updates em vez de fetchAll()**
-
-Em cada mutation (`addTarefa`, `updateTarefa`, `deleteTarefa`, `startTimer`, `stopTimer`, `addCliente`, `updateCliente`, `deleteCliente`):
-- Atualizar o state local imediatamente (optimistic)
-- Fazer o write no banco em background
-- Remover a chamada `fetchAll()` após cada operação
-- Manter `fetchAll()` apenas na inicialização
-
-Exemplo para `deleteTarefa`:
-```typescript
-const deleteTarefa = useCallback(async (id: string) => {
-  setTarefas(prev => prev.filter(t => t.id !== id)); // instant
-  const { error } = await supabase.from("tasks").delete().eq("id", id);
-  if (error) { toast.error("Erro"); fetchAll(); } // rollback on error
-}, [fetchAll]);
-```
-
----
-
-**3. AppContext — `useMemo` no value do provider**
-
-Envolver o objeto `value` em `useMemo` para evitar re-renders desnecessários em todos os consumidores:
-
-```typescript
-const value = useMemo(() => ({
-  clientes, tecnicos, tarefas, configuracoes, ...
-}), [clientes, tecnicos, tarefas, configuracoes, tecnicoAtualId, loading]);
-```
-
----
-
-**4. FinanceiroContext e PropostasContext — Silent refresh**
-
-Remover `setLoading(true)` do `fetchAll` quando já existe data carregada (não é o load inicial). Adicionar `useMemo` no value.
-
-```typescript
-const fetchAll = useCallback(async () => {
-  if (!orgId) return;
-  if (titulos.length === 0) setLoading(true); // only on first load
-  // ... fetch
-  setLoading(false);
-}, [orgId]);
-```
-
----
-
-**5. ReceitaContext — Eliminar fetch duplicado de `clients`**
-
-`ReceitaContext` faz `supabase.from("clients").select("*")` independentemente — a mesma query que `AppContext` já faz. Refatorar para que `ReceitaContext` derive seus dados dos clientes já carregados pelo `AppContext`, ou usar um padrão `initialLoaded` para evitar o loading skeleton duplicado.
-
----
-
-**6. QueryClient — Configurar staleTime global**
-
-No `App.tsx`, o `QueryClient` é criado sem configuração. Adicionar defaults para evitar re-fetches excessivos:
-
-```typescript
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,  // 5 min
-      gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-```
-
----
-
-### Arquivos Afetados
-
+### Arquivo Afetado
 | Arquivo | Alteração |
 |---|---|
-| `src/App.tsx` | Lazy imports, QueryClient config, Suspense |
-| `src/contexts/AppContext.tsx` | Optimistic updates, useMemo no value, remover fetchAll de mutations |
-| `src/contexts/FinanceiroContext.tsx` | Silent refresh, useMemo no value |
-| `src/contexts/PropostasContext.tsx` | Silent refresh, useMemo no value |
-| `src/contexts/ReceitaContext.tsx` | Silent refresh, useMemo no value |
-| `src/contexts/UsersContext.tsx` | useMemo no value |
-| `src/contexts/ParametrosContext.tsx` | useMemo no value |
-
-### Impacto Esperado
-
-- **Carregamento inicial**: ~60% mais rápido (lazy loading reduz bundle)
-- **Navegação entre páginas**: sem skeletons desnecessários (silent refresh)
-- **Mutations (criar/editar/excluir)**: resposta instantânea (optimistic updates)
-- **Re-renders**: redução massiva via useMemo nos providers
+| `src/components/clientes/tabs/TabDados.tsx` | Recalc no load inicial + auto-save de totais no toggle/quantity |
 
