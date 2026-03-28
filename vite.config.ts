@@ -49,10 +49,10 @@ export default defineConfig(({ mode }) => ({
         },
         {
           urlPattern: ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
-          handler: 'StaleWhileRevalidate',
+          handler: 'NetworkFirst',
           options: {
             cacheName: 'assets-cache',
-            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
+            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 },
           },
         },
       ],
