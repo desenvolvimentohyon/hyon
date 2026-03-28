@@ -1,31 +1,47 @@
 
 
-## Plano: Exibir Custo do Sistema no Card de Clientes
+## Plano: Corrigir Cache PWA que Serve Versão Antiga ao Atualizar
 
-### Problema
-Na listagem de clientes (`/clientes`), cada card mostra o valor da mensalidade e a margem, mas **não exibe o custo** (`valorCustoMensal`). Conforme o screenshot, a informação de custo está ausente entre a mensalidade e a margem.
+### Causa Raiz
 
-### Correção
+O problema está na estratégia de cache do Service Worker. A configuração atual usa **`StaleWhileRevalidate`** para assets JS/CSS (linha 51-57 do `vite.config.ts`), o que significa:
 
-**Arquivo: `src/pages/ClientesReceita.tsx`** (linhas 314-319)
+1. Ao atualizar a página, o SW serve os arquivos JS/CSS **do cache antigo** imediatamente
+2. Só depois busca a versão nova no servidor e atualiza o cache
+3. Resultado: o usuário vê a versão antiga até fazer F5 duas vezes
 
-Adicionar o valor de custo no `extraInfo` do `ClienteCard`, entre a mensalidade e a margem:
+Isso é inaceitável para um SaaS comercial.
 
-```
-De:
-  <span>R$ {valorMensalidade}</span>
-  <span>Margem: R$ {margem}</span>
+### Correções
 
-Para:
-  <span>R$ {valorMensalidade}</span>
-  <span style custo>Custo: R$ {valorCustoMensal}</span>
-  <span>Margem: R$ {margem}</span>
-```
+**1. `vite.config.ts` — Mudar estratégia de cache de assets**
 
-O custo será exibido com cor diferenciada (ex: `text-orange-400`) para distinguir visualmente dos demais valores. Apenas clientes com `custoAtivo` exibirão o valor de custo.
+Trocar `StaleWhileRevalidate` por `NetworkFirst` para assets JS/CSS. Como o Vite gera nomes de arquivo com hash (ex: `index-a1b2c3.js`), arquivos novos nunca colidem com antigos. A estratégia `NetworkFirst` garante que o browser sempre tente buscar do servidor primeiro.
 
-### Arquivo Afetado
+Além disso, reduzir o `maxAgeSeconds` do cache de assets para 1 hora (em vez de 24h).
+
+**2. `src/main.tsx` — Auto-reload ao detectar nova versão**
+
+Atualmente o `onNeedRefresh` apenas mostra um banner pedindo ao usuário para clicar "Atualizar". Para um SaaS, a atualização deve ser automática:
+
+- Manter o banner como feedback visual (2 segundos)
+- Disparar `updateSW()` automaticamente após breve delay
+- Forçar `window.location.reload()` após o SW ser atualizado
+
+**3. `vite.config.ts` — Adicionar `navigateFallback` com exclusões corretas**
+
+Garantir que rotas públicas (proposta, portal, aceite) não sejam interceptadas pelo SW, mantendo o `navigateFallbackDenylist` atual.
+
+### Arquivos Afetados
+
 | Arquivo | Alteração |
 |---|---|
-| `src/pages/ClientesReceita.tsx` | Adicionar exibição de `valorCustoMensal` no `extraInfo` do card |
+| `vite.config.ts` | `StaleWhileRevalidate` → `NetworkFirst` para assets, reduzir TTL do cache |
+| `src/main.tsx` | Auto-reload ao detectar nova versão (sem depender de clique do usuário) |
+
+### Impacto
+
+- Ao atualizar a página, o usuário **sempre** verá a versão mais recente
+- Novas versões publicadas serão aplicadas automaticamente sem intervenção
+- Comportamento adequado para um produto SaaS comercial
 
