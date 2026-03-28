@@ -1,30 +1,34 @@
 
 
-## Plano: Corrigir Botão "Atualizar" do Banner PWA
+## Plano: Corrigir Contagem de Clientes Ativos no Cockpit
 
-### Problema
+### Causa Raiz
 
-No `PwaUpdateBanner`, o botão "Atualizar" chama `updateSW()` mas não executa `window.location.reload()`. Se o usuário clica no botão antes do timeout automático de 2s, o SW é atualizado mas a página não recarrega.
+No `Cockpit.tsx` (linha 65), a contagem de clientes ativos usa:
+```typescript
+const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
+```
+
+Isso filtra pelo campo `recurrence_active` do banco, e não pelo `status = 'ativo'`. Clientes com status ativo mas com recorrência desativada (ex: pagamento anual, contrato especial) são excluídos da contagem.
 
 ### Correção
 
-**Arquivo: `src/main.tsx`** (linha 47)
+**Arquivo: `src/pages/Cockpit.tsx`** (linha 65)
 
-Alterar o `onUpdate` para também fazer reload após chamar `updateSW`:
+Alterar o filtro para usar o status do cliente:
 
 ```typescript
 // De:
-onUpdate={() => { updateSW?.(); }}
+const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
 
 // Para:
-onUpdate={async () => {
-  try { await updateSW?.(); } catch {}
-  window.location.reload();
-}}
+const ativos = clientesReceita.filter(c => c.statusCliente === "ativo");
 ```
+
+O cálculo de MRR na linha 66 continuará correto pois soma `valorMensalidade` dos clientes ativos (que é o comportamento esperado — clientes ativos contribuem para o MRR independentemente do flag de recorrência).
 
 ### Arquivo Afetado
 | Arquivo | Alteração |
 |---|---|
-| `src/main.tsx` | Adicionar `window.location.reload()` ao handler do botão manual |
+| `src/pages/Cockpit.tsx` | Filtro de clientes ativos: `mensalidadeAtiva` → `statusCliente === "ativo"` |
 
