@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, RefreshCw, Download } from "lucide-react";
+import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, UserX, RefreshCw, Download } from "lucide-react";
 import { RowActions, RowAction } from "@/components/ui/row-actions";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/ui/page-header";
@@ -64,13 +64,14 @@ function PortalLinkButton({ clientId }: { clientId: string }) {
 }
 
 // SISTEMAS now comes from useParametros (dynamic catalog)
-const STATUSES: StatusCliente[] = ["ativo", "atraso", "suspenso", "cancelado"];
-const STATUS_LABELS: Record<StatusCliente, string> = { ativo: "Ativo", atraso: "Em Atraso", suspenso: "Suspenso", cancelado: "Cancelado" };
+const STATUSES: StatusCliente[] = ["ativo", "atraso", "suspenso", "cancelado", "inativo"];
+const STATUS_LABELS: Record<StatusCliente, string> = { ativo: "Ativo", atraso: "Em Atraso", suspenso: "Suspenso", cancelado: "Cancelado", inativo: "Inativo" };
 const STATUS_COLORS: Record<StatusCliente, string> = {
   ativo: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300",
   atraso: "bg-violet-200 text-violet-900 dark:bg-violet-800/40 dark:text-violet-200",
   suspenso: "bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400",
   cancelado: "bg-violet-300 text-violet-950 dark:bg-violet-700/40 dark:text-violet-100",
+  inativo: "bg-muted text-muted-foreground dark:bg-muted/40 dark:text-muted-foreground",
 };
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -90,6 +91,8 @@ export default function Clientes() {
   const [ajusteMotivo, setAjusteMotivo] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ClienteReceita | null>(null);
   const [deleteJustificativa, setDeleteJustificativa] = useState("");
+  const [inativarTarget, setInativarTarget] = useState<ClienteReceita | null>(null);
+  const [inativarJustificativa, setInativarJustificativa] = useState("");
 
   // Form state
   const [form, setForm] = useState({
@@ -183,7 +186,7 @@ export default function Clientes() {
 
   const filtered = useMemo(() => {
     return clientesReceita.filter(c => {
-      if (filtroStatus === "todos" && c.statusCliente === "cancelado") return false;
+      if (filtroStatus === "todos" && (c.statusCliente === "cancelado" || c.statusCliente === "inativo")) return false;
       if (busca && !c.nome.toLowerCase().includes(busca.toLowerCase()) && !c.documento?.includes(busca) && !c.sistemaPrincipal.toLowerCase().includes(busca.toLowerCase())) return false;
       if (filtroStatus !== "todos" && c.statusCliente !== filtroStatus) return false;
       if (filtroSistema !== "todos" && c.sistemaPrincipal !== filtroSistema) return false;
@@ -326,7 +329,8 @@ export default function Clientes() {
               actions={
                 <RowActions actions={[
                   { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
-                  { label: "Excluir", icon: Trash2, variant: "destructive", separator: true, onClick: () => { setDeleteTarget(c); setDeleteJustificativa(""); } },
+                  ...(c.statusCliente !== "inativo" && c.statusCliente !== "cancelado" ? [{ label: "Inativar", icon: UserX, onClick: () => { setInativarTarget(c); setInativarJustificativa(""); } }] : []),
+                  { label: "Excluir", icon: Trash2, variant: "destructive" as const, separator: true, onClick: () => { setDeleteTarget(c); setDeleteJustificativa(""); } },
                 ]} />
               }
             />
@@ -463,6 +467,45 @@ export default function Clientes() {
               }}
             >
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Inativar confirmation */}
+      <AlertDialog open={!!inativarTarget} onOpenChange={v => { if (!v) setInativarTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Inativar cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja inativar <strong>{inativarTarget?.nome}</strong>? O cliente ficará oculto da visão padrão. Informe a justificativa abaixo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            placeholder="Motivo da inativação (obrigatório)"
+            value={inativarJustificativa}
+            onChange={e => setInativarJustificativa(e.target.value)}
+            rows={3}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setInativarTarget(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!inativarJustificativa.trim()}
+              onClick={() => {
+                if (inativarTarget && inativarJustificativa.trim()) {
+                  updateClienteReceita(inativarTarget.id, {
+                    statusCliente: "inativo",
+                    mensalidadeAtiva: false,
+                    dataCancelamento: new Date().toISOString().split("T")[0],
+                    motivoCancelamento: inativarJustificativa.trim(),
+                  });
+                  toast({ title: "Cliente inativado", description: inativarTarget.nome });
+                  setInativarTarget(null);
+                  setInativarJustificativa("");
+                }
+              }}
+            >
+              Inativar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

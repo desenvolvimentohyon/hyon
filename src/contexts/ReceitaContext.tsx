@@ -11,7 +11,7 @@ function dbToClienteReceita(r: any): ClienteReceita {
     id: r.id, nome: r.name, documento: r.document || undefined,
     telefone: r.phone || undefined, email: r.email || undefined, cidade: r.city || undefined,
     sistemaPrincipal: r.system_name || m.sistemaPrincipal || "PDV+",
-    statusCliente: r.status === "ativo" ? "ativo" : r.status === "cancelado" ? "cancelado" : r.status === "suspenso" ? "suspenso" : "ativo",
+    statusCliente: r.status === "ativo" ? "ativo" : r.status === "cancelado" ? "cancelado" : r.status === "suspenso" ? "suspenso" : r.status === "inativo" ? "inativo" : "ativo",
     mensalidadeAtiva: r.recurrence_active,
     valorMensalidade: Number(r.monthly_value_final) || 0,
     dataInicio: r.contract_signed_at || r.created_at,

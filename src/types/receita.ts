@@ -1,5 +1,5 @@
 export type SistemaPrincipal = string;
-export type StatusCliente = "ativo" | "atraso" | "suspenso" | "cancelado";
+export type StatusCliente = "ativo" | "atraso" | "suspenso" | "cancelado" | "inativo";
 
 export interface ClienteReceita {
   id: string;
