@@ -62,7 +62,7 @@ export default function Cockpit() {
   };
 
   // Metrics
-  const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
+  const ativos = clientesReceita.filter(c => c.statusCliente === "ativo");
   const mrr = ativos.reduce((s, c) => s + c.valorMensalidade, 0);
   const clientesAtivos = ativos.length;
   const inadimplentes = clientesReceita.filter(c => c.statusCliente === "atraso").length;
