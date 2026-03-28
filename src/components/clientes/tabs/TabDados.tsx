@@ -92,16 +92,24 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
         const map = new Map<string, number>();
         data.forEach((d: any) => map.set(d.module_id, d.quantity ?? 1));
         setLinkedModules(map);
+        // Recalculate totals from current catalog prices on load
+        const sumVenda = modulos.filter(m => map.has(m.id)).reduce((s, m) => s + m.valorVenda * (map.get(m.id) || 1), 0);
+        const sumCusto = modulos.filter(m => map.has(m.id)).reduce((s, m) => s + m.valorCusto * (map.get(m.id) || 1), 0);
+        onChange({ monthly_value_base: sumVenda, monthly_cost_value: sumCusto } as any);
       }
     };
     loadLinkedModules();
-  }, [cliente.id]);
+  }, [cliente.id, modulos]);
 
-  const recalcFromMap = useCallback((map: Map<string, number>) => {
+  const recalcFromMap = useCallback(async (map: Map<string, number>) => {
     const sumVenda = modulos.filter(m => map.has(m.id)).reduce((s, m) => s + m.valorVenda * (map.get(m.id) || 1), 0);
     const sumCusto = modulos.filter(m => map.has(m.id)).reduce((s, m) => s + m.valorCusto * (map.get(m.id) || 1), 0);
     onChange({ monthly_value_base: sumVenda, monthly_cost_value: sumCusto } as any);
-  }, [modulos, onChange]);
+    // Auto-save totals to DB so they stay in sync even without clicking "Salvar"
+    if (cliente.id) {
+      await supabase.from("clients").update({ monthly_value_base: sumVenda, monthly_cost_value: sumCusto } as any).eq("id", cliente.id);
+    }
+  }, [modulos, onChange, cliente.id]);
 
   const toggleModule = useCallback(async (moduleId: string, checked: boolean) => {
     if (!profile?.org_id || !cliente.id) return;
