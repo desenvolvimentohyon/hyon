@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DataSkeleton } from "@/components/ui/data-skeleton";
+import { TableSkeleton } from "@/components/ui/data-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDevProjects, DevProject } from "@/hooks/useDevProjects";
 import { supabase } from "@/integrations/supabase/client";
