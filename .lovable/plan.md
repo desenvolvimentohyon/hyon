@@ -1,43 +1,102 @@
 
 
-## Plano: Adicionar Opção de Inativar Cliente com Justificativa
+## Plano: Módulo Desenvolvimento
 
 ### Resumo
-Adicionar o status "inativo" ao sistema de clientes, com um fluxo similar ao de exclusão (cancelamento): o usuário clica em "Inativar" no menu de ações do card, preenche uma justificativa obrigatória, e o cliente é movido para o status "inativo". Clientes inativos ficam ocultos da visão padrão "Todos", assim como os cancelados.
+Criar um novo módulo "Desenvolvimento" no menu lateral para gerenciar projetos de criação de sistemas do zero, com controle de etapas, prazos, checklist de funcionalidades e integração financeira.
 
-### Alterações
+### 1. Banco de Dados — 3 novas tabelas
 
-**1. `src/types/receita.ts`** — Adicionar "inativo" ao tipo `StatusCliente`
-```typescript
-export type StatusCliente = "ativo" | "atraso" | "suspenso" | "cancelado" | "inativo";
+**`dev_projects`** — Projeto principal
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id, org_id, created_at, updated_at | padrão | — |
+| client_id | uuid (nullable) | Vínculo com cliente existente |
+| title | text | Nome do projeto/sistema |
+| description | text | Descrição do escopo |
+| status | text | `planejamento`, `em_andamento`, `pausado`, `concluido`, `cancelado` |
+| plan_type | text | `mensal`, `anual`, `unico` |
+| project_value | numeric | Valor total do projeto |
+| monthly_value | numeric | Valor mensal (se recorrente) |
+| setup_value | numeric | Valor de setup/implantação |
+| started_at | date | Data de início |
+| deadline_at | date | Prazo final de entrega |
+| completed_at | date | Data de conclusão real |
+| notes | text | Observações gerais |
+
+**`dev_project_stages`** — Etapas do projeto
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id, org_id, project_id, created_at | padrão | — |
+| title | text | Nome da etapa |
+| sort_order | integer | Ordenação |
+| status | text | `pendente`, `em_andamento`, `concluida` |
+| deadline_at | date | Prazo da etapa |
+| completed_at | date | Data de conclusão |
+| notes | text | Observações |
+
+**`dev_project_checklist`** — Checklist de funções
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id, org_id, project_id, stage_id (nullable), created_at | padrão | — |
+| title | text | Nome da funcionalidade |
+| completed | boolean | Concluído? |
+| completed_at | timestamp | Quando foi concluído |
+| sort_order | integer | Ordenação |
+
+RLS: Todas com `org_id = current_org_id()`, insert/update/delete para roles admin/comercial/implantacao.
+
+### 2. Sidebar e Rotas
+
+**`src/lib/sidebarModules.ts`** — Adicionar módulo "Desenvolvimento" (ícone `Code2`) antes de Configurações:
+- Projetos: `/desenvolvimento` — Lista de projetos
+- Novo Projeto: via botão na listagem
+
+**`src/App.tsx`** — 2 novas rotas:
+- `/desenvolvimento` — Lista de projetos
+- `/desenvolvimento/:id` — Detalhe do projeto
+
+### 3. Páginas
+
+**`src/pages/Desenvolvimento.tsx`** — Lista de projetos
+- Cards/tabela com status, cliente, valor, progresso (% etapas concluídas)
+- Filtros por status
+- Botão "Novo Projeto" abre dialog de criação
+- PageHeader com ícone Code2 e cor índigo
+
+**`src/pages/DesenvolvimentoDetalhe.tsx`** — Detalhe do projeto com abas:
+- **Dados Gerais**: Cliente, título, descrição, valores (projeto, mensal, setup), plano, datas
+- **Etapas**: Lista ordenada de etapas com deadline, status e conclusão. Adicionar/editar inline
+- **Checklist**: Lista de funcionalidades com checkbox, opcionalmente vinculadas a uma etapa
+- **Financeiro**: Resumo de valores e botão para gerar títulos financeiros (contas a receber) no módulo financeiro existente, criando `financial_titles` com origin `desenvolvimento`
+
+### 4. Integração Financeira
+
+Ao criar/atualizar um projeto, o sistema poderá gerar títulos em `financial_titles`:
+- Setup: título único com `type = 'receita'` e `origin = 'desenvolvimento'`
+- Mensalidades: títulos recorrentes conforme o plano (mensal ou parcelas anuais)
+- Vinculados ao `client_id` do projeto
+
+### 5. Permissões
+
+Adicionar em `src/types/users.ts`:
+```
+desenvolvimento: {
+  label: "Desenvolvimento",
+  acoes: [visualizar, criar, editar, excluir]
+}
 ```
 
-**2. `src/pages/ClientesReceita.tsx`** — 4 mudanças:
-- Adicionar "inativo" ao array `STATUSES`, `STATUS_LABELS` ("Inativo") e `STATUS_COLORS` (estilo cinza/neutral)
-- Adicionar estado `inativarTarget` e `inativarJustificativa` (similar ao `deleteTarget`)
-- Adicionar ação "Inativar" no `RowActions` do card (ícone `UserX`, entre "Ver detalhes" e "Excluir")
-- Adicionar `AlertDialog` de confirmação com textarea para justificativa obrigatória
-- No filtro padrão "todos", ocultar também clientes inativos (já oculta cancelados)
-
-**3. `src/contexts/ReceitaContext.tsx`** — Adicionar função `inativarCliente`:
-- Atualiza o status para "inativo" no banco (`clients.status = 'inativo'`)
-- Salva a justificativa em `cancellation_reason` (reusa o campo existente)
-- Salva a data em `cancelled_at`
-- Mapeamento no `dbToClienteReceita` para reconhecer status "inativo"
-
-**4. `src/components/clientes/ClienteCard.tsx`** — Garantir que o badge de status renderize corretamente o novo valor "inativo"
-
-### Comportamento
-- Clientes inativos ficam ocultos na aba "Todos" (junto com cancelados)
-- Visíveis apenas quando o filtro "Inativo" é selecionado
-- Podem ser reativados alterando o status de volta para "ativo" nos detalhes
-- A justificativa é obrigatória antes de confirmar
+E em `ROTA_PERMISSAO`: `/desenvolvimento` → `desenvolvimento:visualizar`
 
 ### Arquivos Afetados
 | Arquivo | Alteração |
 |---|---|
-| `src/types/receita.ts` | Adicionar "inativo" ao `StatusCliente` |
-| `src/pages/ClientesReceita.tsx` | Ação no card, dialog de confirmação, filtro |
-| `src/contexts/ReceitaContext.tsx` | Função `inativarCliente`, mapeamento do status |
-| `src/components/clientes/ClienteCard.tsx` | Badge do novo status |
+| Migração SQL | 3 tabelas + RLS |
+| `src/lib/sidebarModules.ts` | Novo módulo "Desenvolvimento" |
+| `src/App.tsx` | 2 rotas novas |
+| `src/pages/Desenvolvimento.tsx` | **Novo** — Lista de projetos |
+| `src/pages/DesenvolvimentoDetalhe.tsx` | **Novo** — Detalhe com abas |
+| `src/types/users.ts` | Permissões do módulo |
+| `src/hooks/useDevProjects.ts` | **Novo** — Hook CRUD para projetos |
 
