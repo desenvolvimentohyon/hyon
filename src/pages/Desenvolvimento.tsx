@@ -93,7 +93,7 @@ export default function Desenvolvimento() {
       {loading ? (
         <TableSkeleton rows={4} />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Code2} title="Nenhum projeto encontrado" subtitle="Crie seu primeiro projeto de desenvolvimento" />
+        <EmptyState icon={Code2} title="Nenhum projeto encontrado" description="Crie seu primeiro projeto de desenvolvimento" />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map(p => {
