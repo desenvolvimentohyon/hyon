@@ -59,7 +59,7 @@ export default function CardFaturamento() {
 
   return (
     <div className="p-6 space-y-6">
-      <PageHeader title="Faturamento & Comissão" subtitle="Gestão de receita das maquininhas" actions={
+      <PageHeader title="Faturamento e Comissão" subtitle="Gestão de receita das maquininhas" actions={
         <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" /> Lançar Faturamento
         </Button>
