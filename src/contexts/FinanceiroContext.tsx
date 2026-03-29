@@ -109,9 +109,12 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   const [movimentos, setMovimentos] = useState<MovimentoBancario[]>([]);
   const [config, setConfig] = useState<ConfigFinanceira>(defaultConfigFinanceira);
   const initialLoadedRef = useRef(false);
+  const isFetchingRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     if (!initialLoadedRef.current) setLoading(true);
     const [cbRes, pcRes, tRes, mRes] = await Promise.all([
       supabase.from("company_bank_accounts").select("*"),
@@ -125,6 +128,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (mRes.data) setMovimentos(mRes.data.map(dbToMovimento));
     setLoading(false);
     initialLoadedRef.current = true;
+    isFetchingRef.current = false;
   }, [orgId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -207,6 +211,12 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   const addTitulo = useCallback(async (t: Omit<TituloFinanceiro, "id" | "criadoEm" | "atualizadoEm">): Promise<boolean> => {
     if (!orgId) return false;
     const valorFinal = t.valorOriginal - (t.desconto || 0) + (t.juros || 0) + (t.multa || 0);
+    // Optimistic add
+    const tempId = crypto.randomUUID();
+    const optimistic: TituloFinanceiro = {
+      ...t, id: tempId, criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
+    };
+    setTitulos(prev => [...prev, optimistic]);
     const { error } = await supabase.from("financial_titles").insert({
       org_id: orgId, type: t.tipo, origin: t.origem, client_id: t.clienteId || null,
       supplier_name: t.fornecedorNome, description: t.descricao,
@@ -217,12 +227,14 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
       bank_account_id: t.contaBancariaId || null, notes: t.observacoes,
       metadata: { formaPagamento: t.formaPagamento, anexosFake: t.anexosFake },
     } as any);
-    if (error) { toast.error("Erro ao criar título: " + error.message); return false; }
+    if (error) { toast.error("Erro ao criar título: " + error.message); fetchAll(); return false; }
     fetchAll();
     return true;
   }, [orgId, fetchAll]);
 
   const updateTitulo = useCallback(async (id: string, changes: Partial<TituloFinanceiro>) => {
+    // Optimistic update
+    setTitulos(prev => prev.map(t => t.id === id ? { ...t, ...changes } : t));
     const upd: any = {};
     if (changes.tipo !== undefined) upd.type = changes.tipo;
     if (changes.origem !== undefined) upd.origin = changes.origem;
@@ -240,8 +252,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (changes.contaBancariaId !== undefined) upd.bank_account_id = changes.contaBancariaId;
     if (changes.observacoes !== undefined) upd.notes = changes.observacoes;
     const { error } = await supabase.from("financial_titles").update(upd).eq("id", id);
-    if (error) { toast.error("Erro ao atualizar título"); return; }
-    fetchAll();
+    if (error) { toast.error("Erro ao atualizar título"); fetchAll(); return; }
   }, [fetchAll]);
 
   const deleteTitulo = useCallback(async (id: string) => {

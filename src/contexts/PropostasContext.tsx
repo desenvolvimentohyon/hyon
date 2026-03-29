@@ -88,9 +88,12 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
   const [propostas, setPropostas] = useState<Proposta[]>([]);
   const [crmConfig, setCRMConfig] = useState<CRMConfig>({ ...DEFAULT_CRM_CONFIG });
   const initialLoadedRef = useRef(false);
+  const isFetchingRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     if (!initialLoadedRef.current) setLoading(true);
     const [pRes, sRes, csRes] = await Promise.all([
       supabase.from("proposals").select("*, proposal_items(*)"),
@@ -103,6 +106,7 @@ export function PropostasProvider({ children }: { children: React.ReactNode }) {
     }
     setLoading(false);
     initialLoadedRef.current = true;
+    isFetchingRef.current = false;
   }, [orgId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);

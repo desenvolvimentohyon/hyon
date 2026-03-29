@@ -74,9 +74,12 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
   const [mensalidadeAjustes, setMensalidadeAjustes] = useState<MensalidadeAjuste[]>([]);
   const [metricasConfig, setMetricasConfig] = useState<MetricasConfig>(defaultMetricasConfig);
   const initialLoadedRef = useRef(false);
+  const isFetchingRef = useRef(false);
 
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     if (!initialLoadedRef.current) setLoading(true);
     const [cRes, seRes, maRes] = await Promise.all([
       supabase.from("clients").select("*"),
@@ -88,6 +91,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
     if (maRes.data) setMensalidadeAjustes((maRes.data as any[]).map(dbToAjuste));
     setLoading(false);
     initialLoadedRef.current = true;
+    isFetchingRef.current = false;
   }, [orgId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
