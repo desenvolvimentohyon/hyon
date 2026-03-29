@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, TrendingUp, Headphones, BarChart3, FileText, Kanban,
   DollarSign, Landmark, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2,
   SlidersHorizontal, Shield, Settings, Wrench, Rocket, Handshake, ShoppingCart,
-  Receipt, ListTodo, Gauge
+  Receipt, ListTodo, Gauge, Code2
 } from "lucide-react";
 
 export interface SubModule {
@@ -94,6 +94,15 @@ export const modules: ParentModule[] = [
       { title: "Clientes", url: "/cartoes/clientes", icon: Users, description: "Clientes de maquininha" },
       { title: "Propostas", url: "/cartoes/propostas", icon: FileText, description: "Propostas de maquininha" },
       { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign, description: "Receita e comissões" },
+    ],
+  },
+  {
+    id: "desenvolvimento",
+    title: "Desenvolvimento",
+    icon: Code2,
+    directUrl: "/desenvolvimento",
+    children: [
+      { title: "Projetos", url: "/desenvolvimento", icon: Code2, description: "Projetos de criação de sistemas" },
     ],
   },
   {

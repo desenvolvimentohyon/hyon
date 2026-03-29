@@ -1509,6 +1509,190 @@ export type Database = {
           },
         ]
       }
+      dev_project_checklist: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          org_id: string
+          project_id: string
+          sort_order: number
+          stage_id: string | null
+          title: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          org_id: string
+          project_id: string
+          sort_order?: number
+          stage_id?: string | null
+          title: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          org_id?: string
+          project_id?: string
+          sort_order?: number
+          stage_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_project_checklist_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_project_checklist_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "dev_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_project_checklist_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "dev_project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_project_stages: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          deadline_at: string | null
+          id: string
+          notes: string | null
+          org_id: string
+          project_id: string
+          sort_order: number
+          status: string
+          title: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          deadline_at?: string | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          project_id: string
+          sort_order?: number
+          status?: string
+          title: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          deadline_at?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          project_id?: string
+          sort_order?: number
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_project_stages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_project_stages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "dev_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_projects: {
+        Row: {
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          deadline_at: string | null
+          description: string | null
+          id: string
+          monthly_value: number
+          notes: string | null
+          org_id: string
+          plan_type: string
+          project_value: number
+          setup_value: number
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deadline_at?: string | null
+          description?: string | null
+          id?: string
+          monthly_value?: number
+          notes?: string | null
+          org_id: string
+          plan_type?: string
+          project_value?: number
+          setup_value?: number
+          started_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deadline_at?: string | null
+          description?: string | null
+          id?: string
+          monthly_value?: number
+          notes?: string | null
+          org_id?: string
+          plan_type?: string
+          project_value?: number
+          setup_value?: number
+          started_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_projects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_titles: {
         Row: {
           asaas_bank_slip_url: string | null

@@ -50,6 +50,8 @@ const CardPropostaPublica = lazy(() => import("./pages/cartoes/CardPropostaPubli
 const RenovarPlano = lazy(() => import("./pages/RenovarPlano"));
 const TicketTracking = lazy(() => import("./pages/TicketTracking"));
 const Cockpit = lazy(() => import("./pages/Cockpit"));
+const Desenvolvimento = lazy(() => import("./pages/Desenvolvimento"));
+const DesenvolvimentoDetalhe = lazy(() => import("./pages/DesenvolvimentoDetalhe"));
 const FinanceiroVisaoGeral = lazy(() => import("./pages/financeiro/FinanceiroVisaoGeral"));
 const ContasReceber = lazy(() => import("./pages/financeiro/ContasReceber"));
 const ContasPagar = lazy(() => import("./pages/financeiro/ContasPagar"));
@@ -145,6 +147,9 @@ function AuthGate() {
                       <Route path="/acesso-negado" element={<AcessoNegado />} />
                       <Route path="/parceiros" element={<Parceiros />} />
                       <Route path="/checkout-interno" element={<CheckoutInterno />} />
+                      {/* Desenvolvimento */}
+                      <Route path="/desenvolvimento" element={<Desenvolvimento />} />
+                      <Route path="/desenvolvimento/:id" element={<DesenvolvimentoDetalhe />} />
                       {/* Cartões */}
                       <Route path="/cartoes" element={<CardDashboard />} />
                       <Route path="/cartoes/clientes" element={<CardClientes />} />
