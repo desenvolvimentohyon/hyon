@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -151,7 +151,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const orgId = profile?.org_id;
 
   const [loading, setLoading] = useState(true);
-  const [initialLoaded, setInitialLoaded] = useState(false);
+  const initialLoadedRef = useRef(false);
+  const isFetchingRef = useRef(false);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
@@ -166,7 +167,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Fetch all data
   const fetchAll = useCallback(async () => {
     if (!orgId) return;
-    if (!initialLoaded) setLoading(true);
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    if (!initialLoadedRef.current) setLoading(true);
     try {
       const [clientsRes, profilesRes, tasksRes, settingsRes] = await Promise.all([
         supabase.from("clients").select("*").neq("status", "excluido"),
@@ -205,8 +208,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       console.error("Error fetching app data:", err);
     }
     setLoading(false);
-    setInitialLoaded(true);
-  }, [orgId, user?.id, initialLoaded]);
+    initialLoadedRef.current = true;
+    isFetchingRef.current = false;
+  }, [orgId, user?.id]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 

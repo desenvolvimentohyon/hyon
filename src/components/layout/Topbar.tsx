@@ -180,7 +180,7 @@ export function Topbar() {
     }
 
     return items;
-  }, [titulos, propostas, tarefas, clientes]);
+  }, [titulos.length, propostas.length, tarefas.length]);
 
   const totalNotificacoes = notificacoes.length;
   const temCritico = notificacoes.some(n => n.tipo === "critico");
