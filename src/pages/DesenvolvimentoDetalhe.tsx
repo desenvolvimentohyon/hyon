@@ -205,7 +205,7 @@ export default function DesenvolvimentoDetalhe() {
 
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  if (loading) return <DataSkeleton rows={6} />;
+  if (loading) return <TableSkeleton rows={6} />;
   if (!project) return null;
 
   const stagesPct = stages.length ? Math.round((stages.filter(s => s.status === "concluida").length / stages.length) * 100) : 0;
@@ -215,9 +215,9 @@ export default function DesenvolvimentoDetalhe() {
     <div className="space-y-6">
       <PageHeader
         icon={Code2}
-        iconColor="text-indigo-600"
+        iconClassName="text-indigo-600"
         title={project.title}
-        description="Detalhes do projeto de desenvolvimento"
+        subtitle="Detalhes do projeto de desenvolvimento"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/desenvolvimento")}><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
@@ -329,7 +329,7 @@ export default function DesenvolvimentoDetalhe() {
                   <Progress value={stagesPct} className="h-2" />
                 </div>
               )}
-              {stagesLoading ? <DataSkeleton rows={3} /> : stages.length === 0 ? (
+              {stagesLoading ? <TableSkeleton rows={3} /> : stages.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">Nenhuma etapa adicionada</p>
               ) : stages.map(s => (
                 <div key={s.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
@@ -370,7 +370,7 @@ export default function DesenvolvimentoDetalhe() {
                   <Progress value={checkPct} className="h-2" />
                 </div>
               )}
-              {checkLoading ? <DataSkeleton rows={3} /> : checkItems.length === 0 ? (
+              {checkLoading ? <TableSkeleton rows={3} /> : checkItems.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">Nenhum item no checklist</p>
               ) : checkItems.map(c => (
                 <div key={c.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">

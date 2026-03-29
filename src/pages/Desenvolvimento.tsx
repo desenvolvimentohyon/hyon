@@ -75,9 +75,9 @@ export default function Desenvolvimento() {
     <div className="space-y-6">
       <PageHeader
         icon={Code2}
-        iconColor="text-indigo-600"
+        iconClassName="text-indigo-600"
         title="Desenvolvimento"
-        description="Gerencie projetos de criação de sistemas"
+        subtitle="Gerencie projetos de criação de sistemas"
         actions={<Button onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Novo Projeto</Button>}
       />
 
@@ -91,9 +91,9 @@ export default function Desenvolvimento() {
       </Tabs>
 
       {loading ? (
-        <DataSkeleton rows={4} />
+        <TableSkeleton rows={4} />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Code2} title="Nenhum projeto encontrado" description="Crie seu primeiro projeto de desenvolvimento" />
+        <EmptyState icon={Code2} title="Nenhum projeto encontrado" subtitle="Crie seu primeiro projeto de desenvolvimento" />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map(p => {
