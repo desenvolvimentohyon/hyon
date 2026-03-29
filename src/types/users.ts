@@ -128,4 +128,5 @@ export const ROTA_PERMISSAO: Record<string, string> = {
   "/cartoes/clientes": "cartoes:visualizar",
   "/cartoes/propostas": "cartoes:visualizar",
   "/cartoes/faturamento": "cartoes:visualizar",
+  "/desenvolvimento": "desenvolvimento:visualizar",
 };
