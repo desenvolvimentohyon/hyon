@@ -70,6 +70,15 @@ export const MODULOS_PERMISSOES: Record<string, { label: string; acoes: { id: st
       { id: "cartoes:editar", label: "Editar" },
     ],
   },
+  desenvolvimento: {
+    label: "Desenvolvimento",
+    acoes: [
+      { id: "desenvolvimento:visualizar", label: "Visualizar" },
+      { id: "desenvolvimento:criar", label: "Criar" },
+      { id: "desenvolvimento:editar", label: "Editar" },
+      { id: "desenvolvimento:excluir", label: "Excluir" },
+    ],
+  },
 };
 
 export const ALL_PERMISSIONS = Object.values(MODULOS_PERMISSOES).flatMap(m => m.acoes.map(a => a.id));
