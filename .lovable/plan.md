@@ -1,102 +1,51 @@
 
 
-## Plano: Módulo Desenvolvimento
+## Plano: Módulos e Implantação no Checkout Interno
 
 ### Resumo
-Criar um novo módulo "Desenvolvimento" no menu lateral para gerenciar projetos de criação de sistemas do zero, com controle de etapas, prazos, checklist de funcionalidades e integração financeira.
+Expandir o wizard de checkout com 2 novas etapas: **Módulos** (após Sistema) e **Implantação** (após Plano). O valor base da mensalidade passa a ser a soma dos módulos selecionados (e não o `sale_value` do sistema). A implantação gera um título financeiro separado.
 
-### 1. Banco de Dados — 3 novas tabelas
-
-**`dev_projects`** — Projeto principal
-| Coluna | Tipo | Descrição |
-|---|---|---|
-| id, org_id, created_at, updated_at | padrão | — |
-| client_id | uuid (nullable) | Vínculo com cliente existente |
-| title | text | Nome do projeto/sistema |
-| description | text | Descrição do escopo |
-| status | text | `planejamento`, `em_andamento`, `pausado`, `concluido`, `cancelado` |
-| plan_type | text | `mensal`, `anual`, `unico` |
-| project_value | numeric | Valor total do projeto |
-| monthly_value | numeric | Valor mensal (se recorrente) |
-| setup_value | numeric | Valor de setup/implantação |
-| started_at | date | Data de início |
-| deadline_at | date | Prazo final de entrega |
-| completed_at | date | Data de conclusão real |
-| notes | text | Observações gerais |
-
-**`dev_project_stages`** — Etapas do projeto
-| Coluna | Tipo | Descrição |
-|---|---|---|
-| id, org_id, project_id, created_at | padrão | — |
-| title | text | Nome da etapa |
-| sort_order | integer | Ordenação |
-| status | text | `pendente`, `em_andamento`, `concluida` |
-| deadline_at | date | Prazo da etapa |
-| completed_at | date | Data de conclusão |
-| notes | text | Observações |
-
-**`dev_project_checklist`** — Checklist de funções
-| Coluna | Tipo | Descrição |
-|---|---|---|
-| id, org_id, project_id, stage_id (nullable), created_at | padrão | — |
-| title | text | Nome da funcionalidade |
-| completed | boolean | Concluído? |
-| completed_at | timestamp | Quando foi concluído |
-| sort_order | integer | Ordenação |
-
-RLS: Todas com `org_id = current_org_id()`, insert/update/delete para roles admin/comercial/implantacao.
-
-### 2. Sidebar e Rotas
-
-**`src/lib/sidebarModules.ts`** — Adicionar módulo "Desenvolvimento" (ícone `Code2`) antes de Configurações:
-- Projetos: `/desenvolvimento` — Lista de projetos
-- Novo Projeto: via botão na listagem
-
-**`src/App.tsx`** — 2 novas rotas:
-- `/desenvolvimento` — Lista de projetos
-- `/desenvolvimento/:id` — Detalhe do projeto
-
-### 3. Páginas
-
-**`src/pages/Desenvolvimento.tsx`** — Lista de projetos
-- Cards/tabela com status, cliente, valor, progresso (% etapas concluídas)
-- Filtros por status
-- Botão "Novo Projeto" abre dialog de criação
-- PageHeader com ícone Code2 e cor índigo
-
-**`src/pages/DesenvolvimentoDetalhe.tsx`** — Detalhe do projeto com abas:
-- **Dados Gerais**: Cliente, título, descrição, valores (projeto, mensal, setup), plano, datas
-- **Etapas**: Lista ordenada de etapas com deadline, status e conclusão. Adicionar/editar inline
-- **Checklist**: Lista de funcionalidades com checkbox, opcionalmente vinculadas a uma etapa
-- **Financeiro**: Resumo de valores e botão para gerar títulos financeiros (contas a receber) no módulo financeiro existente, criando `financial_titles` com origin `desenvolvimento`
-
-### 4. Integração Financeira
-
-Ao criar/atualizar um projeto, o sistema poderá gerar títulos em `financial_titles`:
-- Setup: título único com `type = 'receita'` e `origin = 'desenvolvimento'`
-- Mensalidades: títulos recorrentes conforme o plano (mensal ou parcelas anuais)
-- Vinculados ao `client_id` do projeto
-
-### 5. Permissões
-
-Adicionar em `src/types/users.ts`:
-```
-desenvolvimento: {
-  label: "Desenvolvimento",
-  acoes: [visualizar, criar, editar, excluir]
-}
+### Novo fluxo de etapas
+```text
+Sistema → Módulos → Plano → Implantação → Desconto → Cliente → Resumo
+   0         1        2          3            4         5        6
 ```
 
-E em `ROTA_PERMISSAO`: `/desenvolvimento` → `desenvolvimento:visualizar`
+### Alterações em `src/pages/CheckoutInterno.tsx`
+
+**1. Etapa Módulos (step 1)**
+- Ao selecionar um sistema, carregar módulos da tabela `system_modules` onde `system_id = selectedSystemId` OR `is_global = true`, filtrando `active = true`
+- Exibir lista com nome e **valor de venda** (`sale_value`) — sem mostrar custo
+- Cada módulo tem checkbox de seleção + campo de quantidade (default 1)
+- Estado: `selectedModules: Map<string, number>` (moduleId → quantidade)
+- O **valor base** passa a ser: `Σ (sale_value × quantidade)` dos módulos selecionados
+- Pode prosseguir se ao menos 1 módulo estiver selecionado
+
+**2. Etapa Implantação (step 3)**
+- Carregar `deployment_regions` (ativas) e `company_profile` (campos `impl_cost_per_km`, `impl_daily_rate`)
+- Exibir regiões como cards selecionáveis (radio — uma região por vez)
+- Dois checkboxes: "Cobrar deslocamento (KM)" e "Cobrar diária"
+- Se deslocamento marcado: campo de distância em KM → cálculo `distância × impl_cost_per_km`
+- Se diária marcada: campo de dias → cálculo `dias × impl_daily_rate`
+- Valor de implantação = `base_value da região` + deslocamento + diárias + `additional_fee`
+- Botão "Pular" para vendas sem implantação
+- Estado: `implValue: number` calculado automaticamente
+
+**3. Ajustes no Resumo e Submit**
+- Resumo exibe: módulos selecionados com quantidades, valor mensal, valor implantação, região
+- No submit:
+  - `monthly_value_base` e `monthly_value_final` = soma dos módulos (com desconto)
+  - Criar registros em `client_modules` para cada módulo selecionado (com quantidade)
+  - Se implantação > 0: criar `financial_title` extra com `origin = 'implantacao'`
+  - Proposta inclui `implementation_value`
+
+**4. Dados carregados no `loadData`**
+- Adicionar queries: `system_modules`, `deployment_regions`, `company_profile`
 
 ### Arquivos Afetados
 | Arquivo | Alteração |
 |---|---|
-| Migração SQL | 3 tabelas + RLS |
-| `src/lib/sidebarModules.ts` | Novo módulo "Desenvolvimento" |
-| `src/App.tsx` | 2 rotas novas |
-| `src/pages/Desenvolvimento.tsx` | **Novo** — Lista de projetos |
-| `src/pages/DesenvolvimentoDetalhe.tsx` | **Novo** — Detalhe com abas |
-| `src/types/users.ts` | Permissões do módulo |
-| `src/hooks/useDevProjects.ts` | **Novo** — Hook CRUD para projetos |
+| `src/pages/CheckoutInterno.tsx` | 2 novas etapas, lógica de módulos/implantação, submit atualizado |
+
+Nenhuma mudança de banco necessária — todas as tabelas já existem.
 
