@@ -31,12 +31,13 @@ export default defineConfig(({ mode }) => ({
           { src: "pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
         ],
       },
-      workbox: {
+    workbox: {
       skipWaiting: true,
       clientsClaim: true,
       cleanupOutdatedCaches: true,
       navigateFallbackDenylist: [/^\/proposta/, /^\/portal/, /^\/aceite/, /^\/~oauth/],
-      globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+      globPatterns: ["index.html"],
+      maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
       importScripts: ["sw-push.js"],
       runtimeCaching: [
         {
@@ -44,7 +45,8 @@ export default defineConfig(({ mode }) => ({
           handler: 'NetworkFirst',
           options: {
             cacheName: 'pages-cache',
-            expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
+            expiration: { maxEntries: 30, maxAgeSeconds: 5 * 60 },
+            networkTimeoutSeconds: 3,
           },
         },
         {
@@ -52,7 +54,8 @@ export default defineConfig(({ mode }) => ({
           handler: 'NetworkFirst',
           options: {
             cacheName: 'assets-cache',
-            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 },
+            expiration: { maxEntries: 60, maxAgeSeconds: 5 * 60 },
+            networkTimeoutSeconds: 3,
           },
         },
       ],

@@ -22,15 +22,23 @@ if (isPreviewHost || isInIframe) {
   );
 } else {
   updateSW = registerSW({
+    onRegisteredSW(_swUrl, registration) {
+      if (registration) {
+        // Poll for updates every 60s — critical for Safari/iOS
+        setInterval(() => {
+          registration.update().catch(() => {});
+        }, 60 * 1000);
+      }
+    },
     onNeedRefresh() {
       showUpdateBanner?.(true);
-      // Auto-update after brief visual feedback
+      // Fast reload for immediate update
       setTimeout(async () => {
         try {
           await updateSW?.();
         } catch { /* ignore */ }
         window.location.reload();
-      }, 2000);
+      }, 500);
     },
   });
 }
