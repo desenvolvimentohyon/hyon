@@ -330,6 +330,15 @@ export default function Clientes() {
                 <RowActions actions={[
                   { label: "Ver detalhes", icon: Eye, onClick: () => setSelectedId(c.id) },
                   ...(c.statusCliente !== "inativo" && c.statusCliente !== "cancelado" ? [{ label: "Inativar", icon: UserX, onClick: () => { setInativarTarget(c); setInativarJustificativa(""); } }] : []),
+                  ...(c.statusCliente === "inativo" || c.statusCliente === "cancelado" ? [{ label: "Reativar", icon: RefreshCw, onClick: () => {
+                    updateClienteReceita(c.id, {
+                      statusCliente: "ativo",
+                      mensalidadeAtiva: true,
+                      dataCancelamento: null,
+                      motivoCancelamento: null,
+                    });
+                    toast({ title: "Cliente reativado", description: c.nome });
+                  } }] : []),
                   { label: "Excluir", icon: Trash2, variant: "destructive" as const, separator: true, onClick: () => { setDeleteTarget(c); setDeleteJustificativa(""); } },
                 ]} />
               }

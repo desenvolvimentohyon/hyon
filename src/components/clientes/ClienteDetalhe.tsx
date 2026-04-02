@@ -72,6 +72,8 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
   const [showInativarDialog, setShowInativarDialog] = useState(false);
   const [motivoInativacao, setMotivoInativacao] = useState("");
   const [inativando, setInativando] = useState(false);
+  const [showReativarDialog, setShowReativarDialog] = useState(false);
+  const [reativando, setReativando] = useState(false);
 
   const handleChange = useCallback((changes: Partial<ClienteFull>) => {
     setFormData(prev => {
@@ -195,18 +197,46 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
           <Badge className={saude.className}>{saude.label} ({cliente.health_score || 0})</Badge>
           <Badge variant="outline" className="text-[10px]">{cliente.status?.toUpperCase()}</Badge>
 
-          {cliente.status !== "inativo" && cliente.status !== "cancelado" && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="gap-1.5 ml-auto"
-              onClick={() => setShowInativarDialog(true)}
-            >
-              <Ban className="h-3.5 w-3.5" />
-              Inativar
-            </Button>
-          )}
+          <div className="flex items-center gap-2 ml-auto">
+            {(cliente.status === "inativo" || cliente.status === "cancelado") && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10"
+                onClick={() => setShowReativarDialog(true)}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Reativar
+              </Button>
+            )}
+            {cliente.status !== "inativo" && cliente.status !== "cancelado" && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => setShowInativarDialog(true)}
+              >
+                <Ban className="h-3.5 w-3.5" />
+                Inativar
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Motivo da inativação visível */}
+        {(cliente.status === "inativo" || cliente.status === "cancelado") && cliente.cancellation_reason && (
+          <Alert className="border-destructive/30 bg-destructive/5">
+            <Ban className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-sm">
+              <span className="font-medium">Motivo da inativação:</span> {cliente.cancellation_reason}
+              {cliente.cancelled_at && (
+                <span className="text-muted-foreground ml-2">
+                  — {new Date(cliente.cancelled_at).toLocaleDateString("pt-BR")}
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Dialog de Inativação */}
         <AlertDialog open={showInativarDialog} onOpenChange={setShowInativarDialog}>
@@ -249,6 +279,48 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
               >
                 {inativando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                 Confirmar Inativação
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Dialog de Reativação */}
+        <AlertDialog open={showReativarDialog} onOpenChange={setShowReativarDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reativar cliente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja reativar <strong>{cliente.name}</strong>? O status voltará para <strong>ativo</strong>.
+                {cliente.cancellation_reason && (
+                  <span className="block mt-2 p-2 rounded bg-muted text-xs">
+                    <strong>Motivo da inativação:</strong> {cliente.cancellation_reason}
+                    {cliente.cancelled_at && ` — ${new Date(cliente.cancelled_at).toLocaleDateString("pt-BR")}`}
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={reativando}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={reativando}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setReativando(true);
+                  const ok = await updateCliente({
+                    status: "ativo",
+                    cancellation_reason: null,
+                    cancelled_at: null,
+                    recurrence_active: true,
+                  } as any);
+                  setReativando(false);
+                  if (ok) {
+                    setShowReativarDialog(false);
+                    toast({ title: "Cliente reativado com sucesso" });
+                  }
+                }}
+              >
+                {reativando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                Confirmar Reativação
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
