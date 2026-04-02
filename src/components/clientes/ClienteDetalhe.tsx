@@ -197,18 +197,46 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
           <Badge className={saude.className}>{saude.label} ({cliente.health_score || 0})</Badge>
           <Badge variant="outline" className="text-[10px]">{cliente.status?.toUpperCase()}</Badge>
 
-          {cliente.status !== "inativo" && cliente.status !== "cancelado" && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="gap-1.5 ml-auto"
-              onClick={() => setShowInativarDialog(true)}
-            >
-              <Ban className="h-3.5 w-3.5" />
-              Inativar
-            </Button>
-          )}
+          <div className="flex items-center gap-2 ml-auto">
+            {(cliente.status === "inativo" || cliente.status === "cancelado") && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10"
+                onClick={() => setShowReativarDialog(true)}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Reativar
+              </Button>
+            )}
+            {cliente.status !== "inativo" && cliente.status !== "cancelado" && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => setShowInativarDialog(true)}
+              >
+                <Ban className="h-3.5 w-3.5" />
+                Inativar
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Motivo da inativação visível */}
+        {(cliente.status === "inativo" || cliente.status === "cancelado") && cliente.cancellation_reason && (
+          <Alert className="border-destructive/30 bg-destructive/5">
+            <Ban className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-sm">
+              <span className="font-medium">Motivo da inativação:</span> {cliente.cancellation_reason}
+              {cliente.cancelled_at && (
+                <span className="text-muted-foreground ml-2">
+                  — {new Date(cliente.cancelled_at).toLocaleDateString("pt-BR")}
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Dialog de Inativação */}
         <AlertDialog open={showInativarDialog} onOpenChange={setShowInativarDialog}>
