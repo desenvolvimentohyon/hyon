@@ -1,42 +1,27 @@
 
 
-## Diagnóstico: iPhone mostrando versão antiga
+## Plano: Adicionar botão de Inativar Cliente na tela de detalhe
 
-O problema é clássico de **cache do Service Worker no Safari/iOS**. O Safari no iPhone tem comportamento mais agressivo de cache para PWAs e o ciclo de atualização do SW nem sempre dispara o `onNeedRefresh` corretamente no iOS.
+### Contexto
 
-### Causas identificadas
+A funcionalidade de inativar cliente **já existe** na listagem de clientes (`ClientesReceita.tsx`) via o menu de ações do card. Porém, ao abrir o detalhe de um cliente, não há opção para inativá-lo. O objetivo é adicionar essa ação também na página de detalhe.
 
-1. **`globPatterns` cacheia todos os assets agressivamente** — `**/*.{js,css,html,ico,png,svg,woff2}` pre-cacheia tudo na instalação, e o Safari pode servir do cache mesmo com `NetworkFirst`
-2. **`skipWaiting: true` sem forçar reload** — o novo SW ativa mas o Safari não recarrega as páginas já abertas automaticamente
-3. **Sem versionamento de cache** — quando o SW antigo está ativo, não há mecanismo para forçar invalidação no iOS
-4. **`onNeedRefresh` pode não disparar no Safari** — o Safari tem bugs conhecidos onde o evento de atualização do SW não chega ao cliente
+### Alterações
 
-### Solução
+#### 1. `src/components/clientes/ClienteDetalhe.tsx`
+- Adicionar botão "Inativar" no header (ao lado do nome/badges), visível apenas quando o status do cliente **não** é `inativo` ou `cancelado`
+- Adicionar um `AlertDialog` com campo de texto obrigatório para o motivo da inativação
+- Ao confirmar, chamar `updateCliente` com `status: "inativo"`, `cancellation_reason`, `cancelled_at` e `recurrence_active: false`
+- Após inativação, exibir toast de confirmação
 
-#### 1. `vite.config.ts` — Reduzir pre-cache e adicionar cache-busting
-- Remover `globPatterns` agressivo — manter apenas `index.html` no pre-cache
-- Adicionar `maximumFileSizeToCacheInBytes` para evitar cache de bundles grandes
-- Reduzir `maxAgeSeconds` dos runtime caches para 5 minutos (em vez de 1 hora)
-- Adicionar header `Cache-Control: no-cache` nos requests de navegação
-
-#### 2. `src/main.tsx` — Forçar verificação periódica de atualização
-- Adicionar `onRegisteredSW` callback que faz `registration.update()` a cada 60 segundos
-- No `onNeedRefresh`, reduzir timeout de reload para 500ms (era 2000ms)
-- Adicionar fallback: se o SW não disparar atualização, verificar via `fetch('/version.json')` com timestamp
-
-#### 3. `index.html` — Meta tags anti-cache para Safari
-- Adicionar `<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">`
-- Adicionar `<meta http-equiv="Pragma" content="no-cache">`
-- Adicionar `<meta http-equiv="Expires" content="0">`
-
-#### 4. Criar mecanismo de versão forçada
-- O `registerSW` passará a fazer polling com `intervalMS: 60000` para verificar atualizações automaticamente no iOS
+#### 2. `src/hooks/useClienteDetalhe.ts`
+- Verificar que o `ClienteFull` type já inclui `cancellation_reason` e `cancelled_at` (se não, adicioná-los)
+- O `updateCliente` existente já aceita campos parciais, então será reutilizado
 
 ### Arquivos afetados
 
 | Arquivo | Alteração |
 |---|---|
-| `vite.config.ts` | Reduzir pre-cache, diminuir TTL dos caches |
-| `src/main.tsx` | Polling de atualização a cada 60s, reload mais rápido |
-| `index.html` | Meta tags anti-cache para Safari |
+| `src/components/clientes/ClienteDetalhe.tsx` | Botão + AlertDialog de inativação |
+| `src/hooks/useClienteDetalhe.ts` | Adicionar campos `cancellation_reason` e `cancelled_at` ao type se necessário |
 
