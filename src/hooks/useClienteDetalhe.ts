@@ -70,6 +70,8 @@ export type ClienteFull = {
   technical_notes: string | null;
   tags: string[] | null;
   default_due_day: number | null;
+  cancellation_reason: string | null;
+  cancelled_at: string | null;
   // Billing
   billing_document: string | null;
   billing_email: string | null;
