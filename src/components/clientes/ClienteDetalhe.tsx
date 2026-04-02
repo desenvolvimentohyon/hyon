@@ -284,6 +284,48 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
           </AlertDialogContent>
         </AlertDialog>
 
+        {/* Dialog de Reativação */}
+        <AlertDialog open={showReativarDialog} onOpenChange={setShowReativarDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reativar cliente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja reativar <strong>{cliente.name}</strong>? O status voltará para <strong>ativo</strong>.
+                {cliente.cancellation_reason && (
+                  <span className="block mt-2 p-2 rounded bg-muted text-xs">
+                    <strong>Motivo da inativação:</strong> {cliente.cancellation_reason}
+                    {cliente.cancelled_at && ` — ${new Date(cliente.cancelled_at).toLocaleDateString("pt-BR")}`}
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={reativando}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={reativando}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setReativando(true);
+                  const ok = await updateCliente({
+                    status: "ativo",
+                    cancellation_reason: null,
+                    cancelled_at: null,
+                    recurrence_active: true,
+                  } as any);
+                  setReativando(false);
+                  if (ok) {
+                    setShowReativarDialog(false);
+                    toast({ title: "Cliente reativado com sucesso" });
+                  }
+                }}
+              >
+                {reativando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                Confirmar Reativação
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex items-center justify-start gap-1 sm:gap-3 h-auto bg-transparent p-0 overflow-x-auto">
             {TABS.map(tab => {
