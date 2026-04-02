@@ -1,27 +1,28 @@
 
 
-## Plano: Adicionar botão de Inativar Cliente na tela de detalhe
+## Plano: Remover signup público e manter apenas login
 
-### Contexto
-
-A funcionalidade de inativar cliente **já existe** na listagem de clientes (`ClientesReceita.tsx`) via o menu de ações do card. Porém, ao abrir o detalhe de um cliente, não há opção para inativá-lo. O objetivo é adicionar essa ação também na página de detalhe.
+O sistema já tem gestão de usuários via `UsuariosConfig.tsx` e o `addUser` no `UsersContext` já exibe apenas um toast informativo. O signup público na tela de login é o único ponto de entrada não controlado.
 
 ### Alterações
 
-#### 1. `src/components/clientes/ClienteDetalhe.tsx`
-- Adicionar botão "Inativar" no header (ao lado do nome/badges), visível apenas quando o status do cliente **não** é `inativo` ou `cancelado`
-- Adicionar um `AlertDialog` com campo de texto obrigatório para o motivo da inativação
-- Ao confirmar, chamar `updateCliente` com `status: "inativo"`, `cancellation_reason`, `cancelled_at` e `recurrence_active: false`
-- Após inativação, exibir toast de confirmação
+#### 1. `src/pages/Auth.tsx`
+- Remover todo o estado e lógica de signup (`isLogin`, `fullName`, `signUp`, toggle de modo)
+- Manter apenas o formulário de login (e-mail + senha + botão "Entrar")
+- Remover imports não utilizados (`User`, `signUp`)
+- O título ficará fixo: "Entrar na plataforma"
 
-#### 2. `src/hooks/useClienteDetalhe.ts`
-- Verificar que o `ClienteFull` type já inclui `cancellation_reason` e `cancelled_at` (se não, adicioná-los)
-- O `updateCliente` existente já aceita campos parciais, então será reutilizado
+#### 2. `src/contexts/AuthContext.tsx`
+- Remover o método `signUp` do contexto e da interface `AuthContextType`
+- Isso garante que nenhum outro ponto do código possa chamar signup acidentalmente
 
 ### Arquivos afetados
 
 | Arquivo | Alteração |
 |---|---|
-| `src/components/clientes/ClienteDetalhe.tsx` | Botão + AlertDialog de inativação |
-| `src/hooks/useClienteDetalhe.ts` | Adicionar campos `cancellation_reason` e `cancelled_at` ao type se necessário |
+| `src/pages/Auth.tsx` | Remover formulário de cadastro, manter apenas login |
+| `src/contexts/AuthContext.tsx` | Remover método `signUp` |
+
+### Resultado
+A tela de login mostrará apenas e-mail e senha. Novos usuários só poderão ser adicionados por administradores via a tela de configurações de usuários.
 
