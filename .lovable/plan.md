@@ -1,28 +1,22 @@
 
 
-## Plano: Remover signup público e manter apenas login
+## Plano: Indicador dinâmico de versão do sistema
 
-O sistema já tem gestão de usuários via `UsuariosConfig.tsx` e o `addUser` no `UsersContext` já exibe apenas um toast informativo. O signup público na tela de login é o único ponto de entrada não controlado.
+### Contexto
+O sidebar já exibe `v1.0` estático no rodapé. O objetivo é torná-lo dinâmico com data/hora do build, facilitando a verificação de atualização no iPhone.
 
 ### Alterações
 
-#### 1. `src/pages/Auth.tsx`
-- Remover todo o estado e lógica de signup (`isLogin`, `fullName`, `signUp`, toggle de modo)
-- Manter apenas o formulário de login (e-mail + senha + botão "Entrar")
-- Remover imports não utilizados (`User`, `signUp`)
-- O título ficará fixo: "Entrar na plataforma"
+#### 1. `vite.config.ts`
+- Adicionar `define` com `__BUILD_TIMESTAMP__` (data/hora ISO do build) para injetar automaticamente a versão em cada deploy
 
-#### 2. `src/contexts/AuthContext.tsx`
-- Remover o método `signUp` do contexto e da interface `AuthContextType`
-- Isso garante que nenhum outro ponto do código possa chamar signup acidentalmente
+#### 2. `src/vite-env.d.ts`
+- Declarar a variável global `__BUILD_TIMESTAMP__`
 
-### Arquivos afetados
-
-| Arquivo | Alteração |
-|---|---|
-| `src/pages/Auth.tsx` | Remover formulário de cadastro, manter apenas login |
-| `src/contexts/AuthContext.tsx` | Remover método `signUp` |
+#### 3. `src/components/layout/AppSidebar.tsx`
+- Substituir o texto estático `v1.0` por uma versão formatada usando o timestamp do build (ex: `v02abr 14:30`)
+- No modo collapsed, mostrar versão abreviada
 
 ### Resultado
-A tela de login mostrará apenas e-mail e senha. Novos usuários só poderão ser adicionados por administradores via a tela de configurações de usuários.
+Cada deploy gera automaticamente um identificador único de versão visível no rodapé do sidebar, permitindo confirmar rapidamente se o iPhone está rodando a versão mais recente.
 
