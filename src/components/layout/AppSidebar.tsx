@@ -309,7 +309,7 @@ export function AppSidebar() {
               </div>
             </div>
             <div className="text-center">
-              <p className="text-[9px] text-sidebar-foreground/20 font-mono">© 2026 Hyon Tecnologia · v1.0</p>
+              <p className="text-[9px] text-sidebar-foreground/20 font-mono">© 2026 Hyon Tecnologia · v{(() => { try { const d = new Date(__BUILD_TIMESTAMP__); const m = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; return `${String(d.getDate()).padStart(2,'0')}${m} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; } catch { return '1.0'; } })()}</p>
             </div>
           </div>
         ) : (
