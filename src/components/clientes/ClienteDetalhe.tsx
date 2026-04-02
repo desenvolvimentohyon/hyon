@@ -72,6 +72,8 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
   const [showInativarDialog, setShowInativarDialog] = useState(false);
   const [motivoInativacao, setMotivoInativacao] = useState("");
   const [inativando, setInativando] = useState(false);
+  const [showReativarDialog, setShowReativarDialog] = useState(false);
+  const [reativando, setReativando] = useState(false);
 
   const handleChange = useCallback((changes: Partial<ClienteFull>) => {
     setFormData(prev => {
