@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Receipt, Settings2, Boxes, Save, Wallet, AlertTriangle, RefreshCw, LucideIcon } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Calculator, DollarSign, TrendingDown, History, Receipt, Settings2, Boxes, Save, Wallet, AlertTriangle, RefreshCw, LucideIcon, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useClienteDetalhe } from "@/hooks/useClienteDetalhe";
 import type { ClienteFull } from "@/hooks/useClienteDetalhe";
@@ -67,6 +69,9 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
   const [formData, setFormData] = useState<Partial<ClienteFull>>({});
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("dados");
+  const [showInativarDialog, setShowInativarDialog] = useState(false);
+  const [motivoInativacao, setMotivoInativacao] = useState("");
+  const [inativando, setInativando] = useState(false);
 
   const handleChange = useCallback((changes: Partial<ClienteFull>) => {
     setFormData(prev => {
@@ -189,7 +194,65 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
           )}
           <Badge className={saude.className}>{saude.label} ({cliente.health_score || 0})</Badge>
           <Badge variant="outline" className="text-[10px]">{cliente.status?.toUpperCase()}</Badge>
+
+          {cliente.status !== "inativo" && cliente.status !== "cancelado" && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="gap-1.5 ml-auto"
+              onClick={() => setShowInativarDialog(true)}
+            >
+              <Ban className="h-3.5 w-3.5" />
+              Inativar
+            </Button>
+          )}
         </div>
+
+        {/* Dialog de Inativação */}
+        <AlertDialog open={showInativarDialog} onOpenChange={setShowInativarDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Inativar cliente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Essa ação marcará o cliente como <strong>inativo</strong> e desativará a recorrência. Informe o motivo da inativação.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Textarea
+              placeholder="Motivo da inativação (obrigatório)"
+              value={motivoInativacao}
+              onChange={(e) => setMotivoInativacao(e.target.value)}
+              className="min-h-[80px]"
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={inativando} onClick={() => { setMotivoInativacao(""); }}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={!motivoInativacao.trim() || inativando}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setInativando(true);
+                  const ok = await updateCliente({
+                    status: "inativo",
+                    cancellation_reason: motivoInativacao.trim(),
+                    cancelled_at: new Date().toISOString(),
+                    recurrence_active: false,
+                  } as any);
+                  setInativando(false);
+                  if (ok) {
+                    setShowInativarDialog(false);
+                    setMotivoInativacao("");
+                    toast({ title: "Cliente inativado com sucesso" });
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {inativando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                Confirmar Inativação
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex items-center justify-start gap-1 sm:gap-3 h-auto bg-transparent p-0 overflow-x-auto">
