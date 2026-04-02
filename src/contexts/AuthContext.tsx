@@ -16,7 +16,6 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -39,13 +38,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Set up auth listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
-          // Use setTimeout to avoid Supabase client deadlock
           setTimeout(() => {
             fetchProfile(newSession.user.id);
           }, 0);
@@ -56,7 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Then get existing session
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
@@ -74,18 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error as Error | null };
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    return { error: error as Error | null };
-  }, []);
-
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -96,8 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, fetchProfile]);
 
   const value = useMemo(() => ({
-    user, session, profile, loading, signIn, signUp, signOut, refreshProfile,
-  }), [user, session, profile, loading, signIn, signUp, signOut, refreshProfile]);
+    user, session, profile, loading, signIn, signOut, refreshProfile,
+  }), [user, session, profile, loading, signIn, signOut, refreshProfile]);
 
   return (
     <AuthContext.Provider value={value}>
