@@ -388,6 +388,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   const [catId, setCatId] = useState("pc301");
   const [parcelas, setParcelas] = useState("1");
   const [recorrente, setRecorrente] = useState(false);
+  const [obs, setObs] = useState("");
   const [mesesRecorrencia, setMesesRecorrencia] = useState("12");
 
   const numParcelas = parseInt(parcelas) || 1;
