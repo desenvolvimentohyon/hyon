@@ -375,6 +375,9 @@ export default function GerarMensalidades() {
                     const dueDate = calcDueDate(c.default_due_day);
                     const courtesy = courtesyMap[c.id];
                     const isCourtesy = courtesy?.enabled || false;
+                    const partial = partialMap[c.id];
+                    const isPartial = partial?.enabled || false;
+                    const showStrike = isCourtesy || isPartial;
                     return (
                       <>
                         <TableRow key={c.id} className={generated ? "opacity-50" : ""}>
@@ -387,7 +390,7 @@ export default function GerarMensalidades() {
                           </TableCell>
                           <TableCell className="font-medium">{c.name}</TableCell>
                           <TableCell className="text-right font-mono">
-                            {isCourtesy ? (
+                            {showStrike ? (
                               <span className="text-muted-foreground line-through">
                                 {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                               </span>
@@ -398,6 +401,13 @@ export default function GerarMensalidades() {
                           <TableCell className="text-center">{c.default_due_day || 10}</TableCell>
                           <TableCell className="text-center text-sm">
                             {format(new Date(dueDate + "T12:00:00"), "dd/MM/yyyy")}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Switch
+                              checked={isPartial}
+                              onCheckedChange={(checked) => togglePartial(c.id, checked)}
+                              disabled={generated}
+                            />
                           </TableCell>
                           <TableCell className="text-center">
                             <Switch
@@ -416,6 +426,11 @@ export default function GerarMensalidades() {
                                 <Gift className="h-3 w-3 mr-1" />
                                 Cortesia
                               </Badge>
+                            ) : isPartial ? (
+                              <Badge variant="warning">
+                                <Percent className="h-3 w-3 mr-1" />
+                                Parcial
+                              </Badge>
                             ) : (
                               <Badge variant="outline" className="text-muted-foreground">
                                 Pendente
@@ -423,10 +438,29 @@ export default function GerarMensalidades() {
                             )}
                           </TableCell>
                         </TableRow>
+                        {isPartial && !generated && (
+                          <TableRow key={`${c.id}-partial`}>
+                            <TableCell />
+                            <TableCell colSpan={7}>
+                              <div className="flex items-center gap-2 pb-1">
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">Valor parcial:</span>
+                                <CurrencyInput
+                                  value={partial?.value || 0}
+                                  onValueChange={(v) => setPartialValue(c.id, v)}
+                                  className="h-8 text-sm w-40"
+                                  placeholder="0,00"
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                  de {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
                         {isCourtesy && !generated && (
                           <TableRow key={`${c.id}-reason`}>
                             <TableCell />
-                            <TableCell colSpan={6}>
+                            <TableCell colSpan={7}>
                               <div className="flex items-center gap-2 pb-1">
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">Motivo:</span>
                                 <Input
