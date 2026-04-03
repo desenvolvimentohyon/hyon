@@ -53,6 +53,16 @@ export default function GerarMensalidades() {
 
     async function load() {
       setLoading(true);
+
+      // Fetch monthly plan IDs first (months_validity = 1)
+      const plansRes = await supabase
+        .from("plans")
+        .select("id")
+        .eq("org_id", orgId!)
+        .eq("months_validity", 1);
+
+      const monthlyPlanIds = (plansRes.data || []).map(p => p.id);
+
       const [cRes, tRes] = await Promise.all([
         supabase
           .from("clients")
@@ -61,6 +71,7 @@ export default function GerarMensalidades() {
           .eq("status", "ativo")
           .eq("recurrence_active", true)
           .gt("monthly_value_final", 0)
+          .in("plan_id", monthlyPlanIds.length ? monthlyPlanIds : ["00000000-0000-0000-0000-000000000000"])
           .order("name"),
         supabase
           .from("financial_titles")
