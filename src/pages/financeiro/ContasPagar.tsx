@@ -314,6 +314,7 @@ export default function ContasPagar() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
   );
 }
 
