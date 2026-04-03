@@ -49,6 +49,7 @@ function dbToTitulo(r: any): TituloFinanceiro {
     formaPagamento: (m.formaPagamento || "boleto") as any,
     contaBancariaId: r.bank_account_id, anexosFake: m.anexosFake || [],
     observacoes: r.notes || "", commissionType: r.commission_type || null,
+    isCourtesy: r.is_courtesy || false, courtesyReason: r.courtesy_reason || null,
     criadoEm: r.created_at, atualizadoEm: r.updated_at,
   };
 }

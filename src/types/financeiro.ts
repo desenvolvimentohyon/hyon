@@ -52,8 +52,10 @@ export interface TituloFinanceiro {
   contaBancariaId: string | null;
   anexosFake: { id: string; nomeArquivo: string; tipo: string }[];
   observacoes: string;
-  commissionType: string | null;
-  criadoEm: string;
+    commissionType: string | null;
+    isCourtesy: boolean;
+    courtesyReason: string | null;
+    criadoEm: string;
   atualizadoEm: string;
 }
 

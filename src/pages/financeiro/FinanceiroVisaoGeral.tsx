@@ -74,7 +74,7 @@ export default function Financeiro() {
     const margem = receitasMes > 0 ? (lucro / receitasMes) * 100 : 0;
 
     // Cortesias no mês atual
-    const cortesiasTitulos = titulos.filter(t => (t as any).isCourtesy && t.competenciaMes === mesAtual);
+    const cortesiasTitulos = titulos.filter(t => t.isCourtesy && t.competenciaMes === mesAtual);
     const cortesiaCount = cortesiasTitulos.length;
     const cortesiaValor = cortesiasTitulos.reduce((s, t) => {
       const cliente = clientesReceita.find(c => c.id === t.clienteId);
