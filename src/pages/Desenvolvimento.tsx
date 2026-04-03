@@ -102,14 +102,17 @@ export default function Desenvolvimento() {
             const Icon = cfg.icon;
             const stagesPct = p.stages_total ? Math.round((p.stages_done! / p.stages_total) * 100) : 0;
             return (
-              <Card key={p.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/desenvolvimento/${p.id}`)}>
+              <Card key={p.id} className="group cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/desenvolvimento/${p.id}`)}>
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h3 className="font-semibold truncate">{p.title}</h3>
                       <p className="text-xs text-muted-foreground truncate">{p.client_name}</p>
                     </div>
-                    <Badge className={`shrink-0 ${cfg.color}`}><Icon className="h-3 w-3 mr-1" />{cfg.label}</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge className={`shrink-0 ${cfg.color}`}><Icon className="h-3 w-3 mr-1" />{cfg.label}</Badge>
+                      <RowActions actions={[{ label: "Excluir projeto", icon: Trash2, variant: "destructive", onClick: () => deleteProject(p.id) }]} />
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
