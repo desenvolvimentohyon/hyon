@@ -1,39 +1,36 @@
 
-## Plano: Gerar Mensalidades em Lote no Financeiro
+
+## Plano: Pagamento Invisível com Motivo na Geração de Mensalidades
 
 ### Objetivo
-Adicionar uma nova sub-página "Gerar Mensalidades" no módulo Financeiro que permite selecionar clientes ativos com mensalidade ativa e gerar títulos de contas a receber em lote.
-
-### Fluxo do Usuário
-1. Acessa Financeiro > Gerar Mensalidades
-2. Seleciona o mês/ano de competência
-3. Sistema lista clientes ativos com `recurrence_active = true`, mostrando: nome, valor mensalidade (`monthly_value_final`), dia de vencimento (`default_due_day`)
-4. Usuário seleciona todos ou individualmente via checkboxes
-5. Ao confirmar, o sistema cria um título `financial_titles` (tipo "receber", origem "mensalidade") para cada cliente selecionado, com vencimento calculado (dia do cliente + mês/ano selecionado)
+Permitir que, ao gerar mensalidades, o usuário marque clientes específicos para "pagamento invisível" — o título é criado já com status `pago` e valor zero, com um motivo registrado (ex: cortesia, bonificação, período de testes). Isso mantém o histórico de competência sem gerar cobrança real.
 
 ### Alterações
 
-#### 1. `src/lib/sidebarModules.ts`
-- Adicionar item "Gerar Mensalidades" no array `children` do módulo financeiro, com URL `/financeiro/gerar-mensalidades`
+#### 1. Migração — coluna `is_courtesy` na tabela `financial_titles`
+- Adicionar `is_courtesy boolean NOT NULL DEFAULT false`
+- Adicionar `courtesy_reason text` (nullable)
+- Permite filtrar/identificar títulos de cortesia nos relatórios
 
-#### 2. `src/App.tsx`
-- Adicionar rota `/financeiro/gerar-mensalidades` apontando para o novo componente
+#### 2. `src/pages/financeiro/GerarMensalidades.tsx`
+- Adicionar coluna "Cortesia" na tabela com um toggle (switch) por cliente
+- Quando ativado, exibir campo de texto inline para o motivo (obrigatório)
+- Clientes marcados como cortesia geram título com:
+  - `status: "pago"`, `valorOriginal: 0`, `is_courtesy: true`, `courtesy_reason: motivo`
+- Botão "Marcar Selecionados como Cortesia" para ação em lote com modal de motivo
 
-#### 3. `src/pages/financeiro/GerarMensalidades.tsx` (novo)
-- Busca clientes da tabela `clients` onde `status = 'ativo'` e `recurrence_active = true`
-- Campos: seletor de competência (mês/ano), conta bancária padrão
-- Tabela com colunas: checkbox, nome do cliente, valor mensalidade, dia vencimento, vencimento calculado
-- Checkbox "selecionar todos" no header
-- Verifica duplicatas (títulos já existentes para mesma competência + cliente + origem mensalidade) antes de gerar
-- Ao confirmar, chama `addTitulo` do `FinanceiroContext` para cada cliente selecionado com:
-  - `tipo: "receber"`, `origem: "mensalidade"`, `status: "aberto"`
-  - `competenciaMes`: mês/ano selecionado
-  - `vencimento`: calculado com o `default_due_day` do cliente
-  - `valorOriginal`: `monthly_value_final` do cliente
-  - `descricao`: "Mensalidade {mês/ano} - {nome do cliente}"
+#### 3. `src/contexts/FinanceiroContext.tsx`
+- Ajustar `addTitulo` para aceitar campos opcionais `is_courtesy` e `courtesy_reason` no metadata/insert
+
+### Fluxo do Usuário
+1. Seleciona competência e clientes normalmente
+2. Para clientes que não serão cobrados, ativa o toggle "Cortesia" na linha
+3. Preenche o motivo (obrigatório)
+4. Ao gerar, esses clientes recebem título com valor R$0,00, status "pago" e motivo registrado
+5. Na competência seguinte, o cliente aparece normalmente como "Pendente"
 
 ### Detalhes Técnicos
-- Query direta ao Supabase para buscar clientes: `supabase.from("clients").select("id, name, monthly_value_final, default_due_day, status, recurrence_active").eq("status", "ativo").eq("recurrence_active", true)`
-- Verificação de duplicatas: query em `financial_titles` filtrando por `origin = 'mensalidade'`, `competency = mês selecionado` e `client_id in (ids selecionados)`
-- Clientes com título já gerado para a competência aparecem desabilitados com badge "Já gerado"
-- Progress feedback durante geração em lote (toast com contagem)
+- Migração SQL: `ALTER TABLE financial_titles ADD COLUMN is_courtesy boolean NOT NULL DEFAULT false; ALTER TABLE financial_titles ADD COLUMN courtesy_reason text;`
+- O título de cortesia é inserido via `addTitulo` com `valorOriginal: 0`, `status: "pago"` e os novos campos
+- Nos relatórios existentes (Contas a Receber), títulos de cortesia aparecem com badge "Cortesia" para diferenciação
+
