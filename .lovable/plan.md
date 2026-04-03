@@ -1,30 +1,30 @@
 
 
-## Plano: Vincular Parcial à Cortesia
+## Plano: Corrigir exibição de mensalidade parcial no Contas a Receber
 
 ### Problema
-Atualmente, cortesia e parcial são mutuamente exclusivos — ativar um desativa o outro. O usuário quer que ao selecionar cortesia, também seja possível informar um valor parcial (pagamento parcial com cortesia).
+Quando uma mensalidade com cortesia parcial é gerada, o sistema define `status: "pago"` porque está dentro do fluxo de cortesia. Isso faz com que o título não apareça nos KPIs e filtros padrão do Contas a Receber (que destacam títulos "aberto" e "vencido"). O título existe no banco mas aparece como já liquidado.
 
 ### Solução
-Permitir que cortesia e parcial coexistam. Quando ambos estão ativos, o título é gerado como cortesia (status "pago", `isCourtesy: true`), mas com o valor parcial informado ao invés de R$ 0,00. Isso representa um "desconto cortesia" onde o cliente paga apenas parte do valor.
+Alterar a lógica de geração para que cortesia parcial (com valor > 0) gere o título com `status: "aberto"` em vez de `"pago"`. Somente cortesia integral (valor = 0) deve ter `status: "pago"`.
 
-### Alterações em `src/pages/financeiro/GerarMensalidades.tsx`
+### Alteração em `src/pages/financeiro/GerarMensalidades.tsx`
 
-1. **Remover exclusão mútua** — nas funções `toggleCourtesy` e `togglePartial`, não desativar o outro ao ativar um
-2. **Expandir linha cortesia** — quando cortesia está ativa, mostrar o campo de motivo E um switch "Pagamento parcial?" com `CurrencyInput` (tudo na mesma área expandida)
-3. **Remover coluna "Parcial" independente** — o parcial passa a ser uma sub-opção dentro da cortesia (simplifica a tabela)
-4. **Atualizar `handleGenerate`** — quando cortesia + parcial ativos, gerar título com `valorOriginal = partialValue`, `status = "pago"`, `isCourtesy = true`, observação combinada
-5. **Atualizar `totalSelected`** — cortesia com parcial soma o valor parcial (não zero)
-6. **Badge de status** — mostrar "Cortesia Parcial" quando ambos estão ativos
+Na função `handleGenerate` (~linha 214), ajustar a definição de status:
 
-### Lógica de geração atualizada
+```typescript
+// Antes:
+status: isCourtesy ? "pago" : "aberto",
+
+// Depois:
+status: (isCourtesy && !isPartial) ? "pago" : "aberto",
 ```
-Se cortesia + parcial: valor = parcialValue, status = "pago", obs = "Cortesia parcial (integral: R$ X) - Motivo: Y"
-Se cortesia sem parcial: valor = 0, status = "pago", obs = "Cortesia: Y"  
-Se apenas parcial (removido — parcial agora vive dentro de cortesia)
-Se normal: valor = mensalidade, status = "aberto"
-```
+
+Isso garante que:
+- **Cortesia integral** (R$ 0): status "pago" (comportamento atual mantido)
+- **Cortesia parcial** (R$ X): status "aberto" → aparece no Contas a Receber como título a cobrar
+- **Normal**: status "aberto" (sem mudança)
 
 ### Impacto
-1 arquivo editado. A coluna "Parcial" separada é removida e o campo de valor parcial fica dentro da área expandida da cortesia.
+1 linha alterada em 1 arquivo. Sem alterações de banco. Os títulos parciais já gerados que precisam aparecer como "aberto" podem ser corrigidos manualmente ou via update no banco.
 
