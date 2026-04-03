@@ -317,9 +317,9 @@ export default function GerarMensalidades() {
                   {courtesyCount > 0 && (
                     <span className="text-warning ml-1">({courtesyCount} cortesia)</span>
                   )}
-                  {partialCount > 0 && (
-                    <span className="text-info ml-1">({partialCount} parcial)</span>
-                  )}
+                   {partialCount > 0 && (
+                     <span className="text-info ml-1">({partialCount} cortesia parcial)</span>
+                   )}
                   {" · Total: "}
                   <span className="text-foreground font-semibold">
                     {totalSelected.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
