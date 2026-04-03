@@ -1,36 +1,25 @@
 
 
-## Plano: Pagamento Invisível com Motivo na Geração de Mensalidades
+## Plano: Card KPI de Cortesias no Financeiro
 
 ### Objetivo
-Permitir que, ao gerar mensalidades, o usuário marque clientes específicos para "pagamento invisível" — o título é criado já com status `pago` e valor zero, com um motivo registrado (ex: cortesia, bonificação, período de testes). Isso mantém o histórico de competência sem gerar cobrança real.
+Adicionar um card KPI no padrão existente (mesmo formato de "Saldo em Bancos", "MRR Atual", etc.) que mostre a quantidade de clientes com cortesia e o valor total das cortesias (baseado no valor de mensalidade original).
 
 ### Alterações
 
-#### 1. Migração — coluna `is_courtesy` na tabela `financial_titles`
-- Adicionar `is_courtesy boolean NOT NULL DEFAULT false`
-- Adicionar `courtesy_reason text` (nullable)
-- Permite filtrar/identificar títulos de cortesia nos relatórios
-
-#### 2. `src/pages/financeiro/GerarMensalidades.tsx`
-- Adicionar coluna "Cortesia" na tabela com um toggle (switch) por cliente
-- Quando ativado, exibir campo de texto inline para o motivo (obrigatório)
-- Clientes marcados como cortesia geram título com:
-  - `status: "pago"`, `valorOriginal: 0`, `is_courtesy: true`, `courtesy_reason: motivo`
-- Botão "Marcar Selecionados como Cortesia" para ação em lote com modal de motivo
-
-#### 3. `src/contexts/FinanceiroContext.tsx`
-- Ajustar `addTitulo` para aceitar campos opcionais `is_courtesy` e `courtesy_reason` no metadata/insert
-
-### Fluxo do Usuário
-1. Seleciona competência e clientes normalmente
-2. Para clientes que não serão cobrados, ativa o toggle "Cortesia" na linha
-3. Preenche o motivo (obrigatório)
-4. Ao gerar, esses clientes recebem título com valor R$0,00, status "pago" e motivo registrado
-5. Na competência seguinte, o cliente aparece normalmente como "Pendente"
+#### 1. `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
+- No `useMemo` de `kpis` (linha ~62): consultar `titulos` filtrando por `isCourtesy === true` no mês atual para obter:
+  - `cortesiaCount`: quantidade de títulos de cortesia
+  - `cortesiaValor`: soma dos valores de mensalidade dos clientes com cortesia (via cross-reference com `clientesReceita` ou via campo `valorOriginal` do título — como cortesias são geradas com valor 0, buscar o valor real do cliente)
+- Adicionar novo card no array `kpiCards` (linha ~174):
+  - `{ label: "Cortesias no Mês", value: "3 clientes", secondaryValue: "R$ 1.500", icon: Gift, color: "text-purple-400" }`
+- O card mostrará quantidade de clientes no valor principal e o valor "perdido" em cortesias como subtexto
 
 ### Detalhes Técnicos
-- Migração SQL: `ALTER TABLE financial_titles ADD COLUMN is_courtesy boolean NOT NULL DEFAULT false; ALTER TABLE financial_titles ADD COLUMN courtesy_reason text;`
-- O título de cortesia é inserido via `addTitulo` com `valorOriginal: 0`, `status: "pago"` e os novos campos
-- Nos relatórios existentes (Contas a Receber), títulos de cortesia aparecem com badge "Cortesia" para diferenciação
+- Como os títulos de cortesia são salvos com `valorOriginal: 0`, o valor real da cortesia precisa vir do `monthly_value_final` do cliente (via `clientesReceita`) ou ser salvo no momento da geração. A abordagem mais simples: no momento da geração, salvar o valor original da mensalidade no campo `observacoes` ou em um campo dedicado. Alternativa: cruzar `client_id` do título com `clientesReceita` para pegar `valorMensalidade`.
+- Vou usar a abordagem de cruzamento com dados do cliente para calcular o valor real das cortesias.
+- O card segue exatamente o mesmo padrão visual dos demais KPIs (ícone + label + valor).
+
+### Estimativa
+~1 arquivo alterado (`FinanceiroVisaoGeral.tsx`), adição de ~15 linhas.
 
