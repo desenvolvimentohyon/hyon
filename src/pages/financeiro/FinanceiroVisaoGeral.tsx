@@ -187,6 +187,7 @@ export default function Financeiro() {
     { label: "MRR Atual", value: fmt(kpis.mrr), icon: DollarSign, color: "text-info" },
     { label: "Lucro Líquido Mês", value: fmt(kpis.lucro), icon: kpis.lucro >= 0 ? ArrowUpRight : ArrowDownRight, color: kpis.lucro >= 0 ? "text-success" : "text-destructive" },
     { label: "Margem % Mês", value: fmtPct(kpis.margem), icon: Percent, color: kpis.margem >= 0 ? "text-success" : "text-destructive" },
+    { label: "Cortesias no Mês", value: `${kpis.cortesiaCount} cliente${kpis.cortesiaCount !== 1 ? "s" : ""}`, secondaryValue: fmt(kpis.cortesiaValor), icon: Gift, color: "text-purple-400" },
   ];
 
   return (
