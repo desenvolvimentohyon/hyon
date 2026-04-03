@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt, Trash2 } from "lucide-react";
+import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt, Trash2, Gift } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
 import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS } from "@/types/financeiro";
@@ -73,11 +73,19 @@ export default function Financeiro() {
     const lucro = receitasMes - despesasMes;
     const margem = receitasMes > 0 ? (lucro / receitasMes) * 100 : 0;
 
+    // Cortesias no mês atual
+    const cortesiasTitulos = titulos.filter(t => (t as any).isCourtesy && t.competenciaMes === mesAtual);
+    const cortesiaCount = cortesiasTitulos.length;
+    const cortesiaValor = cortesiasTitulos.reduce((s, t) => {
+      const cliente = clientesReceita.find(c => c.id === t.clienteId);
+      return s + (cliente?.valorMensalidade || 0);
+    }, 0);
+
     return {
       saldoBancos, totalReceber: receber.reduce((s, t) => s + t.valorOriginal, 0),
       totalPagar: pagar.reduce((s, t) => s + t.valorOriginal, 0),
       inadimplencia: vencidos.reduce((s, t) => s + t.valorOriginal + t.juros + t.multa, 0),
-      mrr, lucro, margem
+      mrr, lucro, margem, cortesiaCount, cortesiaValor
     };
   }, [titulos, contasBancarias, getSaldoConta, clientesReceita]);
 
@@ -179,6 +187,7 @@ export default function Financeiro() {
     { label: "MRR Atual", value: fmt(kpis.mrr), icon: DollarSign, color: "text-info" },
     { label: "Lucro Líquido Mês", value: fmt(kpis.lucro), icon: kpis.lucro >= 0 ? ArrowUpRight : ArrowDownRight, color: kpis.lucro >= 0 ? "text-success" : "text-destructive" },
     { label: "Margem % Mês", value: fmtPct(kpis.margem), icon: Percent, color: kpis.margem >= 0 ? "text-success" : "text-destructive" },
+    { label: "Cortesias no Mês", value: `${kpis.cortesiaCount} cliente${kpis.cortesiaCount !== 1 ? "s" : ""}`, secondaryValue: fmt(kpis.cortesiaValor), icon: Gift, color: "text-purple-400" },
   ];
 
   return (
@@ -204,7 +213,7 @@ export default function Financeiro() {
       
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
         {kpiCards.map(k => (
           <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5">
             <CardContent className="p-4">
@@ -213,6 +222,9 @@ export default function Financeiro() {
                 <span className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{k.label}</span>
               </div>
               <p className="text-xl font-bold text-foreground">{k.value}</p>
+              {"secondaryValue" in k && k.secondaryValue && (
+                <p className="text-xs text-muted-foreground mt-0.5">{k.secondaryValue}</p>
+              )}
             </CardContent>
           </Card>
         ))}
