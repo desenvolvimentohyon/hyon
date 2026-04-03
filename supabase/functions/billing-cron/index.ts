@@ -22,25 +22,6 @@ function isCronAuthorized(req: Request): boolean {
   if (apiKey && anonKey && apiKey === anonKey) return true;
   return false;
 }
-  if (cronSecret && cronSecret === Deno.env.get("CRON_SECRET")) return true;
-
-  // Accept anon key from pg_cron (check both possible env var names)
-  const authHeader = req.headers.get("Authorization");
-  if (authHeader) {
-    const token = authHeader.replace("Bearer ", "");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    if (anonKey && token === anonKey) return true;
-  }
-
-  // Also accept if called internally (pg_cron sends the apikey header)
-  const apiKey = req.headers.get("apikey");
-  if (apiKey) {
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    if (anonKey && apiKey === anonKey) return true;
-  }
-
-  return false;
-}
 
 // ── Minimal web-push helpers (same as push-notifications) ──
 function base64urlToUint8Array(b64url: string): Uint8Array {
