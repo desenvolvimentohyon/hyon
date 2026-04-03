@@ -113,8 +113,8 @@ export default function GerarMensalidades() {
       ...prev,
       [id]: { enabled, reason: prev[id]?.reason || "" },
     }));
-    // Disable partial when courtesy is enabled
-    if (enabled) {
+    // When disabling courtesy, also disable partial
+    if (!enabled) {
       setPartialMap((prev) => ({ ...prev, [id]: { enabled: false, value: 0 } }));
     }
     if (enabled && !selectedIds.has(id)) {
@@ -134,13 +134,6 @@ export default function GerarMensalidades() {
       ...prev,
       [id]: { enabled, value: prev[id]?.value || 0 },
     }));
-    // Disable courtesy when partial is enabled
-    if (enabled) {
-      setCourtesyMap((prev) => ({ ...prev, [id]: { enabled: false, reason: "" } }));
-    }
-    if (enabled && !selectedIds.has(id)) {
-      setSelectedIds((prev) => new Set(prev).add(id));
-    }
   }
 
   function setPartialValue(id: string, value: number) {
@@ -190,15 +183,19 @@ export default function GerarMensalidades() {
       const isCourtesy = courtesyMap[client.id]?.enabled || false;
       const isPartial = partialMap[client.id]?.enabled || false;
       const partialValue = partialMap[client.id]?.value || 0;
-
-      const valorOriginal = isCourtesy ? 0 : isPartial ? partialValue : client.monthly_value_final;
-      const descSuffix = isCourtesy ? " (Cortesia)" : isPartial ? " (Parcial)" : "";
       const cReason = courtesyMap[client.id]?.reason || "";
+
+      const valorOriginal = isCourtesy
+        ? (isPartial ? partialValue : 0)
+        : client.monthly_value_final;
+      const descSuffix = isCourtesy
+        ? (isPartial ? " (Cortesia Parcial)" : " (Cortesia)")
+        : "";
       const obs = isCourtesy
-        ? `Cortesia: ${cReason}`
-        : isPartial
-          ? `Mensalidade parcial (valor integral: ${client.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
-          : "";
+        ? isPartial
+          ? `Cortesia parcial (valor integral: ${client.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) - Motivo: ${cReason}`
+          : `Cortesia: ${cReason}`
+        : "";
 
       const ok = await addTitulo({
         tipo: "receber",
@@ -250,11 +247,13 @@ export default function GerarMensalidades() {
       const isCourtesy = courtesyMap[c.id]?.enabled || false;
       const isPartial = partialMap[c.id]?.enabled || false;
       const partialValue = partialMap[c.id]?.value || 0;
-      return sum + (isCourtesy ? 0 : isPartial ? partialValue : c.monthly_value_final);
+      if (isCourtesy && isPartial) return sum + partialValue;
+      if (isCourtesy) return sum;
+      return sum + c.monthly_value_final;
     }, 0);
 
   const courtesyCount = clients.filter((c) => selectedIds.has(c.id) && courtesyMap[c.id]?.enabled).length;
-  const partialCount = clients.filter((c) => selectedIds.has(c.id) && partialMap[c.id]?.enabled).length;
+  const partialCount = clients.filter((c) => selectedIds.has(c.id) && courtesyMap[c.id]?.enabled && partialMap[c.id]?.enabled).length;
 
   const yearOptions = [selectedYear - 1, selectedYear, selectedYear + 1];
 
@@ -318,9 +317,9 @@ export default function GerarMensalidades() {
                   {courtesyCount > 0 && (
                     <span className="text-warning ml-1">({courtesyCount} cortesia)</span>
                   )}
-                  {partialCount > 0 && (
-                    <span className="text-info ml-1">({partialCount} parcial)</span>
-                  )}
+                   {partialCount > 0 && (
+                     <span className="text-info ml-1">({partialCount} cortesia parcial)</span>
+                   )}
                   {" · Total: "}
                   <span className="text-foreground font-semibold">
                     {totalSelected.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
@@ -364,7 +363,6 @@ export default function GerarMensalidades() {
                     <TableHead className="text-right">Mensalidade</TableHead>
                      <TableHead className="text-center">Dia Venc.</TableHead>
                      <TableHead className="text-center">Vencimento</TableHead>
-                     <TableHead className="text-center">Parcial</TableHead>
                      <TableHead className="text-center">Cortesia</TableHead>
                      <TableHead className="text-center">Status</TableHead>
                   </TableRow>
@@ -403,76 +401,74 @@ export default function GerarMensalidades() {
                             {format(new Date(dueDate + "T12:00:00"), "dd/MM/yyyy")}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Switch
-                              checked={isPartial}
-                              onCheckedChange={(checked) => togglePartial(c.id, checked)}
-                              disabled={generated}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Switch
-                              checked={isCourtesy}
-                              onCheckedChange={(checked) => toggleCourtesy(c.id, checked)}
-                              disabled={generated}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {generated ? (
-                              <Badge variant="outline" className="text-success border-success/30">
-                                Já gerado
-                              </Badge>
-                            ) : isCourtesy ? (
-                              <Badge variant="warning">
-                                <Gift className="h-3 w-3 mr-1" />
-                                Cortesia
-                              </Badge>
-                            ) : isPartial ? (
-                              <Badge variant="warning">
-                                <Percent className="h-3 w-3 mr-1" />
-                                Parcial
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-muted-foreground">
-                                Pendente
-                              </Badge>
-                            )}
+                             <Switch
+                               checked={isCourtesy}
+                               onCheckedChange={(checked) => toggleCourtesy(c.id, checked)}
+                               disabled={generated}
+                             />
+                           </TableCell>
+                           <TableCell className="text-center">
+                             {generated ? (
+                               <Badge variant="outline" className="text-success border-success/30">
+                                 Já gerado
+                               </Badge>
+                             ) : isCourtesy && isPartial ? (
+                               <Badge variant="info">
+                                 <Percent className="h-3 w-3 mr-1" />
+                                 Cortesia Parcial
+                               </Badge>
+                             ) : isCourtesy ? (
+                               <Badge variant="warning">
+                                 <Gift className="h-3 w-3 mr-1" />
+                                 Cortesia
+                               </Badge>
+                             ) : (
+                               <Badge variant="outline" className="text-muted-foreground">
+                                 Pendente
+                               </Badge>
+                             )}
                           </TableCell>
                         </TableRow>
-                        {isPartial && !generated && (
-                          <TableRow key={`${c.id}-partial`}>
-                            <TableCell />
-                            <TableCell colSpan={7}>
-                              <div className="flex items-center gap-2 pb-1">
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">Valor parcial:</span>
-                                <CurrencyInput
-                                  value={partial?.value || 0}
-                                  onValueChange={(v) => setPartialValue(c.id, v)}
-                                  className="h-8 text-sm w-40"
-                                  placeholder="0,00"
-                                />
-                                <span className="text-xs text-muted-foreground">
-                                  de {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                </span>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
                         {isCourtesy && !generated && (
-                          <TableRow key={`${c.id}-reason`}>
-                            <TableCell />
-                            <TableCell colSpan={7}>
-                              <div className="flex items-center gap-2 pb-1">
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">Motivo:</span>
-                                <Input
-                                  placeholder="Ex: Cortesia, bonificação, período de testes..."
-                                  value={courtesy?.reason || ""}
-                                  onChange={(e) => setCourtesyReason(c.id, e.target.value)}
-                                  className="h-8 text-sm max-w-md"
-                                />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
+                           <TableRow key={`${c.id}-courtesy-details`}>
+                             <TableCell />
+                             <TableCell colSpan={6}>
+                               <div className="space-y-2 pb-1">
+                                 <div className="flex items-center gap-2">
+                                   <span className="text-xs text-muted-foreground whitespace-nowrap">Motivo:</span>
+                                   <Input
+                                     placeholder="Ex: Cortesia, bonificação, período de testes..."
+                                     value={courtesy?.reason || ""}
+                                     onChange={(e) => setCourtesyReason(c.id, e.target.value)}
+                                     className="h-8 text-sm max-w-md"
+                                   />
+                                 </div>
+                                 <div className="flex items-center gap-3">
+                                   <div className="flex items-center gap-2">
+                                     <Switch
+                                       checked={isPartial}
+                                       onCheckedChange={(checked) => togglePartial(c.id, checked)}
+                                     />
+                                     <span className="text-xs text-muted-foreground">Pagamento parcial?</span>
+                                   </div>
+                                   {isPartial && (
+                                     <div className="flex items-center gap-2">
+                                       <CurrencyInput
+                                         value={partial?.value || 0}
+                                         onValueChange={(v) => setPartialValue(c.id, v)}
+                                         className="h-8 text-sm w-40"
+                                         placeholder="0,00"
+                                       />
+                                       <span className="text-xs text-muted-foreground">
+                                         de {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                       </span>
+                                     </div>
+                                   )}
+                                 </div>
+                               </div>
+                             </TableCell>
+                           </TableRow>
+                         )}
                       </>
                     );
                   })}
