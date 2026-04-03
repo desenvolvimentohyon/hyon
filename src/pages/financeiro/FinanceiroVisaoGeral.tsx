@@ -73,11 +73,19 @@ export default function Financeiro() {
     const lucro = receitasMes - despesasMes;
     const margem = receitasMes > 0 ? (lucro / receitasMes) * 100 : 0;
 
+    // Cortesias no mês atual
+    const cortesiasTitulos = titulos.filter(t => (t as any).isCourtesy && t.competenciaMes === mesAtual);
+    const cortesiaCount = cortesiasTitulos.length;
+    const cortesiaValor = cortesiasTitulos.reduce((s, t) => {
+      const cliente = clientesReceita.find(c => c.id === t.clienteId);
+      return s + (cliente?.valorMensalidade || 0);
+    }, 0);
+
     return {
       saldoBancos, totalReceber: receber.reduce((s, t) => s + t.valorOriginal, 0),
       totalPagar: pagar.reduce((s, t) => s + t.valorOriginal, 0),
       inadimplencia: vencidos.reduce((s, t) => s + t.valorOriginal + t.juros + t.multa, 0),
-      mrr, lucro, margem
+      mrr, lucro, margem, cortesiaCount, cortesiaValor
     };
   }, [titulos, contasBancarias, getSaldoConta, clientesReceita]);
 
