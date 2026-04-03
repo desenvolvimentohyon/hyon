@@ -49,17 +49,26 @@ export function useCockpitCharts() {
 
         // Clients evolution
         const sixMonthsAgo = format(subMonths(now, 6), "yyyy-MM-dd");
-        const { data: allClients } = await supabase
-          .from("clients")
-          .select("created_at, cancelled_at, status")
-          .gte("created_at", sixMonthsAgo);
+        const [{ data: newClients }, { data: cancelledClients }] = await Promise.all([
+          supabase
+            .from("clients")
+            .select("created_at")
+            .gte("created_at", sixMonthsAgo),
+          supabase
+            .from("clients")
+            .select("cancelled_at")
+            .not("cancelled_at", "is", null)
+            .gte("cancelled_at", sixMonthsAgo),
+        ]);
 
         const novosMap: Record<string, number> = {};
         const canceladosMap: Record<string, number> = {};
         months.forEach(m => { novosMap[m] = 0; canceladosMap[m] = 0; });
-        allClients?.forEach(c => {
+        newClients?.forEach(c => {
           const cm = format(new Date(c.created_at), "yyyy-MM");
           if (novosMap[cm] !== undefined) novosMap[cm]++;
+        });
+        cancelledClients?.forEach(c => {
           if (c.cancelled_at) {
             const ccm = format(new Date(c.cancelled_at), "yyyy-MM");
             if (canceladosMap[ccm] !== undefined) canceladosMap[ccm]++;

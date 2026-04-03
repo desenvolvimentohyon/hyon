@@ -49,7 +49,7 @@ const CardFaturamento = lazy(() => import("./pages/cartoes/CardFaturamento"));
 const CardPropostaPublica = lazy(() => import("./pages/cartoes/CardPropostaPublica"));
 const RenovarPlano = lazy(() => import("./pages/RenovarPlano"));
 const TicketTracking = lazy(() => import("./pages/TicketTracking"));
-const Cockpit = lazy(() => import("./pages/Cockpit"));
+
 const Desenvolvimento = lazy(() => import("./pages/Desenvolvimento"));
 const DesenvolvimentoDetalhe = lazy(() => import("./pages/DesenvolvimentoDetalhe"));
 const FinanceiroVisaoGeral = lazy(() => import("./pages/financeiro/FinanceiroVisaoGeral"));
@@ -127,7 +127,7 @@ function AuthGate() {
                   <Routes>
                     <Route element={<AppLayout />}>
                       <Route path="/" element={<Dashboard />} />
-                      <Route path="/cockpit" element={<Cockpit />} />
+                      <Route path="/cockpit" element={<Navigate to="/executivo" replace />} />
                       <Route path="/tarefas" element={<Tarefas />} />
                       <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
                       <Route path="/clientes" element={<ClientesReceita />} />
