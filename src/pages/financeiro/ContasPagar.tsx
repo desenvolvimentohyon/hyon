@@ -55,8 +55,10 @@ export default function ContasPagar() {
     if (filtroStatus !== "todos") list = list.filter(t => t.status === filtroStatus);
     if (filtroFornecedor) list = list.filter(t => t.fornecedorNome?.toLowerCase().includes(filtroFornecedor.toLowerCase()) || t.descricao.toLowerCase().includes(filtroFornecedor.toLowerCase()));
     if (filtroOrigem !== "todos") list = list.filter(t => t.origem === filtroOrigem);
+    if (filtroTipo === "recorrente") list = list.filter(t => t.descricao.includes("(recorrente"));
+    if (filtroTipo === "parcelado") list = list.filter(t => /\(\d+\/\d+\)/.test(t.descricao) && !t.descricao.includes("(recorrente"));
     return list.sort((a, b) => new Date(a.vencimento).getTime() - new Date(b.vencimento).getTime());
-  }, [titulos, filtroStatus, filtroFornecedor, filtroOrigem]);
+  }, [titulos, filtroStatus, filtroFornecedor, filtroOrigem, filtroTipo]);
 
   const hoje = new Date().toISOString().split("T")[0];
   const vencidos = pagar.filter(t => t.status === "aberto" && t.vencimento < hoje);
