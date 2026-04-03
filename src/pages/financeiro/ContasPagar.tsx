@@ -151,7 +151,12 @@ export default function ContasPagar() {
             <TableBody>
               {pagar.slice(0, 50).map(t => (
                 <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
-                  <TableCell className="font-medium text-sm">{t.descricao}</TableCell>
+                  <TableCell className="font-medium text-sm">
+                    {t.descricao}
+                    {/\(\d+\/\d+\)/.test(t.descricao) && (
+                      <Badge variant="secondary" className="ml-2 text-[10px]">Parcelado</Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-sm">{t.fornecedorNome || "—"}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-xs">{t.origem}</Badge>
