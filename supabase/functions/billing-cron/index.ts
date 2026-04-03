@@ -11,11 +11,21 @@ function isCronAuthorized(req: Request): boolean {
   const cronSecret = req.headers.get("x-cron-secret");
   if (cronSecret && cronSecret === Deno.env.get("CRON_SECRET")) return true;
 
+  // Accept anon key from pg_cron (check both possible env var names)
   const authHeader = req.headers.get("Authorization");
   if (authHeader) {
     const token = authHeader.replace("Bearer ", "");
-    if (token === Deno.env.get("SUPABASE_ANON_KEY")) return true;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+    if (anonKey && token === anonKey) return true;
   }
+
+  // Also accept if called internally (pg_cron sends the apikey header)
+  const apiKey = req.headers.get("apikey");
+  if (apiKey) {
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+    if (anonKey && apiKey === anonKey) return true;
+  }
+
   return false;
 }
 
