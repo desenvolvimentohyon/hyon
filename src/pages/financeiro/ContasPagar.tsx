@@ -418,7 +418,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
         valorOriginal: recorrente ? Math.round(valorTotal * 100) / 100 : Math.round(valorParcela * 100) / 100,
         desconto: 0, juros: 0, multa: 0,
         status: "aberto", formaPagamento: "boleto",
-        contaBancariaId: null, anexosFake: [], observacoes: "", commissionType: null,
+        contaBancariaId: null, anexosFake: [], observacoes: obs, commissionType: null,
         isCourtesy: false, courtesyReason: null,
       });
     }
