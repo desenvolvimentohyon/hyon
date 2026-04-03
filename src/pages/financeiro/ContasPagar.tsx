@@ -154,7 +154,9 @@ export default function ContasPagar() {
                 <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
                   <TableCell className="font-medium text-sm">
                     {t.descricao}
-                    {/\(\d+\/\d+\)/.test(t.descricao) && (
+                    {/\(recorrente \d+\/\d+\)/.test(t.descricao) ? (
+                      <Badge variant="secondary" className="ml-2 text-[10px]"><Repeat className="h-3 w-3 inline mr-0.5" />Recorrente</Badge>
+                    ) : /\(\d+\/\d+\)/.test(t.descricao) && (
                       <Badge variant="secondary" className="ml-2 text-[10px]">Parcelado</Badge>
                     )}
                   </TableCell>
