@@ -401,39 +401,32 @@ export default function GerarMensalidades() {
                             {format(new Date(dueDate + "T12:00:00"), "dd/MM/yyyy")}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Switch
-                              checked={isPartial}
-                              onCheckedChange={(checked) => togglePartial(c.id, checked)}
-                              disabled={generated}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Switch
-                              checked={isCourtesy}
-                              onCheckedChange={(checked) => toggleCourtesy(c.id, checked)}
-                              disabled={generated}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {generated ? (
-                              <Badge variant="outline" className="text-success border-success/30">
-                                Já gerado
-                              </Badge>
-                            ) : isCourtesy ? (
-                              <Badge variant="warning">
-                                <Gift className="h-3 w-3 mr-1" />
-                                Cortesia
-                              </Badge>
-                            ) : isPartial ? (
-                              <Badge variant="warning">
-                                <Percent className="h-3 w-3 mr-1" />
-                                Parcial
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-muted-foreground">
-                                Pendente
-                              </Badge>
-                            )}
+                             <Switch
+                               checked={isCourtesy}
+                               onCheckedChange={(checked) => toggleCourtesy(c.id, checked)}
+                               disabled={generated}
+                             />
+                           </TableCell>
+                           <TableCell className="text-center">
+                             {generated ? (
+                               <Badge variant="outline" className="text-success border-success/30">
+                                 Já gerado
+                               </Badge>
+                             ) : isCourtesy && isPartial ? (
+                               <Badge variant="info">
+                                 <Percent className="h-3 w-3 mr-1" />
+                                 Cortesia Parcial
+                               </Badge>
+                             ) : isCourtesy ? (
+                               <Badge variant="warning">
+                                 <Gift className="h-3 w-3 mr-1" />
+                                 Cortesia
+                               </Badge>
+                             ) : (
+                               <Badge variant="outline" className="text-muted-foreground">
+                                 Pendente
+                               </Badge>
+                             )}
                           </TableCell>
                         </TableRow>
                         {isPartial && !generated && (
