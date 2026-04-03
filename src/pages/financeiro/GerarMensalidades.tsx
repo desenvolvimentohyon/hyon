@@ -113,8 +113,8 @@ export default function GerarMensalidades() {
       ...prev,
       [id]: { enabled, reason: prev[id]?.reason || "" },
     }));
-    // Disable partial when courtesy is enabled
-    if (enabled) {
+    // When disabling courtesy, also disable partial
+    if (!enabled) {
       setPartialMap((prev) => ({ ...prev, [id]: { enabled: false, value: 0 } }));
     }
     if (enabled && !selectedIds.has(id)) {
