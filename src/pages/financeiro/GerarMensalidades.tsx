@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Receipt, CalendarDays, Users, Loader2, Gift } from "lucide-react";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { Receipt, CalendarDays, Users, Loader2, Gift, Percent } from "lucide-react";
 
 interface ClientRow {
   id: string;
