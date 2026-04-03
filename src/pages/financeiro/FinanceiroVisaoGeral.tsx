@@ -289,7 +289,20 @@ export default function Financeiro() {
           <CardHeader><CardTitle className="text-sm">Evolução MRR (12 meses)</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={fluxoCaixa.map((f, i) => ({ ...f, mrr: kpis.mrr * (0.85 + i * 0.015) }))}>
+              <LineChart data={(() => {
+                const months: Record<string, number> = {};
+                for (let i = 11; i >= 0; i--) {
+                  const d = new Date(); d.setMonth(d.getMonth() - i);
+                  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                  months[key] = 0;
+                }
+                titulos.filter(t => t.tipo === "receber" && t.status === "pago" && t.origem === "mensalidade")
+                  .forEach(t => { if (t.competenciaMes && months[t.competenciaMes] !== undefined) months[t.competenciaMes] += t.valorOriginal; });
+                return Object.entries(months).map(([key, value]) => {
+                  const d = new Date(key + "-01");
+                  return { mes: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }), mrr: value };
+                });
+              })()}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />

@@ -72,7 +72,9 @@ export default function ContasReceber() {
 
   const handleCobranca = (t: TituloFinanceiro) => {
     const cli = clientesReceita.find(c => c.id === t.clienteId);
-    const msg = `Olá ${cli?.nome || "Cliente"}, seu título "${t.descricao}" no valor de ${fmt(t.valorOriginal)} venceu em ${new Date(t.vencimento).toLocaleDateString("pt-BR")}. Chave PIX: financeiro@gestask.com`;
+    const defaultBank = contasBancarias.find(c => c.nome === contasBancarias[0]?.nome);
+    const pixInfo = defaultBank?.nome ? `Conta: ${defaultBank.nome}` : "";
+    const msg = `Olá ${cli?.nome || "Cliente"}, seu título "${t.descricao}" no valor de ${fmt(t.valorOriginal)} venceu em ${new Date(t.vencimento).toLocaleDateString("pt-BR")}.${pixInfo ? ` ${pixInfo}` : ""}`;
     navigator.clipboard.writeText(msg);
     toast.success("Mensagem de cobrança copiada!");
   };
@@ -273,7 +275,7 @@ function NovoTituloModal({ open, onClose, tipo }: { open: boolean; onClose: () =
       competenciaMes: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
       dataEmissao: now.toISOString().split("T")[0], vencimento: venc,
       valorOriginal: parseFloat(valor), desconto: 0, juros: 0, multa: 0,
-      status: "aberto", formaPagamento: "pix", contaBancariaId: "cb1",
+      status: "aberto", formaPagamento: "pix", contaBancariaId: contasBancarias[0]?.id || null,
       anexosFake: [], observacoes: "", commissionType: null,
       isCourtesy: false, courtesyReason: null,
     });
