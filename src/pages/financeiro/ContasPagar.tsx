@@ -80,6 +80,27 @@ export default function ContasPagar() {
     setExcluirId(null);
   };
 
+  const getFuturosRecorrentes = (tituloId: string) => {
+    const titulo = titulos.find(t => t.id === tituloId);
+    if (!titulo) return [];
+    const baseDesc = titulo.descricao.replace(/\s*\(recorrente \d+\/\d+\)/, "");
+    return titulos.filter(t =>
+      t.id !== tituloId &&
+      t.status === "aberto" &&
+      t.descricao.replace(/\s*\(recorrente \d+\/\d+\)/, "") === baseDesc &&
+      t.descricao.includes("(recorrente") &&
+      t.vencimento > titulo.vencimento
+    );
+  };
+
+  const handleCancelarFuturos = () => {
+    if (!cancelarFuturosId) return;
+    const futuros = getFuturosRecorrentes(cancelarFuturosId);
+    futuros.forEach(t => deleteTitulo(t.id));
+    toast.success(`${futuros.length} lançamentos futuros excluídos!`);
+    setCancelarFuturosId(null);
+  };
+
   const statusBadge = (status: string) => {
     const variants: Record<string, string> = {
       aberto: "bg-info/10 text-info border-info/20",
