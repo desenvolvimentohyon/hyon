@@ -1,32 +1,26 @@
 
 
-## Plano: Adicionar Checkbox de Recorrência em Contas a Pagar
+## Plano: Reduzir Tamanho do Card/Modal "Lançar Despesa"
 
-### O que será feito
-Adicionar um checkbox "Recorrente" no formulário "Lançar Despesa" que, quando marcado, gera automaticamente lançamentos mensais repetidos por um número de meses definido pelo usuário.
+### Problema
+O modal de "Lançar Despesa" ocupa muito espaço vertical com campos espalhados e espaçamento largo.
 
 ### Alterações em `src/pages/financeiro/ContasPagar.tsx`
 
-**1. Novo estado no `NovaDespesaForm`**
-- `recorrente: boolean` (default false)
-- `mesesRecorrencia: string` (default "12") — quantos meses gerar
+**1. Compactar o formulário `NovaDespesaForm`**
+- Reduzir `space-y-3` para `space-y-2`
+- Agrupar campos em pares lado a lado usando grid de 2 colunas:
+  - Linha 1: Descrição (full width)
+  - Linha 2: Valor + Parcelas/Meses
+  - Linha 3: Vencimento + Fornecedor
+  - Linha 4: Categoria (full width)
+  - Checkbox de recorrência inline
+- Reduzir padding do card de resumo de parcelas de `p-4` para `p-3`
+- Usar `text-base` ao invés de `text-lg` no resumo de parcelas
 
-**2. Checkbox + campo de meses**
-- Abaixo do campo "Parcelas", adicionar um `Checkbox` com label "Despesa recorrente (mensal)"
-- Quando marcado, exibir campo "Quantidade de meses" e ocultar o campo de parcelas (recorrência e parcelamento são mutuamente exclusivos)
-- Exibir resumo: "12x de R$ 500,00 — de 03/04/2026 até 03/03/2027"
-
-**3. Lógica de salvamento**
-- Se recorrente, gerar N títulos (um por mês) com o **valor cheio** (não dividido), cada um com vencimento e competência incrementados mensalmente
-- Descrição: "Aluguel (recorrente 1/12)", "Aluguel (recorrente 2/12)", etc.
-
-**4. Badge na tabela**
-- Identificar padrão `(recorrente X/Y)` na descrição e exibir badge "Recorrente" em vez de "Parcelado"
-
-### Diferença entre Parcelas e Recorrência
-- **Parcelas**: valor total dividido entre N meses
-- **Recorrência**: mesmo valor repetido por N meses
+**2. Reduzir tamanho do DialogContent**
+- Adicionar `className="sm:max-w-md"` ao `DialogContent` do modal "Lançar Despesa" (padrão é `sm:max-w-lg`)
 
 ### Impacto
-1 arquivo editado, ~25 linhas adicionadas. Importar `Checkbox` de `@/components/ui/checkbox`.
+1 arquivo, ~15 linhas alteradas. Layout mais compacto sem perder funcionalidade.
 
