@@ -387,6 +387,13 @@ export default function Clientes() {
           const margem = c.valorMensalidade - c.valorCustoMensal;
           return (
             <ClienteCard
+              selected={batchMode && selectedIds.has(c.id)}
+              checkbox={batchMode ? (
+                <Checkbox
+                  checked={selectedIds.has(c.id)}
+                  onCheckedChange={() => toggleBatchSelect(c.id)}
+                />
+              ) : undefined}
               key={c.id}
               nome={c.nome}
               documento={c.documento}
