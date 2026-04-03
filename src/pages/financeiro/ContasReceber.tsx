@@ -36,7 +36,17 @@ export default function ContasReceber() {
   }, [contasBancarias]);
 
   const receber = useMemo(() => {
-    let list = titulos.filter(t => t.tipo === "receber");
+    const now = new Date();
+    const mesAtualInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+    const mesAtualFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+    const hj = new Date().toISOString().split("T")[0];
+
+    let list = titulos.filter(t => {
+      if (t.tipo !== "receber") return false;
+      if (t.vencimento >= mesAtualInicio && t.vencimento <= mesAtualFim) return true;
+      if (t.vencimento < mesAtualInicio && (t.status === "vencido" || (t.status === "aberto" && t.vencimento < hj))) return true;
+      return false;
+    });
     if (filtroStatus !== "todos") list = list.filter(t => t.status === filtroStatus);
     if (filtroCliente) list = list.filter(t => {
       const cli = clientesReceita.find(c => c.id === t.clienteId);
