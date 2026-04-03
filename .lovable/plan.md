@@ -1,30 +1,59 @@
 
 
-## Plano: Corrigir exibição de mensalidade parcial no Contas a Receber
+## Plano: Filtrar títulos por mês atual + vencidos anteriores
 
 ### Problema
-Quando uma mensalidade com cortesia parcial é gerada, o sistema define `status: "pago"` porque está dentro do fluxo de cortesia. Isso faz com que o título não apareça nos KPIs e filtros padrão do Contas a Receber (que destacam títulos "aberto" e "vencido"). O título existe no banco mas aparece como já liquidado.
+Atualmente, Contas a Receber e Contas a Pagar exibem **todos** os títulos do banco, independente do mês. O usuário quer ver apenas títulos do mês atual, com exceção de títulos vencidos/em atraso de meses anteriores.
 
 ### Solução
-Alterar a lógica de geração para que cortesia parcial (com valor > 0) gere o título com `status: "aberto"` em vez de `"pago"`. Somente cortesia integral (valor = 0) deve ter `status: "pago"`.
+Adicionar um filtro de data no `useMemo` de cada página, mantendo apenas:
+1. Títulos com vencimento no **mês atual** (qualquer status)
+2. Títulos de **meses anteriores** que estejam com status `"vencido"` ou `"aberto"` com vencimento passado (em atraso)
 
-### Alteração em `src/pages/financeiro/GerarMensalidades.tsx`
+### Alterações
 
-Na função `handleGenerate` (~linha 214), ajustar a definição de status:
+#### `src/pages/financeiro/ContasReceber.tsx`
+No `useMemo` `receber` (~linha 38-46), adicionar filtro temporal antes dos filtros existentes:
 
 ```typescript
-// Antes:
-status: isCourtesy ? "pago" : "aberto",
+const receber = useMemo(() => {
+  const now = new Date();
+  const mesAtualInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  const mesAtualFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+  const hoje = new Date().toISOString().split("T")[0];
 
-// Depois:
-status: (isCourtesy && !isPartial) ? "pago" : "aberto",
+  let list = titulos.filter(t => {
+    if (t.tipo !== "receber") return false;
+    // Mês atual: mostrar tudo
+    if (t.vencimento >= mesAtualInicio && t.vencimento <= mesAtualFim) return true;
+    // Meses anteriores: apenas vencidos/em atraso
+    if (t.vencimento < mesAtualInicio && (t.status === "vencido" || (t.status === "aberto" && t.vencimento < hoje))) return true;
+    return false;
+  });
+  // ... filtros de status e cliente existentes
+}, [...]);
 ```
 
-Isso garante que:
-- **Cortesia integral** (R$ 0): status "pago" (comportamento atual mantido)
-- **Cortesia parcial** (R$ X): status "aberto" → aparece no Contas a Receber como título a cobrar
-- **Normal**: status "aberto" (sem mudança)
+#### `src/pages/financeiro/ContasPagar.tsx`
+Mesma lógica no `useMemo` `pagar` (~linha 37-43):
+
+```typescript
+const pagar = useMemo(() => {
+  const now = new Date();
+  const mesAtualInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  const mesAtualFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+  const hoje = new Date().toISOString().split("T")[0];
+
+  let list = titulos.filter(t => {
+    if (t.tipo !== "pagar") return false;
+    if (t.vencimento >= mesAtualInicio && t.vencimento <= mesAtualFim) return true;
+    if (t.vencimento < mesAtualInicio && (t.status === "vencido" || (t.status === "aberto" && t.vencimento < hoje))) return true;
+    return false;
+  });
+  // ... filtros existentes
+}, [...]);
+```
 
 ### Impacto
-1 linha alterada em 1 arquivo. Sem alterações de banco. Os títulos parciais já gerados que precisam aparecer como "aberto" podem ser corrigidos manualmente ou via update no banco.
+2 arquivos editados, ~10 linhas alteradas em cada. Sem alterações de banco. Os KPIs de vencidos/hoje/7 dias continuam funcionando normalmente pois operam sobre a lista já filtrada.
 
