@@ -70,6 +70,7 @@ export const modules: ParentModule[] = [
       { title: "Conciliação", url: "/financeiro/conciliacao-bancaria", icon: ArrowLeftRight, description: "Conciliação bancária automática" },
       { title: "Relatórios", url: "/financeiro/relatorios", icon: BarChart2, description: "DRE, fluxo de caixa e análises" },
       { title: "Configurações", url: "/financeiro/configuracoes", icon: SlidersHorizontal, description: "Regras de cobrança e métodos" },
+      { title: "Gerar Mensalidades", url: "/financeiro/gerar-mensalidades", icon: Receipt, description: "Geração em lote de mensalidades" },
     ],
   },
   {
