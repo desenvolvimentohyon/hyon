@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -387,6 +388,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   const [catId, setCatId] = useState("pc301");
   const [parcelas, setParcelas] = useState("1");
   const [recorrente, setRecorrente] = useState(false);
+  const [obs, setObs] = useState("");
   const [mesesRecorrencia, setMesesRecorrencia] = useState("12");
 
   const numParcelas = parseInt(parcelas) || 1;
@@ -416,7 +418,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
         valorOriginal: recorrente ? Math.round(valorTotal * 100) / 100 : Math.round(valorParcela * 100) / 100,
         desconto: 0, juros: 0, multa: 0,
         status: "aberto", formaPagamento: "boleto",
-        contaBancariaId: null, anexosFake: [], observacoes: "", commissionType: null,
+        contaBancariaId: null, anexosFake: [], observacoes: obs, commissionType: null,
         isCourtesy: false, courtesyReason: null,
       });
     }
@@ -475,6 +477,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
           <SelectContent>{planoContas.filter(p => p.paiId && (p.tipo === "despesa" || p.tipo === "custo" || p.tipo === "repasse" || p.tipo === "imposto")).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
         </Select>
       </div>
+      <div><Label>Observações</Label><Textarea value={obs} onChange={e => setObs(e.target.value)} placeholder="Observações opcionais..." rows={2} /></div>
       <DialogFooter>
         <Button onClick={handleSave}>Salvar</Button>
       </DialogFooter>
