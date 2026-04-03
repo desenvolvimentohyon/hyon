@@ -135,6 +135,14 @@ export default function ContasPagar() {
             <SelectItem value="despesa_operacional">Despesa Operacional</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os tipos</SelectItem>
+            <SelectItem value="recorrente">Recorrente</SelectItem>
+            <SelectItem value="parcelado">Parcelado</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
