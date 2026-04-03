@@ -289,7 +289,31 @@ export default function ContasPagar() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+
+      {/* Confirmação Cancelar Futuros */}
+      <AlertDialog open={!!cancelarFuturosId} onOpenChange={() => setCancelarFuturosId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar lançamentos futuros</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cancelarFuturosId && (() => {
+                const qty = getFuturosRecorrentes(cancelarFuturosId).length;
+                return qty > 0
+                  ? `Serão excluídos ${qty} lançamento(s) recorrente(s) com status "aberto" e vencimento posterior ao selecionado. Esta ação não pode ser desfeita.`
+                  : "Não há lançamentos futuros abertos para cancelar.";
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            {cancelarFuturosId && getFuturosRecorrentes(cancelarFuturosId).length > 0 && (
+              <AlertDialogAction onClick={handleCancelarFuturos} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Confirmar Exclusão
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
   );
 }
 
