@@ -1,59 +1,31 @@
 
 
-## Plano: Filtrar títulos por mês atual + vencidos anteriores
+## Plano: Mostrar apenas clientes com plano mensal na geração de mensalidades
 
 ### Problema
-Atualmente, Contas a Receber e Contas a Pagar exibem **todos** os títulos do banco, independente do mês. O usuário quer ver apenas títulos do mês atual, com exceção de títulos vencidos/em atraso de meses anteriores.
+A tela de Gerar Mensalidades exibe todos os clientes ativos com recorrência, independente do plano contratado. O usuário quer que apareçam apenas os clientes no plano mensal.
 
 ### Solução
-Adicionar um filtro de data no `useMemo` de cada página, mantendo apenas:
-1. Títulos com vencimento no **mês atual** (qualquer status)
-2. Títulos de **meses anteriores** que estejam com status `"vencido"` ou `"aberto"` com vencimento passado (em atraso)
+No `useEffect` de `src/pages/financeiro/GerarMensalidades.tsx` (~linha 56-64), adicionar um filtro na query de clientes para trazer apenas aqueles cujo `plan_id` corresponde a um plano com `months_validity = 1` (Plano Mensal).
 
-### Alterações
+### Alteração em `src/pages/financeiro/GerarMensalidades.tsx`
 
-#### `src/pages/financeiro/ContasReceber.tsx`
-No `useMemo` `receber` (~linha 38-46), adicionar filtro temporal antes dos filtros existentes:
+1. Antes de buscar clientes, consultar a tabela `plans` para obter os IDs dos planos com `months_validity = 1`
+2. Filtrar a query de `clients` usando `.in("plan_id", monthlyPlanIds)`
 
 ```typescript
-const receber = useMemo(() => {
-  const now = new Date();
-  const mesAtualInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-  const mesAtualFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
-  const hoje = new Date().toISOString().split("T")[0];
+// Dentro do useEffect, antes da query de clients:
+const plansRes = await supabase
+  .from("plans")
+  .select("id")
+  .eq("months_validity", 1);
 
-  let list = titulos.filter(t => {
-    if (t.tipo !== "receber") return false;
-    // Mês atual: mostrar tudo
-    if (t.vencimento >= mesAtualInicio && t.vencimento <= mesAtualFim) return true;
-    // Meses anteriores: apenas vencidos/em atraso
-    if (t.vencimento < mesAtualInicio && (t.status === "vencido" || (t.status === "aberto" && t.vencimento < hoje))) return true;
-    return false;
-  });
-  // ... filtros de status e cliente existentes
-}, [...]);
-```
+const monthlyPlanIds = (plansRes.data || []).map(p => p.id);
 
-#### `src/pages/financeiro/ContasPagar.tsx`
-Mesma lógica no `useMemo` `pagar` (~linha 37-43):
-
-```typescript
-const pagar = useMemo(() => {
-  const now = new Date();
-  const mesAtualInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-  const mesAtualFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
-  const hoje = new Date().toISOString().split("T")[0];
-
-  let list = titulos.filter(t => {
-    if (t.tipo !== "pagar") return false;
-    if (t.vencimento >= mesAtualInicio && t.vencimento <= mesAtualFim) return true;
-    if (t.vencimento < mesAtualInicio && (t.status === "vencido" || (t.status === "aberto" && t.vencimento < hoje))) return true;
-    return false;
-  });
-  // ... filtros existentes
-}, [...]);
+// Na query de clients, adicionar:
+.in("plan_id", monthlyPlanIds.length ? monthlyPlanIds : ["00000000-0000-0000-0000-000000000000"])
 ```
 
 ### Impacto
-2 arquivos editados, ~10 linhas alteradas em cada. Sem alterações de banco. Os KPIs de vencidos/hoje/7 dias continuam funcionando normalmente pois operam sobre a lista já filtrada.
+1 arquivo editado, ~5 linhas adicionadas. Sem alterações de banco. Clientes em planos anuais, semestrais ou trimestrais não aparecerão mais na tela de geração de mensalidades.
 
