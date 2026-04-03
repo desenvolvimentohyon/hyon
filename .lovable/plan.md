@@ -1,38 +1,32 @@
 
 
-## Plano: Corrigir KPI "Contas a Pagar" na Visão Geral
+## Plano: Adicionar Checkbox de Recorrência em Contas a Pagar
 
-### Problema
-O card "Contas a Pagar" na Visão Geral soma **todos** os títulos a pagar com status aberto/parcial, incluindo parcelas futuras (2027, 2028). Resultado: R$ 15.483,43 (59 títulos), quando deveria mostrar apenas o que é relevante para o mês atual.
+### O que será feito
+Adicionar um checkbox "Recorrente" no formulário "Lançar Despesa" que, quando marcado, gera automaticamente lançamentos mensais repetidos por um número de meses definido pelo usuário.
 
-### Causa (linha 65 de `FinanceiroVisaoGeral.tsx`)
-```typescript
-const pagar = titulos.filter(t => t.tipo === "pagar" && (t.status === "aberto" || t.status === "parcial"));
-```
-Nenhum filtro de data — soma tudo.
+### Alterações em `src/pages/financeiro/ContasPagar.tsx`
 
-### Correção em `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
+**1. Novo estado no `NovaDespesaForm`**
+- `recorrente: boolean` (default false)
+- `mesesRecorrencia: string` (default "12") — quantos meses gerar
 
-Aplicar o mesmo critério de visibilidade usado em `ContasPagar.tsx`: mostrar apenas títulos do mês atual + títulos vencidos de meses anteriores.
+**2. Checkbox + campo de meses**
+- Abaixo do campo "Parcelas", adicionar um `Checkbox` com label "Despesa recorrente (mensal)"
+- Quando marcado, exibir campo "Quantidade de meses" e ocultar o campo de parcelas (recorrência e parcelamento são mutuamente exclusivos)
+- Exibir resumo: "12x de R$ 500,00 — de 03/04/2026 até 03/03/2027"
 
-```typescript
-const now = new Date();
-const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
-const hj = now.toISOString().split("T")[0];
+**3. Lógica de salvamento**
+- Se recorrente, gerar N títulos (um por mês) com o **valor cheio** (não dividido), cada um com vencimento e competência incrementados mensalmente
+- Descrição: "Aluguel (recorrente 1/12)", "Aluguel (recorrente 2/12)", etc.
 
-const pagar = titulos.filter(t => {
-  if (t.tipo !== "pagar" || (t.status !== "aberto" && t.status !== "parcial")) return false;
-  // Mês atual
-  if (t.vencimento >= mesInicio && t.vencimento <= mesFim) return true;
-  // Vencidos de meses anteriores
-  if (t.vencimento < mesInicio && t.vencimento < hj) return true;
-  return false;
-});
-```
+**4. Badge na tabela**
+- Identificar padrão `(recorrente X/Y)` na descrição e exibir badge "Recorrente" em vez de "Parcelado"
 
-Mesma lógica para o filtro de `receber` (linha 64), para manter consistência.
+### Diferença entre Parcelas e Recorrência
+- **Parcelas**: valor total dividido entre N meses
+- **Recorrência**: mesmo valor repetido por N meses
 
 ### Impacto
-1 arquivo editado, ~10 linhas alteradas. O card passará a exibir R$ 500,00 (apenas a parcela de abril/2026).
+1 arquivo editado, ~25 linhas adicionadas. Importar `Checkbox` de `@/components/ui/checkbox`.
 
