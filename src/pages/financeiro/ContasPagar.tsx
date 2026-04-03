@@ -325,27 +325,34 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   const [fornecedor, setFornecedor] = useState("");
   const [catId, setCatId] = useState("pc301");
   const [parcelas, setParcelas] = useState("1");
+  const [recorrente, setRecorrente] = useState(false);
+  const [mesesRecorrencia, setMesesRecorrencia] = useState("12");
 
   const numParcelas = parseInt(parcelas) || 1;
+  const numMeses = parseInt(mesesRecorrencia) || 1;
   const valorTotal = parseFloat(valor) || 0;
   const valorParcela = numParcelas > 0 ? valorTotal / numParcelas : 0;
 
   const handleSave = () => {
     if (!desc || !valor) { toast.error("Preencha os campos"); return; }
     const now = new Date();
-    for (let i = 0; i < numParcelas; i++) {
+    const qty = recorrente ? numMeses : numParcelas;
+    for (let i = 0; i < qty; i++) {
       const vencDate = new Date(venc);
       vencDate.setMonth(vencDate.getMonth() + i);
       const comp = new Date(now); comp.setMonth(comp.getMonth() + i);
+      const suffix = recorrente
+        ? ` (recorrente ${i + 1}/${qty})`
+        : qty > 1 ? ` (${i + 1}/${qty})` : "";
       addTitulo({
         tipo: "pagar", origem: "despesa_operacional",
-        descricao: numParcelas > 1 ? `${desc} (${i + 1}/${numParcelas})` : desc,
+        descricao: `${desc}${suffix}`,
         clienteId: null, fornecedorNome: fornecedor || null,
         categoriaPlanoContasId: catId,
         competenciaMes: `${comp.getFullYear()}-${String(comp.getMonth() + 1).padStart(2, "0")}`,
         dataEmissao: now.toISOString().split("T")[0],
         vencimento: vencDate.toISOString().split("T")[0],
-        valorOriginal: Math.round(valorParcela * 100) / 100,
+        valorOriginal: recorrente ? Math.round(valorTotal * 100) / 100 : Math.round(valorParcela * 100) / 100,
         desconto: 0, juros: 0, multa: 0,
         status: "aberto", formaPagamento: "boleto",
         contaBancariaId: null, anexosFake: [], observacoes: "", commissionType: null,
