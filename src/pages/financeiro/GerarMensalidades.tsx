@@ -253,7 +253,7 @@ export default function GerarMensalidades() {
     }, 0);
 
   const courtesyCount = clients.filter((c) => selectedIds.has(c.id) && courtesyMap[c.id]?.enabled).length;
-  const partialCount = clients.filter((c) => selectedIds.has(c.id) && partialMap[c.id]?.enabled).length;
+  const partialCount = clients.filter((c) => selectedIds.has(c.id) && courtesyMap[c.id]?.enabled && partialMap[c.id]?.enabled).length;
 
   const yearOptions = [selectedYear - 1, selectedYear, selectedYear + 1];
 
