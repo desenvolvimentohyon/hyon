@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Receipt, CalendarDays, Users, Loader2, Gift } from "lucide-react";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { Receipt, CalendarDays, Users, Loader2, Gift, Percent } from "lucide-react";
 
 interface ClientRow {
   id: string;
@@ -40,6 +41,7 @@ export default function GerarMensalidades() {
   const [alreadyGenerated, setAlreadyGenerated] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [courtesyMap, setCourtesyMap] = useState<Record<string, { enabled: boolean; reason: string }>>({});
+  const [partialMap, setPartialMap] = useState<Record<string, { enabled: boolean; value: number }>>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
@@ -78,6 +80,7 @@ export default function GerarMensalidades() {
       setAlreadyGenerated(existingIds);
       setSelectedIds(new Set());
       setCourtesyMap({});
+      setPartialMap({});
       setLoading(false);
     }
 
@@ -110,7 +113,10 @@ export default function GerarMensalidades() {
       ...prev,
       [id]: { enabled, reason: prev[id]?.reason || "" },
     }));
-    // Auto-select the client when courtesy is enabled
+    // Disable partial when courtesy is enabled
+    if (enabled) {
+      setPartialMap((prev) => ({ ...prev, [id]: { enabled: false, value: 0 } }));
+    }
     if (enabled && !selectedIds.has(id)) {
       setSelectedIds((prev) => new Set(prev).add(id));
     }
@@ -120,6 +126,27 @@ export default function GerarMensalidades() {
     setCourtesyMap((prev) => ({
       ...prev,
       [id]: { ...prev[id], enabled: true, reason },
+    }));
+  }
+
+  function togglePartial(id: string, enabled: boolean) {
+    setPartialMap((prev) => ({
+      ...prev,
+      [id]: { enabled, value: prev[id]?.value || 0 },
+    }));
+    // Disable courtesy when partial is enabled
+    if (enabled) {
+      setCourtesyMap((prev) => ({ ...prev, [id]: { enabled: false, reason: "" } }));
+    }
+    if (enabled && !selectedIds.has(id)) {
+      setSelectedIds((prev) => new Set(prev).add(id));
+    }
+  }
+
+  function setPartialValue(id: string, value: number) {
+    setPartialMap((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], enabled: true, value },
     }));
   }
 
@@ -142,6 +169,17 @@ export default function GerarMensalidades() {
         toast.warning(`Preencha o motivo da cortesia para ${client.name}.`);
         return;
       }
+      const partial = partialMap[client.id];
+      if (partial?.enabled) {
+        if (partial.value <= 0) {
+          toast.warning(`Informe o valor parcial para ${client.name}.`);
+          return;
+        }
+        if (partial.value >= client.monthly_value_final) {
+          toast.warning(`O valor parcial de ${client.name} deve ser menor que a mensalidade integral.`);
+          return;
+        }
+      }
     }
 
     setGenerating(true);
@@ -150,19 +188,29 @@ export default function GerarMensalidades() {
 
     for (const client of toGenerate) {
       const isCourtesy = courtesyMap[client.id]?.enabled || false;
-      const courtesyReason = courtesyMap[client.id]?.reason || "";
+      const isPartial = partialMap[client.id]?.enabled || false;
+      const partialValue = partialMap[client.id]?.value || 0;
+
+      const valorOriginal = isCourtesy ? 0 : isPartial ? partialValue : client.monthly_value_final;
+      const descSuffix = isCourtesy ? " (Cortesia)" : isPartial ? " (Parcial)" : "";
+      const cReason = courtesyMap[client.id]?.reason || "";
+      const obs = isCourtesy
+        ? `Cortesia: ${cReason}`
+        : isPartial
+          ? `Mensalidade parcial (valor integral: ${client.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
+          : "";
 
       const ok = await addTitulo({
         tipo: "receber",
         origem: "mensalidade",
         clienteId: client.id,
         fornecedorNome: null,
-        descricao: `Mensalidade ${MONTH_NAMES[selectedMonth - 1]}/${selectedYear} - ${client.name}${isCourtesy ? " (Cortesia)" : ""}`,
+        descricao: `Mensalidade ${MONTH_NAMES[selectedMonth - 1]}/${selectedYear} - ${client.name}${descSuffix}`,
         categoriaPlanoContasId: "",
         competenciaMes: competency,
         dataEmissao: format(new Date(), "yyyy-MM-dd"),
         vencimento: calcDueDate(client.default_due_day),
-        valorOriginal: isCourtesy ? 0 : client.monthly_value_final,
+        valorOriginal,
         desconto: 0,
         juros: 0,
         multa: 0,
@@ -170,10 +218,10 @@ export default function GerarMensalidades() {
         formaPagamento: "boleto",
         contaBancariaId: null,
         anexosFake: [],
-        observacoes: isCourtesy ? `Cortesia: ${courtesyReason}` : "",
+        observacoes: obs,
         commissionType: null,
         isCourtesy,
-        courtesyReason: isCourtesy ? courtesyReason : null,
+        courtesyReason: isCourtesy ? cReason : null,
       } as any);
       if (ok) success++; else errors++;
     }
@@ -189,6 +237,7 @@ export default function GerarMensalidades() {
       });
       setSelectedIds(new Set());
       setCourtesyMap({});
+      setPartialMap({});
     }
     if (errors > 0) {
       toast.error(`${errors} mensalidade(s) falharam ao gerar.`);
@@ -199,10 +248,13 @@ export default function GerarMensalidades() {
     .filter((c) => selectedIds.has(c.id))
     .reduce((sum, c) => {
       const isCourtesy = courtesyMap[c.id]?.enabled || false;
-      return sum + (isCourtesy ? 0 : c.monthly_value_final);
+      const isPartial = partialMap[c.id]?.enabled || false;
+      const partialValue = partialMap[c.id]?.value || 0;
+      return sum + (isCourtesy ? 0 : isPartial ? partialValue : c.monthly_value_final);
     }, 0);
 
   const courtesyCount = clients.filter((c) => selectedIds.has(c.id) && courtesyMap[c.id]?.enabled).length;
+  const partialCount = clients.filter((c) => selectedIds.has(c.id) && partialMap[c.id]?.enabled).length;
 
   const yearOptions = [selectedYear - 1, selectedYear, selectedYear + 1];
 
@@ -264,7 +316,10 @@ export default function GerarMensalidades() {
                 <span className="text-sm text-muted-foreground">
                   {selectedIds.size} selecionado(s)
                   {courtesyCount > 0 && (
-                    <span className="text-amber-400 ml-1">({courtesyCount} cortesia)</span>
+                    <span className="text-warning ml-1">({courtesyCount} cortesia)</span>
+                  )}
+                  {partialCount > 0 && (
+                    <span className="text-info ml-1">({partialCount} parcial)</span>
                   )}
                   {" · Total: "}
                   <span className="text-foreground font-semibold">
@@ -307,10 +362,11 @@ export default function GerarMensalidades() {
                     </TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead className="text-right">Mensalidade</TableHead>
-                    <TableHead className="text-center">Dia Venc.</TableHead>
-                    <TableHead className="text-center">Vencimento</TableHead>
-                    <TableHead className="text-center">Cortesia</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
+                     <TableHead className="text-center">Dia Venc.</TableHead>
+                     <TableHead className="text-center">Vencimento</TableHead>
+                     <TableHead className="text-center">Parcial</TableHead>
+                     <TableHead className="text-center">Cortesia</TableHead>
+                     <TableHead className="text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -319,6 +375,9 @@ export default function GerarMensalidades() {
                     const dueDate = calcDueDate(c.default_due_day);
                     const courtesy = courtesyMap[c.id];
                     const isCourtesy = courtesy?.enabled || false;
+                    const partial = partialMap[c.id];
+                    const isPartial = partial?.enabled || false;
+                    const showStrike = isCourtesy || isPartial;
                     return (
                       <>
                         <TableRow key={c.id} className={generated ? "opacity-50" : ""}>
@@ -331,7 +390,7 @@ export default function GerarMensalidades() {
                           </TableCell>
                           <TableCell className="font-medium">{c.name}</TableCell>
                           <TableCell className="text-right font-mono">
-                            {isCourtesy ? (
+                            {showStrike ? (
                               <span className="text-muted-foreground line-through">
                                 {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                               </span>
@@ -345,6 +404,13 @@ export default function GerarMensalidades() {
                           </TableCell>
                           <TableCell className="text-center">
                             <Switch
+                              checked={isPartial}
+                              onCheckedChange={(checked) => togglePartial(c.id, checked)}
+                              disabled={generated}
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Switch
                               checked={isCourtesy}
                               onCheckedChange={(checked) => toggleCourtesy(c.id, checked)}
                               disabled={generated}
@@ -352,13 +418,18 @@ export default function GerarMensalidades() {
                           </TableCell>
                           <TableCell className="text-center">
                             {generated ? (
-                              <Badge variant="outline" className="text-emerald-400 border-emerald-500/30">
+                              <Badge variant="outline" className="text-success border-success/30">
                                 Já gerado
                               </Badge>
                             ) : isCourtesy ? (
-                              <Badge variant="outline" className="text-amber-400 border-amber-500/30">
+                              <Badge variant="warning">
                                 <Gift className="h-3 w-3 mr-1" />
                                 Cortesia
+                              </Badge>
+                            ) : isPartial ? (
+                              <Badge variant="warning">
+                                <Percent className="h-3 w-3 mr-1" />
+                                Parcial
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="text-muted-foreground">
@@ -367,10 +438,29 @@ export default function GerarMensalidades() {
                             )}
                           </TableCell>
                         </TableRow>
+                        {isPartial && !generated && (
+                          <TableRow key={`${c.id}-partial`}>
+                            <TableCell />
+                            <TableCell colSpan={7}>
+                              <div className="flex items-center gap-2 pb-1">
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">Valor parcial:</span>
+                                <CurrencyInput
+                                  value={partial?.value || 0}
+                                  onValueChange={(v) => setPartialValue(c.id, v)}
+                                  className="h-8 text-sm w-40"
+                                  placeholder="0,00"
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                  de {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
                         {isCourtesy && !generated && (
                           <TableRow key={`${c.id}-reason`}>
                             <TableCell />
-                            <TableCell colSpan={6}>
+                            <TableCell colSpan={7}>
                               <div className="flex items-center gap-2 pb-1">
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">Motivo:</span>
                                 <Input
