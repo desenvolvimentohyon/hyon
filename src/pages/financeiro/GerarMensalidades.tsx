@@ -429,41 +429,46 @@ export default function GerarMensalidades() {
                              )}
                           </TableCell>
                         </TableRow>
-                        {isPartial && !generated && (
-                          <TableRow key={`${c.id}-partial`}>
-                            <TableCell />
-                            <TableCell colSpan={7}>
-                              <div className="flex items-center gap-2 pb-1">
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">Valor parcial:</span>
-                                <CurrencyInput
-                                  value={partial?.value || 0}
-                                  onValueChange={(v) => setPartialValue(c.id, v)}
-                                  className="h-8 text-sm w-40"
-                                  placeholder="0,00"
-                                />
-                                <span className="text-xs text-muted-foreground">
-                                  de {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                </span>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
                         {isCourtesy && !generated && (
-                          <TableRow key={`${c.id}-reason`}>
-                            <TableCell />
-                            <TableCell colSpan={7}>
-                              <div className="flex items-center gap-2 pb-1">
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">Motivo:</span>
-                                <Input
-                                  placeholder="Ex: Cortesia, bonificação, período de testes..."
-                                  value={courtesy?.reason || ""}
-                                  onChange={(e) => setCourtesyReason(c.id, e.target.value)}
-                                  className="h-8 text-sm max-w-md"
-                                />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
+                           <TableRow key={`${c.id}-courtesy-details`}>
+                             <TableCell />
+                             <TableCell colSpan={6}>
+                               <div className="space-y-2 pb-1">
+                                 <div className="flex items-center gap-2">
+                                   <span className="text-xs text-muted-foreground whitespace-nowrap">Motivo:</span>
+                                   <Input
+                                     placeholder="Ex: Cortesia, bonificação, período de testes..."
+                                     value={courtesy?.reason || ""}
+                                     onChange={(e) => setCourtesyReason(c.id, e.target.value)}
+                                     className="h-8 text-sm max-w-md"
+                                   />
+                                 </div>
+                                 <div className="flex items-center gap-3">
+                                   <div className="flex items-center gap-2">
+                                     <Switch
+                                       checked={isPartial}
+                                       onCheckedChange={(checked) => togglePartial(c.id, checked)}
+                                     />
+                                     <span className="text-xs text-muted-foreground">Pagamento parcial?</span>
+                                   </div>
+                                   {isPartial && (
+                                     <div className="flex items-center gap-2">
+                                       <CurrencyInput
+                                         value={partial?.value || 0}
+                                         onValueChange={(v) => setPartialValue(c.id, v)}
+                                         className="h-8 text-sm w-40"
+                                         placeholder="0,00"
+                                       />
+                                       <span className="text-xs text-muted-foreground">
+                                         de {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                       </span>
+                                     </div>
+                                   )}
+                                 </div>
+                               </div>
+                             </TableCell>
+                           </TableRow>
+                         )}
                       </>
                     );
                   })}
