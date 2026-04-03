@@ -1,68 +1,60 @@
 
 
-## Plano: Auditoria Geral — Dados da Empresa, Layout e Correções
+## Plano: Corrigir Sistema de Notificações Push e Cron Jobs
 
-### Problemas Identificados
+### Problemas Encontrados
 
-#### 1. Dados Falsos / Hardcoded (Não pertencem à empresa)
+#### 1. billing-cron NUNCA executa (403 Forbidden)
+O cron job envia a requisição com `Authorization: Bearer <anon_key>`, mas a função verifica `req.headers.get("x-cron-secret")` contra `CRON_SECRET`. Como o cron job não envia o header `x-cron-secret`, a função sempre retorna 403. **Nenhuma notificação de cobrança está sendo gerada.**
 
-**1a. Gráfico MRR com dados fictícios** (`FinanceiroVisaoGeral.tsx` linha 292)
-O gráfico "Evolução MRR" usa uma fórmula fake: `kpis.mrr * (0.85 + i * 0.015)` — simula dados históricos que não existem. Precisa usar dados reais do banco.
+#### 2. billing-cron NÃO envia push notifications
+Mesmo se funcionasse, o billing-cron apenas insere registros na tabela `billing_notifications` (canal "interno"). Ele **nunca chama** a edge function `push-notifications` para enviar push real ao dispositivo do usuário.
 
-**1b. Chave PIX hardcoded** (`ContasReceber.tsx` linha 75)
-A mensagem de cobrança contém `financeiro@gestask.com` como chave PIX. Deveria buscar da configuração da empresa (`company_profile`).
+#### 3. send-plan-renewal-alerts FALHA na autenticação
+O cron job envia o anon key como Bearer token. A função tenta `authClient.auth.getUser()` com esse token, que falha porque o anon key não é um token de usuário válido. **Alertas de renovação nunca são enviados.**
 
-**1c. `contaBancariaId: "cb1"` hardcoded** (`ContasReceber.tsx` linha 276)
-O modal "Novo Título" usa um ID fixo `"cb1"` para conta bancária. Deveria usar a primeira conta real do usuário ou `null`.
-
-#### 2. Correções de Layout / Console
-
-**2a. Warning `CartesianGrid` ref** (console)
-O Recharts emite warning sobre ref em `CartesianGrid`. Não causa erro funcional, mas pode ser silenciado.
-
-#### 3. Verificações de Isolamento de Dados (OK)
-
-Todas as tabelas principais usam RLS com `current_org_id()`. Todas as queries nos contextos (`AppContext`, `FinanceiroContext`, `ReceitaContext`, `PropostasContext`, `ParametrosContext`) são filtradas por `org_id` automaticamente via RLS. **O isolamento de dados está correto** — apenas dados da sua organização são retornados.
+#### 4. send-plan-renewal-alerts NÃO envia push
+Mesmo se autenticasse, essa função apenas grava em `notification_logs` — não dispara push notifications.
 
 ---
 
-### Alterações Propostas
+### Correções Propostas
 
-#### Arquivo 1: `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
-- **Gráfico MRR**: Substituir dados fake por cálculo real baseado nos títulos pagos do tipo "receber" com origem "mensalidade" por mês nos últimos 12 meses. Caso não haja dados suficientes, exibir apenas os meses com dados reais.
+#### Arquivo 1: `supabase/functions/billing-cron/index.ts`
+- **Corrigir autenticação**: Aceitar tanto `x-cron-secret` quanto `Authorization` com anon/service key (para compatibilidade com pg_cron)
+- **Adicionar envio de push**: Após criar `billing_notification`, chamar a função de push para enviar notificação real ao(s) admin(s) da organização
 
-#### Arquivo 2: `src/pages/financeiro/ContasReceber.tsx`
-- **Chave PIX**: Buscar da `company_profile` (campo `pix_key` da `company_bank_accounts` ou `email` do `company_profile`) via contexto ou query direta.
-- **contaBancariaId**: Substituir `"cb1"` por `contasBancarias[0]?.id || null`.
+```typescript
+// Após criar billing_notification, disparar push:
+const payload = JSON.stringify({
+  title: diffDays >= 0 ? "📋 Mensalidade vencendo" : "🚨 Mensalidade em atraso",
+  body: `${clientName} - R$ ${title.value_final} - ${notificationType}`,
+  url: "/financeiro/contas-a-receber"
+});
+// Buscar subscriptions ativas da org e enviar push
+```
+
+#### Arquivo 2: `supabase/functions/send-plan-renewal-alerts/index.ts`
+- **Corrigir autenticação**: Remover verificação de usuário autenticado, usar `x-cron-secret` ou simplesmente aceitar chamadas do pg_cron com anon key (já que `verify_jwt = false`)
+- **Adicionar envio de push**: Após gravar em `notification_logs`, disparar push para admins da org
+
+#### Arquivo 3: Atualizar cron jobs (SQL via insert)
+- Adicionar header `x-cron-secret` nas chamadas do pg_cron **OU** ajustar as funções para aceitar o anon key
 
 ---
 
-### Detalhe Técnico
+### Abordagem Técnica
 
-**Gráfico MRR Real** — lógica proposta:
-```typescript
-const mrrHistorico = useMemo(() => {
-  const months: Record<string, number> = {};
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(); d.setMonth(d.getMonth() - i);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    months[key] = 0;
-  }
-  titulos.filter(t => t.tipo === "receber" && t.status === "pago" && t.origem === "mensalidade")
-    .forEach(t => { if (months[t.competenciaMes] !== undefined) months[t.competenciaMes] += t.valorOriginal; });
-  return Object.entries(months).map(([key, value]) => {
-    const d = new Date(key + "-01");
-    return { mes: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }), mrr: value };
-  });
-}, [titulos]);
-```
+A solução mais limpa:
 
-**Chave PIX dinâmica** — buscar do `company_bank_accounts` que é default:
-```typescript
-// Usar contasBancarias do FinanceiroContext ou buscar company_bank_accounts com pix_key
-const pixKey = companyProfile?.email || "—";
-```
+1. **Padronizar auth dos crons**: As funções cron já têm `verify_jwt = false` no config.toml. Vamos usar o padrão `x-cron-secret` em todas, e atualizar os cron jobs no pg_cron para enviar esse header.
+
+2. **Extrair lógica de push para função reutilizável**: O `billing-cron` e `send-plan-renewal-alerts` vão importar e usar `sendWebPush` inline (copiando a lógica) para enviar push diretamente, sem chamar outra edge function.
+
+3. **Atualizar os 2 cron jobs** (billing-cron e send-plan-renewal-alerts) no pg_cron para incluir o header `x-cron-secret`.
 
 ### Impacto
-3 correções em 2 arquivos. Sem alterações de banco. Melhora a integridade dos dados exibidos, removendo informações fictícias e hardcoded.
+- 2 edge functions editadas
+- 2 cron jobs atualizados (SQL)
+- Push notifications passarão a ser entregues quando mensalidades vencerem ou estiverem em atraso, e quando planos estiverem próximos do vencimento
 
