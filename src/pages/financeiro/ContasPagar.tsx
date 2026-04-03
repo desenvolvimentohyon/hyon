@@ -35,7 +35,17 @@ export default function ContasPagar() {
   const [modalNovo, setModalNovo] = useState(false);
 
   const pagar = useMemo(() => {
-    let list = titulos.filter(t => t.tipo === "pagar");
+    const now = new Date();
+    const mesAtualInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+    const mesAtualFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+    const hj = new Date().toISOString().split("T")[0];
+
+    let list = titulos.filter(t => {
+      if (t.tipo !== "pagar") return false;
+      if (t.vencimento >= mesAtualInicio && t.vencimento <= mesAtualFim) return true;
+      if (t.vencimento < mesAtualInicio && (t.status === "vencido" || (t.status === "aberto" && t.vencimento < hj))) return true;
+      return false;
+    });
     if (filtroStatus !== "todos") list = list.filter(t => t.status === filtroStatus);
     if (filtroFornecedor) list = list.filter(t => t.fornecedorNome?.toLowerCase().includes(filtroFornecedor.toLowerCase()) || t.descricao.toLowerCase().includes(filtroFornecedor.toLowerCase()));
     if (filtroOrigem !== "todos") list = list.filter(t => t.origem === filtroOrigem);
