@@ -316,7 +316,10 @@ export default function GerarMensalidades() {
                 <span className="text-sm text-muted-foreground">
                   {selectedIds.size} selecionado(s)
                   {courtesyCount > 0 && (
-                    <span className="text-amber-400 ml-1">({courtesyCount} cortesia)</span>
+                    <span className="text-warning ml-1">({courtesyCount} cortesia)</span>
+                  )}
+                  {partialCount > 0 && (
+                    <span className="text-info ml-1">({partialCount} parcial)</span>
                   )}
                   {" · Total: "}
                   <span className="text-foreground font-semibold">
