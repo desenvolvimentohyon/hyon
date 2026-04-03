@@ -216,7 +216,10 @@ export default function ContasPagar() {
                       <RowActions
                         actions={[
                           { label: "Editar", icon: Pencil, onClick: () => setModalEditar(t) },
-                          { label: "Excluir", icon: Trash2, onClick: () => setExcluirId(t.id), variant: "destructive", separator: true },
+                          ...(t.descricao.includes("(recorrente") && t.status === "aberto"
+                            ? [{ label: "Cancelar futuros", icon: XCircle, onClick: () => setCancelarFuturosId(t.id), variant: "destructive" as const, separator: true }]
+                            : []),
+                          { label: "Excluir", icon: Trash2, onClick: () => setExcluirId(t.id), variant: "destructive" as const, separator: !t.descricao.includes("(recorrente") },
                         ]}
                       />
                     </div>
