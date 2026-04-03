@@ -1,44 +1,30 @@
 
 
-## Plano: Adicionar Alteração em Lote na tela de Clientes e Receita
+## Plano: Mensalidade Parcial na Geração em Lote
 
-### Problema
-A tela `/clientes` (ClientesReceita.tsx) não possui funcionalidade de seleção múltipla nem edição em lote. O `ClienteCard` já suporta props `selected` e `checkbox`, mas não são utilizados.
+### Objetivo
+Adicionar na tela "Gerar Mensalidades" a opção de gerar uma mensalidade com valor parcial (diferente do valor integral do cliente), mantendo a integração com o fluxo financeiro existente (títulos, receitas, etc.).
 
-### Funcionalidade
-Adicionar um botão "Alteração em Lote" que ativa modo de seleção múltipla nos cards. Ao selecionar clientes, aparece uma barra de ações com botão para abrir um diálogo de edição em lote.
-
-### Campos editáveis em lote
-- **Dia de Vencimento** (`default_due_day`) — opções: 3, 5, 7
-- **Índice de Reajuste** (`adjustment_type`) — ex: IGPM, IPCA, manual
-- **Regime Tributário** (`tax_regime`) — Simples Nacional, Lucro Presumido, Lucro Real, MEI
-- **Plano de Cobrança** (`metadata.billing_plan`) — mensal, trimestral, semestral, anual
-
-Cada campo só é atualizado se o usuário explicitamente alterar o valor (campos começam vazios/placeholder "Manter atual").
+### Como funciona hoje
+- A tela lista clientes ativos com recorrência e gera títulos via `addTitulo` do `FinanceiroContext`
+- Já existe a opção de **cortesia** (valor R$ 0,00 com justificativa)
+- O `addTitulo` calcula `value_final` automaticamente e insere em `financial_titles`
+- Receitas, despesas, lucro e demais métricas derivam dos dados de `financial_titles` — não precisam de atualização separada
 
 ### Alterações
 
-#### 1. `src/pages/ClientesReceita.tsx`
-- Adicionar estados: `batchMode` (boolean), `selectedIds` (Set), `showBatchEdit` (boolean)
-- Adicionar botão "Alteração em Lote" no header ao lado de Exportar
-- Quando `batchMode = true`:
-  - Mostrar checkbox em cada `ClienteCard` usando a prop `checkbox`
-  - Mostrar barra fixa no topo com contagem + botão "Editar Selecionados" + "Cancelar"
-  - Botão "Selecionar Todos" / "Desmarcar Todos"
-- Diálogo de edição em lote com os 4 campos acima
-- Função `handleBatchUpdate` que faz `supabase.from("clients").update({...}).in("id", [...selectedIds])`
-  - Para `billing_plan`: busca metadata atual de cada cliente, faz merge individual
+#### `src/pages/financeiro/GerarMensalidades.tsx`
+1. **Novo estado `partialMap`** — `Record<string, { enabled: boolean; value: number }>` para controlar quais clientes terão mensalidade parcial e qual o valor
+2. **Nova coluna "Parcial"** na tabela — um `Switch` para ativar modo parcial (mutuamente exclusivo com cortesia)
+3. **Campo de valor** — Quando parcial ativado, exibe um `CurrencyInput` na linha expandida (similar ao motivo da cortesia) para informar o valor a cobrar
+4. **Validação** — Valor parcial deve ser > 0 e < valor integral da mensalidade
+5. **Atualizar `handleGenerate`** — Quando parcial, usa o valor informado como `valorOriginal` e adiciona observação "Mensalidade parcial (valor integral: R$ X)"
+6. **Atualizar `totalSelected`** — Contabilizar o valor parcial na soma quando aplicável
+7. **Badge de status** — Mostrar badge "Parcial" em amarelo quando o modo parcial está ativo
 
-#### 2. `src/contexts/ReceitaContext.tsx`
-- Nenhuma alteração necessária — o batch update vai direto no Supabase e depois chama refresh dos dados
-
-### Fluxo do usuário
-1. Clica "Alteração em Lote" → cards mostram checkboxes
-2. Seleciona clientes desejados (ou "Selecionar Todos")
-3. Clica "Editar Selecionados" → abre diálogo
-4. Preenche apenas os campos que quer alterar
-5. Clica "Aplicar" → atualiza no banco → refresh da lista → toast de confirmação
+### Fluxo financeiro
+O `addTitulo` já insere corretamente em `financial_titles` com `value_original` e `value_final`. Todas as métricas (receita, MRR, lucro) já derivam dessa tabela. Portanto, ao gerar com valor parcial, os demais campos financeiros são automaticamente alimentados — não há necessidade de alterações em outros contextos ou páginas.
 
 ### Impacto
-1 arquivo editado (~120 linhas adicionadas). Usa componentes existentes (Checkbox, Dialog, Select).
+1 arquivo editado (~40 linhas adicionadas). Sem alterações de banco de dados.
 
