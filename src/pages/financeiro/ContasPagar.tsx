@@ -234,7 +234,7 @@ export default function ContasPagar() {
 
       {/* Modal Novo */}
       <Dialog open={modalNovo} onOpenChange={setModalNovo}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Lançar Despesa</DialogTitle></DialogHeader>
           <NovaDespesaForm onSave={() => { setModalNovo(false); toast.success("Despesa lançada!"); }} />
         </DialogContent>
