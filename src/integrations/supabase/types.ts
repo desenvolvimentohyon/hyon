@@ -1705,6 +1705,7 @@ export type Database = {
           client_id: string | null
           commission_type: string | null
           competency: string | null
+          courtesy_reason: string | null
           created_at: string
           description: string
           discount: number
@@ -1714,6 +1715,7 @@ export type Database = {
           generated_at: string | null
           id: string
           interest: number
+          is_courtesy: boolean
           issued_at: string | null
           metadata: Json | null
           notes: string | null
@@ -1742,6 +1744,7 @@ export type Database = {
           client_id?: string | null
           commission_type?: string | null
           competency?: string | null
+          courtesy_reason?: string | null
           created_at?: string
           description?: string
           discount?: number
@@ -1751,6 +1754,7 @@ export type Database = {
           generated_at?: string | null
           id?: string
           interest?: number
+          is_courtesy?: boolean
           issued_at?: string | null
           metadata?: Json | null
           notes?: string | null
@@ -1779,6 +1783,7 @@ export type Database = {
           client_id?: string | null
           commission_type?: string | null
           competency?: string | null
+          courtesy_reason?: string | null
           created_at?: string
           description?: string
           discount?: number
@@ -1788,6 +1793,7 @@ export type Database = {
           generated_at?: string | null
           id?: string
           interest?: number
+          is_courtesy?: boolean
           issued_at?: string | null
           metadata?: Json | null
           notes?: string | null
