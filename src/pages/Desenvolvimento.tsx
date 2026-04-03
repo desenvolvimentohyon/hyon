@@ -32,7 +32,7 @@ const PLAN_LABELS: Record<string, string> = { mensal: "Mensal", anual: "Anual", 
 export default function Desenvolvimento() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { projects, loading, createProject } = useDevProjects();
+  const { projects, loading, createProject, deleteProject } = useDevProjects();
   const [filter, setFilter] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
