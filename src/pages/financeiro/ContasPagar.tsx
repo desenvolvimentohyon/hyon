@@ -354,12 +354,26 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
       <div>
         <Label>Parcelas</Label>
         <Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} />
-        {numParcelas > 1 && valorTotal > 0 && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Valor por parcela: <span className="font-semibold text-foreground">{fmt(Math.round(valorParcela * 100) / 100)}</span>
-          </p>
-        )}
       </div>
+      {numParcelas > 1 && valorTotal > 0 && (() => {
+        const primeiraData = new Date(venc);
+        const ultimaData = new Date(venc);
+        ultimaData.setMonth(ultimaData.getMonth() + numParcelas - 1);
+        const fmtDate = (d: Date) => d.toLocaleDateString("pt-BR");
+        return (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-1">
+            <p className="text-lg font-bold text-foreground">
+              {numParcelas}x de {fmt(Math.round(valorParcela * 100) / 100)}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              De {fmtDate(primeiraData)} até {fmtDate(ultimaData)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Valor total: {fmt(valorTotal)}
+            </p>
+          </div>
+        );
+      })()}
       <div><Label>Vencimento 1ª parcela</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
       <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
       <div><Label>Categoria</Label>
