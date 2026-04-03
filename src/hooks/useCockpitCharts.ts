@@ -64,9 +64,11 @@ export function useCockpitCharts() {
         const novosMap: Record<string, number> = {};
         const canceladosMap: Record<string, number> = {};
         months.forEach(m => { novosMap[m] = 0; canceladosMap[m] = 0; });
-        allClients?.forEach(c => {
+        newClients?.forEach(c => {
           const cm = format(new Date(c.created_at), "yyyy-MM");
           if (novosMap[cm] !== undefined) novosMap[cm]++;
+        });
+        cancelledClients?.forEach(c => {
           if (c.cancelled_at) {
             const ccm = format(new Date(c.cancelled_at), "yyyy-MM");
             if (canceladosMap[ccm] !== undefined) canceladosMap[ccm]++;
