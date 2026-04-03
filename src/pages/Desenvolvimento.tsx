@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Code2, Plus, Calendar, DollarSign, CheckCircle2, Clock, Pause, XCircle, Rocket } from "lucide-react";
+import { Code2, Plus, Calendar, DollarSign, CheckCircle2, Clock, Pause, XCircle, Rocket, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
