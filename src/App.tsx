@@ -60,6 +60,7 @@ const ConciliacaoBancaria = lazy(() => import("./pages/financeiro/ConciliacaoBan
 const Lancamentos = lazy(() => import("./pages/financeiro/Lancamentos"));
 const Relatorios = lazy(() => import("./pages/financeiro/Relatorios"));
 const ConfiguracoesFinanceiras = lazy(() => import("./pages/financeiro/ConfiguracoesFinanceiras"));
+const GerarMensalidades = lazy(() => import("./pages/financeiro/GerarMensalidades"));
 
 function AceiteRedirect() {
   const { numero } = useParams<{ numero: string }>();
@@ -165,6 +166,7 @@ function AuthGate() {
                       <Route path="/financeiro/lancamentos" element={<Lancamentos />} />
                       <Route path="/financeiro/relatorios" element={<Relatorios />} />
                       <Route path="/financeiro/configuracoes" element={<ConfiguracoesFinanceiras />} />
+                      <Route path="/financeiro/gerar-mensalidades" element={<GerarMensalidades />} />
                     </Route>
                     
                     <Route path="*" element={<NotFound />} />

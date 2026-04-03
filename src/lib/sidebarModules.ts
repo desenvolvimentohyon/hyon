@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, TrendingUp, Headphones, BarChart3, FileText, Kanban,
   DollarSign, Landmark, CreditCard, FolderTree, ArrowLeftRight, BookOpen, BarChart2,
   SlidersHorizontal, Shield, Settings, Wrench, Rocket, Handshake, ShoppingCart,
-  Receipt, ListTodo, Gauge, Code2
+  Receipt, ListTodo, Gauge, Code2, CalendarCheck
 } from "lucide-react";
 
 export interface SubModule {
@@ -70,6 +70,7 @@ export const modules: ParentModule[] = [
       { title: "Conciliação", url: "/financeiro/conciliacao-bancaria", icon: ArrowLeftRight, description: "Conciliação bancária automática" },
       { title: "Relatórios", url: "/financeiro/relatorios", icon: BarChart2, description: "DRE, fluxo de caixa e análises" },
       { title: "Configurações", url: "/financeiro/configuracoes", icon: SlidersHorizontal, description: "Regras de cobrança e métodos" },
+      { title: "Gerar Mensalidades", url: "/financeiro/gerar-mensalidades", icon: Receipt, description: "Geração em lote de mensalidades" },
     ],
   },
   {
