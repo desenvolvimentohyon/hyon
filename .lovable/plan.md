@@ -1,32 +1,30 @@
 
 
-## Plano: Editar, Excluir e Melhorar Parcelas em Contas a Pagar
+## Plano: Melhorar Cálculo e Exibição de Parcelas em Contas a Pagar
 
-### Contexto
-O `FinanceiroContext` já expõe `updateTitulo` e `deleteTitulo`. A página `ContasPagar.tsx` não os utiliza. O formulário de nova despesa já tem campo de parcelas, mas não mostra o valor calculado por parcela.
+### Problemas Identificados
+
+1. **Valor por parcela pouco visível** — o texto aparece pequeno e discreto, fácil de ignorar
+2. **Não mostra data da última parcela** — o usuário não sabe quando terminará de pagar
+3. **Tabela não diferencia parcela de valor total** — quando há múltiplas parcelas, a descrição mostra "(1/10)" mas não fica claro que o valor exibido é da parcela
 
 ### Alterações em `src/pages/financeiro/ContasPagar.tsx`
 
-**1. Importar `updateTitulo` e `deleteTitulo` do contexto**
+**1. Resumo de parcelas no formulário "Lançar Despesa"**
+- Substituir o texto pequeno por um card/resumo destacado com:
+  - Valor por parcela em destaque (fonte maior, negrito)
+  - Data da primeira e última parcela
+  - Exemplo: "10x de R$ 100,00 — de 03/04/2026 até 03/01/2027"
+- Mostrar este resumo sempre que parcelas > 1 e valor > 0
 
-**2. Adicionar menu de ações (editar/excluir) na coluna "Ações" da tabela**
-- Usar o componente `RowActions` já existente com opções "Editar" e "Excluir"
-- Editar abre um modal de edição pré-preenchido
-- Excluir pede confirmação via `AlertDialog` antes de chamar `deleteTitulo`
+**2. Calcular e exibir data da última parcela**
+- Com base na data do primeiro vencimento + (numParcelas - 1) meses
+- Formatar como dd/mm/yyyy
 
-**3. Modal de Edição**
-- Novo estado `modalEditar` com o título selecionado
-- Campos editáveis: descrição, valor, vencimento, fornecedor, categoria, status
-- Ao salvar, chama `updateTitulo(id, changes)`
-
-**4. Melhorar exibição de parcelas no formulário de nova despesa**
-- Mostrar texto calculado: "Valor por parcela: R$ X,XX" abaixo do campo de parcelas
-- Atualiza dinamicamente conforme o usuário altera valor total ou número de parcelas
-
-**5. Confirmação de exclusão**
-- `AlertDialog` com mensagem "Deseja realmente excluir esta despesa?"
-- Ao confirmar, chama `deleteTitulo(id)` e exibe toast de sucesso
+**3. Tabela: indicar parcelas na coluna Descrição**
+- Já mostra "(1/10)" na descrição — manter
+- Adicionar badge "Parcelado" quando a descrição contém padrão de parcela
 
 ### Impacto
-1 arquivo editado (`ContasPagar.tsx`), ~80 linhas adicionadas. Sem alterações de banco — as funções já existem no contexto.
+1 arquivo editado. Sem alterações de banco. Melhora a UX do formulário de parcelas.
 
