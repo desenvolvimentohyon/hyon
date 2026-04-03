@@ -1,30 +1,38 @@
 
 
-## Plano: Melhorar Cálculo e Exibição de Parcelas em Contas a Pagar
+## Plano: Corrigir KPI "Contas a Pagar" na Visão Geral
 
-### Problemas Identificados
+### Problema
+O card "Contas a Pagar" na Visão Geral soma **todos** os títulos a pagar com status aberto/parcial, incluindo parcelas futuras (2027, 2028). Resultado: R$ 15.483,43 (59 títulos), quando deveria mostrar apenas o que é relevante para o mês atual.
 
-1. **Valor por parcela pouco visível** — o texto aparece pequeno e discreto, fácil de ignorar
-2. **Não mostra data da última parcela** — o usuário não sabe quando terminará de pagar
-3. **Tabela não diferencia parcela de valor total** — quando há múltiplas parcelas, a descrição mostra "(1/10)" mas não fica claro que o valor exibido é da parcela
+### Causa (linha 65 de `FinanceiroVisaoGeral.tsx`)
+```typescript
+const pagar = titulos.filter(t => t.tipo === "pagar" && (t.status === "aberto" || t.status === "parcial"));
+```
+Nenhum filtro de data — soma tudo.
 
-### Alterações em `src/pages/financeiro/ContasPagar.tsx`
+### Correção em `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
 
-**1. Resumo de parcelas no formulário "Lançar Despesa"**
-- Substituir o texto pequeno por um card/resumo destacado com:
-  - Valor por parcela em destaque (fonte maior, negrito)
-  - Data da primeira e última parcela
-  - Exemplo: "10x de R$ 100,00 — de 03/04/2026 até 03/01/2027"
-- Mostrar este resumo sempre que parcelas > 1 e valor > 0
+Aplicar o mesmo critério de visibilidade usado em `ContasPagar.tsx`: mostrar apenas títulos do mês atual + títulos vencidos de meses anteriores.
 
-**2. Calcular e exibir data da última parcela**
-- Com base na data do primeiro vencimento + (numParcelas - 1) meses
-- Formatar como dd/mm/yyyy
+```typescript
+const now = new Date();
+const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+const hj = now.toISOString().split("T")[0];
 
-**3. Tabela: indicar parcelas na coluna Descrição**
-- Já mostra "(1/10)" na descrição — manter
-- Adicionar badge "Parcelado" quando a descrição contém padrão de parcela
+const pagar = titulos.filter(t => {
+  if (t.tipo !== "pagar" || (t.status !== "aberto" && t.status !== "parcial")) return false;
+  // Mês atual
+  if (t.vencimento >= mesInicio && t.vencimento <= mesFim) return true;
+  // Vencidos de meses anteriores
+  if (t.vencimento < mesInicio && t.vencimento < hj) return true;
+  return false;
+});
+```
+
+Mesma lógica para o filtro de `receber` (linha 64), para manter consistência.
 
 ### Impacto
-1 arquivo editado. Sem alterações de banco. Melhora a UX do formulário de parcelas.
+1 arquivo editado, ~10 linhas alteradas. O card passará a exibir R$ 500,00 (apenas a parcela de abril/2026).
 
