@@ -9,6 +9,19 @@ const corsHeaders = {
 // ── Auth: accept x-cron-secret OR the anon key in Authorization ──
 function isCronAuthorized(req: Request): boolean {
   const cronSecret = req.headers.get("x-cron-secret");
+  const authHeader = req.headers.get("Authorization");
+  const apiKey = req.headers.get("apikey");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  console.log("Auth debug:", { hasCronSecret: !!cronSecret, hasAuth: !!authHeader, hasApiKey: !!apiKey, hasAnonKeyEnv: !!anonKey, apiKeyMatch: apiKey === anonKey });
+  
+  if (cronSecret && cronSecret === Deno.env.get("CRON_SECRET")) return true;
+  if (authHeader) {
+    const token = authHeader.replace("Bearer ", "");
+    if (anonKey && token === anonKey) return true;
+  }
+  if (apiKey && anonKey && apiKey === anonKey) return true;
+  return false;
+}
   if (cronSecret && cronSecret === Deno.env.get("CRON_SECRET")) return true;
 
   // Accept anon key from pg_cron (check both possible env var names)
