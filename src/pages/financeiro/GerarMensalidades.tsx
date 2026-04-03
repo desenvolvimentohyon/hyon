@@ -237,6 +237,7 @@ export default function GerarMensalidades() {
       });
       setSelectedIds(new Set());
       setCourtesyMap({});
+      setPartialMap({});
     }
     if (errors > 0) {
       toast.error(`${errors} mensalidade(s) falharam ao gerar.`);
