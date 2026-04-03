@@ -60,6 +60,7 @@ const ConciliacaoBancaria = lazy(() => import("./pages/financeiro/ConciliacaoBan
 const Lancamentos = lazy(() => import("./pages/financeiro/Lancamentos"));
 const Relatorios = lazy(() => import("./pages/financeiro/Relatorios"));
 const ConfiguracoesFinanceiras = lazy(() => import("./pages/financeiro/ConfiguracoesFinanceiras"));
+const GerarMensalidades = lazy(() => import("./pages/financeiro/GerarMensalidades"));
 
 function AceiteRedirect() {
   const { numero } = useParams<{ numero: string }>();
