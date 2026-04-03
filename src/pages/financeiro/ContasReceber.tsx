@@ -72,7 +72,9 @@ export default function ContasReceber() {
 
   const handleCobranca = (t: TituloFinanceiro) => {
     const cli = clientesReceita.find(c => c.id === t.clienteId);
-    const msg = `Olá ${cli?.nome || "Cliente"}, seu título "${t.descricao}" no valor de ${fmt(t.valorOriginal)} venceu em ${new Date(t.vencimento).toLocaleDateString("pt-BR")}. Chave PIX: financeiro@gestask.com`;
+    const defaultBank = contasBancarias.find(c => c.nome === contasBancarias[0]?.nome);
+    const pixInfo = defaultBank?.nome ? `Conta: ${defaultBank.nome}` : "";
+    const msg = `Olá ${cli?.nome || "Cliente"}, seu título "${t.descricao}" no valor de ${fmt(t.valorOriginal)} venceu em ${new Date(t.vencimento).toLocaleDateString("pt-BR")}.${pixInfo ? ` ${pixInfo}` : ""}`;
     navigator.clipboard.writeText(msg);
     toast.success("Mensagem de cobrança copiada!");
   };
