@@ -41,6 +41,7 @@ export default function GerarMensalidades() {
   const [alreadyGenerated, setAlreadyGenerated] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [courtesyMap, setCourtesyMap] = useState<Record<string, { enabled: boolean; reason: string }>>({});
+  const [partialMap, setPartialMap] = useState<Record<string, { enabled: boolean; value: number }>>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
