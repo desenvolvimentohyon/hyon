@@ -1,26 +1,20 @@
 
 
-## Plano: Reduzir Tamanho do Card/Modal "Lançar Despesa"
-
-### Problema
-O modal de "Lançar Despesa" ocupa muito espaço vertical com campos espalhados e espaçamento largo.
+## Plano: Adicionar filtro por tipo (Recorrente / Parcelado) na tabela de Contas a Pagar
 
 ### Alterações em `src/pages/financeiro/ContasPagar.tsx`
 
-**1. Compactar o formulário `NovaDespesaForm`**
-- Reduzir `space-y-3` para `space-y-2`
-- Agrupar campos em pares lado a lado usando grid de 2 colunas:
-  - Linha 1: Descrição (full width)
-  - Linha 2: Valor + Parcelas/Meses
-  - Linha 3: Vencimento + Fornecedor
-  - Linha 4: Categoria (full width)
-  - Checkbox de recorrência inline
-- Reduzir padding do card de resumo de parcelas de `p-4` para `p-3`
-- Usar `text-base` ao invés de `text-lg` no resumo de parcelas
+**1. Novo estado de filtro**
+- Adicionar `filtroTipo` com valores: `"todos"`, `"recorrente"`, `"parcelado"`
 
-**2. Reduzir tamanho do DialogContent**
-- Adicionar `className="sm:max-w-md"` ao `DialogContent` do modal "Lançar Despesa" (padrão é `sm:max-w-lg`)
+**2. Novo Select de filtro na barra de filtros (linha ~134)**
+- Adicionar um `Select` com opções: "Todos os tipos", "Recorrente", "Parcelado"
+- Posicionar ao lado dos filtros existentes de status e origem
+
+**3. Lógica de filtragem no `useMemo` (linha ~48-58)**
+- Se `filtroTipo === "recorrente"`: filtrar descrições que contenham `(recorrente`
+- Se `filtroTipo === "parcelado"`: filtrar descrições que contenham padrão `(X/Y)` mas **não** `(recorrente`
 
 ### Impacto
-1 arquivo, ~15 linhas alteradas. Layout mais compacto sem perder funcionalidade.
+1 arquivo, ~10 linhas adicionadas.
 
