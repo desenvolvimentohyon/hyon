@@ -169,6 +169,17 @@ export default function GerarMensalidades() {
         toast.warning(`Preencha o motivo da cortesia para ${client.name}.`);
         return;
       }
+      const partial = partialMap[client.id];
+      if (partial?.enabled) {
+        if (partial.value <= 0) {
+          toast.warning(`Informe o valor parcial para ${client.name}.`);
+          return;
+        }
+        if (partial.value >= client.monthly_value_final) {
+          toast.warning(`O valor parcial de ${client.name} deve ser menor que a mensalidade integral.`);
+          return;
+        }
+      }
     }
 
     setGenerating(true);
