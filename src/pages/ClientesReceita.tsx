@@ -434,6 +434,72 @@ export default function Clientes() {
         })}
       </div>
 
+      {/* Batch Edit Dialog */}
+      <Dialog open={showBatchEdit} onOpenChange={setShowBatchEdit}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Alteração em Lote ({selectedIds.size} clientes)</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Dia de Vencimento</Label>
+              <Select value={batchDueDay} onValueChange={setBatchDueDay}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">Dia 3</SelectItem>
+                  <SelectItem value="5">Dia 5</SelectItem>
+                  <SelectItem value="7">Dia 7</SelectItem>
+                  <SelectItem value="10">Dia 10</SelectItem>
+                  <SelectItem value="15">Dia 15</SelectItem>
+                  <SelectItem value="20">Dia 20</SelectItem>
+                  <SelectItem value="25">Dia 25</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Índice de Reajuste</Label>
+              <Select value={batchAdjustment} onValueChange={setBatchAdjustment}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="IGPM">IGPM</SelectItem>
+                  <SelectItem value="IPCA">IPCA</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Regime Tributário</Label>
+              <Select value={batchTaxRegime} onValueChange={setBatchTaxRegime}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="simples_nacional">Simples Nacional</SelectItem>
+                  <SelectItem value="lucro_presumido">Lucro Presumido</SelectItem>
+                  <SelectItem value="lucro_real">Lucro Real</SelectItem>
+                  <SelectItem value="mei">MEI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Plano de Cobrança</Label>
+              <Select value={batchBillingPlan} onValueChange={setBatchBillingPlan}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground">Apenas os campos alterados serão atualizados.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBatchEdit(false)}>Cancelar</Button>
+            <Button onClick={handleBatchUpdate} disabled={batchSaving || (!batchDueDay && !batchAdjustment && !batchTaxRegime && !batchBillingPlan)}>
+              {batchSaving ? <><Loader2 className="h-4 w-4 animate-spin" />Aplicando...</> : "Aplicar Alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showNovo} onOpenChange={v => { if (!v) resetForm(); setShowNovo(v); }}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Novo Cliente</DialogTitle></DialogHeader>
