@@ -223,6 +223,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
         desconto: 0, juros: 0, multa: 0,
         status: "aberto", formaPagamento: "boleto",
         contaBancariaId: null, anexosFake: [], observacoes: "", commissionType: null,
+        isCourtesy: false, courtesyReason: null,
       });
     }
     onSave();
