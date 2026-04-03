@@ -174,6 +174,14 @@ export default {
   				'100%': {
   					transform: 'translateX(0)'
   				}
+  			},
+  			'neon-pulse': {
+  				'0%, 100%': { opacity: '0.6' },
+  				'50%': { opacity: '1' }
+  			},
+  			'glow-breathe': {
+  				'0%, 100%': { boxShadow: '0 0 12px hsl(199 89% 48% / 0.1)' },
+  				'50%': { boxShadow: '0 0 24px hsl(199 89% 48% / 0.2)' }
   			}
   		},
 		animation: {
