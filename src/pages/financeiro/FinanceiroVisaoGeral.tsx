@@ -60,6 +60,7 @@ export default function Financeiro() {
   };
 
   const kpis = useMemo(() => {
+    const now = new Date();
     const saldoBancos = contasBancarias.filter(c => c.ativo).reduce((s, c) => s + getSaldoConta(c.id), 0);
     const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
     const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
@@ -80,7 +81,6 @@ export default function Financeiro() {
     const vencidos = titulos.filter(t => t.tipo === "receber" && t.status === "vencido");
     const mrr = clientesReceita.filter(c => c.statusCliente === "ativo" && c.mensalidadeAtiva).reduce((s, c) => s + c.valorMensalidade, 0);
     
-    const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const receitasMes = titulos.filter(t => t.tipo === "receber" && t.competenciaMes === mesAtual && t.status === "pago").reduce((s, t) => s + t.valorOriginal, 0);
     const despesasMes = titulos.filter(t => t.tipo === "pagar" && t.competenciaMes === mesAtual && t.status === "pago").reduce((s, t) => s + t.valorOriginal, 0);
