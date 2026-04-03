@@ -80,6 +80,7 @@ export default function GerarMensalidades() {
       setAlreadyGenerated(existingIds);
       setSelectedIds(new Set());
       setCourtesyMap({});
+      setPartialMap({});
       setLoading(false);
     }
 
