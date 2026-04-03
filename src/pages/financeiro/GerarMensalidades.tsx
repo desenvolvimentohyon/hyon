@@ -188,7 +188,16 @@ export default function GerarMensalidades() {
 
     for (const client of toGenerate) {
       const isCourtesy = courtesyMap[client.id]?.enabled || false;
-      const courtesyReason = courtesyMap[client.id]?.reason || "";
+      const isPartial = partialMap[client.id]?.enabled || false;
+      const partialValue = partialMap[client.id]?.value || 0;
+
+      const valorOriginal = isCourtesy ? 0 : isPartial ? partialValue : client.monthly_value_final;
+      const descSuffix = isCourtesy ? " (Cortesia)" : isPartial ? " (Parcial)" : "";
+      const obs = isCourtesy
+        ? `Cortesia: ${courtesyReason}`
+        : isPartial
+          ? `Mensalidade parcial (valor integral: ${client.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
+          : "";
 
       const ok = await addTitulo({
         tipo: "receber",
