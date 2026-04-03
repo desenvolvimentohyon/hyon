@@ -183,15 +183,19 @@ export default function GerarMensalidades() {
       const isCourtesy = courtesyMap[client.id]?.enabled || false;
       const isPartial = partialMap[client.id]?.enabled || false;
       const partialValue = partialMap[client.id]?.value || 0;
-
-      const valorOriginal = isCourtesy ? 0 : isPartial ? partialValue : client.monthly_value_final;
-      const descSuffix = isCourtesy ? " (Cortesia)" : isPartial ? " (Parcial)" : "";
       const cReason = courtesyMap[client.id]?.reason || "";
+
+      const valorOriginal = isCourtesy
+        ? (isPartial ? partialValue : 0)
+        : client.monthly_value_final;
+      const descSuffix = isCourtesy
+        ? (isPartial ? " (Cortesia Parcial)" : " (Cortesia)")
+        : "";
       const obs = isCourtesy
-        ? `Cortesia: ${cReason}`
-        : isPartial
-          ? `Mensalidade parcial (valor integral: ${client.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
-          : "";
+        ? isPartial
+          ? `Cortesia parcial (valor integral: ${client.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) - Motivo: ${cReason}`
+          : `Cortesia: ${cReason}`
+        : "";
 
       const ok = await addTitulo({
         tipo: "receber",
