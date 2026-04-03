@@ -26,6 +26,7 @@ export default function ContasPagar() {
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroFornecedor, setFiltroFornecedor] = useState("");
   const [filtroOrigem, setFiltroOrigem] = useState<string>("todos");
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [modalBaixa, setModalBaixa] = useState<TituloFinanceiro | null>(null);
   const [contaBaixaId, setContaBaixaId] = useState("");
   const [modalEditar, setModalEditar] = useState<TituloFinanceiro | null>(null);
