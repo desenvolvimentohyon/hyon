@@ -477,6 +477,7 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
           <SelectContent>{planoContas.filter(p => p.paiId && (p.tipo === "despesa" || p.tipo === "custo" || p.tipo === "repasse" || p.tipo === "imposto")).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
         </Select>
       </div>
+      <div><Label>Observações</Label><Textarea value={obs} onChange={e => setObs(e.target.value)} placeholder="Observações opcionais..." rows={2} /></div>
       <DialogFooter>
         <Button onClick={handleSave}>Salvar</Button>
       </DialogFooter>
