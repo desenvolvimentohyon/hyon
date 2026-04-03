@@ -418,11 +418,11 @@ export default function GerarMensalidades() {
                           </TableCell>
                           <TableCell className="text-center">
                             {generated ? (
-                              <Badge variant="outline" className="text-emerald-400 border-emerald-500/30">
+                              <Badge variant="outline" className="text-success border-success/30">
                                 Já gerado
                               </Badge>
                             ) : isCourtesy ? (
-                              <Badge variant="outline" className="text-amber-400 border-amber-500/30">
+                              <Badge variant="warning">
                                 <Gift className="h-3 w-3 mr-1" />
                                 Cortesia
                               </Badge>
