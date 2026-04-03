@@ -166,6 +166,7 @@ function AuthGate() {
                       <Route path="/financeiro/lancamentos" element={<Lancamentos />} />
                       <Route path="/financeiro/relatorios" element={<Relatorios />} />
                       <Route path="/financeiro/configuracoes" element={<ConfiguracoesFinanceiras />} />
+                      <Route path="/financeiro/gerar-mensalidades" element={<GerarMensalidades />} />
                     </Route>
                     
                     <Route path="*" element={<NotFound />} />
