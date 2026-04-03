@@ -275,7 +275,7 @@ function NovoTituloModal({ open, onClose, tipo }: { open: boolean; onClose: () =
       competenciaMes: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
       dataEmissao: now.toISOString().split("T")[0], vencimento: venc,
       valorOriginal: parseFloat(valor), desconto: 0, juros: 0, multa: 0,
-      status: "aberto", formaPagamento: "pix", contaBancariaId: "cb1",
+      status: "aberto", formaPagamento: "pix", contaBancariaId: contasBancarias[0]?.id || null,
       anexosFake: [], observacoes: "", commissionType: null,
       isCourtesy: false, courtesyReason: null,
     });
