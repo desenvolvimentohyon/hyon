@@ -31,6 +31,7 @@ export default function ContasPagar() {
   const [contaBaixaId, setContaBaixaId] = useState("");
   const [modalEditar, setModalEditar] = useState<TituloFinanceiro | null>(null);
   const [excluirId, setExcluirId] = useState<string | null>(null);
+  const [cancelarFuturosId, setCancelarFuturosId] = useState<string | null>(null);
 
   useEffect(() => {
     if (contasBancarias.length > 0 && !contaBaixaId) {
