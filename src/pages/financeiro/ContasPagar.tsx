@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Plus, CheckCircle, AlertTriangle, ArrowDownRight, Pencil, Trash2, Repeat } from "lucide-react";
+import { Plus, CheckCircle, AlertTriangle, ArrowDownRight, Pencil, Trash2, Repeat, XCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
@@ -31,6 +31,7 @@ export default function ContasPagar() {
   const [contaBaixaId, setContaBaixaId] = useState("");
   const [modalEditar, setModalEditar] = useState<TituloFinanceiro | null>(null);
   const [excluirId, setExcluirId] = useState<string | null>(null);
+  const [cancelarFuturosId, setCancelarFuturosId] = useState<string | null>(null);
 
   useEffect(() => {
     if (contasBancarias.length > 0 && !contaBaixaId) {
@@ -77,6 +78,27 @@ export default function ContasPagar() {
     deleteTitulo(excluirId);
     toast.success("Despesa excluída!");
     setExcluirId(null);
+  };
+
+  const getFuturosRecorrentes = (tituloId: string) => {
+    const titulo = titulos.find(t => t.id === tituloId);
+    if (!titulo) return [];
+    const baseDesc = titulo.descricao.replace(/\s*\(recorrente \d+\/\d+\)/, "");
+    return titulos.filter(t =>
+      t.id !== tituloId &&
+      t.status === "aberto" &&
+      t.descricao.replace(/\s*\(recorrente \d+\/\d+\)/, "") === baseDesc &&
+      t.descricao.includes("(recorrente") &&
+      t.vencimento > titulo.vencimento
+    );
+  };
+
+  const handleCancelarFuturos = () => {
+    if (!cancelarFuturosId) return;
+    const futuros = getFuturosRecorrentes(cancelarFuturosId);
+    futuros.forEach(t => deleteTitulo(t.id));
+    toast.success(`${futuros.length} lançamentos futuros excluídos!`);
+    setCancelarFuturosId(null);
   };
 
   const statusBadge = (status: string) => {
@@ -194,7 +216,10 @@ export default function ContasPagar() {
                       <RowActions
                         actions={[
                           { label: "Editar", icon: Pencil, onClick: () => setModalEditar(t) },
-                          { label: "Excluir", icon: Trash2, onClick: () => setExcluirId(t.id), variant: "destructive", separator: true },
+                          ...(t.descricao.includes("(recorrente") && t.status === "aberto"
+                            ? [{ label: "Cancelar futuros", icon: XCircle, onClick: () => setCancelarFuturosId(t.id), variant: "destructive" as const, separator: true }]
+                            : []),
+                          { label: "Excluir", icon: Trash2, onClick: () => setExcluirId(t.id), variant: "destructive" as const, separator: !t.descricao.includes("(recorrente") },
                         ]}
                       />
                     </div>
@@ -261,6 +286,31 @@ export default function ContasPagar() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleExcluir} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirmação Cancelar Futuros */}
+      <AlertDialog open={!!cancelarFuturosId} onOpenChange={() => setCancelarFuturosId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar lançamentos futuros</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cancelarFuturosId && (() => {
+                const qty = getFuturosRecorrentes(cancelarFuturosId).length;
+                return qty > 0
+                  ? `Serão excluídos ${qty} lançamento(s) recorrente(s) com status "aberto" e vencimento posterior ao selecionado. Esta ação não pode ser desfeita.`
+                  : "Não há lançamentos futuros abertos para cancelar.";
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            {cancelarFuturosId && getFuturosRecorrentes(cancelarFuturosId).length > 0 && (
+              <AlertDialogAction onClick={handleCancelarFuturos} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Confirmar Exclusão
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
