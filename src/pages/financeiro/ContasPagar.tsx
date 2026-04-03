@@ -363,26 +363,21 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-      <div><Label>Valor {recorrente ? "mensal" : "total"} *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
+      <div className="grid grid-cols-2 gap-2">
+        <div><Label>Valor {recorrente ? "mensal" : "total"} *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
+        {recorrente ? (
+          <div><Label>Meses</Label><Input type="number" min={1} value={mesesRecorrencia} onChange={e => setMesesRecorrencia(e.target.value)} /></div>
+        ) : (
+          <div><Label>Parcelas</Label><Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} /></div>
+        )}
+      </div>
 
       <div className="flex items-center gap-2">
         <Checkbox id="recorrente" checked={recorrente} onCheckedChange={(v) => { setRecorrente(!!v); if (v) setParcelas("1"); }} />
         <Label htmlFor="recorrente" className="cursor-pointer text-sm">Despesa recorrente (mensal)</Label>
       </div>
-
-      {recorrente ? (
-        <div>
-          <Label>Quantidade de meses</Label>
-          <Input type="number" min={1} value={mesesRecorrencia} onChange={e => setMesesRecorrencia(e.target.value)} />
-        </div>
-      ) : (
-        <div>
-          <Label>Parcelas</Label>
-          <Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} />
-        </div>
-      )}
 
       {(() => {
         const qty = recorrente ? numMeses : numParcelas;
@@ -393,11 +388,11 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
         ultimaData.setMonth(ultimaData.getMonth() + qty - 1);
         const fmtDate = (d: Date) => d.toLocaleDateString("pt-BR");
         return (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-1">
-            <p className="text-lg font-bold text-foreground">
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-0.5">
+            <p className="text-base font-bold text-foreground">
               {qty}x de {fmt(Math.round(valUnit * 100) / 100)}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               De {fmtDate(primeiraData)} até {fmtDate(ultimaData)}
             </p>
             {!recorrente && (
@@ -409,8 +404,10 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
           </div>
         );
       })()}
-      <div><Label>Vencimento {recorrente ? "1º mês" : numParcelas > 1 ? "1ª parcela" : ""}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
-      <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
+      <div className="grid grid-cols-2 gap-2">
+        <div><Label>Vencimento {recorrente ? "1º mês" : numParcelas > 1 ? "1ª parcela" : ""}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
+        <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
+      </div>
       <div><Label>Categoria</Label>
         <Select value={catId} onValueChange={setCatId}>
           <SelectTrigger><SelectValue /></SelectTrigger>
