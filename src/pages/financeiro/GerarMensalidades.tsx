@@ -362,10 +362,11 @@ export default function GerarMensalidades() {
                     </TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead className="text-right">Mensalidade</TableHead>
-                    <TableHead className="text-center">Dia Venc.</TableHead>
-                    <TableHead className="text-center">Vencimento</TableHead>
-                    <TableHead className="text-center">Cortesia</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
+                     <TableHead className="text-center">Dia Venc.</TableHead>
+                     <TableHead className="text-center">Vencimento</TableHead>
+                     <TableHead className="text-center">Parcial</TableHead>
+                     <TableHead className="text-center">Cortesia</TableHead>
+                     <TableHead className="text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
