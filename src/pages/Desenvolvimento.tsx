@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Code2, Plus, Calendar, DollarSign, CheckCircle2, Clock, Pause, XCircle, Rocket } from "lucide-react";
+import { Code2, Plus, Calendar, DollarSign, CheckCircle2, Clock, Pause, XCircle, Rocket, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TableSkeleton } from "@/components/ui/data-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { RowActions } from "@/components/ui/row-actions";
 import { useDevProjects, DevProject } from "@/hooks/useDevProjects";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,7 +32,7 @@ const PLAN_LABELS: Record<string, string> = { mensal: "Mensal", anual: "Anual", 
 export default function Desenvolvimento() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { projects, loading, createProject } = useDevProjects();
+  const { projects, loading, createProject, deleteProject } = useDevProjects();
   const [filter, setFilter] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
@@ -101,14 +102,17 @@ export default function Desenvolvimento() {
             const Icon = cfg.icon;
             const stagesPct = p.stages_total ? Math.round((p.stages_done! / p.stages_total) * 100) : 0;
             return (
-              <Card key={p.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/desenvolvimento/${p.id}`)}>
+              <Card key={p.id} className="group cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/desenvolvimento/${p.id}`)}>
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h3 className="font-semibold truncate">{p.title}</h3>
                       <p className="text-xs text-muted-foreground truncate">{p.client_name}</p>
                     </div>
-                    <Badge className={`shrink-0 ${cfg.color}`}><Icon className="h-3 w-3 mr-1" />{cfg.label}</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge className={`shrink-0 ${cfg.color}`}><Icon className="h-3 w-3 mr-1" />{cfg.label}</Badge>
+                      <RowActions actions={[{ label: "Excluir projeto", icon: Trash2, variant: "destructive", onClick: () => deleteProject(p.id) }]} />
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
