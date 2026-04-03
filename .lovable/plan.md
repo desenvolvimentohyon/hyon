@@ -1,60 +1,32 @@
 
 
-## Plano: Corrigir Sistema de Notificações Push e Cron Jobs
+## Plano: Editar, Excluir e Melhorar Parcelas em Contas a Pagar
 
-### Problemas Encontrados
+### Contexto
+O `FinanceiroContext` já expõe `updateTitulo` e `deleteTitulo`. A página `ContasPagar.tsx` não os utiliza. O formulário de nova despesa já tem campo de parcelas, mas não mostra o valor calculado por parcela.
 
-#### 1. billing-cron NUNCA executa (403 Forbidden)
-O cron job envia a requisição com `Authorization: Bearer <anon_key>`, mas a função verifica `req.headers.get("x-cron-secret")` contra `CRON_SECRET`. Como o cron job não envia o header `x-cron-secret`, a função sempre retorna 403. **Nenhuma notificação de cobrança está sendo gerada.**
+### Alterações em `src/pages/financeiro/ContasPagar.tsx`
 
-#### 2. billing-cron NÃO envia push notifications
-Mesmo se funcionasse, o billing-cron apenas insere registros na tabela `billing_notifications` (canal "interno"). Ele **nunca chama** a edge function `push-notifications` para enviar push real ao dispositivo do usuário.
+**1. Importar `updateTitulo` e `deleteTitulo` do contexto**
 
-#### 3. send-plan-renewal-alerts FALHA na autenticação
-O cron job envia o anon key como Bearer token. A função tenta `authClient.auth.getUser()` com esse token, que falha porque o anon key não é um token de usuário válido. **Alertas de renovação nunca são enviados.**
+**2. Adicionar menu de ações (editar/excluir) na coluna "Ações" da tabela**
+- Usar o componente `RowActions` já existente com opções "Editar" e "Excluir"
+- Editar abre um modal de edição pré-preenchido
+- Excluir pede confirmação via `AlertDialog` antes de chamar `deleteTitulo`
 
-#### 4. send-plan-renewal-alerts NÃO envia push
-Mesmo se autenticasse, essa função apenas grava em `notification_logs` — não dispara push notifications.
+**3. Modal de Edição**
+- Novo estado `modalEditar` com o título selecionado
+- Campos editáveis: descrição, valor, vencimento, fornecedor, categoria, status
+- Ao salvar, chama `updateTitulo(id, changes)`
 
----
+**4. Melhorar exibição de parcelas no formulário de nova despesa**
+- Mostrar texto calculado: "Valor por parcela: R$ X,XX" abaixo do campo de parcelas
+- Atualiza dinamicamente conforme o usuário altera valor total ou número de parcelas
 
-### Correções Propostas
-
-#### Arquivo 1: `supabase/functions/billing-cron/index.ts`
-- **Corrigir autenticação**: Aceitar tanto `x-cron-secret` quanto `Authorization` com anon/service key (para compatibilidade com pg_cron)
-- **Adicionar envio de push**: Após criar `billing_notification`, chamar a função de push para enviar notificação real ao(s) admin(s) da organização
-
-```typescript
-// Após criar billing_notification, disparar push:
-const payload = JSON.stringify({
-  title: diffDays >= 0 ? "📋 Mensalidade vencendo" : "🚨 Mensalidade em atraso",
-  body: `${clientName} - R$ ${title.value_final} - ${notificationType}`,
-  url: "/financeiro/contas-a-receber"
-});
-// Buscar subscriptions ativas da org e enviar push
-```
-
-#### Arquivo 2: `supabase/functions/send-plan-renewal-alerts/index.ts`
-- **Corrigir autenticação**: Remover verificação de usuário autenticado, usar `x-cron-secret` ou simplesmente aceitar chamadas do pg_cron com anon key (já que `verify_jwt = false`)
-- **Adicionar envio de push**: Após gravar em `notification_logs`, disparar push para admins da org
-
-#### Arquivo 3: Atualizar cron jobs (SQL via insert)
-- Adicionar header `x-cron-secret` nas chamadas do pg_cron **OU** ajustar as funções para aceitar o anon key
-
----
-
-### Abordagem Técnica
-
-A solução mais limpa:
-
-1. **Padronizar auth dos crons**: As funções cron já têm `verify_jwt = false` no config.toml. Vamos usar o padrão `x-cron-secret` em todas, e atualizar os cron jobs no pg_cron para enviar esse header.
-
-2. **Extrair lógica de push para função reutilizável**: O `billing-cron` e `send-plan-renewal-alerts` vão importar e usar `sendWebPush` inline (copiando a lógica) para enviar push diretamente, sem chamar outra edge function.
-
-3. **Atualizar os 2 cron jobs** (billing-cron e send-plan-renewal-alerts) no pg_cron para incluir o header `x-cron-secret`.
+**5. Confirmação de exclusão**
+- `AlertDialog` com mensagem "Deseja realmente excluir esta despesa?"
+- Ao confirmar, chama `deleteTitulo(id)` e exibe toast de sucesso
 
 ### Impacto
-- 2 edge functions editadas
-- 2 cron jobs atualizados (SQL)
-- Push notifications passarão a ser entregues quando mensalidades vencerem ou estiverem em atraso, e quando planos estiverem próximos do vencimento
+1 arquivo editado (`ContasPagar.tsx`), ~80 linhas adicionadas. Sem alterações de banco — as funções já existem no contexto.
 
