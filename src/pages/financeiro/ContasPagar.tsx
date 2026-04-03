@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Plus, CheckCircle, AlertTriangle, ArrowDownRight, Pencil, Trash2 } from "lucide-react";
+import { Plus, CheckCircle, AlertTriangle, ArrowDownRight, Pencil, Trash2, Repeat } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { RowActions } from "@/components/ui/row-actions";
@@ -153,7 +154,9 @@ export default function ContasPagar() {
                 <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
                   <TableCell className="font-medium text-sm">
                     {t.descricao}
-                    {/\(\d+\/\d+\)/.test(t.descricao) && (
+                    {/\(recorrente \d+\/\d+\)/.test(t.descricao) ? (
+                      <Badge variant="secondary" className="ml-2 text-[10px]"><Repeat className="h-3 w-3 inline mr-0.5" />Recorrente</Badge>
+                    ) : /\(\d+\/\d+\)/.test(t.descricao) && (
                       <Badge variant="secondary" className="ml-2 text-[10px]">Parcelado</Badge>
                     )}
                   </TableCell>
@@ -322,27 +325,34 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   const [fornecedor, setFornecedor] = useState("");
   const [catId, setCatId] = useState("pc301");
   const [parcelas, setParcelas] = useState("1");
+  const [recorrente, setRecorrente] = useState(false);
+  const [mesesRecorrencia, setMesesRecorrencia] = useState("12");
 
   const numParcelas = parseInt(parcelas) || 1;
+  const numMeses = parseInt(mesesRecorrencia) || 1;
   const valorTotal = parseFloat(valor) || 0;
   const valorParcela = numParcelas > 0 ? valorTotal / numParcelas : 0;
 
   const handleSave = () => {
     if (!desc || !valor) { toast.error("Preencha os campos"); return; }
     const now = new Date();
-    for (let i = 0; i < numParcelas; i++) {
+    const qty = recorrente ? numMeses : numParcelas;
+    for (let i = 0; i < qty; i++) {
       const vencDate = new Date(venc);
       vencDate.setMonth(vencDate.getMonth() + i);
       const comp = new Date(now); comp.setMonth(comp.getMonth() + i);
+      const suffix = recorrente
+        ? ` (recorrente ${i + 1}/${qty})`
+        : qty > 1 ? ` (${i + 1}/${qty})` : "";
       addTitulo({
         tipo: "pagar", origem: "despesa_operacional",
-        descricao: numParcelas > 1 ? `${desc} (${i + 1}/${numParcelas})` : desc,
+        descricao: `${desc}${suffix}`,
         clienteId: null, fornecedorNome: fornecedor || null,
         categoriaPlanoContasId: catId,
         competenciaMes: `${comp.getFullYear()}-${String(comp.getMonth() + 1).padStart(2, "0")}`,
         dataEmissao: now.toISOString().split("T")[0],
         vencimento: vencDate.toISOString().split("T")[0],
-        valorOriginal: Math.round(valorParcela * 100) / 100,
+        valorOriginal: recorrente ? Math.round(valorTotal * 100) / 100 : Math.round(valorParcela * 100) / 100,
         desconto: 0, juros: 0, multa: 0,
         status: "aberto", formaPagamento: "boleto",
         contaBancariaId: null, anexosFake: [], observacoes: "", commissionType: null,
@@ -355,31 +365,51 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   return (
     <div className="space-y-3">
       <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-      <div><Label>Valor total *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
-      <div>
-        <Label>Parcelas</Label>
-        <Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} />
+      <div><Label>Valor {recorrente ? "mensal" : "total"} *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox id="recorrente" checked={recorrente} onCheckedChange={(v) => { setRecorrente(!!v); if (v) setParcelas("1"); }} />
+        <Label htmlFor="recorrente" className="cursor-pointer text-sm">Despesa recorrente (mensal)</Label>
       </div>
-      {numParcelas > 1 && valorTotal > 0 && (() => {
+
+      {recorrente ? (
+        <div>
+          <Label>Quantidade de meses</Label>
+          <Input type="number" min={1} value={mesesRecorrencia} onChange={e => setMesesRecorrencia(e.target.value)} />
+        </div>
+      ) : (
+        <div>
+          <Label>Parcelas</Label>
+          <Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} />
+        </div>
+      )}
+
+      {(() => {
+        const qty = recorrente ? numMeses : numParcelas;
+        const valUnit = recorrente ? valorTotal : valorParcela;
+        if (qty <= 1 || valorTotal <= 0) return null;
         const primeiraData = new Date(venc);
         const ultimaData = new Date(venc);
-        ultimaData.setMonth(ultimaData.getMonth() + numParcelas - 1);
+        ultimaData.setMonth(ultimaData.getMonth() + qty - 1);
         const fmtDate = (d: Date) => d.toLocaleDateString("pt-BR");
         return (
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-1">
             <p className="text-lg font-bold text-foreground">
-              {numParcelas}x de {fmt(Math.round(valorParcela * 100) / 100)}
+              {qty}x de {fmt(Math.round(valUnit * 100) / 100)}
             </p>
             <p className="text-sm text-muted-foreground">
               De {fmtDate(primeiraData)} até {fmtDate(ultimaData)}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Valor total: {fmt(valorTotal)}
-            </p>
+            {!recorrente && (
+              <p className="text-xs text-muted-foreground">Valor total: {fmt(valorTotal)}</p>
+            )}
+            {recorrente && (
+              <p className="text-xs text-muted-foreground">Total acumulado: {fmt(valorTotal * qty)}</p>
+            )}
           </div>
         );
       })()}
-      <div><Label>Vencimento 1ª parcela</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
+      <div><Label>Vencimento {recorrente ? "1º mês" : numParcelas > 1 ? "1ª parcela" : ""}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
       <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
       <div><Label>Categoria</Label>
         <Select value={catId} onValueChange={setCatId}>
