@@ -25,5 +25,6 @@ verify_jwt = false
 [functions.ticket-tracking]
 verify_jwt = false
 
-[functions.push-notifications]
+
+[functions.billing-cron]
 verify_jwt = false
