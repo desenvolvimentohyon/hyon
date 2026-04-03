@@ -113,7 +113,10 @@ export default function GerarMensalidades() {
       ...prev,
       [id]: { enabled, reason: prev[id]?.reason || "" },
     }));
-    // Auto-select the client when courtesy is enabled
+    // Disable partial when courtesy is enabled
+    if (enabled) {
+      setPartialMap((prev) => ({ ...prev, [id]: { enabled: false, value: 0 } }));
+    }
     if (enabled && !selectedIds.has(id)) {
       setSelectedIds((prev) => new Set(prev).add(id));
     }
@@ -123,6 +126,27 @@ export default function GerarMensalidades() {
     setCourtesyMap((prev) => ({
       ...prev,
       [id]: { ...prev[id], enabled: true, reason },
+    }));
+  }
+
+  function togglePartial(id: string, enabled: boolean) {
+    setPartialMap((prev) => ({
+      ...prev,
+      [id]: { enabled, value: prev[id]?.value || 0 },
+    }));
+    // Disable courtesy when partial is enabled
+    if (enabled) {
+      setCourtesyMap((prev) => ({ ...prev, [id]: { enabled: false, reason: "" } }));
+    }
+    if (enabled && !selectedIds.has(id)) {
+      setSelectedIds((prev) => new Set(prev).add(id));
+    }
+  }
+
+  function setPartialValue(id: string, value: number) {
+    setPartialMap((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], enabled: true, value },
     }));
   }
 
