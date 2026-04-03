@@ -1,30 +1,30 @@
 
 
-## Plano: Mensalidade Parcial na Geração em Lote
+## Plano: Vincular Parcial à Cortesia
 
-### Objetivo
-Adicionar na tela "Gerar Mensalidades" a opção de gerar uma mensalidade com valor parcial (diferente do valor integral do cliente), mantendo a integração com o fluxo financeiro existente (títulos, receitas, etc.).
+### Problema
+Atualmente, cortesia e parcial são mutuamente exclusivos — ativar um desativa o outro. O usuário quer que ao selecionar cortesia, também seja possível informar um valor parcial (pagamento parcial com cortesia).
 
-### Como funciona hoje
-- A tela lista clientes ativos com recorrência e gera títulos via `addTitulo` do `FinanceiroContext`
-- Já existe a opção de **cortesia** (valor R$ 0,00 com justificativa)
-- O `addTitulo` calcula `value_final` automaticamente e insere em `financial_titles`
-- Receitas, despesas, lucro e demais métricas derivam dos dados de `financial_titles` — não precisam de atualização separada
+### Solução
+Permitir que cortesia e parcial coexistam. Quando ambos estão ativos, o título é gerado como cortesia (status "pago", `isCourtesy: true`), mas com o valor parcial informado ao invés de R$ 0,00. Isso representa um "desconto cortesia" onde o cliente paga apenas parte do valor.
 
-### Alterações
+### Alterações em `src/pages/financeiro/GerarMensalidades.tsx`
 
-#### `src/pages/financeiro/GerarMensalidades.tsx`
-1. **Novo estado `partialMap`** — `Record<string, { enabled: boolean; value: number }>` para controlar quais clientes terão mensalidade parcial e qual o valor
-2. **Nova coluna "Parcial"** na tabela — um `Switch` para ativar modo parcial (mutuamente exclusivo com cortesia)
-3. **Campo de valor** — Quando parcial ativado, exibe um `CurrencyInput` na linha expandida (similar ao motivo da cortesia) para informar o valor a cobrar
-4. **Validação** — Valor parcial deve ser > 0 e < valor integral da mensalidade
-5. **Atualizar `handleGenerate`** — Quando parcial, usa o valor informado como `valorOriginal` e adiciona observação "Mensalidade parcial (valor integral: R$ X)"
-6. **Atualizar `totalSelected`** — Contabilizar o valor parcial na soma quando aplicável
-7. **Badge de status** — Mostrar badge "Parcial" em amarelo quando o modo parcial está ativo
+1. **Remover exclusão mútua** — nas funções `toggleCourtesy` e `togglePartial`, não desativar o outro ao ativar um
+2. **Expandir linha cortesia** — quando cortesia está ativa, mostrar o campo de motivo E um switch "Pagamento parcial?" com `CurrencyInput` (tudo na mesma área expandida)
+3. **Remover coluna "Parcial" independente** — o parcial passa a ser uma sub-opção dentro da cortesia (simplifica a tabela)
+4. **Atualizar `handleGenerate`** — quando cortesia + parcial ativos, gerar título com `valorOriginal = partialValue`, `status = "pago"`, `isCourtesy = true`, observação combinada
+5. **Atualizar `totalSelected`** — cortesia com parcial soma o valor parcial (não zero)
+6. **Badge de status** — mostrar "Cortesia Parcial" quando ambos estão ativos
 
-### Fluxo financeiro
-O `addTitulo` já insere corretamente em `financial_titles` com `value_original` e `value_final`. Todas as métricas (receita, MRR, lucro) já derivam dessa tabela. Portanto, ao gerar com valor parcial, os demais campos financeiros são automaticamente alimentados — não há necessidade de alterações em outros contextos ou páginas.
+### Lógica de geração atualizada
+```
+Se cortesia + parcial: valor = parcialValue, status = "pago", obs = "Cortesia parcial (integral: R$ X) - Motivo: Y"
+Se cortesia sem parcial: valor = 0, status = "pago", obs = "Cortesia: Y"  
+Se apenas parcial (removido — parcial agora vive dentro de cortesia)
+Se normal: valor = mensalidade, status = "aberto"
+```
 
 ### Impacto
-1 arquivo editado (~40 linhas adicionadas). Sem alterações de banco de dados.
+1 arquivo editado. A coluna "Parcial" separada é removida e o campo de valor parcial fica dentro da área expandida da cortesia.
 
