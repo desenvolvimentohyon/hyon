@@ -28,6 +28,3 @@ verify_jwt = false
 
 [functions.billing-cron]
 verify_jwt = false
-
-[functions.send-plan-renewal-alerts]
-verify_jwt = false
