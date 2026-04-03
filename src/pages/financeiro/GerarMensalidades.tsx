@@ -4,16 +4,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Receipt, CalendarDays, Users, Loader2 } from "lucide-react";
+import { Receipt, CalendarDays, Users, Loader2, Gift } from "lucide-react";
 
 interface ClientRow {
   id: string;
@@ -38,12 +39,12 @@ export default function GerarMensalidades() {
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [alreadyGenerated, setAlreadyGenerated] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [courtesyMap, setCourtesyMap] = useState<Record<string, { enabled: boolean; reason: string }>>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
   const competency = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
 
-  // Fetch clients and check duplicates
   useEffect(() => {
     if (!orgId) return;
     let cancelled = false;
@@ -76,6 +77,7 @@ export default function GerarMensalidades() {
       setClients(clientList);
       setAlreadyGenerated(existingIds);
       setSelectedIds(new Set());
+      setCourtesyMap({});
       setLoading(false);
     }
 
@@ -91,20 +93,34 @@ export default function GerarMensalidades() {
   const allSelected = selectableClients.length > 0 && selectableClients.every((c) => selectedIds.has(c.id));
 
   function toggleAll() {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(selectableClients.map((c) => c.id)));
-    }
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(selectableClients.map((c) => c.id)));
   }
 
   function toggleOne(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
+  }
+
+  function toggleCourtesy(id: string, enabled: boolean) {
+    setCourtesyMap((prev) => ({
+      ...prev,
+      [id]: { enabled, reason: prev[id]?.reason || "" },
+    }));
+    // Auto-select the client when courtesy is enabled
+    if (enabled && !selectedIds.has(id)) {
+      setSelectedIds((prev) => new Set(prev).add(id));
+    }
+  }
+
+  function setCourtesyReason(id: string, reason: string) {
+    setCourtesyMap((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], enabled: true, reason },
+    }));
   }
 
   function calcDueDate(dueDay: number | null) {
@@ -119,47 +135,60 @@ export default function GerarMensalidades() {
       return;
     }
 
+    // Validate courtesy reasons
+    for (const client of toGenerate) {
+      const courtesy = courtesyMap[client.id];
+      if (courtesy?.enabled && !courtesy.reason.trim()) {
+        toast.warning(`Preencha o motivo da cortesia para ${client.name}.`);
+        return;
+      }
+    }
+
     setGenerating(true);
     let success = 0;
     let errors = 0;
 
     for (const client of toGenerate) {
+      const isCourtesy = courtesyMap[client.id]?.enabled || false;
+      const courtesyReason = courtesyMap[client.id]?.reason || "";
+
       const ok = await addTitulo({
         tipo: "receber",
         origem: "mensalidade",
         clienteId: client.id,
         fornecedorNome: null,
-        descricao: `Mensalidade ${MONTH_NAMES[selectedMonth - 1]}/${selectedYear} - ${client.name}`,
+        descricao: `Mensalidade ${MONTH_NAMES[selectedMonth - 1]}/${selectedYear} - ${client.name}${isCourtesy ? " (Cortesia)" : ""}`,
         categoriaPlanoContasId: "",
         competenciaMes: competency,
         dataEmissao: format(new Date(), "yyyy-MM-dd"),
         vencimento: calcDueDate(client.default_due_day),
-        valorOriginal: client.monthly_value_final,
+        valorOriginal: isCourtesy ? 0 : client.monthly_value_final,
         desconto: 0,
         juros: 0,
         multa: 0,
-        status: "aberto",
+        status: isCourtesy ? "pago" : "aberto",
         formaPagamento: "boleto",
         contaBancariaId: null,
         anexosFake: [],
-        observacoes: "",
+        observacoes: isCourtesy ? `Cortesia: ${courtesyReason}` : "",
         commissionType: null,
-      });
-      if (ok) success++;
-      else errors++;
+        isCourtesy,
+        courtesyReason: isCourtesy ? courtesyReason : null,
+      } as any);
+      if (ok) success++; else errors++;
     }
 
     setGenerating(false);
 
     if (success > 0) {
       toast.success(`${success} mensalidade(s) gerada(s) com sucesso!`);
-      // Refresh duplicates
       setAlreadyGenerated((prev) => {
         const next = new Set(prev);
         clients.filter((c) => selectedIds.has(c.id)).forEach((c) => next.add(c.id));
         return next;
       });
       setSelectedIds(new Set());
+      setCourtesyMap({});
     }
     if (errors > 0) {
       toast.error(`${errors} mensalidade(s) falharam ao gerar.`);
@@ -168,7 +197,12 @@ export default function GerarMensalidades() {
 
   const totalSelected = clients
     .filter((c) => selectedIds.has(c.id))
-    .reduce((sum, c) => sum + c.monthly_value_final, 0);
+    .reduce((sum, c) => {
+      const isCourtesy = courtesyMap[c.id]?.enabled || false;
+      return sum + (isCourtesy ? 0 : c.monthly_value_final);
+    }, 0);
+
+  const courtesyCount = clients.filter((c) => selectedIds.has(c.id) && courtesyMap[c.id]?.enabled).length;
 
   const yearOptions = [selectedYear - 1, selectedYear, selectedYear + 1];
 
@@ -189,9 +223,7 @@ export default function GerarMensalidades() {
             <div className="space-y-1.5">
               <label className="text-xs text-muted-foreground">Mês</label>
               <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MONTH_NAMES.map((name, i) => (
                     <SelectItem key={i} value={String(i + 1)}>{name}</SelectItem>
@@ -202,9 +234,7 @@ export default function GerarMensalidades() {
             <div className="space-y-1.5">
               <label className="text-xs text-muted-foreground">Ano</label>
               <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-                <SelectTrigger className="w-[100px]">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {yearOptions.map((y) => (
                     <SelectItem key={y} value={String(y)}>{y}</SelectItem>
@@ -219,7 +249,7 @@ export default function GerarMensalidades() {
       {/* Client table */}
       <Card className="glass-card">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
               Clientes Ativos com Recorrência
@@ -230,24 +260,22 @@ export default function GerarMensalidades() {
               )}
             </CardTitle>
             {selectedIds.size > 0 && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm text-muted-foreground">
-                  {selectedIds.size} selecionado(s) · Total:{" "}
+                  {selectedIds.size} selecionado(s)
+                  {courtesyCount > 0 && (
+                    <span className="text-amber-400 ml-1">({courtesyCount} cortesia)</span>
+                  )}
+                  {" · Total: "}
                   <span className="text-foreground font-semibold">
                     {totalSelected.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                   </span>
                 </span>
                 <Button onClick={handleGenerate} disabled={generating} size="sm">
                   {generating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      Gerando...
-                    </>
+                    <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Gerando...</>
                   ) : (
-                    <>
-                      <Receipt className="h-4 w-4 mr-1" />
-                      Gerar Mensalidades
-                    </>
+                    <><Receipt className="h-4 w-4 mr-1" />Gerar Mensalidades</>
                   )}
                 </Button>
               </div>
@@ -281,6 +309,7 @@ export default function GerarMensalidades() {
                     <TableHead className="text-right">Mensalidade</TableHead>
                     <TableHead className="text-center">Dia Venc.</TableHead>
                     <TableHead className="text-center">Vencimento</TableHead>
+                    <TableHead className="text-center">Cortesia</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -288,37 +317,73 @@ export default function GerarMensalidades() {
                   {clients.map((c) => {
                     const generated = alreadyGenerated.has(c.id);
                     const dueDate = calcDueDate(c.default_due_day);
+                    const courtesy = courtesyMap[c.id];
+                    const isCourtesy = courtesy?.enabled || false;
                     return (
-                      <TableRow key={c.id} className={generated ? "opacity-50" : ""}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedIds.has(c.id)}
-                            onCheckedChange={() => toggleOne(c.id)}
-                            disabled={generated}
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">{c.name}</TableCell>
-                        <TableCell className="text-right font-mono">
-                          {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {c.default_due_day || 10}
-                        </TableCell>
-                        <TableCell className="text-center text-sm">
-                          {format(new Date(dueDate + "T12:00:00"), "dd/MM/yyyy")}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {generated ? (
-                            <Badge variant="outline" className="text-emerald-400 border-emerald-500/30">
-                              Já gerado
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-muted-foreground">
-                              Pendente
-                            </Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
+                      <>
+                        <TableRow key={c.id} className={generated ? "opacity-50" : ""}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedIds.has(c.id)}
+                              onCheckedChange={() => toggleOne(c.id)}
+                              disabled={generated}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{c.name}</TableCell>
+                          <TableCell className="text-right font-mono">
+                            {isCourtesy ? (
+                              <span className="text-muted-foreground line-through">
+                                {c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </span>
+                            ) : (
+                              c.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">{c.default_due_day || 10}</TableCell>
+                          <TableCell className="text-center text-sm">
+                            {format(new Date(dueDate + "T12:00:00"), "dd/MM/yyyy")}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Switch
+                              checked={isCourtesy}
+                              onCheckedChange={(checked) => toggleCourtesy(c.id, checked)}
+                              disabled={generated}
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {generated ? (
+                              <Badge variant="outline" className="text-emerald-400 border-emerald-500/30">
+                                Já gerado
+                              </Badge>
+                            ) : isCourtesy ? (
+                              <Badge variant="outline" className="text-amber-400 border-amber-500/30">
+                                <Gift className="h-3 w-3 mr-1" />
+                                Cortesia
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground">
+                                Pendente
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                        {isCourtesy && !generated && (
+                          <TableRow key={`${c.id}-reason`}>
+                            <TableCell />
+                            <TableCell colSpan={6}>
+                              <div className="flex items-center gap-2 pb-1">
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">Motivo:</span>
+                                <Input
+                                  placeholder="Ex: Cortesia, bonificação, período de testes..."
+                                  value={courtesy?.reason || ""}
+                                  onChange={(e) => setCourtesyReason(c.id, e.target.value)}
+                                  className="h-8 text-sm max-w-md"
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     );
                   })}
                 </TableBody>

@@ -217,7 +217,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
       ...t, id: tempId, criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(),
     };
     setTitulos(prev => [...prev, optimistic]);
-    const { error } = await supabase.from("financial_titles").insert({
+    const insertPayload: any = {
       org_id: orgId, type: t.tipo, origin: t.origem, client_id: t.clienteId || null,
       supplier_name: t.fornecedorNome, description: t.descricao,
       plan_account_code: t.categoriaPlanoContasId, competency: t.competenciaMes,
@@ -226,7 +226,12 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
       discount: t.desconto, interest: t.juros, fine: t.multa, status: t.status,
       bank_account_id: t.contaBancariaId || null, notes: t.observacoes,
       metadata: { formaPagamento: t.formaPagamento, anexosFake: t.anexosFake },
-    } as any);
+    };
+    if ((t as any).isCourtesy) {
+      insertPayload.is_courtesy = true;
+      insertPayload.courtesy_reason = (t as any).courtesyReason || null;
+    }
+    const { error } = await supabase.from("financial_titles").insert(insertPayload);
     if (error) { toast.error("Erro ao criar título: " + error.message); fetchAll(); return false; }
     fetchAll();
     return true;
