@@ -193,8 +193,9 @@ export default function GerarMensalidades() {
 
       const valorOriginal = isCourtesy ? 0 : isPartial ? partialValue : client.monthly_value_final;
       const descSuffix = isCourtesy ? " (Cortesia)" : isPartial ? " (Parcial)" : "";
+      const cReason = courtesyMap[client.id]?.reason || "";
       const obs = isCourtesy
-        ? `Cortesia: ${courtesyReason}`
+        ? `Cortesia: ${cReason}`
         : isPartial
           ? `Mensalidade parcial (valor integral: ${client.monthly_value_final.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
           : "";
@@ -220,7 +221,7 @@ export default function GerarMensalidades() {
         observacoes: obs,
         commissionType: null,
         isCourtesy,
-        courtesyReason: isCourtesy ? courtesyReason : null,
+        courtesyReason: isCourtesy ? cReason : null,
       } as any);
       if (ok) success++; else errors++;
     }
