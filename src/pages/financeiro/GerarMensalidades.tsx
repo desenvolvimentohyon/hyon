@@ -211,7 +211,7 @@ export default function GerarMensalidades() {
         desconto: 0,
         juros: 0,
         multa: 0,
-        status: isCourtesy ? "pago" : "aberto",
+        status: (isCourtesy && !isPartial) ? "pago" : "aberto",
         formaPagamento: "boleto",
         contaBancariaId: null,
         anexosFake: [],
