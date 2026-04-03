@@ -365,31 +365,51 @@ function NovaDespesaForm({ onSave }: { onSave: () => void }) {
   return (
     <div className="space-y-3">
       <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-      <div><Label>Valor total *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
-      <div>
-        <Label>Parcelas</Label>
-        <Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} />
+      <div><Label>Valor {recorrente ? "mensal" : "total"} *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox id="recorrente" checked={recorrente} onCheckedChange={(v) => { setRecorrente(!!v); if (v) setParcelas("1"); }} />
+        <Label htmlFor="recorrente" className="cursor-pointer text-sm">Despesa recorrente (mensal)</Label>
       </div>
-      {numParcelas > 1 && valorTotal > 0 && (() => {
+
+      {recorrente ? (
+        <div>
+          <Label>Quantidade de meses</Label>
+          <Input type="number" min={1} value={mesesRecorrencia} onChange={e => setMesesRecorrencia(e.target.value)} />
+        </div>
+      ) : (
+        <div>
+          <Label>Parcelas</Label>
+          <Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} />
+        </div>
+      )}
+
+      {(() => {
+        const qty = recorrente ? numMeses : numParcelas;
+        const valUnit = recorrente ? valorTotal : valorParcela;
+        if (qty <= 1 || valorTotal <= 0) return null;
         const primeiraData = new Date(venc);
         const ultimaData = new Date(venc);
-        ultimaData.setMonth(ultimaData.getMonth() + numParcelas - 1);
+        ultimaData.setMonth(ultimaData.getMonth() + qty - 1);
         const fmtDate = (d: Date) => d.toLocaleDateString("pt-BR");
         return (
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-1">
             <p className="text-lg font-bold text-foreground">
-              {numParcelas}x de {fmt(Math.round(valorParcela * 100) / 100)}
+              {qty}x de {fmt(Math.round(valUnit * 100) / 100)}
             </p>
             <p className="text-sm text-muted-foreground">
               De {fmtDate(primeiraData)} até {fmtDate(ultimaData)}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Valor total: {fmt(valorTotal)}
-            </p>
+            {!recorrente && (
+              <p className="text-xs text-muted-foreground">Valor total: {fmt(valorTotal)}</p>
+            )}
+            {recorrente && (
+              <p className="text-xs text-muted-foreground">Total acumulado: {fmt(valorTotal * qty)}</p>
+            )}
           </div>
         );
       })()}
-      <div><Label>Vencimento 1ª parcela</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
+      <div><Label>Vencimento {recorrente ? "1º mês" : numParcelas > 1 ? "1ª parcela" : ""}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
       <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
       <div><Label>Categoria</Label>
         <Select value={catId} onValueChange={setCatId}>
