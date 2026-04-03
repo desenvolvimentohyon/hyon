@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, UserX, RefreshCw, Download } from "lucide-react";
+import { Search, Plus, X, TrendingUp, Globe, Copy, Loader2, Users, Eye, Trash2, UserX, RefreshCw, Download, ListChecks } from "lucide-react";
 import { RowActions, RowAction } from "@/components/ui/row-actions";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/ui/page-header";
@@ -93,6 +93,65 @@ export default function Clientes() {
   const [deleteJustificativa, setDeleteJustificativa] = useState("");
   const [inativarTarget, setInativarTarget] = useState<ClienteReceita | null>(null);
   const [inativarJustificativa, setInativarJustificativa] = useState("");
+
+  // Batch edit state
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBatchEdit, setShowBatchEdit] = useState(false);
+  const [batchDueDay, setBatchDueDay] = useState("");
+  const [batchAdjustment, setBatchAdjustment] = useState("");
+  const [batchTaxRegime, setBatchTaxRegime] = useState("");
+  const [batchBillingPlan, setBatchBillingPlan] = useState("");
+  const [batchSaving, setBatchSaving] = useState(false);
+
+  const toggleBatchSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBatchUpdate = async () => {
+    if (selectedIds.size === 0) return;
+    setBatchSaving(true);
+    try {
+      const updates: Record<string, any> = {};
+      if (batchDueDay) updates.default_due_day = Number(batchDueDay);
+      if (batchAdjustment) updates.adjustment_type = batchAdjustment;
+      if (batchTaxRegime) updates.tax_regime = batchTaxRegime;
+
+      const ids = Array.from(selectedIds);
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.from("clients").update(updates).in("id", ids);
+        if (error) throw error;
+      }
+
+      if (batchBillingPlan) {
+        const { data: clients } = await supabase.from("clients").select("id, metadata").in("id", ids);
+        if (clients) {
+          for (const client of clients) {
+            const meta = (client.metadata as Record<string, any>) || {};
+            meta.billing_plan = batchBillingPlan;
+            await supabase.from("clients").update({ metadata: meta }).eq("id", client.id);
+          }
+        }
+      }
+
+      toast({ title: "Alteração em lote aplicada", description: `${selectedIds.size} clientes atualizados.` });
+      setShowBatchEdit(false);
+      setBatchMode(false);
+      setSelectedIds(new Set());
+      setBatchDueDay(""); setBatchAdjustment(""); setBatchTaxRegime(""); setBatchBillingPlan("");
+      // Refresh data
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Erro ao atualizar", description: err?.message || "Tente novamente", variant: "destructive" });
+    } finally {
+      setBatchSaving(false);
+    }
+  };
 
   // Form state
   const [form, setForm] = useState({
@@ -264,6 +323,9 @@ export default function Clientes() {
         title="Clientes e Receita"
         actions={
           <div className="flex items-center gap-2">
+            <Button size="sm" variant={batchMode ? "default" : "outline"} className="gap-1.5" onClick={() => { setBatchMode(!batchMode); setSelectedIds(new Set()); }}>
+              <ListChecks className="h-4 w-4" />{batchMode ? "Cancelar Seleção" : "Alteração em Lote"}
+            </Button>
             <Button size="sm" variant="outline" className="gap-1.5"><Download className="h-4 w-4" />Exportar ({filtered.length})</Button>
             <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>
           </div>
@@ -300,6 +362,24 @@ export default function Clientes() {
         </Select>
       </div>
 
+      {batchMode && (
+        <div className="flex items-center gap-3 rounded-lg border bg-accent/30 p-3">
+          <Checkbox
+            checked={selectedIds.size === filtered.length && filtered.length > 0}
+            onCheckedChange={(checked) => {
+              if (checked) setSelectedIds(new Set(filtered.map(c => c.id)));
+              else setSelectedIds(new Set());
+            }}
+          />
+          <span className="text-sm font-medium">{selectedIds.size} de {filtered.length} selecionados</span>
+          <div className="ml-auto flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => { setBatchMode(false); setSelectedIds(new Set()); }}>Cancelar</Button>
+            <Button size="sm" disabled={selectedIds.size === 0} onClick={() => setShowBatchEdit(true)} className="gap-1.5">
+              Editar Selecionados
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Nenhum cliente encontrado</div>
@@ -307,6 +387,13 @@ export default function Clientes() {
           const margem = c.valorMensalidade - c.valorCustoMensal;
           return (
             <ClienteCard
+              selected={batchMode && selectedIds.has(c.id)}
+              checkbox={batchMode ? (
+                <Checkbox
+                  checked={selectedIds.has(c.id)}
+                  onCheckedChange={() => toggleBatchSelect(c.id)}
+                />
+              ) : undefined}
               key={c.id}
               nome={c.nome}
               documento={c.documento}
@@ -346,6 +433,72 @@ export default function Clientes() {
           );
         })}
       </div>
+
+      {/* Batch Edit Dialog */}
+      <Dialog open={showBatchEdit} onOpenChange={setShowBatchEdit}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Alteração em Lote ({selectedIds.size} clientes)</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Dia de Vencimento</Label>
+              <Select value={batchDueDay} onValueChange={setBatchDueDay}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">Dia 3</SelectItem>
+                  <SelectItem value="5">Dia 5</SelectItem>
+                  <SelectItem value="7">Dia 7</SelectItem>
+                  <SelectItem value="10">Dia 10</SelectItem>
+                  <SelectItem value="15">Dia 15</SelectItem>
+                  <SelectItem value="20">Dia 20</SelectItem>
+                  <SelectItem value="25">Dia 25</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Índice de Reajuste</Label>
+              <Select value={batchAdjustment} onValueChange={setBatchAdjustment}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="IGPM">IGPM</SelectItem>
+                  <SelectItem value="IPCA">IPCA</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Regime Tributário</Label>
+              <Select value={batchTaxRegime} onValueChange={setBatchTaxRegime}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="simples_nacional">Simples Nacional</SelectItem>
+                  <SelectItem value="lucro_presumido">Lucro Presumido</SelectItem>
+                  <SelectItem value="lucro_real">Lucro Real</SelectItem>
+                  <SelectItem value="mei">MEI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Plano de Cobrança</Label>
+              <Select value={batchBillingPlan} onValueChange={setBatchBillingPlan}>
+                <SelectTrigger><SelectValue placeholder="Manter atual" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground">Apenas os campos alterados serão atualizados.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBatchEdit(false)}>Cancelar</Button>
+            <Button onClick={handleBatchUpdate} disabled={batchSaving || (!batchDueDay && !batchAdjustment && !batchTaxRegime && !batchBillingPlan)}>
+              {batchSaving ? <><Loader2 className="h-4 w-4 animate-spin" />Aplicando...</> : "Aplicar Alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showNovo} onOpenChange={v => { if (!v) resetForm(); setShowNovo(v); }}>
         <DialogContent className="max-w-lg">
