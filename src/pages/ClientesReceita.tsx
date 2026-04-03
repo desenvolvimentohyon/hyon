@@ -94,6 +94,65 @@ export default function Clientes() {
   const [inativarTarget, setInativarTarget] = useState<ClienteReceita | null>(null);
   const [inativarJustificativa, setInativarJustificativa] = useState("");
 
+  // Batch edit state
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBatchEdit, setShowBatchEdit] = useState(false);
+  const [batchDueDay, setBatchDueDay] = useState("");
+  const [batchAdjustment, setBatchAdjustment] = useState("");
+  const [batchTaxRegime, setBatchTaxRegime] = useState("");
+  const [batchBillingPlan, setBatchBillingPlan] = useState("");
+  const [batchSaving, setBatchSaving] = useState(false);
+
+  const toggleBatchSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBatchUpdate = async () => {
+    if (selectedIds.size === 0) return;
+    setBatchSaving(true);
+    try {
+      const updates: Record<string, any> = {};
+      if (batchDueDay) updates.default_due_day = Number(batchDueDay);
+      if (batchAdjustment) updates.adjustment_type = batchAdjustment;
+      if (batchTaxRegime) updates.tax_regime = batchTaxRegime;
+
+      const ids = Array.from(selectedIds);
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.from("clients").update(updates).in("id", ids);
+        if (error) throw error;
+      }
+
+      if (batchBillingPlan) {
+        const { data: clients } = await supabase.from("clients").select("id, metadata").in("id", ids);
+        if (clients) {
+          for (const client of clients) {
+            const meta = (client.metadata as Record<string, any>) || {};
+            meta.billing_plan = batchBillingPlan;
+            await supabase.from("clients").update({ metadata: meta }).eq("id", client.id);
+          }
+        }
+      }
+
+      toast({ title: "Alteração em lote aplicada", description: `${selectedIds.size} clientes atualizados.` });
+      setShowBatchEdit(false);
+      setBatchMode(false);
+      setSelectedIds(new Set());
+      setBatchDueDay(""); setBatchAdjustment(""); setBatchTaxRegime(""); setBatchBillingPlan("");
+      // Refresh data
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Erro ao atualizar", description: err?.message || "Tente novamente", variant: "destructive" });
+    } finally {
+      setBatchSaving(false);
+    }
+  };
+
   // Form state
   const [form, setForm] = useState({
     nome: "", documento: "", telefone: "", email: "", cidade: "",
