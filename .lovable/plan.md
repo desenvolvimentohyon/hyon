@@ -1,25 +1,23 @@
 
 
-## Plano: Card KPI de Cortesias no Financeiro
+## Diagnóstico: Cortesias não aparecem no card KPI
 
-### Objetivo
-Adicionar um card KPI no padrão existente (mesmo formato de "Saldo em Bancos", "MRR Atual", etc.) que mostre a quantidade de clientes com cortesia e o valor total das cortesias (baseado no valor de mensalidade original).
+### Problema
+O campo `is_courtesy` é salvo corretamente no banco de dados (confirmei que existe um registro com `is_courtesy = true`), porém quando os títulos são carregados no `FinanceiroContext`, o mapeamento de DB → objeto `TituloFinanceiro` **não inclui** o campo `isCourtesy`. Portanto, o filtro `(t as any).isCourtesy` no `FinanceiroVisaoGeral.tsx` sempre retorna `undefined`/`false`.
 
-### Alterações
+### Correção
 
-#### 1. `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
-- No `useMemo` de `kpis` (linha ~62): consultar `titulos` filtrando por `isCourtesy === true` no mês atual para obter:
-  - `cortesiaCount`: quantidade de títulos de cortesia
-  - `cortesiaValor`: soma dos valores de mensalidade dos clientes com cortesia (via cross-reference com `clientesReceita` ou via campo `valorOriginal` do título — como cortesias são geradas com valor 0, buscar o valor real do cliente)
-- Adicionar novo card no array `kpiCards` (linha ~174):
-  - `{ label: "Cortesias no Mês", value: "3 clientes", secondaryValue: "R$ 1.500", icon: Gift, color: "text-purple-400" }`
-- O card mostrará quantidade de clientes no valor principal e o valor "perdido" em cortesias como subtexto
+#### 1. `src/contexts/FinanceiroContext.tsx`
+- No mapeamento de cada registro do banco (linha ~43), adicionar:
+  - `isCourtesy: r.is_courtesy || false`
+  - `courtesyReason: r.courtesy_reason || null`
 
-### Detalhes Técnicos
-- Como os títulos de cortesia são salvos com `valorOriginal: 0`, o valor real da cortesia precisa vir do `monthly_value_final` do cliente (via `clientesReceita`) ou ser salvo no momento da geração. A abordagem mais simples: no momento da geração, salvar o valor original da mensalidade no campo `observacoes` ou em um campo dedicado. Alternativa: cruzar `client_id` do título com `clientesReceita` para pegar `valorMensalidade`.
-- Vou usar a abordagem de cruzamento com dados do cliente para calcular o valor real das cortesias.
-- O card segue exatamente o mesmo padrão visual dos demais KPIs (ícone + label + valor).
+#### 2. `src/types/financeiro.ts`
+- Adicionar os campos `isCourtesy: boolean` e `courtesyReason: string | null` na interface `TituloFinanceiro`
 
-### Estimativa
-~1 arquivo alterado (`FinanceiroVisaoGeral.tsx`), adição de ~15 linhas.
+#### 3. `src/pages/financeiro/FinanceiroVisaoGeral.tsx`
+- Remover o cast `(t as any)` no filtro de cortesias (linha 77), já que o campo passará a existir no tipo
+
+### Impacto
+~3 arquivos, ~5 linhas alteradas. Correção pontual de mapeamento de dados.
 
