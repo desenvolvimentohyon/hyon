@@ -362,6 +362,24 @@ export default function Clientes() {
         </Select>
       </div>
 
+      {batchMode && (
+        <div className="flex items-center gap-3 rounded-lg border bg-accent/30 p-3">
+          <Checkbox
+            checked={selectedIds.size === filtered.length && filtered.length > 0}
+            onCheckedChange={(checked) => {
+              if (checked) setSelectedIds(new Set(filtered.map(c => c.id)));
+              else setSelectedIds(new Set());
+            }}
+          />
+          <span className="text-sm font-medium">{selectedIds.size} de {filtered.length} selecionados</span>
+          <div className="ml-auto flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => { setBatchMode(false); setSelectedIds(new Set()); }}>Cancelar</Button>
+            <Button size="sm" disabled={selectedIds.size === 0} onClick={() => setShowBatchEdit(true)} className="gap-1.5">
+              Editar Selecionados
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Nenhum cliente encontrado</div>
