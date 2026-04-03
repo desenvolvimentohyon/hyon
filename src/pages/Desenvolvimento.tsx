@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TableSkeleton } from "@/components/ui/data-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { RowActions } from "@/components/ui/row-actions";
 import { useDevProjects, DevProject } from "@/hooks/useDevProjects";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
