@@ -64,7 +64,7 @@ export default function Financeiro() {
     const receber = titulos.filter(t => t.tipo === "receber" && (t.status === "aberto" || t.status === "parcial"));
     const pagar = titulos.filter(t => t.tipo === "pagar" && (t.status === "aberto" || t.status === "parcial"));
     const vencidos = titulos.filter(t => t.tipo === "receber" && t.status === "vencido");
-    const mrr = clientesReceita.filter(c => c.mensalidadeAtiva).reduce((s, c) => s + c.valorMensalidade, 0);
+    const mrr = clientesReceita.filter(c => c.statusCliente === "ativo" && c.mensalidadeAtiva).reduce((s, c) => s + c.valorMensalidade, 0);
     
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;

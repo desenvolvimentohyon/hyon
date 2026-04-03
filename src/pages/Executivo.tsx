@@ -79,7 +79,7 @@ export default function Executivo() {
   };
 
   // ── Corrected metrics (filter by status "ativo") ──
-  const ativos = clientesReceita.filter(c => c.statusCliente === "ativo");
+  const ativos = clientesReceita.filter(c => c.statusCliente === "ativo" && c.mensalidadeAtiva);
   const clientesAtivos = ativos.length;
   const receitaRecorrente = ativos.reduce((s, c) => s + (c.valorMensalidade || 0), 0);
   const inadimplentes = clientesReceita.filter(c => c.statusCliente === "atraso").length;
