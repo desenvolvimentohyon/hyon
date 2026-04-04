@@ -26,7 +26,7 @@ import { SubtabGrid, type SubtabItem } from "@/components/configuracoes/SubtabGr
 import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
-  FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users
+  FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users, Code2
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
