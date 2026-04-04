@@ -34,9 +34,11 @@ export default function Desenvolvimento() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { projects, loading, createProject, deleteProject } = useDevProjects();
+  const { templates } = useDevTemplates();
   const [filter, setFilter] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [form, setForm] = useState({
     title: "", description: "", client_id: "", plan_type: "unico",
     project_value: "", monthly_value: "", setup_value: "", deadline_at: "",
