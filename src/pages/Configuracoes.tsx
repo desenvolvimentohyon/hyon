@@ -35,6 +35,7 @@ const MinhaEmpresa = lazy(() => import("@/components/configuracoes/MinhaEmpresa"
 const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplantacao"));
 const PushNotificationsSettings = lazy(() => import("@/components/configuracoes/PushNotificationsSettings"));
 const UsuariosConfig = lazy(() => import("@/pages/UsuariosConfig"));
+const TabDesenvolvimento = lazy(() => import("@/components/configuracoes/TabDesenvolvimento"));
 
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
