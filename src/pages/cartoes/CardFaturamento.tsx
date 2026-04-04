@@ -3,7 +3,7 @@ import { useCardRevenue } from "@/hooks/useCardRevenue";
 import { useCardClients } from "@/hooks/useCardClients";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, DollarSign, TrendingUp, CheckCircle2 } from "lucide-react";
+import { Plus, DollarSign, TrendingUp, CheckCircle2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -22,6 +22,7 @@ export default function CardFaturamento() {
   const { revenue, commissions, createRevenue, updateCommissionStatus } = useCardRevenue();
   const { data: clients } = useCardClients();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingRevenue, setEditingRevenue] = useState<any | null>(null);
   const [form, setForm] = useState({ card_client_id: "", competency: "", gross_volume: 0, notes: "" });
 
   const now = new Date();
@@ -30,15 +31,33 @@ export default function CardFaturamento() {
   const totalRevMonth = (revenue.data || []).filter((r: any) => r.competency === currentMonth).reduce((s: number, r: any) => s + Number(r.gross_volume), 0);
   const totalCommMonth = (commissions.data || []).filter((c: any) => c.competency === currentMonth).reduce((s: number, c: any) => s + Number(c.commission_value), 0);
 
-  const handleCreate = async () => {
+  const openCreate = () => {
+    setEditingRevenue(null);
+    setForm({ card_client_id: "", competency: "", gross_volume: 0, notes: "" });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (r: any) => {
+    setEditingRevenue(r);
+    setForm({
+      card_client_id: r.card_client_id,
+      competency: r.competency,
+      gross_volume: r.gross_volume,
+      notes: r.notes || "",
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     if (!form.card_client_id || !form.competency || form.gross_volume <= 0) {
       toast.error("Preencha todos os campos");
       return;
     }
     try {
       await createRevenue.mutateAsync(form);
-      toast.success("Faturamento registrado e comissão calculada!");
+      toast.success(editingRevenue ? "Faturamento atualizado!" : "Faturamento registrado e comissão calculada!");
       setDialogOpen(false);
+      setEditingRevenue(null);
       setForm({ card_client_id: "", competency: "", gross_volume: 0, notes: "" });
     } catch (e: any) { toast.error(e.message); }
   };
@@ -60,7 +79,7 @@ export default function CardFaturamento() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Faturamento e Comissão" subtitle="Gestão de receita das maquininhas" actions={
-        <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5">
+        <Button onClick={openCreate} size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" /> Lançar Faturamento
         </Button>
       } />
@@ -104,19 +123,31 @@ export default function CardFaturamento() {
                     <TableHead>Competência</TableHead>
                     <TableHead>Volume Bruto</TableHead>
                     <TableHead>Notas</TableHead>
+                    <TableHead className="w-10">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(revenue.data || []).map((r: any) => (
-                    <TableRow key={r.id}>
+                    <TableRow key={r.id} className="group">
                       <TableCell className="font-medium">{r.card_clients?.name || "—"}</TableCell>
                       <TableCell>{r.competency}</TableCell>
                       <TableCell>{fmt(r.gross_volume)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{r.notes || "—"}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => openEdit(r)}
+                          title="Editar"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                   {(revenue.data || []).length === 0 && (
-                    <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-12">Nenhum lançamento</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">Nenhum lançamento</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -176,13 +207,13 @@ export default function CardFaturamento() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingRevenue(null); }}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Lançar Faturamento</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingRevenue ? "Editar Faturamento" : "Lançar Faturamento"}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5">
               <Label>Cliente *</Label>
-              <Select value={form.card_client_id} onValueChange={v => setForm(f => ({ ...f, card_client_id: v }))}>
+              <Select value={form.card_client_id} onValueChange={v => setForm(f => ({ ...f, card_client_id: v }))} disabled={!!editingRevenue}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(clients || []).filter(c => c.status === "ativo").map(c => (
@@ -193,7 +224,7 @@ export default function CardFaturamento() {
             </div>
             <div className="space-y-1.5">
               <Label>Competência (YYYY-MM) *</Label>
-              <Input type="month" value={form.competency} onChange={e => setForm(f => ({ ...f, competency: e.target.value }))} />
+              <Input type="month" value={form.competency} onChange={e => setForm(f => ({ ...f, competency: e.target.value }))} disabled={!!editingRevenue} />
             </div>
             <div className="space-y-1.5">
               <Label>Volume Bruto (R$) *</Label>
@@ -208,8 +239,8 @@ export default function CardFaturamento() {
                 Comissão prevista: <strong>{fmt(form.gross_volume * 0.3)}</strong> (30%)
               </p>
             </div>
-            <Button onClick={handleCreate} disabled={createRevenue.isPending} className="w-full">
-              {createRevenue.isPending ? "Salvando..." : "Registrar Faturamento"}
+            <Button onClick={handleSave} disabled={createRevenue.isPending} className="w-full">
+              {createRevenue.isPending ? "Salvando..." : editingRevenue ? "Salvar Alterações" : "Registrar Faturamento"}
             </Button>
           </div>
         </DialogContent>

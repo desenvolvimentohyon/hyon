@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useCardProposals, CardProposal } from "@/hooks/useCardProposals";
 import { useCardClients } from "@/hooks/useCardClients";
-import { useCardFeeProfiles } from "@/hooks/useCardClients";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, ExternalLink, MessageCircle, Copy, Eye, Check } from "lucide-react";
+import { Plus, ExternalLink, MessageCircle, Copy, Eye, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -25,33 +24,65 @@ const STATUS_COLORS: Record<string, string> = {
   expirada: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
 };
 
+const emptyForm = { title: "", machine_type: "fiscal", commission_percent: 30, validity_days: 7 };
+
 export default function CardPropostas() {
   const { data: proposals, isLoading, create, update } = useCardProposals();
   const { data: clients } = useCardClients();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProposal, setEditingProposal] = useState<CardProposal | null>(null);
   const [selectedClientId, setSelectedClientId] = useState("");
-  const [form, setForm] = useState({ title: "", machine_type: "fiscal", commission_percent: 30, validity_days: 7 });
-
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const [form, setForm] = useState(emptyForm);
 
   const getPublicUrl = (token: string) => `${window.location.origin}/cartoes/proposta/${token}`;
 
-  const handleCreate = async () => {
+  const openCreate = () => {
+    setEditingProposal(null);
+    setSelectedClientId("");
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (p: CardProposal) => {
+    setEditingProposal(p);
+    setSelectedClientId(p.card_client_id);
+    setForm({
+      title: p.title || "",
+      machine_type: p.machine_type,
+      commission_percent: p.commission_percent,
+      validity_days: p.validity_days,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     if (!selectedClientId) { toast.error("Selecione um cliente"); return; }
     try {
-      const result = await create.mutateAsync({
-        card_client_id: selectedClientId,
-        title: form.title,
-        machine_type: form.machine_type,
-        commission_percent: form.commission_percent,
-        validity_days: form.validity_days,
-      });
-      toast.success("Proposta criada!");
-      setDialogOpen(false);
-      // Copy link
-      const url = getPublicUrl(result.public_token);
-      navigator.clipboard.writeText(url);
-      toast.info("Link copiado para a área de transferência!");
+      if (editingProposal) {
+        await update.mutateAsync({
+          id: editingProposal.id,
+          title: form.title,
+          machine_type: form.machine_type,
+          commission_percent: form.commission_percent,
+          validity_days: form.validity_days,
+        });
+        toast.success("Proposta atualizada!");
+        setDialogOpen(false);
+      } else {
+        const result = await create.mutateAsync({
+          card_client_id: selectedClientId,
+          title: form.title,
+          machine_type: form.machine_type,
+          commission_percent: form.commission_percent,
+          validity_days: form.validity_days,
+        });
+        toast.success("Proposta criada!");
+        setDialogOpen(false);
+        const url = getPublicUrl(result.public_token);
+        navigator.clipboard.writeText(url);
+        toast.info("Link copiado para a área de transferência!");
+      }
+      setEditingProposal(null);
     } catch (e: any) { toast.error(e.message); }
   };
 
@@ -79,7 +110,7 @@ export default function CardPropostas() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Propostas — Maquininha" subtitle={`${(proposals || []).length} propostas`} actions={
-        <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5">
+        <Button onClick={openCreate} size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" /> Nova Proposta
         </Button>
       } />
@@ -114,6 +145,11 @@ export default function CardPropostas() {
                   <TableCell className="text-sm text-muted-foreground">{new Date(p.created_at).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {p.status === "draft" && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(p)} title="Editar">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyLink(p.public_token)} title="Copiar link">
                         <Copy className="h-3.5 w-3.5" />
                       </Button>
@@ -140,13 +176,13 @@ export default function CardPropostas() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingProposal(null); }}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Nova Proposta — Maquininha</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingProposal ? "Editar Proposta" : "Nova Proposta"} — Maquininha</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5">
               <Label>Cliente *</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+              <Select value={selectedClientId} onValueChange={setSelectedClientId} disabled={!!editingProposal}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(clients || []).map(c => (
@@ -179,8 +215,8 @@ export default function CardPropostas() {
                 <Input type="number" value={form.validity_days} onChange={e => setForm(f => ({ ...f, validity_days: Number(e.target.value) }))} />
               </div>
             </div>
-            <Button onClick={handleCreate} disabled={create.isPending} className="w-full">
-              {create.isPending ? "Criando..." : "Criar Proposta e Copiar Link"}
+            <Button onClick={handleSave} disabled={create.isPending || update.isPending} className="w-full">
+              {(create.isPending || update.isPending) ? "Salvando..." : editingProposal ? "Salvar Alterações" : "Criar Proposta e Copiar Link"}
             </Button>
           </div>
         </DialogContent>
