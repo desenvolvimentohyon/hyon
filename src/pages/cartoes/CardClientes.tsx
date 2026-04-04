@@ -11,8 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, CreditCard, Phone, MapPin, Link2 } from "lucide-react";
+import { RowActions } from "@/components/ui/row-actions";
+import { Plus, Search, Link2, Pencil, Link } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -29,13 +31,23 @@ const MACHINE_BADGE: Record<string, string> = {
   nao_fiscal: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
 };
 
+const emptyForm = { name: "", company_name: "", cnpj: "", phone: "", email: "", city: "", card_machine_type: "fiscal" as string };
+
 export default function CardClientes() {
-  const { data: clients, isLoading, create } = useCardClients();
+  const { data: clients, isLoading, create, update } = useCardClients();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("todos");
   const [filterType, setFilterType] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", company_name: "", cnpj: "", phone: "", email: "", city: "", card_machine_type: "fiscal" as string });
+  const [editingClient, setEditingClient] = useState<CardClient | null>(null);
+  const [form, setForm] = useState(emptyForm);
+
+  // ERP linking
+  const [linkingClientId, setLinkingClientId] = useState<string | null>(null);
+  const [erpSearch, setErpSearch] = useState("");
+  const [erpResults, setErpResults] = useState<any[]>([]);
+  const [erpLoading, setErpLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const filtered = (clients || []).filter(c => {
@@ -45,16 +57,65 @@ export default function CardClientes() {
     return matchSearch && matchStatus && matchType;
   });
 
-  const handleCreate = async () => {
+  const openCreate = () => {
+    setEditingClient(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (c: CardClient) => {
+    setEditingClient(c);
+    setForm({
+      name: c.name,
+      company_name: c.company_name || "",
+      cnpj: c.cnpj || "",
+      phone: c.phone || "",
+      email: c.email || "",
+      city: c.city || "",
+      card_machine_type: c.card_machine_type,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     if (!form.name.trim()) { toast.error("Nome é obrigatório"); return; }
     try {
-      await create.mutateAsync(form as any);
-      toast.success("Cliente criado!");
+      if (editingClient) {
+        await update.mutateAsync({ id: editingClient.id, ...form } as any);
+        toast.success("Cliente atualizado!");
+      } else {
+        await create.mutateAsync(form as any);
+        toast.success("Cliente criado!");
+      }
       setDialogOpen(false);
-      setForm({ name: "", company_name: "", cnpj: "", phone: "", email: "", city: "", card_machine_type: "fiscal" });
+      setForm(emptyForm);
+      setEditingClient(null);
     } catch (e: any) {
       toast.error(e.message);
     }
+  };
+
+  const searchErp = async () => {
+    if (erpSearch.length < 2) return;
+    setErpLoading(true);
+    const { data } = await supabase
+      .from("clients")
+      .select("id, name, document, trade_name")
+      .or(`name.ilike.%${erpSearch}%,document.ilike.%${erpSearch}%,trade_name.ilike.%${erpSearch}%`)
+      .limit(10);
+    setErpResults(data || []);
+    setErpLoading(false);
+  };
+
+  const linkErp = async (erpId: string) => {
+    if (!linkingClientId) return;
+    try {
+      await update.mutateAsync({ id: linkingClientId, linked_client_id: erpId } as any);
+      toast.success("Cliente vinculado ao ERP!");
+      setLinkingClientId(null);
+      setErpSearch("");
+      setErpResults([]);
+    } catch (e: any) { toast.error(e.message); }
   };
 
   if (isLoading) {
@@ -69,7 +130,7 @@ export default function CardClientes() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Clientes — Maquininha" subtitle={`${filtered.length} clientes`} actions={
-        <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1.5">
+        <Button onClick={openCreate} size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" /> Novo Cliente
         </Button>
       } />
@@ -110,6 +171,7 @@ export default function CardClientes() {
                 <TableHead>Cidade</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Vínculo ERP</TableHead>
+                <TableHead className="w-10">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,24 +197,37 @@ export default function CardClientes() {
                       {c.linked_client_id ? (
                         <Badge variant="default" className="gap-1 text-xs"><Link2 className="h-3 w-3" />Vinculado</Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-7 gap-1"
+                          onClick={(e) => { e.stopPropagation(); setLinkingClientId(c.id); }}
+                        >
+                          <Link className="h-3 w-3" />Vincular
+                        </Button>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <RowActions actions={[
+                        { label: "Editar", icon: Pencil, onClick: () => openEdit(c) },
+                        ...(!c.linked_client_id ? [{ label: "Vincular ERP", icon: Link2, onClick: () => setLinkingClientId(c.id) }] : []),
+                      ]} />
                     </TableCell>
                   </TableRow>
                 );
               })}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">Nenhum cliente encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-12">Nenhum cliente encontrado</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* New Client Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Create/Edit Client Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingClient(null); }}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Novo Cliente — Maquininha</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingClient ? "Editar Cliente" : "Novo Cliente"} — Maquininha</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -194,9 +269,47 @@ export default function CardClientes() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleCreate} disabled={create.isPending} className="w-full">
-              {create.isPending ? "Criando..." : "Criar Cliente"}
+            <Button onClick={handleSave} disabled={create.isPending || update.isPending} className="w-full">
+              {(create.isPending || update.isPending) ? "Salvando..." : editingClient ? "Salvar Alterações" : "Criar Cliente"}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ERP Linking Dialog */}
+      <Dialog open={!!linkingClientId} onOpenChange={(open) => { if (!open) { setLinkingClientId(null); setErpSearch(""); setErpResults([]); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Vincular ao ERP</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Buscar por nome, CNPJ ou nome fantasia..."
+                value={erpSearch}
+                onChange={e => setErpSearch(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && searchErp()}
+              />
+              <Button onClick={searchErp} disabled={erpLoading} size="sm">
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+            {erpResults.length > 0 && (
+              <div className="border rounded-lg divide-y max-h-[240px] overflow-y-auto">
+                {erpResults.map(r => (
+                  <div key={r.id} className="flex items-center justify-between p-2.5 hover:bg-muted/50">
+                    <div>
+                      <p className="text-sm font-medium">{r.name}</p>
+                      <p className="text-xs text-muted-foreground">{r.document || "Sem CNPJ"}{r.trade_name ? ` — ${r.trade_name}` : ""}</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => linkErp(r.id)}>
+                      <Link2 className="h-3 w-3 mr-1" />Vincular
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {erpResults.length === 0 && erpSearch.length >= 2 && !erpLoading && (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum cliente encontrado no ERP</p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
