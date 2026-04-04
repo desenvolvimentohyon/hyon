@@ -212,6 +212,21 @@ export default function Desenvolvimento() {
                 </SelectContent>
               </Select>
             </div>
+            {templates.length > 0 && (
+              <div>
+                <Label>Template</Label>
+                <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                  <SelectTrigger><SelectValue placeholder="Sem template (opcional)" /></SelectTrigger>
+                  <SelectContent>
+                    {templates.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name} ({t.stages.length} etapas, {t.checklist.length} itens)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>Descrição</Label>
               <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} />
