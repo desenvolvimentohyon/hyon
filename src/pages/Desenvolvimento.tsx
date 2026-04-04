@@ -57,7 +57,7 @@ export default function Desenvolvimento() {
 
   const handleCreate = async () => {
     if (!form.title.trim()) return;
-    const ok = await createProject({
+    const projectId = await createProject({
       title: form.title,
       description: form.description,
       client_id: form.client_id || null,
@@ -67,8 +67,51 @@ export default function Desenvolvimento() {
       setup_value: Number(form.setup_value) || 0,
       deadline_at: form.deadline_at || null,
     });
-    if (ok) {
+    if (projectId) {
+      // Apply template if selected
+      const tpl = templates.find(t => t.id === selectedTemplateId);
+      if (tpl && tpl.stages.length > 0) {
+        const { data: profile } = await supabase.from("profiles" as any).select("org_id").eq("id", user!.id).single();
+        const orgId = (profile as any).org_id;
+
+        // Insert stages and collect their IDs
+        const stageInserts = tpl.stages.map(s => ({
+          org_id: orgId, project_id: projectId, title: s.title, sort_order: s.sort_order,
+        }));
+        const { data: insertedStages } = await supabase
+          .from("dev_project_stages" as any)
+          .insert(stageInserts as any)
+          .select("id, sort_order");
+
+        // Insert checklist items
+        if (tpl.checklist.length > 0) {
+          const stageIdMap: Record<number, string> = {};
+          if (insertedStages) {
+            for (const s of insertedStages as any[]) {
+              stageIdMap[s.sort_order] = s.id;
+            }
+          }
+          const checkInserts = tpl.checklist.map(c => ({
+            org_id: orgId,
+            project_id: projectId,
+            title: c.title,
+            sort_order: c.sort_order,
+            stage_id: c.stage_index !== null ? stageIdMap[c.stage_index] || null : null,
+          }));
+          await supabase.from("dev_project_checklist" as any).insert(checkInserts as any);
+        }
+      } else if (tpl && tpl.checklist.length > 0) {
+        // Template with only checklist, no stages
+        const { data: profile } = await supabase.from("profiles" as any).select("org_id").eq("id", user!.id).single();
+        const orgId = (profile as any).org_id;
+        const checkInserts = tpl.checklist.map(c => ({
+          org_id: orgId, project_id: projectId, title: c.title, sort_order: c.sort_order, stage_id: null,
+        }));
+        await supabase.from("dev_project_checklist" as any).insert(checkInserts as any);
+      }
+
       setDialogOpen(false);
+      setSelectedTemplateId("");
       setForm({ title: "", description: "", client_id: "", plan_type: "unico", project_value: "", monthly_value: "", setup_value: "", deadline_at: "" });
     }
   };
