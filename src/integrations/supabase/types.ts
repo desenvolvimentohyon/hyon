@@ -1693,6 +1693,47 @@ export type Database = {
           },
         ]
       }
+      dev_templates: {
+        Row: {
+          checklist: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          stages: Json
+          updated_at: string
+        }
+        Insert: {
+          checklist?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+          stages?: Json
+          updated_at?: string
+        }
+        Update: {
+          checklist?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          stages?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_titles: {
         Row: {
           asaas_bank_slip_url: string | null

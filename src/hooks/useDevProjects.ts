@@ -126,14 +126,14 @@ export function useDevProjects() {
 
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
-  const createProject = async (project: Partial<DevProject>) => {
+  const createProject = async (project: Partial<DevProject>): Promise<string | false> => {
     const { data: profile } = await supabase.from("profiles" as any).select("org_id").eq("id", user!.id).single();
     const orgId = (profile as any).org_id;
-    const { error } = await supabase.from("dev_projects" as any).insert({ ...project, org_id: orgId } as any);
-    if (error) { toast.error("Erro ao criar projeto"); return false; }
+    const { data, error } = await supabase.from("dev_projects" as any).insert({ ...project, org_id: orgId } as any).select("id").single();
+    if (error || !data) { toast.error("Erro ao criar projeto"); return false; }
     toast.success("Projeto criado!");
     fetchProjects();
-    return true;
+    return (data as any).id;
   };
 
   const updateProject = async (id: string, updates: Partial<DevProject>) => {

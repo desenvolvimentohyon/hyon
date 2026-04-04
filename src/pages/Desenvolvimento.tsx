@@ -16,6 +16,7 @@ import { TableSkeleton } from "@/components/ui/data-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RowActions } from "@/components/ui/row-actions";
 import { useDevProjects, DevProject } from "@/hooks/useDevProjects";
+import { useDevTemplates, DevTemplate } from "@/hooks/useDevTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,9 +34,11 @@ export default function Desenvolvimento() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { projects, loading, createProject, deleteProject } = useDevProjects();
+  const { templates } = useDevTemplates();
   const [filter, setFilter] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [form, setForm] = useState({
     title: "", description: "", client_id: "", plan_type: "unico",
     project_value: "", monthly_value: "", setup_value: "", deadline_at: "",
@@ -54,7 +57,7 @@ export default function Desenvolvimento() {
 
   const handleCreate = async () => {
     if (!form.title.trim()) return;
-    const ok = await createProject({
+    const projectId = await createProject({
       title: form.title,
       description: form.description,
       client_id: form.client_id || null,
@@ -64,8 +67,51 @@ export default function Desenvolvimento() {
       setup_value: Number(form.setup_value) || 0,
       deadline_at: form.deadline_at || null,
     });
-    if (ok) {
+    if (projectId) {
+      // Apply template if selected
+      const tpl = templates.find(t => t.id === selectedTemplateId);
+      if (tpl && tpl.stages.length > 0) {
+        const { data: profile } = await supabase.from("profiles" as any).select("org_id").eq("id", user!.id).single();
+        const orgId = (profile as any).org_id;
+
+        // Insert stages and collect their IDs
+        const stageInserts = tpl.stages.map(s => ({
+          org_id: orgId, project_id: projectId, title: s.title, sort_order: s.sort_order,
+        }));
+        const { data: insertedStages } = await supabase
+          .from("dev_project_stages" as any)
+          .insert(stageInserts as any)
+          .select("id, sort_order");
+
+        // Insert checklist items
+        if (tpl.checklist.length > 0) {
+          const stageIdMap: Record<number, string> = {};
+          if (insertedStages) {
+            for (const s of insertedStages as any[]) {
+              stageIdMap[s.sort_order] = s.id;
+            }
+          }
+          const checkInserts = tpl.checklist.map(c => ({
+            org_id: orgId,
+            project_id: projectId,
+            title: c.title,
+            sort_order: c.sort_order,
+            stage_id: c.stage_index !== null ? stageIdMap[c.stage_index] || null : null,
+          }));
+          await supabase.from("dev_project_checklist" as any).insert(checkInserts as any);
+        }
+      } else if (tpl && tpl.checklist.length > 0) {
+        // Template with only checklist, no stages
+        const { data: profile } = await supabase.from("profiles" as any).select("org_id").eq("id", user!.id).single();
+        const orgId = (profile as any).org_id;
+        const checkInserts = tpl.checklist.map(c => ({
+          org_id: orgId, project_id: projectId, title: c.title, sort_order: c.sort_order, stage_id: null,
+        }));
+        await supabase.from("dev_project_checklist" as any).insert(checkInserts as any);
+      }
+
       setDialogOpen(false);
+      setSelectedTemplateId("");
       setForm({ title: "", description: "", client_id: "", plan_type: "unico", project_value: "", monthly_value: "", setup_value: "", deadline_at: "" });
     }
   };
@@ -166,6 +212,21 @@ export default function Desenvolvimento() {
                 </SelectContent>
               </Select>
             </div>
+            {templates.length > 0 && (
+              <div>
+                <Label>Template</Label>
+                <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                  <SelectTrigger><SelectValue placeholder="Sem template (opcional)" /></SelectTrigger>
+                  <SelectContent>
+                    {templates.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name} ({t.stages.length} etapas, {t.checklist.length} itens)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>Descrição</Label>
               <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} />
