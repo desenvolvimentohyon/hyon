@@ -16,6 +16,7 @@ import { TableSkeleton } from "@/components/ui/data-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RowActions } from "@/components/ui/row-actions";
 import { useDevProjects, DevProject } from "@/hooks/useDevProjects";
+import { useDevTemplates, DevTemplate } from "@/hooks/useDevTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
