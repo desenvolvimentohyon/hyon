@@ -1,56 +1,46 @@
 
 
-## Plano: Templates de Etapas e Checklist para Desenvolvimento
+## Plano: Edição de Clientes, Propostas, Faturamento e Vínculo ERP no módulo Cartões
 
 ### Resumo
-Criar uma tabela `dev_templates` no banco para armazenar templates com etapas e checklist pré-definidos. Adicionar uma aba "Desenvolvimento" nas Configurações para gerenciar esses templates. Ao criar um projeto, permitir selecionar um template que popula automaticamente as etapas e checklist.
+Adicionar funcionalidades de edição inline nas três páginas do módulo de cartões (Clientes, Propostas, Faturamento) e mover a opção de vincular ao ERP da página de detalhe para a listagem de clientes.
 
-### 1. Nova tabela: `dev_templates`
-```sql
-CREATE TABLE public.dev_templates (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id uuid NOT NULL,
-  name text NOT NULL,
-  description text DEFAULT '',
-  stages jsonb NOT NULL DEFAULT '[]',
-  -- formato: [{ "title": "...", "sort_order": 0 }]
-  checklist jsonb NOT NULL DEFAULT '[]',
-  -- formato: [{ "title": "...", "stage_index": 0, "sort_order": 0 }]
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.dev_templates ENABLE ROW LEVEL SECURITY;
-```
-- RLS: select/insert/update/delete para org autenticada com permissão de desenvolvimento
-- Etapas e checklist armazenados como JSON dentro do template (simples, sem tabelas extras)
+### 1. Editar Cliente — `CardClientes.tsx`
+- Adicionar coluna "Ações" na tabela com botões `Editar` e `Vincular ERP`
+- Reutilizar o dialog de criação como dialog de criação/edição:
+  - Novo estado `editingClient: CardClient | null`
+  - Ao abrir para editar, preencher o form com os dados do cliente
+  - Ao salvar, chamar `update.mutateAsync` em vez de `create.mutateAsync`
+  - Título do dialog muda: "Editar Cliente" vs "Novo Cliente"
+- Botão "Vincular ERP": abre dialog de busca/vinculação (mesmo padrão do `CardClienteDetalhe`) diretamente na listagem
+  - Novo estado `linkingClientId`
+  - Dialog com busca na tabela `clients` e botão para vincular
 
-### 2. Nova aba nas Configurações
-- Adicionar item "Desenvolvimento" no `subtabItems` com ícone `Code2`
-- Componente `TabDesenvolvimento` (novo arquivo `src/components/configuracoes/TabDesenvolvimento.tsx`):
-  - Lista de templates com nome e quantidade de etapas/checklist
-  - Dialog para criar/editar template:
-    - Nome e descrição
-    - Lista de etapas (adicionar/remover/reordenar)
-    - Para cada etapa, lista de itens de checklist
-  - Botão excluir template
+### 2. Editar Proposta — `CardPropostas.tsx`
+- Adicionar botão `Editar` (ícone `Pencil`) nas ações da tabela (ao lado de Copiar, WhatsApp, etc.)
+- Reutilizar dialog de criação como criação/edição:
+  - Novo estado `editingProposal: CardProposal | null`
+  - Ao abrir para editar, preencher form com dados existentes
+  - Ao salvar, chamar `update.mutateAsync({ id, ...fields })`
+  - Edição permitida apenas para propostas com status `draft`
 
-### 3. Hook `useDevTemplates`
-- Novo hook em `src/hooks/useDevTemplates.ts`
-- CRUD básico na tabela `dev_templates`
+### 3. Editar Faturamento — `CardFaturamento.tsx`
+- Adicionar coluna "Ações" na tabela de faturamento com botão `Editar` (ícone `Pencil`)
+- Reutilizar dialog de lançamento como criação/edição:
+  - Novo estado `editingRevenue: any | null`
+  - Ao salvar, chamar `createRevenue.mutateAsync` (já faz upsert por `org_id,card_client_id,competency`)
+  - Desabilitar campos `Cliente` e `Competência` quando editando (são chave do upsert)
 
-### 4. Aplicar template ao criar projeto
-- Em `Desenvolvimento.tsx`, no dialog de criação:
-  - Adicionar Select "Template" (opcional) que carrega os templates disponíveis
-  - Ao criar o projeto com template selecionado, após o `createProject` retornar com sucesso:
-    - Buscar o ID do projeto recém-criado
-    - Inserir as etapas do template em `dev_project_stages`
-    - Inserir os itens de checklist em `dev_project_checklist`, vinculando ao `stage_id` correto
+### 4. Vincular ao ERP na listagem — `CardClientes.tsx`
+- Mover a lógica de busca ERP + vinculação (já existente em `CardClienteDetalhe`) para a listagem
+- Exibir botão "Vincular" na coluna "Vínculo ERP" quando `linked_client_id` for null
+- Manter o botão no detalhe também
 
-### 5. Ajuste no `useDevProjects.createProject`
-- Retornar o ID do projeto criado (em vez de apenas `true`) para permitir a inserção das etapas/checklist logo após a criação
+### Arquivos editados
+- `src/pages/cartoes/CardClientes.tsx` — edição de cliente + vínculo ERP na listagem
+- `src/pages/cartoes/CardPropostas.tsx` — edição de proposta
+- `src/pages/cartoes/CardFaturamento.tsx` — edição de faturamento
 
 ### Impacto
-- 1 migração (tabela + RLS)
-- 3 arquivos novos (hook, componente configuração, subtab entry)
-- 2 arquivos editados (`Configuracoes.tsx`, `Desenvolvimento.tsx`, `useDevProjects.ts`)
+3 arquivos editados, ~80 linhas adicionadas. Sem alterações de banco de dados.
 
