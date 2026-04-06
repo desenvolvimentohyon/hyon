@@ -27,6 +27,7 @@ export default function ContasReceber() {
   const [filtroCliente, setFiltroCliente] = useState<string>("");
   const [modalBaixa, setModalBaixa] = useState<TituloFinanceiro | null>(null);
   const [modalNovo, setModalNovo] = useState(false);
+  const [editingTitulo, setEditingTitulo] = useState<TituloFinanceiro | null>(null);
   const [contaBaixaId, setContaBaixaId] = useState("");
   const [valorBaixa, setValorBaixa] = useState("");
 
