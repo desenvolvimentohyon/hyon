@@ -257,6 +257,9 @@ export default function ContasReceber() {
         </DialogContent>
       </Dialog>
 
+      {/* Modal Editar */}
+      <EditarTituloModal titulo={editingTitulo} onClose={() => setEditingTitulo(null)} />
+
       {/* Modal Novo (simplified) */}
       <NovoTituloModal open={modalNovo} onClose={() => setModalNovo(false)} tipo="receber" />
     </div>
