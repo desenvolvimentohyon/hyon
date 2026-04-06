@@ -197,6 +197,11 @@ export default function ContasReceber() {
                     <TableCell>{statusBadge(t.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        {t.status !== "cancelado" && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingTitulo(t)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
                         {(t.status === "aberto" || t.status === "vencido" || t.status === "parcial") && (
                           <>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setModalBaixa(t); setValorBaixa(""); }}>
