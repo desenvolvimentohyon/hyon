@@ -1,19 +1,23 @@
 
 
-## Plano: Corrigir listagem de clientes em Gerar Mensalidades
+## Plano: Adicionar edição de mensalidade em Contas a Receber
 
-### Problema
-A query atual filtra clientes com `.in("plan_id", monthlyPlanIds)`, mas **nenhum cliente tem `plan_id` preenchido** (0 de 38 clientes). Resultado: lista sempre vazia.
+### Resumo
+Adicionar um botão de edição (ícone `Edit`) na coluna de ações de cada título na tabela de Contas a Receber. Ao clicar, abre um dialog pré-preenchido com os dados do título, permitindo editar descrição, valor, vencimento, competência e observações. Ao salvar, chama `updateTitulo`.
 
-### Solução
-Remover o filtro por `plan_id` na query de clientes. A tela já filtra corretamente por `status = ativo`, `recurrence_active = true` e `monthly_value_final > 0` -- esses critérios são suficientes para identificar clientes com mensalidade ativa.
+### Alterações em `src/pages/financeiro/ContasReceber.tsx`
 
-### Alteração em `src/pages/financeiro/GerarMensalidades.tsx`
-
-1. Remover a query de `plans` (linhas 58-64) -- não é mais necessária
-2. Remover o `.in("plan_id", ...)` da query de clientes (linha 74)
-3. Manter todos os demais filtros intactos
+1. **Novo estado**: `editingTitulo: TituloFinanceiro | null`
+2. **Botão Edit na tabela**: Adicionar ícone `Edit` nas ações de cada linha (para todos os status exceto `cancelado`)
+3. **Dialog de edição**: Reutilizar estrutura similar ao modal de criação, com campos:
+   - Descrição
+   - Valor original (CurrencyInput)
+   - Vencimento (date)
+   - Competência (month)
+   - Observações (textarea)
+   - Cliente (select, desabilitado para mensalidades geradas)
+4. **Salvar**: Chamar `updateTitulo(id, { descricao, valorOriginal, vencimento, competenciaMes, observacoes })` e fechar o dialog
 
 ### Impacto
-1 arquivo, ~5 linhas removidas. Sem alteração de banco.
+1 arquivo editado, ~50 linhas adicionadas. Sem alteração de banco.
 
