@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw, ArrowUpRight } from "lucide-react";
+import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw, ArrowUpRight, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +30,7 @@ export default function ContasReceber() {
   const [editingTitulo, setEditingTitulo] = useState<TituloFinanceiro | null>(null);
   const [contaBaixaId, setContaBaixaId] = useState("");
   const [valorBaixa, setValorBaixa] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (contasBancarias.length > 0 && !contaBaixaId) {
@@ -63,13 +64,20 @@ export default function ContasReceber() {
   const venceHoje = receber.filter(t => t.status === "aberto" && t.vencimento === hoje);
   const vence7d = receber.filter(t => t.status === "aberto" && t.vencimento > hoje && t.vencimento <= em7d);
 
-  const handleBaixa = () => {
-    if (!modalBaixa) return;
-    const val = valorBaixa ? parseFloat(valorBaixa) : undefined;
-    baixarTitulo(modalBaixa.id, contaBaixaId, val);
-    toast.success("Título baixado com sucesso!");
-    setModalBaixa(null);
-    setValorBaixa("");
+  const handleBaixa = async () => {
+    if (!modalBaixa || isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const val = valorBaixa ? parseFloat(valorBaixa) : undefined;
+      await baixarTitulo(modalBaixa.id, contaBaixaId, val);
+      toast.success("Título baixado com sucesso!");
+      setModalBaixa(null);
+      setValorBaixa("");
+    } catch (err) {
+      toast.error("Erro ao realizar baixa");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCobranca = (t: TituloFinanceiro) => {
@@ -251,8 +259,11 @@ export default function ContasReceber() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModalBaixa(null)}>Cancelar</Button>
-            <Button onClick={handleBaixa}>Confirmar Baixa</Button>
+            <Button variant="outline" onClick={() => setModalBaixa(null)} disabled={isProcessing}>Cancelar</Button>
+            <Button onClick={handleBaixa} disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Confirmar Baixa
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

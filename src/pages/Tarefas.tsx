@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tarefa, StatusTarefa, Prioridade, STATUS_ORDER, TipoOperacional } from "@/types";
@@ -21,8 +21,9 @@ import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { supabase } from "@/integrations/supabase/client";
 
-function LiveTimer({ tempoTotalSegundos, timerRodando, timerInicioTimestamp }: { tempoTotalSegundos: number; timerRodando: boolean; timerInicioTimestamp?: number }) {
+const LiveTimer = React.memo(({ tempoTotalSegundos, timerRodando, timerInicioTimestamp }: { tempoTotalSegundos: number; timerRodando: boolean; timerInicioTimestamp?: number }) => {
   const [now, setNow] = useState(Date.now());
+  
   useEffect(() => {
     if (!timerRodando) return;
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -43,7 +44,9 @@ function LiveTimer({ tempoTotalSegundos, timerRodando, timerInicioTimestamp }: {
       {formatted}
     </span>
   );
-}
+});
+
+LiveTimer.displayName = "LiveTimer";
 
 function statusRowColor(status: string): string {
   switch (status) {

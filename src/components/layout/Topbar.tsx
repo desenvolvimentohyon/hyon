@@ -30,6 +30,7 @@ interface Notificacao {
 }
 
 export function Topbar() {
+  const { profile } = useAuth(); // Read early to avoid conditional hook rules if any
   const { tecnicos, tecnicoAtualId, setTecnicoAtual, tarefas, clientes } = useApp();
   
   const { signOut } = useAuth();
@@ -59,124 +60,133 @@ export function Topbar() {
     const hoje = new Date();
 
     // === FINANCEIRO: Títulos vencidos (a receber) ===
-    const titulosVencidos = titulos.filter(t => {
-      if (t.tipo !== "receber") return false;
-      if (t.status === "pago" || t.status === "cancelado") return false;
-      const venc = new Date(t.vencimento);
-      const diffDias = Math.floor((hoje.getTime() - venc.getTime()) / 86400000);
-      return diffDias > 30;
-    });
-
-    if (titulosVencidos.length > 0) {
-      const valorTotal = titulosVencidos.reduce((s, t) => s + t.valorOriginal, 0);
-      items.push({
-        id: "fin-critico-30d",
-        tipo: "critico",
-        categoria: "financeiro",
-        titulo: `${titulosVencidos.length} título(s) com atraso crítico`,
-        descricao: `R$ ${valorTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} vencidos há +30 dias`,
-        rota: "/financeiro/contas-a-receber",
-        icone: "atraso",
+    if (titulos.length > 0) {
+      const titulosVencidos = titulos.filter(t => {
+        if (t.tipo !== "receber") return false;
+        if (t.status === "pago" || t.status === "cancelado") return false;
+        const venc = new Date(t.vencimento);
+        const diffDias = Math.floor((hoje.getTime() - venc.getTime()) / 86400000);
+        return diffDias > 30;
       });
-    }
 
-    // Títulos vencendo em 7 dias
-    const vencendo7d = titulos.filter(t => {
-      if (t.tipo !== "receber") return false;
-      if (t.status === "pago" || t.status === "cancelado") return false;
-      const venc = new Date(t.vencimento);
-      const diffDias = Math.floor((venc.getTime() - hoje.getTime()) / 86400000);
-      return diffDias >= 0 && diffDias <= 7;
-    });
+      if (titulosVencidos.length > 0) {
+        const valorTotal = titulosVencidos.reduce((s, t) => s + t.valorOriginal, 0);
+        items.push({
+          id: "fin-critico-30d",
+          tipo: "critico",
+          categoria: "financeiro",
+          titulo: `${titulosVencidos.length} título(s) com atraso crítico`,
+          descricao: `R$ ${valorTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} vencidos há +30 dias`,
+          rota: "/financeiro/contas-a-receber",
+          icone: "atraso",
+        });
+      }
 
-    if (vencendo7d.length > 0) {
-      const valorTotal = vencendo7d.reduce((s, t) => s + t.valorOriginal, 0);
-      items.push({
-        id: "fin-vencendo-7d",
-        tipo: "alerta",
-        categoria: "financeiro",
-        titulo: `${vencendo7d.length} título(s) vencem em 7 dias`,
-        descricao: `R$ ${valorTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} a receber`,
-        rota: "/financeiro/contas-a-receber",
-        icone: "financeiro",
+      // Títulos vencendo em 7 dias
+      const vencendo7d = titulos.filter(t => {
+        if (t.tipo !== "receber") return false;
+        if (t.status === "pago" || t.status === "cancelado") return false;
+        const venc = new Date(t.vencimento);
+        const diffDias = Math.floor((venc.getTime() - hoje.getTime()) / 86400000);
+        return diffDias >= 0 && diffDias <= 7;
       });
-    }
 
-    // Contas a pagar vencidas
-    const pagarVencidas = titulos.filter(t => {
-      if (t.tipo !== "pagar") return false;
-      if (t.status === "pago" || t.status === "cancelado") return false;
-      return new Date(t.vencimento) < hoje;
-    });
+      if (vencendo7d.length > 0) {
+        const valorTotal = vencendo7d.reduce((s, t) => s + t.valorOriginal, 0);
+        items.push({
+          id: "fin-vencendo-7d",
+          tipo: "alerta",
+          categoria: "financeiro",
+          titulo: `${vencendo7d.length} título(s) vencem em 7 dias`,
+          descricao: `R$ ${valorTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} a receber`,
+          rota: "/financeiro/contas-a-receber",
+          icone: "financeiro",
+        });
+      }
 
-    if (pagarVencidas.length > 0) {
-      items.push({
-        id: "fin-pagar-vencidas",
-        tipo: "alerta",
-        categoria: "financeiro",
-        titulo: `${pagarVencidas.length} conta(s) a pagar vencida(s)`,
-        descricao: `R$ ${pagarVencidas.reduce((s, t) => s + t.valorOriginal, 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-        rota: "/financeiro/contas-a-pagar",
-        icone: "financeiro",
+      // Contas a pagar vencidas
+      const pagarVencidas = titulos.filter(t => {
+        if (t.tipo !== "pagar") return false;
+        if (t.status === "pago" || t.status === "cancelado") return false;
+        return new Date(t.vencimento) < hoje;
       });
+
+      if (pagarVencidas.length > 0) {
+        items.push({
+          id: "fin-pagar-vencidas",
+          tipo: "alerta",
+          categoria: "financeiro",
+          titulo: `${pagarVencidas.length} conta(s) a pagar vencida(s)`,
+          descricao: `R$ ${pagarVencidas.reduce((s, t) => s + t.valorOriginal, 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+          rota: "/financeiro/contas-a-pagar",
+          icone: "financeiro",
+        });
+      }
     }
 
     // === PROPOSTAS: Vencendo ou expiradas ===
-    const propostasVencendo = propostas.filter(p => {
-      if (p.statusAceite !== "pendente") return false;
-      if (!p.dataValidade) return false;
-      const validade = new Date(p.dataValidade);
-      const diffDias = Math.floor((validade.getTime() - hoje.getTime()) / 86400000);
-      return diffDias >= 0 && diffDias <= 3;
-    });
-
-    if (propostasVencendo.length > 0) {
-      items.push({
-        id: "prop-vencendo",
-        tipo: "critico",
-        categoria: "proposta",
-        titulo: `${propostasVencendo.length} proposta(s) vencendo`,
-        descricao: propostasVencendo.map(p => p.numeroProposta).join(", "),
-        rota: "/propostas",
-        icone: "proposta",
+    if (propostas.length > 0) {
+      const propostasVencendo = propostas.filter(p => {
+        if (p.statusAceite !== "pendente") return false;
+        if (!p.dataValidade) return false;
+        const validade = new Date(p.dataValidade);
+        const diffDias = Math.floor((validade.getTime() - hoje.getTime()) / 86400000);
+        return diffDias >= 0 && diffDias <= 3;
       });
-    }
 
-    const propostasExpiradas = propostas.filter(p => {
-      if (p.statusAceite !== "pendente") return false;
-      if (!p.dataValidade) return false;
-      return new Date(p.dataValidade) < hoje;
-    });
+      if (propostasVencendo.length > 0) {
+        const desc = propostasVencendo.length > 1 
+          ? propostasVencendo.map(p => p.numeroProposta).join(", ").slice(0, 50) + "..."
+          : propostasVencendo[0].numeroProposta;
+        items.push({
+          id: "prop-vencendo",
+          tipo: "critico",
+          categoria: "proposta",
+          titulo: `${propostasVencendo.length} proposta(s) vencendo`,
+          descricao: desc,
+          rota: "/propostas",
+          icone: "proposta",
+        });
+      }
 
-    if (propostasExpiradas.length > 0) {
-      items.push({
-        id: "prop-expiradas",
-        tipo: "alerta",
-        categoria: "proposta",
-        titulo: `${propostasExpiradas.length} proposta(s) expirada(s)`,
-        descricao: "Validade ultrapassada sem aceite",
-        rota: "/propostas",
-        icone: "proposta",
+      const propostasExpiradas = propostas.filter(p => {
+        if (p.statusAceite !== "pendente") return false;
+        if (!p.dataValidade) return false;
+        return new Date(p.dataValidade) < hoje;
       });
+
+      if (propostasExpiradas.length > 0) {
+        items.push({
+          id: "prop-expiradas",
+          tipo: "alerta",
+          categoria: "proposta",
+          titulo: `${propostasExpiradas.length} proposta(s) expirada(s)`,
+          descricao: "Validade ultrapassada sem aceite",
+          rota: "/propostas",
+          icone: "proposta",
+        });
+      }
     }
 
     // === TAREFAS: Atrasadas ===
-    const tarefasAtrasadas = tarefas.filter(t => {
-      if (!t.prazoDataHora) return false;
-      if (t.status === "concluida" || t.status === "cancelada") return false;
-      return new Date(t.prazoDataHora) < hoje;
-    });
-
-    if (tarefasAtrasadas.length > 0) {
-      items.push({
-        id: "tarefas-atrasadas",
-        tipo: "alerta",
-        categoria: "tarefa",
-        titulo: `${tarefasAtrasadas.length} tarefa(s) atrasada(s)`,
-        descricao: "Prazo ultrapassado",
-        rota: "/tarefas?filtro=atrasadas",
-        icone: "tarefa",
+    if (tarefas.length > 0) {
+      const tarefasAtrasadas = tarefas.filter(t => {
+        if (!t.prazoDataHora) return false;
+        if (t.status === "concluida" || t.status === "cancelada") return false;
+        return new Date(t.prazoDataHora) < hoje;
       });
+
+      if (tarefasAtrasadas.length > 0) {
+        items.push({
+          id: "tarefas-atrasadas",
+          tipo: "alerta",
+          categoria: "tarefa",
+          titulo: `${tarefasAtrasadas.length} tarefa(s) atrasada(s)`,
+          descricao: "Prazo ultrapassado",
+          rota: "/tarefas?filtro=atrasadas",
+          icone: "tarefa",
+        });
+      }
     }
 
     return items;

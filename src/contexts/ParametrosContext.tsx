@@ -207,7 +207,7 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
   }, [planos]);
 
   const resetParametros = useCallback(() => {
-    toast.info("Funcionalidade de reset não disponível.");
+    toast.info("Apenas administradores podem resetar parâmetros via banco de dados.");
   }, []);
 
   const value = useMemo<ParametrosContextType>(() => ({
