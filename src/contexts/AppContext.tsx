@@ -474,7 +474,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [clientes, tecnicos, tarefas, configuracoes, tecnicoAtualId]);
 
   const importJSON = useCallback((_json: string) => {
-    toast.info("Importação JSON não disponível com backend cloud.");
+    toast.info("Importação JSON não disponível via interface para garantir integridade. Use o painel Supabase.");
     return false;
   }, []);
 

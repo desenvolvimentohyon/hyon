@@ -402,7 +402,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   }, [contasBancarias, planoContas, titulos, movimentos, config]);
 
   const importFinanceiro = useCallback((_json: string) => {
-    toast.info("Importação não disponível com backend cloud.");
+    toast.info("Importação não disponível com backend cloud. Use ferramentas do Supabase.");
     return false;
   }, []);
 
