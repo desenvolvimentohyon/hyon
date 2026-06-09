@@ -45,16 +45,23 @@ export function useSmartCardStats() {
       
       // Previous month MRR via sparkline approach
       const months: number[] = [];
+      const { data: clientsAll } = await supabase
+        .from("clients")
+        .select("monthly_value_final, created_at, status");
+      
       for (let i = 5; i >= 0; i--) {
-        const m = format(subMonths(now, i), "yyyy-MM");
-        // We approximate using current active clients - a real sparkline would need historical data
-        months.push(i === 0 ? mrr : 0);
+        const dateLimit = subMonths(now, i);
+        const mrrAtPoint = (clientsAll ?? [])
+          .filter(c => new Date(c.created_at) <= dateLimit && c.status === "ativo")
+          .reduce((s, c) => s + (c.monthly_value_final || 0), 0);
+        months.push(mrrAtPoint);
       }
       
       result["/receita"] = {
         mainValue: `R$ ${(mrr / 1000).toFixed(1)}k`,
         mainLabel: "MRR",
-        trend: mrr > 0 ? "up" : "neutral",
+        trend: mrr >= (months[4] || 0) ? "up" : "down",
+        sparklineData: months,
       };
 
       // --- PROPOSALS ---
