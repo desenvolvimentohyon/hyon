@@ -114,16 +114,20 @@ function LancamentoForm({ tipo, planoContas, contasBancarias, clientesReceita, a
     if (actualClientId === "novo") actualClientId = null;
 
     const now = new Date();
+    // Use ISO string but adjust for local date to avoid timezone shifts in competenciaMes
+    const localDate = new Date(venc + "T12:00:00");
+    const competency = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, "0")}`;
+
     const success = await addTitulo({
       tipo, origem: "outro" as OrigemTitulo, descricao: desc,
       clienteId: actualClientId,
       fornecedorNome: fornecedor || null,
       categoriaPlanoContasId: catId,
-      competenciaMes: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+      competenciaMes: competency,
       dataEmissao: now.toISOString().split("T")[0], vencimento: venc,
       valorOriginal: valorNum, desconto, juros, multa,
       status: "aberto" as const,
-      formaPagamento: formaPagamentoId || "pix",
+      formaPagamento: (formaPagamentoId as any) || "pix",
       contaBancariaId: contaBancariaId || null, anexosFake: [], observacoes: obs,
     });
     if (success) {

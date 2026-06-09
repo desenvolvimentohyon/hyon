@@ -170,6 +170,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     if (!initialLoadedRef.current) setLoading(true);
+    
     try {
       const [clientsRes, profilesRes, tasksRes, settingsRes] = await Promise.all([
         supabase.from("clients").select("*").neq("status", "excluido"),
@@ -179,6 +180,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ? supabase.from("user_settings").select("*").eq("user_id", user.id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
       ]);
+
+      if (clientsRes.error) throw clientsRes.error;
+      if (profilesRes.error) throw profilesRes.error;
+      if (tasksRes.error) throw tasksRes.error;
 
       if (clientsRes.data) setClientes(clientsRes.data.map(dbToCliente));
       if (profilesRes.data) {
@@ -204,15 +209,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const s = settingsRes.data.settings as any;
         if (s.configuracoes) setConfiguracoes({ ...defaultConfig, ...s.configuracoes });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching app data:", err);
+      toast.error("Erro ao carregar dados: " + (err.message || "Verifique sua conexão"));
+    } finally {
+      setLoading(false);
+      initialLoadedRef.current = true;
+      isFetchingRef.current = false;
     }
-    setLoading(false);
-    initialLoadedRef.current = true;
-    isFetchingRef.current = false;
   }, [orgId, user?.id]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { 
+    fetchAll(); 
+  }, [fetchAll]);
 
   // ===== Tarefas — Optimistic updates =====
   const addTarefa = useCallback(async (t: any) => {

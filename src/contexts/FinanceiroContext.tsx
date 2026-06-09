@@ -117,22 +117,37 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     if (!initialLoadedRef.current) setLoading(true);
-    const [cbRes, pcRes, tRes, mRes] = await Promise.all([
-      supabase.from("company_bank_accounts").select("*"),
-      supabase.from("plan_accounts" as any).select("*"),
-      supabase.from("financial_titles").select("*"),
-      supabase.from("bank_transactions").select("*"),
-    ]);
-    if (cbRes.data) setContasBancarias(cbRes.data.map(dbToConta));
-    if (pcRes.data) setPlanoContas((pcRes.data as any[]).map(dbToPlanoContas));
-    if (tRes.data) setTitulos(tRes.data.map(dbToTitulo));
-    if (mRes.data) setMovimentos(mRes.data.map(dbToMovimento));
-    setLoading(false);
-    initialLoadedRef.current = true;
-    isFetchingRef.current = false;
+    
+    try {
+      const [cbRes, pcRes, tRes, mRes] = await Promise.all([
+        supabase.from("company_bank_accounts").select("*"),
+        supabase.from("plan_accounts" as any).select("*"),
+        supabase.from("financial_titles").select("*"),
+        supabase.from("bank_transactions").select("*"),
+      ]);
+      
+      if (cbRes.error) throw cbRes.error;
+      if (pcRes.error) throw pcRes.error;
+      if (tRes.error) throw tRes.error;
+      if (mRes.error) throw mRes.error;
+
+      if (cbRes.data) setContasBancarias(cbRes.data.map(dbToConta));
+      if (pcRes.data) setPlanoContas((pcRes.data as any[]).map(dbToPlanoContas));
+      if (tRes.data) setTitulos(tRes.data.map(dbToTitulo));
+      if (mRes.data) setMovimentos(mRes.data.map(dbToMovimento));
+    } catch (err: any) {
+      console.error("Error fetching financial data:", err);
+      toast.error("Erro ao carregar dados financeiros");
+    } finally {
+      setLoading(false);
+      initialLoadedRef.current = true;
+      isFetchingRef.current = false;
+    }
   }, [orgId]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { 
+    fetchAll(); 
+  }, [fetchAll]);
 
   // ===== Contas Bancárias =====
   const addContaBancaria = useCallback(async (c: Omit<ContaBancaria, "id">) => {
