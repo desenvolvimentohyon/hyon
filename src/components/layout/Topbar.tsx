@@ -30,6 +30,7 @@ interface Notificacao {
 }
 
 export function Topbar() {
+  const { profile } = useAuth(); // Read early to avoid conditional hook rules if any
   const { tecnicos, tecnicoAtualId, setTecnicoAtual, tarefas, clientes } = useApp();
   
   const { signOut } = useAuth();
