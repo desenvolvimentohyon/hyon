@@ -1,191 +1,43 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt, Trash2, Gift } from "lucide-react";
+import { Landmark, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Percent, ArrowUpRight, ArrowDownRight, Receipt, Gift } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
-import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS } from "@/types/financeiro";
-import type { TituloFinanceiro } from "@/types/financeiro";
+import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS, FINANCEIRO_COLORS, type TituloFinanceiro } from "@/types/financeiro";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { toast } from "sonner";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart } from "recharts";
 
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart, Area } from "recharts";
-import { FINANCEIRO_COLORS } from "@/types/financeiro";
+import { fmt, fmtPct, statusColor } from "./visaoGeral/helpers";
+import { useFinanceiroDashboard } from "./visaoGeral/useFinanceiroDashboard";
+import { DetalheLancamentoDialog } from "./visaoGeral/DetalheLancamentoDialog";
 
-const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 const C = FINANCEIRO_COLORS.raw;
+const POR_PAGINA = 10;
 
 export default function Financeiro() {
-  const { titulos, movimentos, contasBancarias, getSaldoConta, loading, updateTitulo, deleteTitulo } = useFinanceiro();
+  const { titulos, contasBancarias, getSaldoConta, loading, updateTitulo, deleteTitulo } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [periodo, setPeriodo] = useState<string>("12m");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [tituloSelecionado, setTituloSelecionado] = useState<TituloFinanceiro | null>(null);
-  const [editForm, setEditForm] = useState({ descricao: "", valorOriginal: 0, vencimento: "", status: "", observacoes: "" });
-  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
-  const POR_PAGINA = 10;
 
   useEffect(() => { setPaginaAtual(1); }, [filtroTipo]);
 
-  const abrirDetalhe = (t: TituloFinanceiro) => {
-    setTituloSelecionado(t);
-    setEditForm({ descricao: t.descricao, valorOriginal: t.valorOriginal, vencimento: t.vencimento || "", status: t.status, observacoes: t.observacoes });
-  };
-
-  const salvarDetalhe = async () => {
-    if (!tituloSelecionado) return;
-    await updateTitulo(tituloSelecionado.id, {
-      descricao: editForm.descricao,
-      valorOriginal: editForm.valorOriginal,
-      vencimento: editForm.vencimento,
-      status: editForm.status as TituloFinanceiro["status"],
-      observacoes: editForm.observacoes,
-    });
-    toast.success("Lançamento atualizado!");
-    setTituloSelecionado(null);
-  };
-
-  const kpis = useMemo(() => {
-    const now = new Date();
-    const saldoBancos = contasBancarias.filter(c => c.ativo).reduce((s, c) => s + getSaldoConta(c.id), 0);
-    const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-    const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
-    const hj = now.toISOString().split("T")[0];
-
-    const receber = titulos.filter(t => {
-      if (t.tipo !== "receber" || (t.status !== "aberto" && t.status !== "parcial")) return false;
-      if (t.vencimento >= mesInicio && t.vencimento <= mesFim) return true;
-      if (t.vencimento < mesInicio && t.vencimento < hj) return true;
-      return false;
-    });
-    const pagar = titulos.filter(t => {
-      if (t.tipo !== "pagar" || (t.status !== "aberto" && t.status !== "parcial")) return false;
-      if (t.vencimento >= mesInicio && t.vencimento <= mesFim) return true;
-      if (t.vencimento < mesInicio && t.vencimento < hj) return true;
-      return false;
-    });
-    const vencidos = titulos.filter(t => t.tipo === "receber" && t.status === "vencido");
-    const mrr = clientesReceita.filter(c => c.statusCliente === "ativo" && c.mensalidadeAtiva).reduce((s, c) => s + c.valorMensalidade, 0);
-    
-    const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const receitasMes = titulos.filter(t => t.tipo === "receber" && t.competenciaMes === mesAtual && t.status === "pago").reduce((s, t) => s + t.valorOriginal, 0);
-    const despesasMes = titulos.filter(t => t.tipo === "pagar" && t.competenciaMes === mesAtual && t.status === "pago").reduce((s, t) => s + t.valorOriginal, 0);
-    const lucro = receitasMes - despesasMes;
-    const margem = receitasMes > 0 ? (lucro / receitasMes) * 100 : 0;
-
-    // Cortesias no mês atual
-    const cortesiasTitulos = titulos.filter(t => t.isCourtesy && t.competenciaMes === mesAtual);
-    const cortesiaCount = cortesiasTitulos.length;
-    const cortesiaValor = cortesiasTitulos.reduce((s, t) => {
-      const cliente = clientesReceita.find(c => c.id === t.clienteId);
-      return s + (cliente?.valorMensalidade || 0);
-    }, 0);
-
-    return {
-      saldoBancos, totalReceber: receber.reduce((s, t) => s + t.valorOriginal, 0),
-      totalPagar: pagar.reduce((s, t) => s + t.valorOriginal, 0),
-      inadimplencia: vencidos.reduce((s, t) => s + t.valorOriginal + t.juros + t.multa, 0),
-      mrr, lucro, margem, cortesiaCount, cortesiaValor
-    };
-  }, [titulos, contasBancarias, getSaldoConta, clientesReceita]);
-
-  const fluxoCaixa = useMemo(() => {
-    const months: Record<string, { mes: string; entradas: number; saidas: number }> = {};
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(); d.setMonth(d.getMonth() - i);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
-      months[key] = { mes: label, entradas: 0, saidas: 0 };
-    }
-    titulos.filter(t => t.status === "pago").forEach(t => {
-      if (months[t.competenciaMes]) {
-        if (t.tipo === "receber") months[t.competenciaMes].entradas += t.valorOriginal;
-        else months[t.competenciaMes].saidas += t.valorOriginal;
-      }
-    });
-    return Object.values(months);
-  }, [titulos]);
-
-  const dreResumo = useMemo(() => {
-    const now = new Date();
-    const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const mesTitulos = titulos.filter(t => t.competenciaMes === mesAtual && t.status === "pago");
-    const receitas = mesTitulos.filter(t => t.tipo === "receber").reduce((s, t) => s + t.valorOriginal, 0);
-    const repasses = mesTitulos.filter(t => t.origem === "repasse").reduce((s, t) => s + t.valorOriginal, 0);
-    const despesas = mesTitulos.filter(t => t.origem === "despesa_operacional").reduce((s, t) => s + t.valorOriginal, 0);
-    const impostos = mesTitulos.filter(t => t.origem === "imposto").reduce((s, t) => s + t.valorOriginal, 0);
-    const lucro = receitas - repasses - despesas - impostos;
-    return [
-      { nome: "Receitas", valor: receitas, fill: C.receita },
-      { nome: "Repasses", valor: repasses, fill: C.despesa },
-      { nome: "Despesas", valor: despesas, fill: C.atraso },
-      { nome: "Impostos", valor: impostos, fill: C.imposto },
-      { nome: "Lucro", valor: lucro, fill: C.lucro },
-    ];
-  }, [titulos]);
-
-  const receitaPorSistema = useMemo(() => {
-    const sistemas: Record<string, number> = {};
-    clientesReceita.filter(c => c.mensalidadeAtiva).forEach(c => {
-      sistemas[c.sistemaPrincipal] = (sistemas[c.sistemaPrincipal] || 0) + c.valorMensalidade;
-    });
-    return Object.entries(sistemas).map(([name, value]) => ({ name, value }));
-  }, [clientesReceita]);
+  const { kpis, fluxoCaixa, dreResumo, receitaPorSistema, mrrEvolucao, lancamentosRecentes, lancamentosPorDia } =
+    useFinanceiroDashboard(titulos, contasBancarias, getSaldoConta, clientesReceita, filtroTipo);
 
   const pieCols = [C.receita, C.conciliacao, C.atraso, C.lucro, C.despesa];
-
-  const lancamentosRecentes = useMemo(() => {
-    return titulos
-      .filter(t => filtroTipo === "todos" || (filtroTipo === "receber" ? t.tipo === "receber" : t.tipo === "pagar"))
-      .sort((a, b) => new Date(b.dataEmissao).getTime() - new Date(a.dataEmissao).getTime());
-  }, [titulos, filtroTipo]);
-
-  const lancamentosPorDia = useMemo(() => {
-    const agrupado: Record<string, { date: string; receitas: number; despesas: number }> = {};
-    lancamentosRecentes.forEach(t => {
-      const d = t.dataEmissao.slice(0, 10);
-      if (!agrupado[d]) agrupado[d] = { date: d, receitas: 0, despesas: 0 };
-      if (t.tipo === "receber") agrupado[d].receitas += t.valorOriginal;
-      else agrupado[d].despesas += t.valorOriginal;
-    });
-    return Object.values(agrupado)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(-30)
-      .map(item => ({
-        ...item,
-        label: new Date(item.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-      }));
-  }, [lancamentosRecentes]);
-
   const totalPaginas = Math.ceil(lancamentosRecentes.length / POR_PAGINA);
-  const itensPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * POR_PAGINA;
-    return lancamentosRecentes.slice(inicio, inicio + POR_PAGINA);
-  }, [lancamentosRecentes, paginaAtual]);
+  const inicio = (paginaAtual - 1) * POR_PAGINA;
+  const itensPaginados = lancamentosRecentes.slice(inicio, inicio + POR_PAGINA);
 
-  const statusColor = (s: string) => {
-    switch (s) {
-      case "pago": return "bg-success/15 text-success border-success/20";
-      case "aberto": return "bg-info/15 text-info border-info/20";
-      case "vencido": return "bg-destructive/15 text-destructive border-destructive/20";
-      case "parcial": return "bg-warning/15 text-warning border-warning/20";
-      default: return "bg-muted text-muted-foreground";
-    }
-  };
   if (loading) return (
     <div className="p-6 space-y-4">
       <Skeleton className="h-8 w-64" />
@@ -224,9 +76,7 @@ export default function Financeiro() {
         }
       />
       <ModuleNavGrid moduleId="financeiro" />
-      
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
         {kpiCards.map(k => (
           <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5">
@@ -244,7 +94,6 @@ export default function Financeiro() {
         ))}
       </div>
 
-      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-sm">Fluxo de Caixa (12 meses)</CardTitle></CardHeader>
@@ -273,9 +122,7 @@ export default function Financeiro() {
                 <YAxis dataKey="nome" type="category" tick={{ fontSize: 11 }} width={80} className="fill-muted-foreground" />
                 <Tooltip formatter={(v: number) => fmt(v)} />
                 <Bar dataKey="valor" radius={[0, 4, 4, 0]}>
-                  {dreResumo.map((entry, index) => (
-                    <Cell key={index} fill={entry.fill} />
-                  ))}
+                  {dreResumo.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -283,7 +130,6 @@ export default function Financeiro() {
         </Card>
       </div>
 
-      {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-sm">Receita por Sistema</CardTitle></CardHeader>
@@ -303,20 +149,7 @@ export default function Financeiro() {
           <CardHeader><CardTitle className="text-sm">Evolução MRR (12 meses)</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={(() => {
-                const months: Record<string, number> = {};
-                for (let i = 11; i >= 0; i--) {
-                  const d = new Date(); d.setMonth(d.getMonth() - i);
-                  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                  months[key] = 0;
-                }
-                titulos.filter(t => t.tipo === "receber" && t.status === "pago" && t.origem === "mensalidade")
-                  .forEach(t => { if (t.competenciaMes && months[t.competenciaMes] !== undefined) months[t.competenciaMes] += t.valorOriginal; });
-                return Object.entries(months).map(([key, value]) => {
-                  const d = new Date(key + "-01");
-                  return { mes: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }), mrr: value };
-                });
-              })()}>
+              <LineChart data={mrrEvolucao}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
@@ -327,7 +160,7 @@ export default function Financeiro() {
           </CardContent>
         </Card>
       </div>
-      {/* Últimos Lançamentos */}
+
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="text-sm flex items-center gap-2"><Receipt className="h-4 w-4 text-muted-foreground" />Últimos Lançamentos</CardTitle>
@@ -371,7 +204,7 @@ export default function Financeiro() {
               {itensPaginados.length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
               ) : itensPaginados.map(t => (
-                <TableRow key={t.id} className="cursor-pointer" onClick={() => abrirDetalhe(t)}>
+                <TableRow key={t.id} className="cursor-pointer" onClick={() => setTituloSelecionado(t)}>
                   <TableCell className="text-xs whitespace-nowrap">{new Date(t.dataEmissao).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-sm">{t.descricao}</TableCell>
                   <TableCell>
@@ -401,9 +234,7 @@ export default function Financeiro() {
                     />
                   </PaginationItem>
                   <PaginationItem>
-                    <span className="text-sm text-muted-foreground px-3">
-                      Página {paginaAtual} de {totalPaginas}
-                    </span>
+                    <span className="text-sm text-muted-foreground px-3">Página {paginaAtual} de {totalPaginas}</span>
                   </PaginationItem>
                   <PaginationItem>
                     <PaginationNext
@@ -419,97 +250,12 @@ export default function Financeiro() {
         </CardContent>
       </Card>
 
-      {/* Dialog Detalhes/Edição */}
-      <Dialog open={!!tituloSelecionado} onOpenChange={(open) => !open && setTituloSelecionado(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Lançamento</DialogTitle>
-          </DialogHeader>
-          {tituloSelecionado && (
-            <div className="space-y-4">
-              {/* Read-only info */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Tipo:</span>{" "}
-                  <Badge variant="outline" className={tituloSelecionado.tipo === "receber" ? "bg-success/15 text-success border-success/20" : "bg-destructive/15 text-destructive border-destructive/20"}>
-                    {tituloSelecionado.tipo === "receber" ? "Receita" : "Despesa"}
-                  </Badge>
-                </div>
-                <div><span className="text-muted-foreground">Origem:</span> {ORIGEM_TITULO_LABELS[tituloSelecionado.origem] || tituloSelecionado.origem}</div>
-                <div><span className="text-muted-foreground">Emissão:</span> {new Date(tituloSelecionado.dataEmissao).toLocaleDateString("pt-BR")}</div>
-                <div><span className="text-muted-foreground">Competência:</span> {tituloSelecionado.competenciaMes || "—"}</div>
-              </div>
-
-              {/* Editable fields */}
-              <div className="space-y-3">
-                <div>
-                  <Label>Descrição</Label>
-                  <Input value={editForm.descricao} onChange={e => setEditForm(f => ({ ...f, descricao: e.target.value }))} />
-                </div>
-                <div>
-                  <Label>Valor</Label>
-                  <CurrencyInput value={editForm.valorOriginal} onValueChange={v => setEditForm(f => ({ ...f, valorOriginal: v }))} />
-                </div>
-                <div>
-                  <Label>{tituloSelecionado.tipo === "pagar" ? "Data de Lançamento" : "Vencimento"}</Label>
-                  <Input type="date" value={editForm.vencimento} onChange={e => setEditForm(f => ({ ...f, vencimento: e.target.value }))} />
-                </div>
-                <div>
-                  <Label>Status</Label>
-                  <Select value={editForm.status} onValueChange={v => setEditForm(f => ({ ...f, status: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(STATUS_TITULO_LABELS).map(([k, v]) => (
-                        <SelectItem key={k} value={k}>{v}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Observações</Label>
-                  <Textarea value={editForm.observacoes} onChange={e => setEditForm(f => ({ ...f, observacoes: e.target.value }))} rows={3} />
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter className="flex !justify-between">
-            <Button variant="destructive" size="sm" onClick={() => setConfirmarExclusao(true)}>
-              <Trash2 className="h-4 w-4 mr-1" /> Excluir
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setTituloSelecionado(null)}>Cancelar</Button>
-              <Button onClick={salvarDetalhe}>Salvar Alterações</Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* AlertDialog de confirmação de exclusão */}
-      <AlertDialog open={confirmarExclusao} onOpenChange={setConfirmarExclusao}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir lançamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja realmente excluir este lançamento? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={async () => {
-                if (!tituloSelecionado) return;
-                await deleteTitulo(tituloSelecionado.id);
-                toast.success("Lançamento excluído com sucesso!");
-                setTituloSelecionado(null);
-                setConfirmarExclusao(false);
-              }}
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DetalheLancamentoDialog
+        titulo={tituloSelecionado}
+        onClose={() => setTituloSelecionado(null)}
+        updateTitulo={updateTitulo}
+        deleteTitulo={deleteTitulo}
+      />
     </div>
   );
 }
