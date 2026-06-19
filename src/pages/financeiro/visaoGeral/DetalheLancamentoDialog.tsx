@@ -15,8 +15,8 @@ import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS, type TituloFinanceiro } fro
 interface Props {
   titulo: TituloFinanceiro | null;
   onClose: () => void;
-  updateTitulo: (id: string, patch: Partial<TituloFinanceiro>) => Promise<any>;
-  deleteTitulo: (id: string) => Promise<any>;
+  updateTitulo: (id: string, patch: Partial<TituloFinanceiro>) => any;
+  deleteTitulo: (id: string) => any;
 }
 
 export function DetalheLancamentoDialog({ titulo, onClose, updateTitulo, deleteTitulo }: Props) {
