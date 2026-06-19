@@ -1,8 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,16 +7,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, TrendingUp, Timer, Star, BarChart3, ThumbsUp, ThumbsDown, Minus, Target, Trophy, Medal, Award, Wrench, Filter, Download, Plus, Link2, ExternalLink } from "lucide-react";
+import { Headphones, AlertTriangle, Clock, CheckCircle2, Users, Timer, Star, BarChart3, Target, Award, Wrench, Filter, Download, Plus, Link2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { exportSLAPDF } from "@/lib/pdfRelatorioSLA";
 import { toast } from "sonner";
+import { useSuporteMetricas } from "./suporte/useSuporteMetricas";
+import { PortalTicketsTab } from "./suporte/PortalTicketsTab";
+import { PIE_COLORS, rankIcons, rankColors, satisfacaoLabel, getSlaStatus } from "./suporte/helpers";
 
 export default function Suporte() {
-  const { tarefas, clientes, getCliente, getTecnico, getStatusLabel } = useApp();
+  const { tarefas, getCliente, getTecnico, getStatusLabel } = useApp();
   const navigate = useNavigate();
   const [periodo, setPeriodo] = useState<string>("todos");
 
@@ -44,158 +44,18 @@ export default function Suporte() {
   });
   const concluidos = chamados.filter(t => t.status === "concluida");
 
-  // ── Métricas de SLA ──
-  const slaMetrics = useMemo(() => {
-    const comSla = chamados.filter(t => t.slaHoras && t.criadoEm);
-    const concluidosComSla = concluidos.filter(t => t.slaHoras && t.criadoEm);
-
-    // Taxa de cumprimento de SLA
-    const dentroSla = concluidosComSla.filter(t => {
-      const deadline = new Date(new Date(t.criadoEm).getTime() + (t.slaHoras || 0) * 3600000);
-      const conclusao = new Date(t.atualizadoEm);
-      return conclusao <= deadline;
-    });
-    const taxaCumprimento = concluidosComSla.length > 0 ? Math.round((dentroSla.length / concluidosComSla.length) * 100) : 100;
-
-    // Tempo médio de resolução
-    const tempoMedioSeg = concluidos.length > 0
-      ? concluidos.reduce((a, t) => a + t.tempoTotalSegundos, 0) / concluidos.length
-      : 0;
-    const tempoMedioH = tempoMedioSeg / 3600;
-
-    // Tempo médio por prioridade
-    const porPrioridade = ["urgente", "alta", "media", "baixa"].map(p => {
-      const items = concluidos.filter(t => t.prioridade === p);
-      const media = items.length > 0 ? items.reduce((a, t) => a + t.tempoTotalSegundos, 0) / items.length / 3600 : 0;
-      return { prioridade: p.charAt(0).toUpperCase() + p.slice(1), horas: parseFloat(media.toFixed(1)), count: items.length };
-    });
-
-    // Satisfação simulada baseada em métricas reais
-    const satisfacao = (() => {
-      let score = 85;
-      if (taxaCumprimento < 80) score -= 15;
-      if (tempoMedioH > 8) score -= 10;
-      if (slaVencido.length > 3) score -= 10;
-      const reincidentes = chamados.filter(t => t.reincidente).length;
-      if (reincidentes > 2) score -= 5;
-      return Math.max(0, Math.min(100, score));
-    })();
-
-    // Distribuição por status
-    const statusDist = [
-      { name: "Backlog", value: chamados.filter(t => t.status === "backlog").length },
-      { name: "A Fazer", value: chamados.filter(t => t.status === "a_fazer").length },
-      { name: "Em Andamento", value: chamados.filter(t => t.status === "em_andamento").length },
-      { name: "Aguardando", value: chamados.filter(t => t.status === "aguardando_cliente").length },
-      { name: "Concluída", value: chamados.filter(t => t.status === "concluida").length },
-      { name: "Cancelada", value: chamados.filter(t => t.status === "cancelada").length },
-    ].filter(d => d.value > 0);
-
-    // Volume por sistema
-    const porSistema = [
-      { sistema: "Hyon", total: chamados.filter(t => t.sistemaRelacionado === "hyon").length, resolvidos: concluidos.filter(t => t.sistemaRelacionado === "hyon").length },
-      { sistema: "LinkPro", total: chamados.filter(t => t.sistemaRelacionado === "linkpro").length, resolvidos: concluidos.filter(t => t.sistemaRelacionado === "linkpro").length },
-      { sistema: "Outros", total: chamados.filter(t => !t.sistemaRelacionado).length, resolvidos: concluidos.filter(t => !t.sistemaRelacionado).length },
-    ].filter(d => d.total > 0);
-
-    // Reincidentes
-    const reincidentes = chamados.filter(t => t.reincidente);
-
-    // Volume mensal (últimos 6 meses)
-    const volumeMensal = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - (5 - i));
-      const mes = d.toLocaleString("pt-BR", { month: "short" });
-      const ano = d.getFullYear();
-      const mesNum = d.getMonth();
-      const abertosM = chamados.filter(t => {
-        const dt = new Date(t.criadoEm);
-        return dt.getMonth() === mesNum && dt.getFullYear() === ano;
-      }).length;
-      const resolvidosM = concluidos.filter(t => {
-        const dt = new Date(t.atualizadoEm);
-        return dt.getMonth() === mesNum && dt.getFullYear() === ano;
-      }).length;
-      return { mes: mes.charAt(0).toUpperCase() + mes.slice(1), abertos: abertosM, resolvidos: resolvidosM };
-    });
-
-    return { taxaCumprimento, tempoMedioH, porPrioridade, satisfacao, statusDist, porSistema, reincidentes, volumeMensal, dentroSlaCount: dentroSla.length, totalComSla: concluidosComSla.length };
-  }, [chamados, concluidos, slaVencido]);
-
-  // ── Ranking de Técnicos ──
-  const rankingTecnicos = useMemo(() => {
-    const tecnicoMap: Record<string, { total: number; resolvidos: number; tempoTotal: number; dentroSla: number; comSla: number; reincidentes: number; abertos: number }> = {};
-    chamados.forEach(t => {
-      if (!t.responsavelId) return;
-      if (!tecnicoMap[t.responsavelId]) tecnicoMap[t.responsavelId] = { total: 0, resolvidos: 0, tempoTotal: 0, dentroSla: 0, comSla: 0, reincidentes: 0, abertos: 0 };
-      const m = tecnicoMap[t.responsavelId];
-      m.total++;
-      if (t.reincidente) m.reincidentes++;
-      if (t.status === "concluida") {
-        m.resolvidos++;
-        m.tempoTotal += t.tempoTotalSegundos;
-        if (t.slaHoras && t.criadoEm) {
-          m.comSla++;
-          const deadline = new Date(new Date(t.criadoEm).getTime() + t.slaHoras * 3600000);
-          if (new Date(t.atualizadoEm) <= deadline) m.dentroSla++;
-        }
-      } else if (t.status !== "cancelada") {
-        m.abertos++;
-      }
-    });
-    return Object.entries(tecnicoMap)
-      .map(([id, m]) => ({
-        id,
-        nome: getTecnico(id)?.nome || "Desconhecido",
-        ...m,
-        tempoMedioH: m.resolvidos > 0 ? m.tempoTotal / m.resolvidos / 3600 : 0,
-        taxaSla: m.comSla > 0 ? Math.round((m.dentroSla / m.comSla) * 100) : 100,
-        // Score: peso em resolução, SLA e baixa reincidência
-        score: m.resolvidos * 10 + (m.comSla > 0 ? (m.dentroSla / m.comSla) * 30 : 30) - m.reincidentes * 5,
-      }))
-      .sort((a, b) => b.score - a.score);
-  }, [chamados, getTecnico]);
-
-  const rankIcons = [Trophy, Medal, Award];
-  const rankColors = ["text-yellow-500", "text-muted-foreground", "text-amber-700"];
+  const { slaMetrics, rankingTecnicos } = useSuporteMetricas(chamados, concluidos, slaVencido.length, getTecnico);
 
   const tempoMedioSeg = concluidos.length > 0
     ? Math.round(concluidos.reduce((a, t) => a + t.tempoTotalSegundos, 0) / concluidos.length)
     : 0;
   const tempoMedioH = (tempoMedioSeg / 3600).toFixed(1);
 
-  // Top clientes
   const clienteCounts = chamados.reduce<Record<string, number>>((acc, t) => {
     if (t.clienteId) acc[t.clienteId] = (acc[t.clienteId] || 0) + 1;
     return acc;
   }, {});
   const topClientes = Object.entries(clienteCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-  const getSlaStatus = (t: typeof chamados[0]) => {
-    if (!t.slaHoras || !t.criadoEm) return null;
-    const deadline = new Date(new Date(t.criadoEm).getTime() + t.slaHoras * 3600000);
-    const remaining = deadline.getTime() - now.getTime();
-    if (t.status === "concluida") return { label: "OK", class: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" };
-    if (remaining < 0) return { label: "Vencido", class: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" };
-    const hoursLeft = Math.ceil(remaining / 3600000);
-    if (hoursLeft <= 2) return { label: `${hoursLeft}h restante`, class: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300" };
-    return { label: `${hoursLeft}h restante`, class: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" };
-  };
-
-  const PIE_COLORS = [
-    "hsl(var(--primary))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
-    "hsl(var(--muted-foreground))",
-  ];
-
-  const satisfacaoLabel = (score: number) => {
-    if (score >= 80) return { label: "Excelente", icon: ThumbsUp, color: "text-emerald-600" };
-    if (score >= 60) return { label: "Bom", icon: Minus, color: "text-yellow-600" };
-    return { label: "Crítico", icon: ThumbsDown, color: "text-destructive" };
-  };
 
   const sat = satisfacaoLabel(slaMetrics.satisfacao);
 
@@ -208,6 +68,30 @@ export default function Suporte() {
     { label: "Satisfação", value: `${slaMetrics.satisfacao}%`, icon: Star, color: sat.color },
   ];
 
+  const handleExport = () => {
+    const periodoLabel = periodo === "todos" ? "Todos os períodos" : `Últimos ${periodo} dias`;
+    const chamadosAbertosData = abertos.map(t => {
+      const sla = getSlaStatus(t);
+      return { titulo: t.titulo, cliente: t.clienteId ? getCliente(t.clienteId)?.nome || "—" : "—", status: getStatusLabel(t.status), sla: sla?.label || "—" };
+    });
+    exportSLAPDF({
+      periodo: periodoLabel,
+      kpis: kpis.map(k => ({ label: k.label, value: k.value })),
+      taxaCumprimento: slaMetrics.taxaCumprimento,
+      dentroSla: slaMetrics.dentroSlaCount,
+      totalComSla: slaMetrics.totalComSla,
+      satisfacao: slaMetrics.satisfacao,
+      tempoMedioH: slaMetrics.tempoMedioH,
+      reincidentes: slaMetrics.reincidentes.length,
+      slaVencido: slaVencido.length,
+      porPrioridade: slaMetrics.porPrioridade,
+      porSistema: slaMetrics.porSistema,
+      rankingTecnicos: rankingTecnicos.map(t => ({ nome: t.nome, total: t.total, resolvidos: t.resolvidos, tempoMedioH: t.tempoMedioH, taxaSla: t.taxaSla, reincidentes: t.reincidentes, score: t.score })),
+      chamadosAbertos: chamadosAbertosData,
+    });
+    toast.success("Relatório SLA exportado com sucesso!");
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -215,52 +99,27 @@ export default function Suporte() {
         iconClassName="text-orange-600"
         title="Suporte Técnico"
         actions={
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => {
-            const periodoLabel = periodo === "todos" ? "Todos os períodos" : `Últimos ${periodo} dias`;
-            const chamadosAbertosData = abertos.map(t => {
-              const sla = getSlaStatus(t);
-              return { titulo: t.titulo, cliente: t.clienteId ? getCliente(t.clienteId)?.nome || "—" : "—", status: getStatusLabel(t.status), sla: sla?.label || "—" };
-            });
-            exportSLAPDF({
-              periodo: periodoLabel,
-              kpis: kpis.map(k => ({ label: k.label, value: k.value })),
-              taxaCumprimento: slaMetrics.taxaCumprimento,
-              dentroSla: slaMetrics.dentroSlaCount,
-              totalComSla: slaMetrics.totalComSla,
-              satisfacao: slaMetrics.satisfacao,
-              tempoMedioH: slaMetrics.tempoMedioH,
-              reincidentes: slaMetrics.reincidentes.length,
-              slaVencido: slaVencido.length,
-              porPrioridade: slaMetrics.porPrioridade,
-              porSistema: slaMetrics.porSistema,
-              rankingTecnicos: rankingTecnicos.map(t => ({ nome: t.nome, total: t.total, resolvidos: t.resolvidos, tempoMedioH: t.tempoMedioH, taxaSla: t.taxaSla, reincidentes: t.reincidentes, score: t.score })),
-              chamadosAbertos: chamadosAbertosData,
-            });
-            toast.success("Relatório SLA exportado com sucesso!");
-          }}>
-            <Download className="h-4 w-4 mr-1" /> Exportar PDF
-          </Button>
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-[160px] h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Últimos 7 dias</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-              <SelectItem value="180">Últimos 6 meses</SelectItem>
-              <SelectItem value="365">Último ano</SelectItem>
-              <SelectItem value="todos">Todos</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="h-4 w-4 mr-1" /> Exportar PDF
+            </Button>
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={periodo} onValueChange={setPeriodo}>
+              <SelectTrigger className="w-[160px] h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Últimos 7 dias</SelectItem>
+                <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="90">Últimos 90 dias</SelectItem>
+                <SelectItem value="180">Últimos 6 meses</SelectItem>
+                <SelectItem value="365">Último ano</SelectItem>
+                <SelectItem value="todos">Todos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         }
       />
       <ModuleNavGrid moduleId="operacional" />
 
-      {/* KPIs */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {kpis.map(k => (
           <Card key={k.label}>
@@ -282,10 +141,8 @@ export default function Suporte() {
           <TabsTrigger value="portal">Tickets Portal</TabsTrigger>
         </TabsList>
 
-        {/* ── Tab: Métricas SLA ── */}
         <TabsContent value="sla" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            {/* Cumprimento de SLA */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Target className="h-4 w-4" />Cumprimento de SLA</CardTitle>
@@ -309,7 +166,6 @@ export default function Suporte() {
               </CardContent>
             </Card>
 
-            {/* Satisfação do Cliente */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Star className="h-4 w-4" />Satisfação do Cliente</CardTitle>
@@ -344,7 +200,6 @@ export default function Suporte() {
             </Card>
           </div>
 
-          {/* Tempo por Prioridade + Volume Mensal */}
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
@@ -387,12 +242,9 @@ export default function Suporte() {
             </Card>
           </div>
 
-          {/* Distribuição + Por Sistema */}
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Distribuição por Status</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-lg">Distribuição por Status</CardTitle></CardHeader>
               <CardContent>
                 {slaMetrics.statusDist.length > 0 ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -412,9 +264,7 @@ export default function Suporte() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Volume por Sistema</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-lg">Volume por Sistema</CardTitle></CardHeader>
               <CardContent>
                 {slaMetrics.porSistema.length > 0 ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -436,7 +286,6 @@ export default function Suporte() {
           </div>
         </TabsContent>
 
-        {/* ── Tab: Chamados ── */}
         <TabsContent value="chamados">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -492,7 +341,6 @@ export default function Suporte() {
           </Card>
         </TabsContent>
 
-        {/* ── Tab: Clientes ── */}
         <TabsContent value="clientes">
           <Card>
             <CardHeader>
@@ -513,9 +361,7 @@ export default function Suporte() {
                         {reincidentes > 0 && <Badge variant="destructive" className="text-[9px]">{reincidentes} reincid.</Badge>}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge variant="outline">{count} chamados</Badge>
-                    </div>
+                    <div className="text-right"><Badge variant="outline">{count} chamados</Badge></div>
                   </div>
                 );
               })}
@@ -524,10 +370,8 @@ export default function Suporte() {
           </Card>
         </TabsContent>
 
-        {/* ── Tab: Ranking Técnicos ── */}
         <TabsContent value="tecnicos" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-3">
-            {/* Pódio */}
             {rankingTecnicos.slice(0, 3).map((tec, i) => {
               const RankIcon = rankIcons[i] || Award;
               return (
@@ -574,7 +418,6 @@ export default function Suporte() {
             })}
           </div>
 
-          {/* Tabela completa */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2"><Wrench className="h-4 w-4" />Ranking Completo</CardTitle>
@@ -618,7 +461,6 @@ export default function Suporte() {
             </CardContent>
           </Card>
 
-          {/* Gráfico comparativo */}
           {rankingTecnicos.length > 0 && (
             <Card>
               <CardHeader>
@@ -641,281 +483,10 @@ export default function Suporte() {
           )}
         </TabsContent>
 
-        {/* ── Tab: Tickets Portal ── */}
         <TabsContent value="portal" className="space-y-4">
           <PortalTicketsTab />
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-function PortalTicketsTab() {
-  const queryClient = useQueryClient();
-  const { getCliente, tarefas, addTarefa } = useApp();
-  const { profile } = useAuth();
-  const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [reply, setReply] = useState("");
-  const [newStatus, setNewStatus] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [linkingTicketId, setLinkingTicketId] = useState<string | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState<string>("");
-
-  const { data: tickets, isLoading, refetch } = useQuery({
-    queryKey: ["portal_tickets_admin"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("portal_tickets")
-        .select("id, title, description, status, created_at, updated_at, client_id, linked_task_id, protocol_number, tracking_token")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: messages } = useQuery({
-    queryKey: ["portal_ticket_messages_admin"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("portal_ticket_messages")
-        .select("id, ticket_id, sender_type, sender_name, message, created_at")
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const selected = tickets?.find(t => t.id === selectedId);
-  const ticketMsgs = messages?.filter(m => m.ticket_id === selectedId) || [];
-
-  // Support tasks without a linked ticket (for linking dialog)
-  const unlinkedSupportTasks = useMemo(() =>
-    tarefas.filter(t => t.tipoOperacional === "suporte" && !t.linkedTicketId),
-    [tarefas]
-  );
-
-  const generateProtocol = () => {
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
-    const seq = String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0");
-    return `SUP-${dateStr}-${seq}`;
-  };
-
-  const getTrackingUrl = (trackingToken: string) => {
-    return `${window.location.origin}/acompanhamento?token=${trackingToken}`;
-  };
-
-  const copyTrackingLink = (trackingToken: string) => {
-    navigator.clipboard.writeText(getTrackingUrl(trackingToken));
-    toast.success("Link de acompanhamento copiado!");
-  };
-
-  const handleCreateTaskFromTicket = async (ticket: any) => {
-    if (!profile?.org_id) return;
-    setSaving(true);
-    try {
-      // Generate protocol if ticket doesn't have one
-      const protocol = ticket.protocol_number || generateProtocol();
-
-      // Update ticket with protocol if missing
-      if (!ticket.protocol_number) {
-        await supabase.from("portal_tickets").update({ protocol_number: protocol }).eq("id", ticket.id);
-      }
-
-      // Create the task
-      const dbData = {
-        org_id: profile.org_id,
-        title: `[${protocol}] ${ticket.title}`,
-        description: ticket.description || "",
-        client_id: ticket.client_id || null,
-        priority: "media",
-        status: "a_fazer",
-        tipo_operacional: "suporte",
-        linked_ticket_id: ticket.id,
-        tags: ["ticket-portal"],
-        metadata: {},
-      };
-      const { data: newTask, error } = await supabase.from("tasks").insert(dbData).select("id").single();
-      if (error) throw error;
-
-      // Update ticket with linked_task_id
-      await supabase.from("portal_tickets").update({ linked_task_id: newTask.id }).eq("id", ticket.id);
-
-      // Add history
-      await supabase.from("task_history").insert({
-        org_id: profile.org_id, task_id: newTask.id,
-        action: "Criação", details: `Tarefa criada a partir de ticket do portal — Protocolo: ${protocol}`,
-      });
-
-      // Copy tracking link
-      if (ticket.tracking_token) {
-        copyTrackingLink(ticket.tracking_token);
-      }
-
-      toast.success("Tarefa criada! Link de acompanhamento copiado.");
-      refetch();
-      queryClient.invalidateQueries({ queryKey: ["portal_tickets_admin"] });
-    } catch (err: any) {
-      toast.error("Erro ao criar tarefa: " + err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleLinkTask = async (ticketId: string, taskId: string) => {
-    if (!taskId) return;
-    setSaving(true);
-    try {
-      await supabase.from("tasks").update({ linked_ticket_id: ticketId }).eq("id", taskId);
-      await supabase.from("portal_tickets").update({ linked_task_id: taskId }).eq("id", ticketId);
-      toast.success("Tarefa vinculada ao ticket!");
-      setLinkingTicketId(null);
-      setSelectedTaskId("");
-      refetch();
-    } catch {
-      toast.error("Erro ao vincular tarefa");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleReply = async () => {
-    if (!reply.trim() || !selected) return;
-    setSaving(true);
-    try {
-      const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", (await supabase.auth.getUser()).data.user?.id || "").single();
-      await supabase.from("portal_ticket_messages").insert({
-        ticket_id: selected.id,
-        org_id: (await supabase.from("portal_tickets").select("org_id").eq("id", selected.id).single()).data?.org_id || "",
-        sender_type: "staff",
-        sender_name: prof?.full_name || "Equipe",
-        message: reply.trim(),
-      });
-      setReply("");
-      refetch();
-    } catch { /* ignore */ }
-    finally { setSaving(false); }
-  };
-
-  const handleStatusChange = async (ticketId: string, status: string) => {
-    await supabase.from("portal_tickets").update({ status }).eq("id", ticketId);
-    refetch();
-  };
-
-  if (isLoading) return <div className="py-8 text-center text-muted-foreground text-sm">Carregando tickets...</div>;
-
-  if (selected) {
-    const linkedTask = selected.linked_task_id ? tarefas.find(t => t.id === selected.linked_task_id) : null;
-    return (
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => setSelectedId(null)}>← Voltar</Button>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">{selected.title}</CardTitle>
-              <Select value={selected.status} onValueChange={v => handleStatusChange(selected.id, v)}>
-                <SelectTrigger className="w-[140px] h-8"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="aberto">Aberto</SelectItem>
-                  <SelectItem value="em_analise">Em Análise</SelectItem>
-                  <SelectItem value="respondido">Respondido</SelectItem>
-                  <SelectItem value="finalizado">Finalizado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <CardDescription>Cliente: {getCliente(selected.client_id)?.nome || selected.client_id} · {new Date(selected.created_at).toLocaleDateString("pt-BR")}</CardDescription>
-            {selected.protocol_number && (
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="text-xs font-mono">{selected.protocol_number}</Badge>
-                {selected.tracking_token && (
-                  <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => copyTrackingLink(selected.tracking_token)}>
-                    <ExternalLink className="h-3 w-3 mr-1" /> Copiar Link
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Linked task info or action buttons */}
-            {linkedTask ? (
-              <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/30">
-                <Link2 className="h-4 w-4 text-primary" />
-                <span className="text-sm flex-1">Vinculado à tarefa: <strong>{linkedTask.titulo}</strong></span>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/tarefas/${linkedTask.id}`)}>
-                  <ExternalLink className="h-3 w-3 mr-1" /> Ver Tarefa
-                </Button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => handleCreateTaskFromTicket(selected)} disabled={saving}>
-                  <Plus className="h-3 w-3 mr-1" /> Criar Tarefa
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setLinkingTicketId(selected.id)} disabled={saving}>
-                  <Link2 className="h-3 w-3 mr-1" /> Vincular Tarefa Existente
-                </Button>
-              </div>
-            )}
-
-            {/* Link existing task dialog */}
-            {linkingTicketId === selected.id && (
-              <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/20">
-                <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-                  <SelectTrigger className="flex-1 h-8"><SelectValue placeholder="Selecione uma tarefa..." /></SelectTrigger>
-                  <SelectContent>
-                    {unlinkedSupportTasks.map(t => (
-                      <SelectItem key={t.id} value={t.id}>{t.titulo}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button size="sm" onClick={() => handleLinkTask(selected.id, selectedTaskId)} disabled={!selectedTaskId || saving}>Vincular</Button>
-                <Button size="sm" variant="ghost" onClick={() => { setLinkingTicketId(null); setSelectedTaskId(""); }}>Cancelar</Button>
-              </div>
-            )}
-
-            <div className="space-y-2 max-h-72 overflow-y-auto">
-              {ticketMsgs.map(m => (
-                <div key={m.id} className={`p-3 rounded-lg text-sm ${m.sender_type === "client" ? "bg-muted mr-4" : "bg-primary/5 ml-4"}`}>
-                  <p className="font-medium text-xs mb-1">{m.sender_name} <span className="text-muted-foreground">· {new Date(m.created_at).toLocaleDateString("pt-BR")}</span></p>
-                  <p className="whitespace-pre-wrap">{m.message}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input value={reply} onChange={e => setReply(e.target.value)} placeholder="Responder..." className="flex-1 px-3 py-2 border rounded-lg text-sm" />
-              <Button size="sm" onClick={handleReply} disabled={saving || !reply.trim()}>Enviar</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {!tickets || tickets.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground text-sm">Nenhum ticket do portal encontrado.</CardContent></Card>
-      ) : tickets.map(t => (
-        <Card key={t.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setSelectedId(t.id)}>
-          <CardContent className="py-3 flex items-center gap-3">
-            <Headphones className="h-4 w-4 text-muted-foreground shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{t.title}</p>
-              <p className="text-xs text-muted-foreground">
-                {t.protocol_number && <span className="font-mono mr-1">{t.protocol_number} ·</span>}
-                {getCliente(t.client_id)?.nome || "Cliente"} · {new Date(t.created_at).toLocaleDateString("pt-BR")}
-              </p>
-            </div>
-            {t.linked_task_id && (
-              <Badge variant="secondary" className="text-[9px] gap-1 shrink-0">
-                <Link2 className="h-3 w-3" /> Tarefa
-              </Badge>
-            )}
-            <Badge variant={t.status === "aberto" ? "outline" : t.status === "finalizado" ? "secondary" : "default"}>{t.status}</Badge>
-          </CardContent>
-        </Card>
-      ))}
     </div>
   );
 }
