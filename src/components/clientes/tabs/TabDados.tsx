@@ -17,19 +17,9 @@ import { useParametros } from "@/contexts/ParametrosContext";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { UFS, ROLE_OPTIONS } from "./tabDados/constants";
+import { lookupCnpj, lookupCep } from "./tabDados/lookups";
 
-const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
-
-const ROLE_OPTIONS = [
-  { value: "financeiro", label: "Financeiro" },
-  { value: "fiscal", label: "Fiscal" },
-  { value: "compras", label: "Compras" },
-  { value: "operacao_pdv", label: "Operação/PDV" },
-  { value: "ti", label: "TI" },
-  { value: "comercial", label: "Comercial" },
-  { value: "contador", label: "Contador" },
-  { value: "outro", label: "Outro" },
-];
 
 interface Props {
   cliente: ClienteFull;
@@ -150,11 +140,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     if (cleaned.length !== 14 || !validateCNPJ(cleaned)) return;
     setCnpjLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("cnpj-lookup", { body: { cnpj: cleaned } });
-      if (error || !data || data.error) {
-        toast({ title: data?.error || "Erro ao consultar CNPJ", variant: "destructive" });
-        return;
-      }
+      const data = await lookupCnpj(cleaned);
       const fantasia = data.fantasia || data.nome || "";
       onChange({
         trade_name: fantasia,
@@ -171,8 +157,8 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
         phone: data.telefone || v("phone"),
       } as any);
       toast({ title: "Dados do CNPJ preenchidos com sucesso" });
-    } catch {
-      toast({ title: "Erro ao consultar CNPJ", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: err?.message || "Erro ao consultar CNPJ", variant: "destructive" });
     } finally {
       setCnpjLoading(false);
     }
@@ -183,21 +169,20 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
     if (cep.length !== 8) { toast({ title: "CEP inválido", variant: "destructive" }); return; }
     setCepLoading(true);
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const data = await res.json();
-      if (data.erro) { toast({ title: "CEP não encontrado", variant: "destructive" }); return; }
+      const data = await lookupCep(cep);
       onChange({
         address_street: data.logradouro || v("address_street"),
         address_neighborhood: data.bairro || v("address_neighborhood"),
         city: data.localidade || v("city"),
         address_uf: data.uf || v("address_uf"),
       } as any);
-    } catch {
-      toast({ title: "Erro ao buscar CEP", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: err?.message || "Erro ao buscar CEP", variant: "destructive" });
     } finally {
       setCepLoading(false);
     }
   };
+
 
   const openNewContact = () => {
     setContactForm({ name: "", phone: "", email: "", roles: [], is_billing_preferred: false, is_support_preferred: false });
