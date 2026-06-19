@@ -9,21 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Plus, CheckCircle, AlertTriangle, ArrowDownRight, Pencil, Trash2, Repeat, XCircle } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { RowActions } from "@/components/ui/row-actions";
-import { STATUS_TITULO_LABELS, TituloFinanceiro } from "@/types/financeiro";
-
-const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+import { TituloFinanceiro } from "@/types/financeiro";
+import { fmt, statusBadge, getFuturosRecorrentes } from "./contasPagar/helpers";
+import { EditarDespesaModal } from "./contasPagar/EditarDespesaModal";
+import { NovaDespesaForm } from "./contasPagar/NovaDespesaForm";
 
 export default function ContasPagar() {
-  const { titulos, contasBancarias, addTitulo, baixarTitulo, updateTitulo, deleteTitulo, planoContas, loading } = useFinanceiro();
+  const { titulos, contasBancarias, baixarTitulo, updateTitulo, deleteTitulo, loading } = useFinanceiro();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroFornecedor, setFiltroFornecedor] = useState("");
   const [filtroOrigem, setFiltroOrigem] = useState<string>("todos");
@@ -81,36 +80,12 @@ export default function ContasPagar() {
     setExcluirId(null);
   };
 
-  const getFuturosRecorrentes = (tituloId: string) => {
-    const titulo = titulos.find(t => t.id === tituloId);
-    if (!titulo) return [];
-    const baseDesc = titulo.descricao.replace(/\s*\(recorrente \d+\/\d+\)/, "");
-    return titulos.filter(t =>
-      t.id !== tituloId &&
-      t.status === "aberto" &&
-      t.descricao.replace(/\s*\(recorrente \d+\/\d+\)/, "") === baseDesc &&
-      t.descricao.includes("(recorrente") &&
-      t.vencimento > titulo.vencimento
-    );
-  };
-
   const handleCancelarFuturos = () => {
     if (!cancelarFuturosId) return;
-    const futuros = getFuturosRecorrentes(cancelarFuturosId);
+    const futuros = getFuturosRecorrentes(titulos, cancelarFuturosId);
     futuros.forEach(t => deleteTitulo(t.id));
     toast.success(`${futuros.length} lançamentos futuros excluídos!`);
     setCancelarFuturosId(null);
-  };
-
-  const statusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      aberto: "bg-info/10 text-info border-info/20",
-      pago: "bg-success/10 text-success border-success/20",
-      parcial: "bg-warning/10 text-warning border-warning/20",
-      vencido: "bg-destructive/10 text-destructive border-destructive/20",
-      cancelado: "bg-muted text-muted-foreground",
-    };
-    return <Badge variant="outline" className={variants[status] || ""}>{STATUS_TITULO_LABELS[status as keyof typeof STATUS_TITULO_LABELS]}</Badge>;
   };
 
   if (loading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-96" /></div>;
@@ -298,7 +273,7 @@ export default function ContasPagar() {
             <AlertDialogTitle>Cancelar lançamentos futuros</AlertDialogTitle>
             <AlertDialogDescription>
               {cancelarFuturosId && (() => {
-                const qty = getFuturosRecorrentes(cancelarFuturosId).length;
+                const qty = getFuturosRecorrentes(titulos, cancelarFuturosId).length;
                 return qty > 0
                   ? `Serão excluídos ${qty} lançamento(s) recorrente(s) com status "aberto" e vencimento posterior ao selecionado. Esta ação não pode ser desfeita.`
                   : "Não há lançamentos futuros abertos para cancelar.";
@@ -307,7 +282,7 @@ export default function ContasPagar() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            {cancelarFuturosId && getFuturosRecorrentes(cancelarFuturosId).length > 0 && (
+            {cancelarFuturosId && getFuturosRecorrentes(titulos, cancelarFuturosId).length > 0 && (
               <AlertDialogAction onClick={handleCancelarFuturos} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Confirmar Exclusão
               </AlertDialogAction>
@@ -315,172 +290,6 @@ export default function ContasPagar() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
-}
-
-/* ========== Modal Editar ========== */
-function EditarDespesaModal({ titulo, onClose, onSave }: { titulo: TituloFinanceiro; onClose: () => void; onSave: (changes: Partial<TituloFinanceiro>) => void }) {
-  const { planoContas } = useFinanceiro();
-  const [desc, setDesc] = useState(titulo.descricao);
-  const [valor, setValor] = useState(String(titulo.valorOriginal));
-  const [venc, setVenc] = useState(titulo.vencimento);
-  const [fornecedor, setFornecedor] = useState(titulo.fornecedorNome || "");
-  const [catId, setCatId] = useState(titulo.categoriaPlanoContasId);
-  const [status, setStatus] = useState(titulo.status);
-
-  const handleSave = () => {
-    if (!desc || !valor) { toast.error("Preencha os campos obrigatórios"); return; }
-    onSave({
-      descricao: desc,
-      valorOriginal: parseFloat(valor),
-      vencimento: venc,
-      fornecedorNome: fornecedor || null,
-      categoriaPlanoContasId: catId,
-      status,
-    });
-  };
-
-  return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Editar Despesa</DialogTitle></DialogHeader>
-        <div className="space-y-3">
-          <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-          <div><Label>Valor *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
-          <div><Label>Vencimento</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
-          <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
-          <div><Label>Categoria</Label>
-            <Select value={catId} onValueChange={setCatId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{planoContas.filter(p => p.paiId && (p.tipo === "despesa" || p.tipo === "custo" || p.tipo === "repasse" || p.tipo === "imposto")).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div><Label>Status</Label>
-            <Select value={status} onValueChange={v => setStatus(v as any)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="aberto">Aberto</SelectItem>
-                <SelectItem value="pago">Pago</SelectItem>
-                <SelectItem value="parcial">Parcial</SelectItem>
-                <SelectItem value="vencido">Vencido</SelectItem>
-                <SelectItem value="cancelado">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleSave}>Salvar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/* ========== Form Nova Despesa ========== */
-function NovaDespesaForm({ onSave }: { onSave: () => void }) {
-  const { addTitulo, planoContas } = useFinanceiro();
-  const [desc, setDesc] = useState("");
-  const [valor, setValor] = useState("");
-  const [venc, setVenc] = useState(new Date().toISOString().split("T")[0]);
-  const [fornecedor, setFornecedor] = useState("");
-  const [catId, setCatId] = useState("pc301");
-  const [parcelas, setParcelas] = useState("1");
-  const [recorrente, setRecorrente] = useState(false);
-  const [obs, setObs] = useState("");
-  const [mesesRecorrencia, setMesesRecorrencia] = useState("12");
-
-  const numParcelas = parseInt(parcelas) || 1;
-  const numMeses = parseInt(mesesRecorrencia) || 1;
-  const valorTotal = parseFloat(valor) || 0;
-  const valorParcela = numParcelas > 0 ? valorTotal / numParcelas : 0;
-
-  const handleSave = () => {
-    if (!desc || !valor) { toast.error("Preencha os campos"); return; }
-    const now = new Date();
-    const qty = recorrente ? numMeses : numParcelas;
-    for (let i = 0; i < qty; i++) {
-      const vencDate = new Date(venc);
-      vencDate.setMonth(vencDate.getMonth() + i);
-      const comp = new Date(now); comp.setMonth(comp.getMonth() + i);
-      const suffix = recorrente
-        ? ` (recorrente ${i + 1}/${qty})`
-        : qty > 1 ? ` (${i + 1}/${qty})` : "";
-      addTitulo({
-        tipo: "pagar", origem: "despesa_operacional",
-        descricao: `${desc}${suffix}`,
-        clienteId: null, fornecedorNome: fornecedor || null,
-        categoriaPlanoContasId: catId,
-        competenciaMes: `${comp.getFullYear()}-${String(comp.getMonth() + 1).padStart(2, "0")}`,
-        dataEmissao: now.toISOString().split("T")[0],
-        vencimento: vencDate.toISOString().split("T")[0],
-        valorOriginal: recorrente ? Math.round(valorTotal * 100) / 100 : Math.round(valorParcela * 100) / 100,
-        desconto: 0, juros: 0, multa: 0,
-        status: "aberto", formaPagamento: "boleto",
-        contaBancariaId: null, anexosFake: [], observacoes: obs, commissionType: null,
-        isCourtesy: false, courtesyReason: null,
-      });
-    }
-    onSave();
-  };
-
-  return (
-    <div className="space-y-2">
-      <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-      <div className="grid grid-cols-2 gap-2">
-        <div><Label>Valor {recorrente ? "mensal" : "total"} *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
-        {recorrente ? (
-          <div><Label>Meses</Label><Input type="number" min={1} value={mesesRecorrencia} onChange={e => setMesesRecorrencia(e.target.value)} /></div>
-        ) : (
-          <div><Label>Parcelas</Label><Input type="number" min={1} value={parcelas} onChange={e => setParcelas(e.target.value)} /></div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Checkbox id="recorrente" checked={recorrente} onCheckedChange={(v) => { setRecorrente(!!v); if (v) setParcelas("1"); }} />
-        <Label htmlFor="recorrente" className="cursor-pointer text-sm">Despesa recorrente (mensal)</Label>
-      </div>
-
-      {(() => {
-        const qty = recorrente ? numMeses : numParcelas;
-        const valUnit = recorrente ? valorTotal : valorParcela;
-        if (qty <= 1 || valorTotal <= 0) return null;
-        const primeiraData = new Date(venc);
-        const ultimaData = new Date(venc);
-        ultimaData.setMonth(ultimaData.getMonth() + qty - 1);
-        const fmtDate = (d: Date) => d.toLocaleDateString("pt-BR");
-        return (
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-0.5">
-            <p className="text-base font-bold text-foreground">
-              {qty}x de {fmt(Math.round(valUnit * 100) / 100)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              De {fmtDate(primeiraData)} até {fmtDate(ultimaData)}
-            </p>
-            {!recorrente && (
-              <p className="text-xs text-muted-foreground">Valor total: {fmt(valorTotal)}</p>
-            )}
-            {recorrente && (
-              <p className="text-xs text-muted-foreground">Total acumulado: {fmt(valorTotal * qty)}</p>
-            )}
-          </div>
-        );
-      })()}
-      <div className="grid grid-cols-2 gap-2">
-        <div><Label>Vencimento {recorrente ? "1º mês" : numParcelas > 1 ? "1ª parcela" : ""}</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
-        <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
-      </div>
-      <div><Label>Categoria</Label>
-        <Select value={catId} onValueChange={setCatId}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>{planoContas.filter(p => p.paiId && (p.tipo === "despesa" || p.tipo === "custo" || p.tipo === "repasse" || p.tipo === "imposto")).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
-        </Select>
-      </div>
-      <div><Label>Observações</Label><Textarea value={obs} onChange={e => setObs(e.target.value)} placeholder="Observações opcionais..." rows={2} /></div>
-      <DialogFooter>
-        <Button onClick={handleSave}>Salvar</Button>
-      </DialogFooter>
     </div>
   );
 }
