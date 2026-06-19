@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useFinanceiro } from "@/contexts/FinanceiroContext";
 import { useReceita } from "@/contexts/ReceitaContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -15,13 +14,15 @@ import { toast } from "sonner";
 import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw, ArrowUpRight, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
-import { Textarea } from "@/components/ui/textarea";
-import { TituloFinanceiro, STATUS_TITULO_LABELS, FORMA_PAGAMENTO_LABELS, ORIGEM_TITULO_LABELS, FINANCEIRO_COLORS } from "@/types/financeiro";
+import { TituloFinanceiro } from "@/types/financeiro";
+import { fmt, statusBadge } from "./contasReceber/helpers";
+import { NovoTituloModal } from "./contasReceber/NovoTituloModal";
+import { EditarTituloModal } from "./contasReceber/EditarTituloModal";
 
-const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export { NovoTituloModal };
 
 export default function ContasReceber() {
-  const { titulos, contasBancarias, addTitulo, updateTitulo, baixarTitulo, loading, planoContas } = useFinanceiro();
+  const { titulos, contasBancarias, addTitulo, updateTitulo, baixarTitulo, loading } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCliente, setFiltroCliente] = useState<string>("");
@@ -100,17 +101,6 @@ export default function ContasReceber() {
     toast.success("Título renegociado com novo vencimento!");
   };
 
-  const statusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      aberto: "bg-info/10 text-info border-info/20",
-      pago: "bg-success/10 text-success border-success/20",
-      parcial: "bg-warning/10 text-warning border-warning/20",
-      vencido: "bg-destructive/10 text-destructive border-destructive/20",
-      cancelado: "bg-muted text-muted-foreground",
-    };
-    return <Badge variant="outline" className={variants[status] || ""}>{STATUS_TITULO_LABELS[status as keyof typeof STATUS_TITULO_LABELS]}</Badge>;
-  };
-
   if (loading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-96" /></div>;
 
   return (
@@ -124,7 +114,6 @@ export default function ContasReceber() {
       />
       <ModuleNavGrid moduleId="financeiro" />
 
-      {/* Alertas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {vencidos.length > 0 && (
           <Card className="border-destructive/50">
@@ -161,7 +150,6 @@ export default function ContasReceber() {
         )}
       </div>
 
-      {/* Filtros */}
       <div className="flex gap-3 flex-wrap">
         <Input placeholder="Buscar cliente..." value={filtroCliente} onChange={e => setFiltroCliente(e.target.value)} className="w-56" />
         <Select value={filtroStatus} onValueChange={setFiltroStatus}>
@@ -177,7 +165,6 @@ export default function ContasReceber() {
         </Select>
       </div>
 
-      {/* Tabela */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -235,7 +222,6 @@ export default function ContasReceber() {
         </CardContent>
       </Card>
 
-      {/* Modal Baixa */}
       <Dialog open={!!modalBaixa} onOpenChange={() => setModalBaixa(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Baixar Título</DialogTitle></DialogHeader>
@@ -268,134 +254,8 @@ export default function ContasReceber() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Editar */}
       <EditarTituloModal titulo={editingTitulo} onClose={() => setEditingTitulo(null)} />
-
-      {/* Modal Novo (simplified) */}
       <NovoTituloModal open={modalNovo} onClose={() => setModalNovo(false)} tipo="receber" />
     </div>
-  );
-}
-
-function NovoTituloModal({ open, onClose, tipo }: { open: boolean; onClose: () => void; tipo: "receber" | "pagar" }) {
-  const { addTitulo, planoContas, contasBancarias } = useFinanceiro();
-  const { clientesReceita } = useReceita();
-  const [desc, setDesc] = useState("");
-  const [valor, setValor] = useState("");
-  const [venc, setVenc] = useState(new Date().toISOString().split("T")[0]);
-  const [clienteId, setClienteId] = useState("");
-  const [fornecedor, setFornecedor] = useState("");
-  const [catId, setCatId] = useState("pc101");
-
-  const handleSave = () => {
-    if (!desc || !valor) { toast.error("Preencha os campos obrigatórios"); return; }
-    const now = new Date();
-    addTitulo({
-      tipo, origem: "outro", descricao: desc, clienteId: clienteId || null,
-      fornecedorNome: fornecedor || null, categoriaPlanoContasId: catId,
-      competenciaMes: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
-      dataEmissao: now.toISOString().split("T")[0], vencimento: venc,
-      valorOriginal: parseFloat(valor), desconto: 0, juros: 0, multa: 0,
-      status: "aberto", formaPagamento: "pix", contaBancariaId: contasBancarias[0]?.id || null,
-      anexosFake: [], observacoes: "", commissionType: null,
-      isCourtesy: false, courtesyReason: null,
-    });
-    toast.success("Título criado!");
-    onClose();
-    setDesc(""); setValor("");
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Novo Título - {tipo === "receber" ? "A Receber" : "A Pagar"}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
-          <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-          <div><Label>Valor *</Label><CurrencyInput value={Number(valor) || 0} onValueChange={v => setValor(String(v))} /></div>
-          <div><Label>Vencimento</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
-          {tipo === "receber" ? (
-            <div><Label>Cliente</Label>
-              <Select value={clienteId} onValueChange={setClienteId}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>{clientesReceita.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <div><Label>Fornecedor</Label><Input value={fornecedor} onChange={e => setFornecedor(e.target.value)} /></div>
-          )}
-          <div><Label>Categoria</Label>
-            <Select value={catId} onValueChange={setCatId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{planoContas.filter(p => p.paiId).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleSave}>Salvar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export { NovoTituloModal };
-
-function EditarTituloModal({ titulo, onClose }: { titulo: TituloFinanceiro | null; onClose: () => void }) {
-  const { updateTitulo } = useFinanceiro();
-  const { clientesReceita } = useReceita();
-  const [desc, setDesc] = useState("");
-  const [valor, setValor] = useState(0);
-  const [venc, setVenc] = useState("");
-  const [comp, setComp] = useState("");
-  const [obs, setObs] = useState("");
-
-  useEffect(() => {
-    if (titulo) {
-      setDesc(titulo.descricao);
-      setValor(titulo.valorOriginal);
-      setVenc(titulo.vencimento);
-      setComp(titulo.competenciaMes);
-      setObs(titulo.observacoes || "");
-    }
-  }, [titulo]);
-
-  const handleSave = () => {
-    if (!titulo || !desc) { toast.error("Preencha a descrição"); return; }
-    updateTitulo(titulo.id, {
-      descricao: desc,
-      valorOriginal: valor,
-      vencimento: venc,
-      competenciaMes: comp,
-      observacoes: obs,
-    });
-    toast.success("Título atualizado!");
-    onClose();
-  };
-
-  const cli = titulo ? clientesReceita.find(c => c.id === titulo.clienteId) : null;
-
-  return (
-    <Dialog open={!!titulo} onOpenChange={() => onClose()}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Editar Título</DialogTitle></DialogHeader>
-        {titulo && (
-          <div className="space-y-3">
-            <div><Label>Descrição *</Label><Input value={desc} onChange={e => setDesc(e.target.value)} /></div>
-            <div><Label>Valor *</Label><CurrencyInput value={valor} onValueChange={setValor} /></div>
-            <div><Label>Vencimento</Label><Input type="date" value={venc} onChange={e => setVenc(e.target.value)} /></div>
-            <div><Label>Competência</Label><Input type="month" value={comp} onChange={e => setComp(e.target.value)} /></div>
-            {cli && (
-              <div><Label>Cliente</Label><Input value={cli.nome} disabled className="bg-muted" /></div>
-            )}
-            <div><Label>Observações</Label><Textarea value={obs} onChange={e => setObs(e.target.value)} rows={3} /></div>
-          </div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleSave}>Salvar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
