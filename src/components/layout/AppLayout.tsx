@@ -43,7 +43,7 @@ export function AppLayout() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Topbar />
           <PushNotificationBanner />
-          <main className="flex-1 p-4 md:p-5 lg:p-6 overflow-auto animate-fade-in gradient-bg" style={{ contain: 'layout style', willChange: 'transform' }}>
+          <main className="flex-1 p-3 sm:p-4 md:p-5 lg:p-6 overflow-auto overflow-x-hidden animate-fade-in gradient-bg min-w-0" style={{ contain: 'layout style', willChange: 'transform' }}>
             {hasAccess ? <Outlet /> : <AcessoNegado />}
           </main>
         </div>
