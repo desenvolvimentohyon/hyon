@@ -165,10 +165,17 @@
     @apply border-border;
   }
 
+  html, body {
+    /* Eliminate accidental horizontal scroll on mobile */
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   html {
     scroll-behavior: smooth;
     text-rendering: optimizeLegibility;
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
@@ -179,12 +186,28 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Fluid media — never break layout */
+  img, video, canvas, svg, iframe { max-width: 100%; height: auto; }
+
+  /* Long words / URLs wrap on small screens */
+  p, span, a, li, td, th, label {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight font-semibold;
+    overflow-wrap: break-word;
   }
 
   a, button, [role="button"] {
     @apply transition-colors duration-200 ease-out;
+  }
+
+  /* Touch-friendly hit targets and prevent iOS zoom on focus */
+  @media (max-width: 640px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea, select { font-size: 16px; }
   }
 
   /* Smoother easing for common interactive surfaces */
