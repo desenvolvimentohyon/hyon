@@ -227,22 +227,22 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-3 bg-background/60 backdrop-blur-xl px-4" style={{ borderBottom: "1px solid hsl(var(--glass-border))" }}>
+    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 sm:gap-3 bg-background/60 backdrop-blur-xl px-2 sm:px-4" style={{ borderBottom: "1px solid hsl(var(--glass-border))" }}>
       <SidebarTrigger className="shrink-0" />
 
-      <form onSubmit={handleSearch} className="flex-1 max-w-xl ml-auto">
+      <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-xl ml-auto">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
-            placeholder="Buscar tarefas, clientes..."
+            placeholder="Buscar..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="pl-10 pr-16 h-10 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all focus-glow"
+            className="pl-10 pr-3 h-10 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all focus-glow"
           />
         </div>
       </form>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
         {/* Online/Offline indicator */}
         {!isOnline && (
           <div className="flex items-center gap-1.5 text-destructive mr-1">
