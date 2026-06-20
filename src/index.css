@@ -253,6 +253,13 @@
     @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
   }
 
+  /* Horizontal-scroll wrapper for wide tables on mobile */
+  .table-scroll {
+    @apply w-full overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll > table { min-width: 640px; }
+
   .stat-value {
     @apply text-2xl font-bold tracking-tight;
   }
