@@ -11,6 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Headphones, Plus, Link2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
+interface PortalTicket {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string | null;
+  client_id: string | null;
+  linked_task_id: string | null;
+  protocol_number: string | null;
+  tracking_token: string | null;
+}
+
 export function PortalTicketsTab() {
   const queryClient = useQueryClient();
   const { getCliente, tarefas } = useApp();
@@ -70,7 +83,7 @@ export function PortalTicketsTab() {
     toast.success("Link de acompanhamento copiado!");
   };
 
-  const handleCreateTaskFromTicket = async (ticket: any) => {
+  const handleCreateTaskFromTicket = async (ticket: PortalTicket) => {
     if (!profile?.org_id) return;
     setSaving(true);
     try {
@@ -101,8 +114,9 @@ export function PortalTicketsTab() {
       toast.success("Tarefa criada! Link de acompanhamento copiado.");
       refetch();
       queryClient.invalidateQueries({ queryKey: ["portal_tickets_admin"] });
-    } catch (err: any) {
-      toast.error("Erro ao criar tarefa: " + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      toast.error("Erro ao criar tarefa: " + message);
     } finally {
       setSaving(false);
     }
