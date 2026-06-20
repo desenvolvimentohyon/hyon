@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-import type { useApp } from "@/contexts/AppContext";
-
-type Tarefa = any;
+import type { Tarefa } from "@/types";
 
 export function useSuporteMetricas(
   chamados: Tarefa[],

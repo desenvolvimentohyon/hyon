@@ -23,12 +23,13 @@ export default function Suporte() {
   const navigate = useNavigate();
   const [periodo, setPeriodo] = useState<string>("todos");
 
-  const now = new Date();
   const periodoFilter = useMemo(() => {
     if (periodo === "todos") return null;
     const dias = parseInt(periodo);
-    return new Date(now.getTime() - dias * 86400000);
+    return new Date(Date.now() - dias * 86400000);
   }, [periodo]);
+
+  const now = new Date();
 
   const chamadosTodos = useMemo(() => tarefas.filter(t => t.tipoOperacional === "suporte"), [tarefas]);
   const chamados = useMemo(() => {
