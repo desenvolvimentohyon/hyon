@@ -18,8 +18,10 @@ import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/ui/page-header";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { PropostaResumoLateral } from "@/components/propostas/PropostaResumoLateral";
+import { EtapaCard } from "@/components/propostas/EtapaCard";
+import { PropostaProgresso } from "@/components/propostas/PropostaProgresso";
 
-import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText, Plus } from "lucide-react";
+import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText, Plus, Sparkles } from "lucide-react";
 
 interface Partner {
   id: string;
