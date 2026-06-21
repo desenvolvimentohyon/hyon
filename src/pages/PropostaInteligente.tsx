@@ -368,35 +368,51 @@ export default function PropostaInteligente() {
 
           {/* 3. Módulos */}
           {modulosDoSistema.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2"><Puzzle className="h-4 w-4 text-violet-500" /> Módulos</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <EtapaCard
+              numero={3}
+              icone={Puzzle}
+              iconeCor="text-violet-500"
+              titulo={`Módulos${moduloIds.length > 0 ? ` (${moduloIds.length} selecionado${moduloIds.length > 1 ? "s" : ""})` : ""}`}
+              descricao="Marque os módulos contratados. O valor da mensalidade é a soma dos selecionados."
+              concluido={etapaModulos}
+            >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {modulosDoSistema.map(m => (
-                    <label key={m.id} className="flex items-center gap-2 rounded-lg border border-border/60 p-2.5 cursor-pointer hover:bg-accent/40 transition-colors">
-                      <Checkbox
-                        checked={moduloIds.includes(m.id)}
-                        onCheckedChange={() => handleToggleModulo(m.id)}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{m.nome}</p>
-                        <p className="text-xs text-muted-foreground">R$ {m.valorVenda.toFixed(2)}/mês</p>
-                      </div>
-                    </label>
-                  ))}
+                  {modulosDoSistema.map(m => {
+                    const selecionado = moduloIds.includes(m.id);
+                    return (
+                      <label
+                        key={m.id}
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg border p-2.5 cursor-pointer transition-all",
+                          selecionado
+                            ? "border-violet-500/50 bg-violet-500/5 ring-1 ring-violet-500/20"
+                            : "border-border/60 hover:bg-accent/40 hover:border-violet-500/30"
+                        )}
+                      >
+                        <Checkbox
+                          checked={selecionado}
+                          onCheckedChange={() => handleToggleModulo(m.id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{m.nome}</p>
+                          <p className="text-xs text-muted-foreground">R$ {m.valorVenda.toFixed(2)}/mês</p>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
-              </CardContent>
-            </Card>
+            </EtapaCard>
           )}
 
           {/* 4. Plano + Comparador */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2"><Tag className="h-4 w-4 text-amber-500" /> Plano e Desconto</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <EtapaCard
+            numero={4}
+            icone={Tag}
+            iconeCor="text-amber-500"
+            titulo="Plano e Desconto"
+            descricao="Defina a vigência do plano e descontos aplicados na mensalidade."
+            concluido={etapaPlano}
+          >
               <Select value={planoId} onValueChange={setPlanoId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o plano" /></SelectTrigger>
                 <SelectContent>
@@ -447,7 +463,7 @@ export default function PropostaInteligente() {
                 </div>
               )}
               <div className="space-y-1.5">
-                <Label className="text-xs">Forma de pagamento (mensalidade)</Label>
+                <Label className="text-xs flex items-center gap-1"><CreditCard className="h-3 w-3" /> Forma de pagamento (mensalidade)</Label>
                 <Select value={formaPagamentoId} onValueChange={setFormaPagamentoId}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -455,16 +471,18 @@ export default function PropostaInteligente() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
+          </EtapaCard>
 
 
           {/* 5. Implantação */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2"><MapPin className="h-4 w-4 text-rose-500" /> Implantação</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <EtapaCard
+            numero={5}
+            icone={MapPin}
+            iconeCor="text-rose-500"
+            titulo="Implantação"
+            descricao="Custos de deslocamento, diárias e região. Tudo é somado automaticamente."
+            concluido={etapaImplantacao}
+          >
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Região</Label>
@@ -484,7 +502,7 @@ export default function PropostaInteligente() {
                   <Input type="number" min={0} value={dias || ""} onChange={e => setDias(Number(e.target.value) || 0)} placeholder="0" />
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Desconto implantação (%)</Label>
                   <Input
@@ -507,8 +525,8 @@ export default function PropostaInteligente() {
                   />
                 </div>
               </div>
-              <div className="mt-3 space-y-1.5">
-                <Label className="text-xs">Forma de pagamento (implantação)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><CreditCard className="h-3 w-3" /> Forma de pagamento (implantação)</Label>
                 <Select value={formaPagamentoImplId} onValueChange={setFormaPagamentoImplId}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -517,21 +535,23 @@ export default function PropostaInteligente() {
                 </Select>
               </div>
               {formaPagImpl && /cart[aã]o|cr[eé]dito/i.test(formaPagImpl.nome) && (
-                <div className="mt-3 space-y-1.5">
+                <div className="space-y-1.5">
                   <Label className="text-xs">Parcelas</Label>
                   <Input type="number" min={1} max={24} value={parcelasImplantacao || ""} onChange={e => setParcelasImplantacao(Math.max(1, Number(e.target.value) || 1))} placeholder="1" />
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </EtapaCard>
 
           {/* 6. Parceiro */}
           {partners.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2"><Users className="h-4 w-4 text-violet-500" /> Parceiro Indicador</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <EtapaCard
+              numero={6}
+              icone={Users}
+              iconeCor="text-violet-500"
+              titulo="Parceiro Indicador"
+              descricao="Opcional: vincule um parceiro para cálculo automático de comissão."
+              concluido={!!parceiroId && parceiroId !== "none"}
+            >
                 <Select value={parceiroId} onValueChange={setParceiroId}>
                   <SelectTrigger><SelectValue placeholder="Nenhum parceiro" /></SelectTrigger>
                   <SelectContent>
@@ -539,19 +559,20 @@ export default function PropostaInteligente() {
                     {partners.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-              </CardContent>
-            </Card>
+            </EtapaCard>
           )}
 
           {/* 7. Observações */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2"><FileText className="h-4 w-4 text-muted-foreground" /> Observações</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <EtapaCard
+            numero={7}
+            icone={FileText}
+            iconeCor="text-muted-foreground"
+            titulo="Observações internas"
+            descricao="Notas visíveis apenas para sua equipe — não aparecem no PDF enviado ao cliente."
+            concluido={observacoes.trim().length > 0}
+          >
               <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={3} placeholder="Observações internas da proposta..." />
-            </CardContent>
-          </Card>
+          </EtapaCard>
 
         </div>
 
