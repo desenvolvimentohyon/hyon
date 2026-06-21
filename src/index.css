@@ -154,9 +154,9 @@
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.3), 0 8px 10px -1px hsl(0 0% 0% / 0.2);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.5);
 
-    --glow-primary: 0 0 24px hsl(199 89% 48% / 0.2);
-    --glow-cyan: 0 0 24px hsl(185 80% 50% / 0.2);
-    --glass-border: 0 0% 100% / 0.06;
+    --glow-primary: 0 0 0 0 transparent;
+    --glow-cyan: 0 0 0 0 transparent;
+    --glass-border: 0 0% 100% / 0.04;
   }
 }
 
