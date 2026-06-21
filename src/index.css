@@ -298,18 +298,18 @@
   }
   .kpi-card:hover {
     box-shadow: var(--shadow-card-hover);
-    transform: translateY(-2px);
-    border-color: hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary) / 0.12);
   }
 
   .neon-border {
-    border-color: hsl(var(--primary) / 0.25);
-    box-shadow: 0 0 12px hsl(var(--primary) / 0.1), var(--shadow-card);
+    border-color: hsl(var(--primary) / 0.15);
+    box-shadow: var(--shadow-card);
   }
   .neon-border:hover {
-    border-color: hsl(var(--primary) / 0.4);
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.15), var(--shadow-card-hover);
+    border-color: hsl(var(--primary) / 0.25);
+    box-shadow: var(--shadow-card-hover);
   }
+
 
   .shadow-card {
     box-shadow: var(--shadow-card);
