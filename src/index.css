@@ -81,9 +81,9 @@
     --spacing: 0.25rem;
 
     /* Glow tokens */
-    --glow-primary: 0 0 20px hsl(199 89% 48% / 0.15);
-    --glow-cyan: 0 0 20px hsl(185 80% 50% / 0.15);
-    --glass-border: 0 0% 100% / 0.08;
+    --glow-primary: 0 0 0 0 transparent;
+    --glow-cyan: 0 0 0 0 transparent;
+    --glass-border: 0 0% 100% / 0.04;
   }
 
   .dark {
