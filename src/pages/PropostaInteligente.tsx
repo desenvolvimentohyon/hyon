@@ -265,11 +265,29 @@ export default function PropostaInteligente() {
   const planosAtivos = useMemo(() => planos.filter(p => p.ativo), [planos]);
   const formasAtivas = useMemo(() => formasPagamento.filter(f => f.ativo), [formasPagamento]);
 
+  // Status de cada etapa (didático)
+  const etapaCliente = !!clienteId && (clienteId !== "novo" || !!novoClienteNome.trim());
+  const etapaSistema = !!sistemaId;
+  const etapaModulos = moduloIds.length > 0;
+  const etapaPlano = !!planoId;
+  const etapaImplantacao = !!regiaoId || distanciaKm > 0 || dias > 0;
+  const etapaPagamento = !!formaPagamentoId;
+
+  const etapas = [
+    { numero: 1, titulo: "Cliente", concluida: etapaCliente },
+    { numero: 2, titulo: "Sistema", concluida: etapaSistema },
+    { numero: 3, titulo: "Módulos", concluida: etapaModulos },
+    { numero: 4, titulo: "Plano", concluida: etapaPlano },
+    { numero: 5, titulo: "Implantação", concluida: etapaImplantacao },
+    { numero: 6, titulo: "Pagamento", concluida: etapaPagamento },
+  ];
+
   return (
     <div className="space-y-4">
       <PageHeader
         title="Nova Proposta Inteligente"
-        subtitle="Monte sua proposta com cálculos automáticos e sugestões inteligentes"
+        subtitle="Preencha as etapas abaixo — o sistema calcula tudo automaticamente"
+        icon={Sparkles}
         actions={
           <Button variant="outline" size="sm" onClick={() => navigate("/propostas")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
@@ -277,15 +295,22 @@ export default function PropostaInteligente() {
         }
       />
 
+      {/* Barra de progresso didática */}
+      <PropostaProgresso etapas={etapas} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main form */}
         <div className="lg:col-span-2 space-y-4 pb-24 lg:pb-0">
           {/* 1. Cliente */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2"><User className="h-4 w-4 text-blue-500" /> Cliente</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <EtapaCard
+            numero={1}
+            icone={User}
+            iconeCor="text-blue-500"
+            titulo="Cliente"
+            descricao="Para quem é esta proposta? Selecione um existente ou cadastre um novo."
+            concluido={etapaCliente}
+            obrigatorio
+          >
               <Select value={clienteId} onValueChange={setClienteId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
                 <SelectContent className="max-h-[140px]">
@@ -317,15 +342,18 @@ export default function PropostaInteligente() {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+          </EtapaCard>
 
           {/* 2. Sistema */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2"><Monitor className="h-4 w-4 text-primary" /> Sistema</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <EtapaCard
+            numero={2}
+            icone={Monitor}
+            iconeCor="text-primary"
+            titulo="Sistema"
+            descricao="Escolha a plataforma principal contratada pelo cliente."
+            concluido={etapaSistema}
+            obrigatorio
+          >
               <Select value={sistemaId} onValueChange={setSistemaId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
                 <SelectContent>
@@ -336,8 +364,7 @@ export default function PropostaInteligente() {
                   ))}
                 </SelectContent>
               </Select>
-            </CardContent>
-          </Card>
+          </EtapaCard>
 
           {/* 3. Módulos */}
           {modulosDoSistema.length > 0 && (
