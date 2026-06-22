@@ -21,15 +21,15 @@ import { cn } from "@/lib/utils";
 const FAVORITES_KEY = "sidebar-favorites";
 const MAX_FAVORITES = 8;
 
-const MODULE_SIDEBAR_COLORS: Record<string, { active: string; icon: string; glow: string; bg: string }> = {
-  dashboard: { active: "bg-sky-500/15 border-sky-500/30", icon: "text-sky-400", glow: "shadow-[0_0_12px_hsl(199_89%_48%/0.25)]", bg: "bg-sky-500/10" },
-  clientes: { active: "bg-emerald-500/15 border-emerald-500/30", icon: "text-emerald-400", glow: "shadow-[0_0_12px_rgba(16,185,129,0.25)]", bg: "bg-emerald-500/10" },
-  comercial: { active: "bg-indigo-500/15 border-indigo-500/30", icon: "text-indigo-400", glow: "shadow-[0_0_12px_rgba(99,102,241,0.25)]", bg: "bg-indigo-500/10" },
-  financeiro: { active: "bg-green-500/15 border-green-500/30", icon: "text-green-400", glow: "shadow-[0_0_12px_rgba(34,197,94,0.25)]", bg: "bg-green-500/10" },
-  operacional: { active: "bg-orange-500/15 border-orange-500/30", icon: "text-orange-400", glow: "shadow-[0_0_12px_rgba(249,115,22,0.25)]", bg: "bg-orange-500/10" },
-  cartoes: { active: "bg-purple-500/15 border-purple-500/30", icon: "text-purple-400", glow: "shadow-[0_0_12px_rgba(168,85,247,0.25)]", bg: "bg-purple-500/10" },
-  desenvolvimento: { active: "bg-cyan-500/15 border-cyan-500/30", icon: "text-cyan-400", glow: "shadow-[0_0_12px_rgba(6,182,212,0.25)]", bg: "bg-cyan-500/10" },
-  configuracoes: { active: "bg-slate-400/15 border-slate-400/30", icon: "text-slate-400", glow: "shadow-[0_0_12px_rgba(148,163,184,0.2)]", bg: "bg-slate-500/10" },
+const MODULE_SIDEBAR_COLORS: Record<string, { active: string; icon: string; bg: string }> = {
+  dashboard: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-sky-400", bg: "bg-sidebar-accent/40" },
+  clientes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-emerald-400", bg: "bg-sidebar-accent/40" },
+  comercial: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-indigo-400", bg: "bg-sidebar-accent/40" },
+  financeiro: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-green-400", bg: "bg-sidebar-accent/40" },
+  operacional: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-orange-400", bg: "bg-sidebar-accent/40" },
+  cartoes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-purple-400", bg: "bg-sidebar-accent/40" },
+  desenvolvimento: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-cyan-400", bg: "bg-sidebar-accent/40" },
+  configuracoes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-slate-400", bg: "bg-sidebar-accent/40" },
 };
 
 function useFavorites() {
