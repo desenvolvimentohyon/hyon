@@ -314,7 +314,7 @@ export function AppSidebar() {
                                 className={cn(
                                   "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 text-[12px] mx-1",
                                   active
-                                    ? cn(palette.active, "font-medium border", palette.active.split(" ")[1])
+                                    ? cn(palette.active, "font-medium border border-sidebar-border/50")
                                     : "text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 border border-transparent"
                                 )}
                                 activeClassName=""
