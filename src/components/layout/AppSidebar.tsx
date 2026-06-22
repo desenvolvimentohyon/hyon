@@ -338,9 +338,9 @@ export function AppSidebar() {
       <SidebarFooter className="p-3 pt-2">
         <Separator className="mb-2 bg-sidebar-border/30" />
         <div className="space-y-2">
-          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl border border-sidebar-border/20 bg-sidebar-accent/20 backdrop-blur-sm">
-            <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0 border border-primary/20">
-              <span className="text-[11px] font-semibold text-primary">
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl border border-sidebar-border/30 bg-sidebar-accent/40">
+            <div className="h-8 w-8 rounded-lg bg-sidebar-accent flex items-center justify-center shrink-0 border border-sidebar-border/40">
+              <span className="text-[11px] font-semibold text-sidebar-foreground/70">
                 {initials}
               </span>
             </div>
