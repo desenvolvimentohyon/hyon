@@ -269,7 +269,7 @@ export function AppSidebar() {
                         className={cn(
                           "flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-[13px] mx-1",
                           active
-                            ? cn(palette.active, palette.glow, "font-medium border", palette.active.split(" ")[1])
+                            ? cn(palette.active, "font-medium border border-sidebar-border/50")
                             : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
                         )}
                         activeClassName=""
