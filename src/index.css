@@ -265,8 +265,8 @@
   }
 
   .glass-card {
-    @apply bg-card/70 backdrop-blur-xl border shadow-sm;
-    border-color: hsl(var(--glass-border));
+    @apply bg-card border shadow-sm;
+    border-color: hsl(var(--border));
   }
 
   .glass-surface {
@@ -322,8 +322,8 @@
   }
 
   .list-row {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card/70 backdrop-blur-sm hover:bg-accent/50 cursor-pointer transition-all duration-150;
-    border-color: hsl(var(--glass-border));
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-all duration-150;
+    border-color: hsl(var(--border));
   }
 
   .domain-border-left {
