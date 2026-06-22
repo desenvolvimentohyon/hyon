@@ -21,15 +21,15 @@ import { cn } from "@/lib/utils";
 const FAVORITES_KEY = "sidebar-favorites";
 const MAX_FAVORITES = 8;
 
-const MODULE_SIDEBAR_COLORS: Record<string, { active: string; icon: string; glow: string; bg: string }> = {
-  dashboard: { active: "bg-sky-500/15 border-sky-500/30", icon: "text-sky-400", glow: "shadow-[0_0_12px_hsl(199_89%_48%/0.25)]", bg: "bg-sky-500/10" },
-  clientes: { active: "bg-emerald-500/15 border-emerald-500/30", icon: "text-emerald-400", glow: "shadow-[0_0_12px_rgba(16,185,129,0.25)]", bg: "bg-emerald-500/10" },
-  comercial: { active: "bg-indigo-500/15 border-indigo-500/30", icon: "text-indigo-400", glow: "shadow-[0_0_12px_rgba(99,102,241,0.25)]", bg: "bg-indigo-500/10" },
-  financeiro: { active: "bg-green-500/15 border-green-500/30", icon: "text-green-400", glow: "shadow-[0_0_12px_rgba(34,197,94,0.25)]", bg: "bg-green-500/10" },
-  operacional: { active: "bg-orange-500/15 border-orange-500/30", icon: "text-orange-400", glow: "shadow-[0_0_12px_rgba(249,115,22,0.25)]", bg: "bg-orange-500/10" },
-  cartoes: { active: "bg-purple-500/15 border-purple-500/30", icon: "text-purple-400", glow: "shadow-[0_0_12px_rgba(168,85,247,0.25)]", bg: "bg-purple-500/10" },
-  desenvolvimento: { active: "bg-cyan-500/15 border-cyan-500/30", icon: "text-cyan-400", glow: "shadow-[0_0_12px_rgba(6,182,212,0.25)]", bg: "bg-cyan-500/10" },
-  configuracoes: { active: "bg-slate-400/15 border-slate-400/30", icon: "text-slate-400", glow: "shadow-[0_0_12px_rgba(148,163,184,0.2)]", bg: "bg-slate-500/10" },
+const MODULE_SIDEBAR_COLORS: Record<string, { active: string; icon: string; bg: string }> = {
+  dashboard: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-sky-400", bg: "bg-sidebar-accent/40" },
+  clientes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-emerald-400", bg: "bg-sidebar-accent/40" },
+  comercial: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-indigo-400", bg: "bg-sidebar-accent/40" },
+  financeiro: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-green-400", bg: "bg-sidebar-accent/40" },
+  operacional: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-orange-400", bg: "bg-sidebar-accent/40" },
+  cartoes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-purple-400", bg: "bg-sidebar-accent/40" },
+  desenvolvimento: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-cyan-400", bg: "bg-sidebar-accent/40" },
+  configuracoes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-slate-400", bg: "bg-sidebar-accent/40" },
 };
 
 function useFavorites() {
@@ -137,10 +137,10 @@ export function AppSidebar() {
                             to={targetUrl}
                             end={targetUrl === "/"}
                             className={cn(
-                              "dock-icon h-10 w-10 mx-auto",
+                              "dock-icon h-10 w-10 mx-auto rounded-xl border transition-colors duration-200",
                               isParentActive
-                                ? cn(palette.bg, palette.glow, "border border-transparent", palette.active.split(" ")[1])
-                                : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                                ? cn(palette.bg, "border-sidebar-border text-sidebar-foreground")
+                                : "border-transparent text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             )}
                             activeClassName=""
                           >
@@ -165,8 +165,8 @@ export function AppSidebar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center gap-1">
-                  <div className="h-8 w-8 rounded-xl bg-primary/15 flex items-center justify-center border border-primary/20">
-                    <span className="text-[10px] font-bold text-primary">
+                  <div className="h-8 w-8 rounded-xl bg-sidebar-accent flex items-center justify-center border border-sidebar-border/40">
+                    <span className="text-[10px] font-bold text-sidebar-foreground/70">
                       {initials}
                     </span>
                   </div>
@@ -229,7 +229,7 @@ export function AppSidebar() {
                           className={cn(
                             "relative flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all duration-200 text-[12px] mx-1",
                             active
-                              ? cn(palette.active, palette.glow, "font-medium")
+                              ? cn(palette.active, "font-medium border-sidebar-border/50 bg-sidebar-accent/60")
                               : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
                           )}
                           activeClassName=""
@@ -269,7 +269,7 @@ export function AppSidebar() {
                         className={cn(
                           "flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 text-[13px] mx-1",
                           active
-                            ? cn(palette.active, palette.glow, "font-medium border", palette.active.split(" ")[1])
+                            ? cn(palette.active, "font-medium border border-sidebar-border/50")
                             : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
                         )}
                         activeClassName=""
@@ -314,7 +314,7 @@ export function AppSidebar() {
                                 className={cn(
                                   "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 text-[12px] mx-1",
                                   active
-                                    ? cn(palette.active, "font-medium border", palette.active.split(" ")[1])
+                                    ? cn(palette.active, "font-medium border border-sidebar-border/50")
                                     : "text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 border border-transparent"
                                 )}
                                 activeClassName=""
@@ -338,9 +338,9 @@ export function AppSidebar() {
       <SidebarFooter className="p-3 pt-2">
         <Separator className="mb-2 bg-sidebar-border/30" />
         <div className="space-y-2">
-          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl border border-sidebar-border/20 bg-sidebar-accent/20 backdrop-blur-sm">
-            <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0 border border-primary/20">
-              <span className="text-[11px] font-semibold text-primary">
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl border border-sidebar-border/30 bg-sidebar-accent/40">
+            <div className="h-8 w-8 rounded-lg bg-sidebar-accent flex items-center justify-center shrink-0 border border-sidebar-border/40">
+              <span className="text-[11px] font-semibold text-sidebar-foreground/70">
                 {initials}
               </span>
             </div>
