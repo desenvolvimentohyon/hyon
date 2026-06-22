@@ -331,7 +331,7 @@
   }
 
   .focus-glow:focus-visible {
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
   }
 
   .chart-container .recharts-cartesian-grid line {
