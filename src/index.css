@@ -265,8 +265,8 @@
   }
 
   .glass-card {
-    @apply bg-card/70 backdrop-blur-xl border shadow-sm;
-    border-color: hsl(var(--glass-border));
+    @apply bg-card border shadow-sm;
+    border-color: hsl(var(--border));
   }
 
   .glass-surface {
