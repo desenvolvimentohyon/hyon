@@ -165,8 +165,8 @@ export function AppSidebar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center gap-1">
-                  <div className="h-8 w-8 rounded-xl bg-primary/15 flex items-center justify-center border border-primary/20">
-                    <span className="text-[10px] font-bold text-primary">
+                  <div className="h-8 w-8 rounded-xl bg-sidebar-accent flex items-center justify-center border border-sidebar-border/40">
+                    <span className="text-[10px] font-bold text-sidebar-foreground/70">
                       {initials}
                     </span>
                   </div>
