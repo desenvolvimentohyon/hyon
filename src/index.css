@@ -292,13 +292,13 @@
 
 
   .kpi-card {
-    @apply bg-card/70 backdrop-blur-xl border rounded-xl p-5 transition-all duration-200;
-    border-color: hsl(var(--glass-border));
+    @apply bg-card border rounded-xl p-5 transition-all duration-200;
+    border-color: hsl(var(--border));
     box-shadow: var(--shadow-card);
   }
   .kpi-card:hover {
     box-shadow: var(--shadow-card-hover);
-    border-color: hsl(var(--primary) / 0.12);
+    border-color: hsl(var(--border));
   }
 
   .neon-border {
