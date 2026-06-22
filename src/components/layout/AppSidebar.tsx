@@ -137,10 +137,10 @@ export function AppSidebar() {
                             to={targetUrl}
                             end={targetUrl === "/"}
                             className={cn(
-                              "dock-icon h-10 w-10 mx-auto",
+                              "dock-icon h-10 w-10 mx-auto rounded-xl border transition-colors duration-200",
                               isParentActive
-                                ? cn(palette.bg, palette.glow, "border border-transparent", palette.active.split(" ")[1])
-                                : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                                ? cn(palette.bg, "border-sidebar-border text-sidebar-foreground")
+                                : "border-transparent text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             )}
                             activeClassName=""
                           >
