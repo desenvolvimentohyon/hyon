@@ -270,15 +270,15 @@
   }
 
   .glass-surface {
-    @apply bg-card/50 backdrop-blur-xl border;
-    border-color: hsl(var(--glass-border));
-    box-shadow: var(--shadow-elevated);
+    @apply bg-card border;
+    border-color: hsl(var(--border));
+    box-shadow: var(--shadow-card);
   }
 
   .gradient-header {
     background: linear-gradient(
       180deg,
-      hsl(var(--primary) / 0.04) 0%,
+      hsl(var(--muted) / 0.4) 0%,
       transparent 100%
     );
   }
