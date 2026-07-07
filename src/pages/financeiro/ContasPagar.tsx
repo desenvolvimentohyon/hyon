@@ -64,13 +64,17 @@ export default function ContasPagar() {
   const hoje = new Date().toISOString().split("T")[0];
   const vencidos = pagar.filter(t => t.status === "aberto" && t.vencimento < hoje);
 
-  const handleBaixa = () => {
+  const handleBaixa = async () => {
     if (!modalBaixa) return;
     const val = valorBaixa ? parseFloat(valorBaixa) : undefined;
-    baixarTitulo(modalBaixa.id, contaBaixaId, val);
-    toast.success("Pagamento registrado!");
-    setModalBaixa(null);
-    setValorBaixa("");
+    try {
+      await baixarTitulo(modalBaixa.id, contaBaixaId, val);
+      toast.success("Pagamento registrado!");
+      setModalBaixa(null);
+      setValorBaixa("");
+    } catch {
+      // toast de erro já disparado pelo baixarTitulo
+    }
   };
 
   const handleExcluir = () => {

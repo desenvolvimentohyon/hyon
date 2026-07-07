@@ -92,8 +92,8 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     if (!orgId) return;
     if (!initialLoadedRef.current) setLoading(true);
     const [profilesRes, rolesRes] = await Promise.all([
-      supabase.from("profiles").select("*"),
-      supabase.from("custom_roles" as any).select("*"),
+      supabase.from("profiles").select("*").eq("org_id", orgId),
+      supabase.from("custom_roles" as any).select("*").eq("org_id", orgId),
     ]);
     if (profilesRes.data) setUsers(profilesRes.data.map(dbToUser));
     if (rolesRes.data) {
