@@ -114,9 +114,27 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const addUser = useCallback(async (_u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => {
-    toast.info("Para adicionar usuários, use o convite por email via gestão de usuários.");
-  }, []);
+  const addUser = useCallback(async (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => {
+    const { data, error } = await supabase.functions.invoke("invite-user", {
+      body: {
+        email: u.email,
+        full_name: u.nome,
+        role: u.roleId,
+        phone: (u as any).telefone,
+      },
+    });
+    if (error) {
+      const msg = (data as any)?.error || error.message || "Erro ao convidar usuário";
+      toast.error(msg);
+      throw new Error(msg);
+    }
+    if (data && (data as any).error) {
+      toast.error((data as any).error);
+      throw new Error((data as any).error);
+    }
+    toast.success("Convite enviado por e-mail!");
+    fetchAll();
+  }, [fetchAll]);
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     const upd: any = {};
@@ -135,9 +153,13 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     fetchAll();
   }, [fetchAll]);
 
-  const deleteUser = useCallback(async (_id: string) => {
-    toast.info("Desative o usuário ao invés de excluir.");
-  }, []);
+  const deleteUser = useCallback(async (id: string) => {
+    const { error } = await supabase.from("profiles").update({ is_active: false }).eq("id", id);
+    if (error) { toast.error("Erro ao desativar usuário: " + error.message); return; }
+    toast.success("Usuário desativado!");
+    fetchAll();
+  }, [fetchAll]);
+
 
   const setCurrentUser = useCallback((id: string) => setCurrentUserId(id), []);
   const getUser = useCallback((id: string) => users.find(u => u.id === id), [users]);
