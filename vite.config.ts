@@ -18,7 +18,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: "autoUpdate",
+      // Prompt mode prevents deployed updates from taking control and reloading
+      // active sessions before the user explicitly confirms the update banner.
+      registerType: "prompt",
       includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: "Hyon Tech",
@@ -35,8 +37,8 @@ export default defineConfig(({ mode }) => ({
         ],
       },
     workbox: {
-      skipWaiting: true,
-      clientsClaim: true,
+      skipWaiting: false,
+      clientsClaim: false,
       cleanupOutdatedCaches: true,
       navigateFallbackDenylist: [/^\/proposta/, /^\/portal/, /^\/aceite/, /^\/~oauth/],
       globPatterns: ["index.html"],
