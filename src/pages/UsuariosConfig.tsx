@@ -59,20 +59,25 @@ export default function UsuariosConfig() {
     setUserModal(true);
   };
 
-  const saveUser = () => {
+  const saveUser = async () => {
     if (!formUser.nome.trim() || !formUser.email.trim()) {
       toast.error("Nome e email são obrigatórios");
       return;
     }
-    if (editingUser) {
-      updateUser(editingUser, formUser);
-      toast.success("Usuário atualizado!");
-    } else {
-      addUser(formUser);
-      toast.success("Usuário criado!");
+    try {
+      if (editingUser) {
+        await updateUser(editingUser, formUser);
+        toast.success("Usuário atualizado!");
+      } else {
+        await addUser(formUser);
+        // toast de sucesso é disparado pelo context após confirmação do convite
+      }
+      setUserModal(false);
+    } catch {
+      // erro já sinalizado via toast pelo context
     }
-    setUserModal(false);
   };
+
 
   const openNewRole = () => {
     setEditingRole(null);

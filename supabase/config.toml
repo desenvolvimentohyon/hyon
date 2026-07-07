@@ -28,3 +28,7 @@ verify_jwt = false
 
 [functions.billing-cron]
 verify_jwt = false
+
+[functions.invite-user]
+verify_jwt = true
+
