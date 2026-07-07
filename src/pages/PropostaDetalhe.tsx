@@ -55,10 +55,11 @@ export default function PropostaDetalhe() {
   const [partners, setPartners] = useState<PartnerOption[]>([]);
 
   useEffect(() => {
-    supabase.from("partners").select("id, name, commission_percent, commission_implant_percent, commission_recur_percent, commission_recur_months, commission_recur_apply_on, commission_type").eq("active", true).order("name").then(({ data }) => {
+    if (!profile?.org_id) return;
+    supabase.from("partners").select("id, name, commission_percent, commission_implant_percent, commission_recur_percent, commission_recur_months, commission_recur_apply_on, commission_type").eq("active", true).eq("org_id", profile.org_id).order("name").then(({ data }) => {
       if (data) setPartners(data as any);
     });
-  }, []);
+  }, [profile?.org_id]);
 
   const proposta = getProposta(id || "");
 

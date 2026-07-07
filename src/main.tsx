@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "next-themes";
 import { registerSW } from "virtual:pwa-register";
@@ -40,7 +40,12 @@ if (isPreviewHost || isInIframe) {
 
 function Root() {
   const [needsUpdate, setNeedsUpdate] = useState(false);
-  showUpdateBanner = setNeedsUpdate;
+
+  useEffect(() => {
+    showUpdateBanner = setNeedsUpdate;
+    return () => { showUpdateBanner = null; };
+  }, []);
+
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>

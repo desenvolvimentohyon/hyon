@@ -69,10 +69,10 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     
     try {
       const [cbRes, pcRes, tRes, mRes] = await Promise.all([
-        supabase.from("company_bank_accounts").select("*"),
-        supabase.from("plan_accounts" as any).select("*"),
-        supabase.from("financial_titles").select("*"),
-        supabase.from("bank_transactions").select("*"),
+        supabase.from("company_bank_accounts").select("*").eq("org_id", orgId),
+        supabase.from("plan_accounts" as any).select("*").eq("org_id", orgId),
+        supabase.from("financial_titles").select("*").eq("org_id", orgId),
+        supabase.from("bank_transactions").select("*").eq("org_id", orgId),
       ]);
       
       if (cbRes.error) throw cbRes.error;
@@ -238,17 +238,28 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     const valorFinal = valorPago || (titulo.valorOriginal - titulo.desconto + titulo.juros + titulo.multa);
     const isParcial = valorPago && valorPago < (titulo.valorOriginal - titulo.desconto + titulo.juros + titulo.multa);
 
-    await supabase.from("financial_titles").update({
+    const previousStatus = titulo.status;
+    const { error: updErr } = await supabase.from("financial_titles").update({
       status: isParcial ? "parcial" : "pago", bank_account_id: contaBancariaId,
     }).eq("id", id);
+    if (updErr) {
+      toast.error("Erro ao baixar título");
+      throw updErr;
+    }
 
-    await supabase.from("bank_transactions").insert({
+    const { error: insErr } = await supabase.from("bank_transactions").insert({
       org_id: orgId, bank_account_id: contaBancariaId,
       date: new Date().toISOString().split("T")[0], description: titulo.descricao,
       value: titulo.tipo === "receber" ? valorFinal : -valorFinal,
       type: titulo.tipo === "receber" ? "credito" : "debito",
       reconciled: true, linked_title_id: id,
     });
+    if (insErr) {
+      // Rollback do status para evitar inconsistência contábil
+      await supabase.from("financial_titles").update({ status: previousStatus }).eq("id", id);
+      toast.error("Erro ao registrar movimento bancário");
+      throw insErr;
+    }
 
     // === Auto recurring commission on_invoice_paid ===
     if (titulo.tipo === "receber" && !isParcial && titulo.clienteId) {
