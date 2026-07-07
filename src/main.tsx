@@ -31,14 +31,9 @@ if (isPreviewHost || isInIframe) {
       }
     },
     onNeedRefresh() {
+      // Show banner and wait for the user to explicitly click "Atualizar".
+      // Never auto-reload — it would discard unsaved form state.
       showUpdateBanner?.(true);
-      // Fast reload for immediate update
-      setTimeout(async () => {
-        try {
-          await updateSW?.();
-        } catch { /* ignore */ }
-        window.location.reload();
-      }, 500);
     },
   });
 }
