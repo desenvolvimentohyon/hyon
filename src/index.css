@@ -305,7 +305,8 @@
   }
   .kpi-card:hover {
     box-shadow: var(--shadow-card-hover);
-    border-color: hsl(var(--border));
+    border-color: hsl(var(--primary) / 0.35);
+    transform: translateY(-1px);
   }
 
   .neon-border {
@@ -313,7 +314,7 @@
     box-shadow: var(--shadow-card);
   }
   .neon-border:hover {
-    border-color: hsl(var(--primary) / 0.25);
+    border-color: hsl(var(--primary) / 0.3);
     box-shadow: var(--shadow-card-hover);
   }
 
@@ -329,8 +330,13 @@
   }
 
   .list-row {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-all duration-150;
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card cursor-pointer transition-all duration-150;
     border-color: hsl(var(--border));
+  }
+  .list-row:hover {
+    background-color: hsl(var(--accent) / 0.55);
+    border-color: hsl(var(--primary) / 0.25);
+    transform: translateX(2px);
   }
 
   .domain-border-left {
@@ -339,6 +345,34 @@
 
   .focus-glow:focus-visible {
     box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+
+  /* Subtle press feedback on any interactive element */
+  .press {
+    @apply transition-transform duration-100 ease-out;
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+
+  /* Skeleton shimmer for loading states */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted) / 0.5) 0%,
+      hsl(var(--muted) / 0.8) 50%,
+      hsl(var(--muted) / 0.5) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  /* Empty-state container */
+  .empty-state {
+    @apply flex flex-col items-center justify-center text-center py-12 px-6 gap-3 text-muted-foreground;
+  }
+  .empty-state svg {
+    @apply h-10 w-10 opacity-40 mb-1;
   }
 
   .chart-container .recharts-cartesian-grid line {
