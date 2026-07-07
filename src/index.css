@@ -22,7 +22,7 @@
     --secondary-foreground: 210 40% 98.0392%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted-foreground: 220 9% 40%;
 
     --accent: 220 14% 96%;
     --accent-foreground: 222 47% 11%;
@@ -103,7 +103,7 @@
     --secondary-foreground: 220 20% 93%;
 
     --muted: 222 30% 8%;
-    --muted-foreground: 220 12% 55%;
+    --muted-foreground: 220 14% 65%;
 
     --accent: 222 30% 9%;
     --accent-foreground: 220 20% 93%;
@@ -181,7 +181,10 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    font-variant-ligatures: common-ligatures;
+    letter-spacing: -0.005em;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -198,7 +201,11 @@
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight font-semibold;
     overflow-wrap: break-word;
+    letter-spacing: -0.018em;
+    line-height: 1.2;
   }
+  h1 { letter-spacing: -0.025em; }
+  h2 { letter-spacing: -0.022em; }
 
   a, button, [role="button"] {
     @apply transition-colors duration-200 ease-out;
@@ -298,7 +305,8 @@
   }
   .kpi-card:hover {
     box-shadow: var(--shadow-card-hover);
-    border-color: hsl(var(--border));
+    border-color: hsl(var(--primary) / 0.35);
+    transform: translateY(-1px);
   }
 
   .neon-border {
@@ -306,7 +314,7 @@
     box-shadow: var(--shadow-card);
   }
   .neon-border:hover {
-    border-color: hsl(var(--primary) / 0.25);
+    border-color: hsl(var(--primary) / 0.3);
     box-shadow: var(--shadow-card-hover);
   }
 
@@ -322,8 +330,13 @@
   }
 
   .list-row {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-all duration-150;
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card cursor-pointer transition-all duration-150;
     border-color: hsl(var(--border));
+  }
+  .list-row:hover {
+    background-color: hsl(var(--accent) / 0.55);
+    border-color: hsl(var(--primary) / 0.25);
+    transform: translateX(2px);
   }
 
   .domain-border-left {
@@ -332,6 +345,34 @@
 
   .focus-glow:focus-visible {
     box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+  }
+
+  /* Subtle press feedback on any interactive element */
+  .press {
+    @apply transition-transform duration-100 ease-out;
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+
+  /* Skeleton shimmer for loading states */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted) / 0.5) 0%,
+      hsl(var(--muted) / 0.8) 50%,
+      hsl(var(--muted) / 0.5) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  /* Empty-state container */
+  .empty-state {
+    @apply flex flex-col items-center justify-center text-center py-12 px-6 gap-3 text-muted-foreground;
+  }
+  .empty-state svg {
+    @apply h-10 w-10 opacity-40 mb-1;
   }
 
   .chart-container .recharts-cartesian-grid line {
@@ -407,6 +448,11 @@
 @keyframes neon-pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Hide Lovable badge */
