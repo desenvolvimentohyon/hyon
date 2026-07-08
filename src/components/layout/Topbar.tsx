@@ -18,6 +18,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { findBreadcrumb } from "@/lib/sidebarModules";
+import { VersionHistoryButton } from "./VersionHistoryButton";
 
 interface Notificacao {
   id: string;
@@ -260,6 +261,8 @@ export function Topbar() {
         >
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
+
+        <VersionHistoryButton />
 
         {/* Notification Center */}
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
