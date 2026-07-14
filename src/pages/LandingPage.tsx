@@ -316,23 +316,29 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-12 w-auto" />
+              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-24 sm:h-28 w-auto" />
             </div>
             <p className="text-sm text-slate-400">Tecnologia e gestão para empresas que querem crescer com previsibilidade.</p>
+            <p className="text-xs text-slate-500 mt-3">{EMPRESA.razao}</p>
+            <p className="text-xs text-slate-500">CNPJ: {EMPRESA.cnpj}</p>
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-3">Contato</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li className="flex items-start gap-2"><MapPin className="w-4 h-4 mt-0.5 text-teal-400" /> Rua Exemplo, 123 — São Paulo/SP</li>
-              <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-teal-400" /> contato@suaempresa.com</li>
+              <li className="flex items-start gap-2"><MapPin className="w-4 h-4 mt-0.5 text-teal-400 shrink-0" /> <span>{EMPRESA.endereco}</span></li>
+              <li className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-teal-400" />
+                <a href={`mailto:${EMPRESA.email}`} className="hover:text-white">{EMPRESA.email}</a>
+              </li>
               <li className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-teal-400" />
-                <a href="https://wa.me/5511999999999" target="_blank" rel="noreferrer" className="hover:text-white">
-                  WhatsApp: (11) 99999-9999
+                <a href={waLink} target="_blank" rel="noreferrer" className="hover:text-white">
+                  WhatsApp: {EMPRESA.whatsappFmt}
                 </a>
               </li>
             </ul>
           </div>
+
           <div>
             <h4 className="text-sm font-semibold mb-3">Redes sociais</h4>
             <div className="flex gap-3">
