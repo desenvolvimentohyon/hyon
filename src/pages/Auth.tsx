@@ -8,9 +8,9 @@ const DISPLAY_FONT =
   "'Space Grotesk', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif";
 
 const modules = [
-  { icon: BarChart3, title: "Financeiro Avançado", subtitle: "DRE & MRR em tempo real" },
-  { icon: Clock, title: "Suporte & SLA", subtitle: "Controle total de chamados" },
-  { icon: FileCheck2, title: "Propostas & Vendas", subtitle: "Assinatura digital integrada" },
+  { icon: BarChart3, title: "Financeiro Avançado", subtitle: "DRE e MRR em tempo real" },
+  { icon: Clock, title: "Suporte e SLA", subtitle: "Controle total de chamados" },
+  { icon: FileCheck2, title: "Propostas e Vendas", subtitle: "Assinatura digital integrada" },
   { icon: ListChecks, title: "Tarefas com Timer", subtitle: "Rentabilidade por projeto" },
 ];
 
