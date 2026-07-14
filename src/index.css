@@ -200,13 +200,20 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight font-semibold;
+    @apply tracking-tight font-semibold text-foreground;
     overflow-wrap: break-word;
-    letter-spacing: -0.018em;
-    line-height: 1.2;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
   }
-  h1 { letter-spacing: -0.025em; }
-  h2 { letter-spacing: -0.022em; }
+  h1 { letter-spacing: -0.032em; font-weight: 600; }
+  h2 { letter-spacing: -0.026em; }
+  h3 { letter-spacing: -0.022em; }
+
+  .font-display {
+    font-family: 'Instrument Serif', ui-serif, Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
 
   a, button, [role="button"] {
     @apply transition-colors duration-200 ease-out;
