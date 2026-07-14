@@ -122,7 +122,18 @@ export default function LandingPage() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
-  const waLink = `https://wa.me/55${EMPRESA.whatsapp}`;
+  const waNumber = EMPRESA.whatsapp || "7331911744";
+  const waLink = `https://wa.me/55${waNumber}`;
+
+  const copyWhatsapp = async () => {
+    const text = EMPRESA.whatsappFmt || waNumber;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("WhatsApp copiado!", { description: text });
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
