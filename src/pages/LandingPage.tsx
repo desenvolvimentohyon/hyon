@@ -135,6 +135,16 @@ import corteletti from "@/assets/clientes/corteletti.jpg.asset.json";
 import queijariadomonte from "@/assets/clientes/queijariadomonte.jpg.asset.json";
 import essenza from "@/assets/clientes/essenza.jpg.asset.json";
 import bistrodolago from "@/assets/clientes/bistrodolago.jpg.asset.json";
+import pizzariaatlantica from "@/assets/clientes/pizzariaatlantica.jpg.asset.json";
+import avaranda from "@/assets/clientes/avaranda.jpg.asset.json";
+import escritorio from "@/assets/clientes/escritorio.jpg.asset.json";
+import pousadacasa from "@/assets/clientes/pousadacasa.jpg.asset.json";
+import cardoso from "@/assets/clientes/cardoso.jpg.asset.json";
+import lfmultimarcas from "@/assets/clientes/lfmultimarcas.jpg.asset.json";
+import medeirospizza from "@/assets/clientes/medeirospizza.jpg.asset.json";
+import galegolanches from "@/assets/clientes/galegolanches.jpg.asset.json";
+import cabanadocal from "@/assets/clientes/cabanadocal.png.asset.json";
+import acouguedoclaudio from "@/assets/clientes/acouguedoclaudio.png.asset.json";
 
 const logos = [
   { nome: "Moinho das Artes", src: moinho.url },
@@ -157,7 +167,18 @@ const logos = [
   { nome: "Queijaria do Monte", src: queijariadomonte.url },
   { nome: "Essenza Corumbau", src: essenza.url },
   { nome: "Bistrô do Lago", src: bistrodolago.url },
+  { nome: "Pizzaria Atlântica", src: pizzariaatlantica.url },
+  { nome: "A Varanda Bistrot & Buffets", src: avaranda.url },
+  { nome: "Escritório Petiscaria e Pizzaria", src: escritorio.url },
+  { nome: "Pousada Casa", src: pousadacasa.url },
+  { nome: "Construtora Cardoso", src: cardoso.url },
+  { nome: "LF Multimarcas", src: lfmultimarcas.url },
+  { nome: "Medeiros Pizza", src: medeirospizza.url },
+  { nome: "Galego Lanche's", src: galegolanches.url },
+  { nome: "Cabana do Cal", src: cabanadocal.url },
+  { nome: "Açougue do Cláudio", src: acouguedoclaudio.url },
 ];
+
 
 
 export default function LandingPage() {
