@@ -47,7 +47,17 @@ async function enviarLeadParaCRM(payload: LeadPayload): Promise<Response> {
   });
 }
 
-const EMPRESA = {
+type EmpresaInfo = {
+  nome: string;
+  razao: string;
+  cnpj: string;
+  email: string;
+  whatsapp: string;
+  whatsappFmt: string;
+  endereco: string;
+};
+
+const EMPRESA_FALLBACK: EmpresaInfo = {
   nome: "HYON TECNOLOGIA",
   razao: "M S DOS SANTOS PASSOAS LTDA",
   cnpj: "65.535.710/0001-61",
@@ -56,7 +66,37 @@ const EMPRESA = {
   whatsappFmt: "(73) 3191-1744",
   endereco: "Rua Manaus, 20 — Portal do Monte, Itamaraju/BA — CEP 45836-000",
 };
-const waLink = `https://wa.me/55${EMPRESA.whatsapp}`;
+
+function formatPhoneBR(raw: string): string {
+  const d = raw.replace(/\D/g, "");
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return raw;
+}
+function formatCEP(v?: string | null): string {
+  const d = (v ?? "").replace(/\D/g, "");
+  return d.length === 8 ? `${d.slice(0, 5)}-${d.slice(5)}` : (v ?? "");
+}
+function mapProfileToEmpresa(p: any): EmpresaInfo {
+  const wa = ((p?.whatsapp ?? p?.phone ?? EMPRESA_FALLBACK.whatsapp) as string).replace(/\D/g, "");
+  const parts = [
+    [p?.address_street, p?.address_number].filter(Boolean).join(", "),
+    p?.address_complement,
+    p?.address_neighborhood,
+    [p?.address_city, p?.address_uf].filter(Boolean).join("/"),
+    p?.address_cep ? `CEP ${formatCEP(p.address_cep)}` : null,
+  ].filter(Boolean) as string[];
+  return {
+    nome: p?.trade_name || p?.legal_name || EMPRESA_FALLBACK.nome,
+    razao: p?.legal_name || EMPRESA_FALLBACK.razao,
+    cnpj: p?.cnpj ? formatCNPJ(p.cnpj) : EMPRESA_FALLBACK.cnpj,
+    email: p?.email || EMPRESA_FALLBACK.email,
+    whatsapp: wa || EMPRESA_FALLBACK.whatsapp,
+    whatsappFmt: wa ? formatPhoneBR(wa) : EMPRESA_FALLBACK.whatsappFmt,
+    endereco: parts.length ? parts.join(" — ") : EMPRESA_FALLBACK.endereco,
+  };
+}
+
 
 const segmentos = [
   { icon: Building2,   title: "Contabilidade",     desc: "Escritórios contábeis e BPO financeiro." },
