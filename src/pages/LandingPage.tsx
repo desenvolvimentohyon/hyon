@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import hyonLogo from "@/assets/hyon-logo-horizontal.png.asset.json";
 
 import {
   Rocket, ShieldCheck, TrendingUp, Users, Building2, Headphones,
