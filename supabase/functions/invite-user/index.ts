@@ -144,20 +144,21 @@ Deno.serve(async (req) => {
 
     // O trigger handle_new_user já criou uma linha em profiles em uma org default.
     // Sobrescreve para a org do admin chamador.
-    const { error: updErr } = await supabaseAdmin
+    // Upsert garante o profile mesmo se o trigger não rodou.
+    const { error: upsertErr } = await supabaseAdmin
       .from("profiles")
-      .update({
+      .upsert({
+        id: newUserId,
         org_id: orgId,
         full_name: fullName,
         role: dbRole,
         custom_role_id: customRoleId,
         phone,
         is_active: true,
-      })
-      .eq("id", newUserId);
+      }, { onConflict: "id" });
 
-    if (updErr) {
-      return json({ error: "Convite enviado, mas falha ao vincular profile: " + updErr.message }, 500);
+    if (upsertErr) {
+      return json({ error: "Convite enviado, mas falha ao vincular profile: " + upsertErr.message }, 500);
     }
 
     return json({ ok: true, user_id: newUserId }, 200);
