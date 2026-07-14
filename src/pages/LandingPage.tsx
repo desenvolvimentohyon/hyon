@@ -441,45 +441,70 @@ export default function LandingPage() {
       {/* HERO */}
       <section id="inicio" className="relative min-h-[92vh] flex items-center py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 animate-fade-in">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-cyan-300 mb-6">
+          <div className="lg:col-span-7">
+            <motion.span
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22,1,0.36,1] }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-cyan-300 mb-6 backdrop-blur-md"
+            >
               <ShieldCheck className="w-3.5 h-3.5" /> Tecnologia que gera resultado
-            </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
+            </motion.span>
+            <motion.h1
+              initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 1.0, ease: [0.22,1,0.36,1], delay: 0.1 }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight"
+            >
               Transformamos a gestão da sua empresa com{" "}
-              <span className="bg-gradient-to-r from-[#60A5FA] via-[#A78BFA] to-[#22D3EE] bg-clip-text text-transparent">
-                tecnologia inteligente
-              </span>
-              .
-            </h1>
-            <p className="mt-6 text-lg text-slate-300 max-w-2xl">
+              <span className="cine-gradient-text">tecnologia inteligente</span>.
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35 }}
+              className="mt-6 text-lg text-slate-300 max-w-2xl"
+            >
               Sistemas completos para lojas, restaurantes, assistência técnica, controle de estoque,
               emissão fiscal e muito mais.
-            </p>
-            <p className="mt-3 text-slate-400">
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.55 }}
+              className="mt-3 text-slate-400"
+            >
               Mais produtividade. Mais controle. Mais lucro.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.7 }}
+              className="mt-8 flex flex-wrap gap-3"
+            >
               <CTAWhats>Falar pelo WhatsApp</CTAWhats>
-              <a href="#solucoes">
-                <Button size="lg" variant="outline"
-                  className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 backdrop-blur-md">
-                  Solicitar Demonstração <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </a>
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400">
+              <Magnetic strength={0.12}>
+                <a href="#solucoes">
+                  <Button size="lg" variant="outline"
+                    className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 backdrop-blur-md">
+                    Solicitar Demonstração <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </a>
+              </Magnetic>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.9 }}
+              className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400"
+            >
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Dados criptografados</span>
               <span className="inline-flex items-center gap-1.5"><Cloud className="w-4 h-4 text-cyan-400" /> 100% em nuvem</span>
               <span className="inline-flex items-center gap-1.5"><Headphones className="w-4 h-4 text-violet-400" /> Suporte humano</span>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Mockup */}
-          <div className="lg:col-span-5">
-            <div className="relative mx-auto max-w-lg">
-              <div className="absolute -inset-6 bg-gradient-to-br from-[#2563EB]/40 via-[#7C3AED]/40 to-[#06B6D4]/40 blur-3xl rounded-[32px]" />
-              <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3 shadow-2xl">
+          {/* Mockup 3D flutuante */}
+          <motion.div
+            initial={{ opacity: 0, y: 40, rotateX: 20 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 1.2, ease: [0.22,1,0.36,1], delay: 0.2 }}
+            className="lg:col-span-5"
+            style={{ perspective: 1400 }}
+          >
+            <TiltCard intensity={10} className="relative mx-auto max-w-lg rounded-[24px]">
+              <div className="absolute -inset-6 bg-gradient-to-br from-[#2563EB]/40 via-[#7C3AED]/40 to-[#06B6D4]/40 blur-3xl rounded-[32px] cine-aurora" />
+              <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.7)] cine-float">
                 {/* barra de janela */}
                 <div className="flex items-center gap-1.5 px-2 pb-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
@@ -530,16 +555,25 @@ export default function LandingPage() {
                 </div>
               </div>
               {/* elementos flutuantes */}
-              <div className="hidden md:flex absolute -left-8 top-10 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl animate-fade-in">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 1 }}
+                className="hidden md:flex absolute -left-8 top-10 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl cine-float"
+                style={{ animationDelay: "-2s" }}
+              >
                 <ShieldCheck className="w-4 h-4 text-emerald-400" /> Backup em nuvem
-              </div>
-              <div className="hidden md:flex absolute -right-6 bottom-8 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl animate-fade-in">
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 1.15 }}
+                className="hidden md:flex absolute -right-6 bottom-8 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl cine-float"
+                style={{ animationDelay: "-4s" }}
+              >
                 <Zap className="w-4 h-4 text-yellow-300" /> Sincronização em tempo real
-              </div>
-            </div>
-          </div>
+              </motion.div>
+            </TiltCard>
+          </motion.div>
         </div>
       </section>
+
 
       {/* STATS */}
       <section id="stats" className="py-14 border-y border-white/5 bg-white/[0.015]">
