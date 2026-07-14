@@ -6,6 +6,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Unify numeric typography with the system's primary font (Space Grotesk) */
+@layer utilities {
+  .font-mono {
+    font-family: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif !important;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    letter-spacing: 0;
+  }
+  .tabular-nums {
+    font-family: inherit;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+}
+
 @layer base {
   :root {
     --background: 220 25% 98.5%;
