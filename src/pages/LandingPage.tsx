@@ -386,7 +386,18 @@ export default function LandingPage() {
           <div>
             <h4 className="text-sm font-semibold mb-3">Contato</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li className="flex items-start gap-2"><MapPin className="w-4 h-4 mt-0.5 text-teal-400 shrink-0" /> <span>{EMPRESA.endereco}</span></li>
+              <li>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(EMPRESA.endereco)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-start gap-2 hover:text-white transition-colors"
+                  aria-label="Abrir endereço no Google Maps"
+                >
+                  <MapPin className="w-4 h-4 mt-0.5 text-teal-400 shrink-0" />
+                  <span className="underline-offset-2 hover:underline">{EMPRESA.endereco}</span>
+                </a>
+              </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-teal-400" />
                 <a href={`mailto:${EMPRESA.email}`} className="hover:text-white">{EMPRESA.email}</a>
