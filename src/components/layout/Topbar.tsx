@@ -287,6 +287,16 @@ export function Topbar() {
 
         <VersionHistoryButton />
 
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-lg"
+          onClick={() => window.open("/landing", "_blank")}
+          title="Landing Page"
+        >
+          <Globe className="h-4 w-4" />
+        </Button>
+
         {/* Notification Center */}
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
