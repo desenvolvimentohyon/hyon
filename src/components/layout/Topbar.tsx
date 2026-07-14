@@ -1,4 +1,4 @@
-import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, ChevronRight, LogOut, WifiOff } from "lucide-react";
+import { Search, Plus, Bell, Moon, Sun, AlertTriangle, Clock, FileWarning, CreditCard, ChevronRight, LogOut, WifiOff, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -286,6 +286,16 @@ export function Topbar() {
         </Button>
 
         <VersionHistoryButton />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-lg"
+          onClick={() => window.open("/landing", "_blank")}
+          title="Landing Page"
+        >
+          <Globe className="h-4 w-4" />
+        </Button>
 
         {/* Notification Center */}
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
