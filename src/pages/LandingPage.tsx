@@ -1,5 +1,8 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import hyonLogo from "@/assets/hyon-logo-offwhite.png.asset.json";
+import { supabase } from "@/integrations/supabase/client";
+import { formatCNPJ } from "@/lib/cnpjUtils";
+
 
 import {
   Rocket, ShieldCheck, TrendingUp, Users, Building2, Headphones,
