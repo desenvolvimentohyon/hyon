@@ -104,11 +104,9 @@ export default function LandingPage() {
       {/* Topbar simples */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-[#0B1220]/70 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-blue-500 grid place-items-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold tracking-tight">Sua Empresa</span>
+          <div className="flex items-center gap-3">
+            <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-9 w-auto invert brightness-0" style={{ filter: "invert(1)" }} />
+            <span className="font-semibold tracking-tight text-lg">HYON <span className="text-teal-400">TECNOLOGIA</span></span>
           </div>
           <a href="#contato" className="hidden sm:inline text-sm text-slate-300 hover:text-white">
             Falar com especialista →
