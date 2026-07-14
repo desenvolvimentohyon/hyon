@@ -125,6 +125,16 @@ import bompastel from "@/assets/clientes/bompastel.jpg.asset.json";
 import bistroportuga from "@/assets/clientes/bistroportuga.jpg.asset.json";
 import saraiva from "@/assets/clientes/saraiva.jpg.asset.json";
 import jocotoka from "@/assets/clientes/jocotoka.jpg.asset.json";
+import padariacarioca from "@/assets/clientes/padariacarioca.jpg.asset.json";
+import mirante from "@/assets/clientes/mirante.jpg.asset.json";
+import mbtransportes from "@/assets/clientes/mbtransportes.jpg.asset.json";
+import viveirosantafe from "@/assets/clientes/viveirosantafe.jpg.asset.json";
+import ntfrutas from "@/assets/clientes/ntfrutas.jpg.asset.json";
+import sahassados from "@/assets/clientes/sahassados.jpg.asset.json";
+import corteletti from "@/assets/clientes/corteletti.jpg.asset.json";
+import queijariadomonte from "@/assets/clientes/queijariadomonte.jpg.asset.json";
+import essenza from "@/assets/clientes/essenza.jpg.asset.json";
+import bistrodolago from "@/assets/clientes/bistrodolago.jpg.asset.json";
 
 const logos = [
   { nome: "Moinho das Artes", src: moinho.url },
@@ -137,7 +147,18 @@ const logos = [
   { nome: "Bistrô do Portuga", src: bistroportuga.url },
   { nome: "Floricultura Saraiva", src: saraiva.url },
   { nome: "Jocotoka Village", src: jocotoka.url },
+  { nome: "Padaria Carioca", src: padariacarioca.url },
+  { nome: "Mirante do Corumbau", src: mirante.url },
+  { nome: "MB Transportes", src: mbtransportes.url },
+  { nome: "Viveiro Santa Fé", src: viveirosantafe.url },
+  { nome: "NT Frutas", src: ntfrutas.url },
+  { nome: "Sah Assados", src: sahassados.url },
+  { nome: "Corteletti Materiais de Construção", src: corteletti.url },
+  { nome: "Queijaria do Monte", src: queijariadomonte.url },
+  { nome: "Essenza Corumbau", src: essenza.url },
+  { nome: "Bistrô do Lago", src: bistrodolago.url },
 ];
+
 
 export default function LandingPage() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", mensagem: "" });
