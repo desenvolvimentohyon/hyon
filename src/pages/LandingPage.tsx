@@ -115,7 +115,29 @@ const stats = [
   { valor: "4.9", label: "Nota no Google" },
 ];
 
-const logos = ["Acme", "Globex", "Umbrella", "Initech", "Hooli", "Stark", "Wayne", "Vandelay"];
+import moinho from "@/assets/clientes/moinho.jpg.asset.json";
+import nativa from "@/assets/clientes/nativa.jpg.asset.json";
+import emporio from "@/assets/clientes/emporio.jpg.asset.json";
+import canaldopampo from "@/assets/clientes/canaldopampo.jpg.asset.json";
+import churrascariabatata from "@/assets/clientes/churrascariabatata.jpg.asset.json";
+import hiperpao from "@/assets/clientes/hiperpao.jpg.asset.json";
+import bompastel from "@/assets/clientes/bompastel.jpg.asset.json";
+import bistroportuga from "@/assets/clientes/bistroportuga.jpg.asset.json";
+import saraiva from "@/assets/clientes/saraiva.jpg.asset.json";
+import jocotoka from "@/assets/clientes/jocotoka.jpg.asset.json";
+
+const logos = [
+  { nome: "Moinho das Artes", src: moinho.url },
+  { nome: "Barraca Nativa", src: nativa.url },
+  { nome: "Empório Oliva", src: emporio.url },
+  { nome: "Canal do Pampo", src: canaldopampo.url },
+  { nome: "Churrascaria do Batata", src: churrascariabatata.url },
+  { nome: "Hiper Pão", src: hiperpao.url },
+  { nome: "Lanchonete Bom Pastel", src: bompastel.url },
+  { nome: "Bistrô do Portuga", src: bistroportuga.url },
+  { nome: "Floricultura Saraiva", src: saraiva.url },
+  { nome: "Jocotoka Village", src: jocotoka.url },
+];
 
 export default function LandingPage() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", mensagem: "" });
@@ -373,13 +395,19 @@ export default function LandingPage() {
           <p className="text-center text-xs uppercase tracking-widest text-slate-500 mb-8">
             Empresas que confiam no nosso trabalho
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6 items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 items-center">
             {logos.map((logo) => (
               <div
-                key={logo}
-                className="text-center text-xl font-semibold text-slate-500 grayscale hover:grayscale-0 hover:text-teal-300 transition-all cursor-default"
+                key={logo.nome}
+                title={logo.nome}
+                className="aspect-square rounded-xl bg-white/[0.03] border border-white/10 p-3 grid place-items-center hover:bg-white/[0.06] hover:border-teal-400/30 transition-all"
               >
-                {logo}
+                <img
+                  src={logo.src}
+                  alt={logo.nome}
+                  loading="lazy"
+                  className="max-h-full max-w-full object-contain rounded-lg opacity-90 hover:opacity-100 transition-opacity"
+                />
               </div>
             ))}
           </div>
