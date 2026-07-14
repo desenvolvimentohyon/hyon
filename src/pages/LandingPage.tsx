@@ -121,6 +121,24 @@ export default function LandingPage() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", mensagem: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
+  const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
+  const waLink = `https://wa.me/55${EMPRESA.whatsapp}`;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("public-company-profile");
+        if (cancelled || error) return;
+        const p = (data as any)?.profile;
+        if (p) setEmpresa(mapProfileToEmpresa(p));
+      } catch {
+        /* fallback já aplicado */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   const validar = () => {
     const e: typeof errors = {};
