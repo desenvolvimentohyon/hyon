@@ -153,7 +153,6 @@ Deno.serve(async (req) => {
         full_name: fullName,
         role: dbRole,
         custom_role_id: customRoleId,
-        phone,
         is_active: true,
       }, { onConflict: "id" });
 
