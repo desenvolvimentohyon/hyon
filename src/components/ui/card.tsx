@@ -4,12 +4,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "rounded-xl border bg-card text-card-foreground shadow-card transition-all duration-200",
+  "rounded-xl border border-border/60 bg-card text-card-foreground shadow-card transition-all duration-300",
   {
     variants: {
       variant: {
         default: "",
-        interactive: "hover:shadow-card-hover hover:border-primary/15 cursor-pointer",
+        interactive: "hover:shadow-elevated hover:border-border hover:-translate-y-0.5 cursor-pointer",
+        flat: "shadow-none border-border/50",
       },
     },
     defaultVariants: {
@@ -17,6 +18,7 @@ const cardVariants = cva(
     },
   }
 );
+
 
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
