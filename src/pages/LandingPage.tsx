@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import hyonLogo from "@/assets/hyon-logo-horizontal.png.asset.json";
+import hyonLogo from "@/assets/hyon-logo-offwhite.png.asset.json";
 
 import {
   Rocket, ShieldCheck, TrendingUp, Users, Building2, Headphones,
@@ -105,8 +105,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-40 backdrop-blur-md bg-[#0B1220]/70 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-9 w-auto invert brightness-0" style={{ filter: "invert(1)" }} />
-            <span className="font-semibold tracking-tight text-lg">HYON <span className="text-teal-400">TECNOLOGIA</span></span>
+            <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-10 w-auto" />
           </div>
           <a href="#contato" className="hidden sm:inline text-sm text-slate-300 hover:text-white">
             Falar com especialista →
@@ -305,8 +304,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-8 w-auto" style={{ filter: "invert(1)" }} />
-              <span className="font-semibold">HYON <span className="text-teal-400">TECNOLOGIA</span></span>
+              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-12 w-auto" />
             </div>
             <p className="text-sm text-slate-400">Tecnologia e gestão para empresas que querem crescer com previsibilidade.</p>
           </div>
