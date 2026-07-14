@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import hyonLogo from "@/assets/hyon-logo-offwhite.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCNPJ } from "@/lib/cnpjUtils";
@@ -7,45 +7,12 @@ import { formatCNPJ } from "@/lib/cnpjUtils";
 import {
   Rocket, ShieldCheck, TrendingUp, Users, Building2, Headphones,
   Landmark, ShoppingBag, Mail, MapPin, MessageCircle, Instagram,
-  Linkedin, Facebook, CheckCircle2, Loader2, Sparkles, ArrowRight,
+  Linkedin, Facebook, Sparkles, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-/* =========================================================================
- * INTEGRAÇÃO COM CRM — configure aqui
- * -------------------------------------------------------------------------
- * Substitua CRM_ENDPOINT pela URL do seu endpoint de captura de leads
- * e CRM_API_KEY pelo seu Bearer Token / Chave de API.
- * Em produção, prefira usar variáveis de ambiente (import.meta.env.VITE_*)
- * ou uma Edge Function como proxy para não expor a chave no frontend.
- * ========================================================================= */
-const CRM_ENDPOINT = "https://api.seucrm.com.br/v1/leads";
-const CRM_API_KEY  = "COLE_SEU_BEARER_TOKEN_AQUI";
 
-interface LeadPayload {
-  nome: string;
-  email: string;
-  telefone: string;
-  mensagem: string;
-  origem: string;
-  data: string;
-}
-
-/** Envia o lead para o CRM externo via POST. */
-async function enviarLeadParaCRM(payload: LeadPayload): Promise<Response> {
-  return fetch(CRM_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CRM_API_KEY}`,
-    },
-    body: JSON.stringify(payload),
-  });
-}
 
 type EmpresaInfo = {
   nome: string;
@@ -182,9 +149,6 @@ const logos = [
 
 
 export default function LandingPage() {
-  const [form, setForm] = useState({ nome: "", email: "", telefone: "", mensagem: "" });
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
-  const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
   const WA_FALLBACK = "7331911744";
   const waDigits = (EMPRESA.whatsapp || "").replace(/\D/g, "");
@@ -218,37 +182,6 @@ export default function LandingPage() {
   }, []);
 
 
-  const validar = () => {
-    const e: typeof errors = {};
-    if (form.nome.trim().length < 2) e.nome = "Informe seu nome completo";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "E-mail inválido";
-    if (form.telefone.replace(/\D/g, "").length < 10) e.telefone = "Telefone inválido";
-    if (form.mensagem.trim().length < 5) e.mensagem = "Conte um pouco sobre sua necessidade";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSubmit = async (ev: FormEvent) => {
-    ev.preventDefault();
-    if (!validar()) return;
-    setStatus("sending");
-    try {
-      const payload: LeadPayload = {
-        ...form,
-        origem: "landing-page",
-        data: new Date().toISOString(),
-      };
-      const res = await enviarLeadParaCRM(payload);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setStatus("success");
-      toast.success("Recebemos seu contato! Retornaremos em breve.");
-      setForm({ nome: "", email: "", telefone: "", mensagem: "" });
-    } catch (err) {
-      console.error("Falha ao enviar lead:", err);
-      setStatus("error");
-      toast.error("Não conseguimos enviar agora. Tente novamente em instantes.");
-    }
-  };
 
   return (
     <div className="dark min-h-screen bg-[#0B1220] text-slate-100 font-sans [&_h1]:text-slate-100 [&_h2]:text-slate-100 [&_h3]:text-slate-100 [&_h4]:text-slate-100">
@@ -258,9 +191,6 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-16 sm:h-20 md:h-28 lg:h-36 w-auto max-w-[60vw] object-contain" />
           </div>
-          <a href="#contato" className="hidden sm:inline text-sm text-slate-300 hover:text-white">
-            Falar com especialista →
-          </a>
         </div>
       </header>
 
@@ -271,110 +201,22 @@ export default function LandingPage() {
           <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-blue-500/20 blur-3xl" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-teal-300 mb-6">
-              <ShieldCheck className="w-3.5 h-3.5" /> Soluções que geram resultado
-            </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-              Transforme sua operação em <span className="bg-gradient-to-r from-teal-300 to-blue-400 bg-clip-text text-transparent">crescimento previsível</span>
-            </h1>
-            <p className="mt-6 text-lg text-slate-300 max-w-xl">
-              Do primeiro contato ao pós-venda: automatizamos processos, integramos sistemas e entregamos gestão de verdade para o seu negócio.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#contato">
-                <Button size="lg" className="bg-gradient-to-r from-teal-500 to-blue-600 hover:opacity-90 text-white">
-                  Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </a>
-              <a href="#segmentos">
-                <Button size="lg" variant="outline" className="border-white/15 bg-white/5 text-white hover:bg-white/10">
-                  Ver segmentos
-                </Button>
-              </a>
-            </div>
-          </div>
-
-          {/* Form Hero */}
-          <div
-            id="contato"
-            className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 sm:p-8 shadow-2xl"
-          >
-            <h2 className="text-xl font-semibold mb-1">Fale com um especialista</h2>
-            <p className="text-sm text-slate-400 mb-6">Preencha e retornamos em até 1 dia útil.</p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="nome" className="text-slate-200">Nome</Label>
-                <Input
-                  id="nome"
-                  value={form.nome}
-                  onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                  placeholder="Seu nome completo"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
-                />
-                {errors.nome && <p className="text-xs text-red-400 mt-1">{errors.nome}</p>}
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="email" className="text-slate-200">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="voce@empresa.com"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
-                  />
-                  {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="telefone" className="text-slate-200">WhatsApp</Label>
-                  <Input
-                    id="telefone"
-                    value={form.telefone}
-                    onChange={(e) => setForm({ ...form, telefone: e.target.value })}
-                    placeholder="(11) 99999-9999"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
-                  />
-                  {errors.telefone && <p className="text-xs text-red-400 mt-1">{errors.telefone}</p>}
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="mensagem" className="text-slate-200">Mensagem</Label>
-                <Textarea
-                  id="mensagem"
-                  rows={3}
-                  value={form.mensagem}
-                  onChange={(e) => setForm({ ...form, mensagem: e.target.value })}
-                  placeholder="Conte brevemente o que você procura"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
-                />
-                {errors.mensagem && <p className="text-xs text-red-400 mt-1">{errors.mensagem}</p>}
-              </div>
-
-              <Button
-                type="submit"
-                disabled={status === "sending"}
-                className="w-full bg-gradient-to-r from-teal-500 to-blue-600 hover:opacity-90 text-white"
-              >
-                {status === "sending" ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
-                ) : status === "success" ? (
-                  <><CheckCircle2 className="w-4 h-4 mr-2" /> Enviado!</>
-                ) : (
-                  <>Solicitar orçamento <ArrowRight className="w-4 h-4 ml-2" /></>
-                )}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-teal-300 mb-6">
+            <ShieldCheck className="w-3.5 h-3.5" /> Soluções que geram resultado
+          </span>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
+            Transforme sua operação em <span className="bg-gradient-to-r from-teal-300 to-blue-400 bg-clip-text text-transparent">crescimento previsível</span>
+          </h1>
+          <p className="mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
+            Do primeiro contato ao pós-venda: automatizamos processos, integramos sistemas e entregamos gestão de verdade para o seu negócio.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3 justify-center">
+            <a href="#segmentos">
+              <Button size="lg" className="bg-gradient-to-r from-teal-500 to-blue-600 hover:opacity-90 text-white">
+                Ver segmentos <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-
-              {status === "success" && (
-                <p className="text-sm text-teal-300 text-center">Recebemos seu contato. Em breve retornaremos.</p>
-              )}
-              {status === "error" && (
-                <p className="text-sm text-red-400 text-center">Erro ao enviar. Tente novamente ou fale pelo WhatsApp.</p>
-              )}
-            </form>
+            </a>
           </div>
         </div>
       </section>
