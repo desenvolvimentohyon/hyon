@@ -122,18 +122,21 @@ export default function LandingPage() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
-  const waNumber = EMPRESA.whatsapp || "7331911744";
+  const WA_FALLBACK = "7331911744";
+  const waDigits = (EMPRESA.whatsapp || "").replace(/\D/g, "");
+  const waNumber = waDigits.length >= 10 ? waDigits : WA_FALLBACK;
+  const waFmt = waDigits.length >= 10 ? (EMPRESA.whatsappFmt || formatPhoneBR(waNumber)) : formatPhoneBR(WA_FALLBACK);
   const waLink = `https://wa.me/55${waNumber}`;
 
   const copyWhatsapp = async () => {
-    const text = EMPRESA.whatsappFmt || waNumber;
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success("WhatsApp copiado!", { description: text });
+      await navigator.clipboard.writeText(waFmt);
+      toast.success("WhatsApp copiado!", { description: waFmt });
     } catch {
       toast.error("Não foi possível copiar");
     }
   };
+
 
   useEffect(() => {
     let cancelled = false;
@@ -416,7 +419,7 @@ export default function LandingPage() {
               <li className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-teal-400 shrink-0" />
                 <a href={waLink} target="_blank" rel="noreferrer" className="hover:text-white">
-                  WhatsApp: {EMPRESA.whatsappFmt}
+                  WhatsApp: {waFmt}
                 </a>
                 <button
                   type="button"
