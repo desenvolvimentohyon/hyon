@@ -123,7 +123,7 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 grid lg:grid-cols-2 gap-12 items-center">
-          <div}}}>
+          <div>
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-teal-300 mb-6">
               <ShieldCheck className="w-3.5 h-3.5" /> Soluções que geram resultado
             </span>
@@ -149,7 +149,7 @@ export default function LandingPage() {
 
           {/* Form Hero */}
           <div
-            id="contato"}}}
+            id="contato"
             className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 sm:p-8 shadow-2xl"
           >
             <h2 className="text-xl font-semibold mb-1">Fale com um especialista</h2>
@@ -240,7 +240,7 @@ export default function LandingPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {segmentos.map((s, i) => (
               <div
-                key={s.title}}}}}
+                key={s.title}}
                 className="p-6 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-teal-400/30 transition-all group"
               >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-teal-500/20 to-blue-500/20 border border-white/10 grid place-items-center mb-4 group-hover:scale-110 transition-transform">
