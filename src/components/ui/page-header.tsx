@@ -12,19 +12,24 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, icon: Icon, iconClassName, actions, className }: PageHeaderProps) {
   return (
-    <div className={cn("flex items-center justify-between pb-4 mb-1 border-b border-border/50", className)}>
-      <div className="flex items-center gap-2.5">
+    <div className={cn("flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pb-5 mb-1 border-b border-border/60", className)}>
+      <div className="flex items-center gap-3">
         {Icon && (
-          <div className="h-9 w-9 rounded-lg bg-muted/80 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-muted/70 border border-border/60 flex items-center justify-center shadow-sm">
             <Icon className={cn("h-5 w-5", iconClassName || "text-primary")} />
           </div>
         )}
-        <div>
-          <h1 className="text-[28px] lg:text-[32px] font-bold tracking-tight">{title}</h1>
-          {subtitle && <p className="text-muted-foreground text-sm mt-0.5">{subtitle}</p>}
+        <div className="min-w-0">
+          <h1 className="font-display text-[30px] lg:text-[36px] font-normal tracking-[-0.02em] leading-[1.05] text-foreground">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="text-muted-foreground text-[13px] mt-1.5 tracking-tight">{subtitle}</p>
+          )}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">{actions}</div>}
     </div>
   );
 }
+

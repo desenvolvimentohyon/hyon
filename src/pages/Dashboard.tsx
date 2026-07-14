@@ -623,31 +623,36 @@ export default function Dashboard() {
 
         {/* ══ LINHA 1 — KPIs executivos (5 cards) ══════════════════ */}
         {dataLoading ? <KpisSkeleton /> : (
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5">
           {receitaKpis.map(k => (
             <Card
               key={k.label}
-              className="group cursor-pointer transition-all duration-200 hover:-translate-y-0.5 neon-border domain-border-left"
-              style={{ borderLeftColor: k.color }}
+              className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated border border-border/60 bg-card"
               onClick={() => navigate("/receita")}
             >
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              <CardContent className="p-4 lg:p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10.5px] font-semibold text-muted-foreground/80 uppercase tracking-[0.08em]">
                     <AcronymLabel label={k.label.split(" ")[0]} />
                   </span>
-                  <k.icon className="h-4 w-4 opacity-50" style={{ color: k.color }} />
+                  <div
+                    className="h-7 w-7 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+                    style={{ backgroundColor: `${k.color}18` }}
+                  >
+                    <k.icon className="h-3.5 w-3.5" style={{ color: k.color }} />
+                  </div>
                 </div>
                 <div className="flex items-end justify-between gap-2">
-                  <div>
-                    <p className="text-lg lg:text-xl font-bold tracking-tight leading-none">{k.value}</p>
-                  </div>
+                  <p className="font-display text-[22px] lg:text-[26px] font-normal tracking-[-0.02em] leading-none text-foreground">
+                    {k.value}
+                  </p>
                   <Sparkline data={k.spark} color={k.color} height={28} />
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
+
         )}
 
         {/* ══ LINHA 2 — Painel grande + laterais ═══════════════════ */}
