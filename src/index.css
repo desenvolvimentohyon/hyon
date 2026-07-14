@@ -7,51 +7,51 @@
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 222 47% 11%;
+    --background: 220 25% 98.5%;
+    --foreground: 222 47% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 222 47% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 222 47% 9%;
 
-    --primary: 221 83% 53%;
+    --primary: 222 47% 11%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 220 14% 96%;
-    --secondary-foreground: 210 40% 98.0392%;
+    --secondary-foreground: 222 47% 11%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 40%;
+    --muted-foreground: 220 9% 42%;
 
-    --accent: 220 14% 96%;
+    --accent: 221 83% 96%;
     --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 39%;
+    --success: 160 84% 34%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 32 95% 44%;
     --warning-foreground: 0 0% 100%;
 
-    --info: 199 89% 48%;
+    --info: 199 89% 44%;
     --info-foreground: 0 0% 100%;
 
-    --purple: 271 81% 56%;
+    --purple: 262 60% 52%;
     --purple-foreground: 0 0% 100%;
 
-    --border: 220 13% 93%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --border: 220 15% 91%;
+    --input: 220 15% 89%;
+    --ring: 222 47% 11%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    --shadow-card: 0 1px 1px 0 hsl(0 0% 0% / 0.02);
-    --shadow-card-hover: 0 2px 6px -2px hsl(0 0% 0% / 0.04);
-    --shadow-elevated: 0 4px 12px -4px hsl(0 0% 0% / 0.06);
+    --shadow-card: 0 1px 2px 0 hsl(222 47% 11% / 0.04), 0 0 0 1px hsl(222 47% 11% / 0.02);
+    --shadow-card-hover: 0 4px 12px -4px hsl(222 47% 11% / 0.08), 0 0 0 1px hsl(222 47% 11% / 0.04);
+    --shadow-elevated: 0 12px 32px -12px hsl(222 47% 11% / 0.12), 0 0 0 1px hsl(222 47% 11% / 0.04);
 
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 220 20% 80%;
