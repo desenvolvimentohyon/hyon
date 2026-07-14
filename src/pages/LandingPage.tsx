@@ -357,18 +357,24 @@ export default function LandingPage() {
   const statsAnim = [s0, s1, s2, s3];
 
   const CTAWhats = ({ children = "Falar com um especialista", msg }: { children?: React.ReactNode; msg?: string }) => (
-    <a href={waLink(msg)} target="_blank" rel="noreferrer">
-      <Button
-        size="lg"
-        className="bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(37,211,102,0.75)] transition-all"
-      >
-        <MessageCircle className="w-4 h-4 mr-2" /> {children}
-      </Button>
-    </a>
+    <Magnetic strength={0.18}>
+      <a href={waLink(msg)} target="_blank" rel="noreferrer">
+        <Button
+          size="lg"
+          className="cine-btn-shimmer bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(37,211,102,0.85)] hover:scale-[1.02] transition-all"
+        >
+          <MessageCircle className="w-4 h-4 mr-2" /> {children}
+        </Button>
+      </a>
+    </Magnetic>
   );
 
   return (
     <div className="dark min-h-screen bg-[#09090B] text-slate-100 font-sans antialiased [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white">
+      <SplashScreen logoUrl={hyonLogo.url} />
+      <CursorSpotlight />
+      <CinematicBackdrop />
+
       {/* Fundo global com gradientes/partículas */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[#2563EB]/25 blur-[140px]" />
