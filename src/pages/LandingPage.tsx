@@ -149,9 +149,7 @@ const logos = [
 
 
 export default function LandingPage() {
-  const [form, setForm] = useState({ nome: "", email: "", telefone: "", mensagem: "" });
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
-  const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
+  const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
   const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
   const WA_FALLBACK = "7331911744";
   const waDigits = (EMPRESA.whatsapp || "").replace(/\D/g, "");
