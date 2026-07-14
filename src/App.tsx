@@ -49,6 +49,7 @@ const CardFaturamento = lazy(() => import("./pages/cartoes/CardFaturamento"));
 const CardPropostaPublica = lazy(() => import("./pages/cartoes/CardPropostaPublica"));
 const RenovarPlano = lazy(() => import("./pages/RenovarPlano"));
 const TicketTracking = lazy(() => import("./pages/TicketTracking"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 const Desenvolvimento = lazy(() => import("./pages/Desenvolvimento"));
 const DesenvolvimentoDetalhe = lazy(() => import("./pages/DesenvolvimentoDetalhe"));
