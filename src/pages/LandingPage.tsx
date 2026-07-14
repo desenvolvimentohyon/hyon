@@ -388,7 +388,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-24 sm:h-28 w-auto" />
+              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto max-w-[55vw] object-contain" />
             </div>
             <p className="text-sm text-slate-400">Tecnologia e gestão para empresas que querem crescer com previsibilidade.</p>
             <p className="text-xs text-slate-500 mt-3">{EMPRESA.razao}</p>
