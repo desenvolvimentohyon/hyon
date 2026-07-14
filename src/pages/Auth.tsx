@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import logoHyonVertical from "@/assets/logo-hyon-vertical.png";
 
 export default function Auth() {
@@ -23,129 +21,105 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleForgot = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Recuperação de senha",
+      description: "Entre em contato com o administrador da sua organização para redefinir a senha.",
+    });
+  };
+
   return (
-    <>
-      <style>{`
-        @keyframes float-orb-1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -40px) scale(1.05); }
-          66% { transform: translate(-20px, 20px) scale(0.95); }
-        }
-        @keyframes float-orb-2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(-40px, 30px) scale(1.08); }
-          66% { transform: translate(25px, -15px) scale(0.92); }
-        }
-        @keyframes float-orb-3 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(20px, 25px) scale(0.96); }
-          66% { transform: translate(-30px, -35px) scale(1.04); }
-        }
-      `}</style>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#0a0f18] selection:bg-teal-500/30 font-sans">
+      {/* Ambient background glow */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-teal-500/10 blur-[120px] rounded-full" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+      </div>
 
-      <div
-        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
-        style={{
-          background: "radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(6,182,212,0.08) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.05) 0%, transparent 60%), #030712",
-        }}
-      >
-        <div
-          className="hidden md:block absolute w-[500px] h-[500px] rounded-full opacity-[0.15] pointer-events-none"
-          style={{
-            background: "radial-gradient(circle, rgba(59,130,246,0.6) 0%, transparent 70%)",
-            top: "-10%", left: "-5%", filter: "blur(120px)",
-            animation: "float-orb-1 12s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="hidden md:block absolute w-[400px] h-[400px] rounded-full opacity-[0.12] pointer-events-none"
-          style={{
-            background: "radial-gradient(circle, rgba(6,182,212,0.6) 0%, transparent 70%)",
-            bottom: "-8%", right: "-3%", filter: "blur(120px)",
-            animation: "float-orb-2 15s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="hidden md:block absolute w-[350px] h-[350px] rounded-full opacity-[0.1] pointer-events-none"
-          style={{
-            background: "radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%)",
-            top: "40%", right: "20%", filter: "blur(120px)",
-            animation: "float-orb-3 10s ease-in-out infinite",
-          }}
-        />
+      <div className="relative w-full max-w-md px-6 py-10">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <img src={logoHyonVertical} alt="Hyon Tecnologia" className="h-20 w-auto drop-shadow-lg" />
+        </div>
 
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }} />
+        {/* Login Card */}
+        <div className="bg-slate-900/40 backdrop-blur-2xl border border-white/5 p-6 sm:p-8 rounded-3xl shadow-2xl">
+          <header className="mb-8">
+            <h1
+              className="text-3xl sm:text-4xl text-white font-normal mb-2 tracking-tight"
+              style={{ fontFamily: "'Instrument Serif', serif" }}
+            >
+              Entrar na plataforma
+            </h1>
+            <p className="text-slate-400 text-sm">
+              Bem-vindo de volta. Acesse sua plataforma de gestão.
+            </p>
+          </header>
 
-        <div
-          className="w-full max-w-md rounded-2xl relative z-10"
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            backdropFilter: "blur(24px) saturate(1.2)",
-            WebkitBackdropFilter: "blur(24px) saturate(1.2)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderTop: "1px solid rgba(255,255,255,0.12)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
-          }}
-        >
-          <div className="text-center pt-8 pb-2 px-8">
-            <div className="flex justify-center mb-6">
-              <img src={logoHyonVertical} alt="Hyon Tech" className="h-28 w-auto drop-shadow-lg" />
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-xs font-medium text-slate-400 uppercase tracking-widest ml-1 block">
+                E-mail
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="w-full bg-slate-950/50 border border-slate-800 text-white rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50 transition-all placeholder:text-slate-600"
+              />
             </div>
-            <h1 className="text-2xl font-bold text-white">Entrar na plataforma</h1>
-            <p className="text-sm text-white/50 mt-1">Acesse sua plataforma de gestão</p>
-          </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4 px-8 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wide text-white/40">E-mail</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    required
-                    className="h-11 pl-10 bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 focus-visible:border-blue-500/50 focus-visible:shadow-[0_0_0_3px_rgba(59,130,246,0.15)] transition-all duration-150"
-                  />
-                </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label htmlFor="password" className="text-xs font-medium text-slate-400 uppercase tracking-widest ml-1">
+                  Senha
+                </label>
+                <button
+                  type="button"
+                  onClick={handleForgot}
+                  className="text-xs text-teal-400 hover:text-teal-300 transition-colors"
+                >
+                  Esqueci minha senha
+                </button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wide text-white/40">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                    className="h-11 pl-10 bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 focus-visible:border-blue-500/50 focus-visible:shadow-[0_0_0_3px_rgba(59,130,246,0.15)] transition-all duration-150"
-                  />
-                </div>
-              </div>
+              <input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-slate-950/50 border border-slate-800 text-white rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50 transition-all placeholder:text-slate-600"
+              />
             </div>
 
-            <div className="flex flex-col gap-3 px-8 pt-6 pb-8">
-              <Button
-                type="submit"
-                className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white border-0 shadow-lg shadow-blue-600/20 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all duration-150"
-                disabled={loading}
-              >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Entrar
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-auto bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-400 hover:to-blue-500 text-white font-semibold py-4 rounded-xl shadow-lg shadow-teal-500/10 active:scale-[0.98] transition-all border-0"
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Entrar
+            </Button>
           </form>
+
+          <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <p className="text-slate-500 text-xs">
+              Acesso restrito. Solicite credenciais ao administrador da sua organização.
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 flex justify-center gap-6 text-slate-600 text-xs">
+          <span>© {new Date().getFullYear()} Hyon Tecnologia</span>
         </div>
       </div>
-    </>
+    </div>
   );
 }
