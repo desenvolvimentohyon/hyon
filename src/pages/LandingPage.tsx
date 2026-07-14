@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import hyonLogo from "@/assets/hyon-logo-offwhite.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCNPJ } from "@/lib/cnpjUtils";
@@ -7,45 +7,12 @@ import { formatCNPJ } from "@/lib/cnpjUtils";
 import {
   Rocket, ShieldCheck, TrendingUp, Users, Building2, Headphones,
   Landmark, ShoppingBag, Mail, MapPin, MessageCircle, Instagram,
-  Linkedin, Facebook, CheckCircle2, Loader2, Sparkles, ArrowRight,
+  Linkedin, Facebook, Sparkles, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-/* =========================================================================
- * INTEGRAÇÃO COM CRM — configure aqui
- * -------------------------------------------------------------------------
- * Substitua CRM_ENDPOINT pela URL do seu endpoint de captura de leads
- * e CRM_API_KEY pelo seu Bearer Token / Chave de API.
- * Em produção, prefira usar variáveis de ambiente (import.meta.env.VITE_*)
- * ou uma Edge Function como proxy para não expor a chave no frontend.
- * ========================================================================= */
-const CRM_ENDPOINT = "https://api.seucrm.com.br/v1/leads";
-const CRM_API_KEY  = "COLE_SEU_BEARER_TOKEN_AQUI";
 
-interface LeadPayload {
-  nome: string;
-  email: string;
-  telefone: string;
-  mensagem: string;
-  origem: string;
-  data: string;
-}
-
-/** Envia o lead para o CRM externo via POST. */
-async function enviarLeadParaCRM(payload: LeadPayload): Promise<Response> {
-  return fetch(CRM_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CRM_API_KEY}`,
-    },
-    body: JSON.stringify(payload),
-  });
-}
 
 type EmpresaInfo = {
   nome: string;
