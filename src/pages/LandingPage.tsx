@@ -44,6 +44,17 @@ async function enviarLeadParaCRM(payload: LeadPayload): Promise<Response> {
   });
 }
 
+const EMPRESA = {
+  nome: "HYON TECNOLOGIA",
+  razao: "M S DOS SANTOS PASSOAS LTDA",
+  cnpj: "65.535.710/0001-61",
+  email: "contato@hyon.com.br",
+  whatsapp: "7331911744",
+  whatsappFmt: "(73) 3191-1744",
+  endereco: "Rua Manaus, 20 — Portal do Monte, Itamaraju/BA — CEP 45836-000",
+};
+const waLink = `https://wa.me/55${EMPRESA.whatsapp}`;
+
 const segmentos = [
   { icon: Building2,   title: "Contabilidade",     desc: "Escritórios contábeis e BPO financeiro." },
   { icon: ShoppingBag, title: "Varejo e Comércio", desc: "Lojas físicas, e-commerce e franquias." },
@@ -52,6 +63,7 @@ const segmentos = [
   { icon: TrendingUp,  title: "Indústria",         desc: "Fábricas, distribuidoras e atacado." },
   { icon: Users,       title: "Educação",          desc: "Escolas, cursos e plataformas EAD." },
 ];
+
 
 const stats = [
   { valor: "+12", label: "Anos de mercado" },
