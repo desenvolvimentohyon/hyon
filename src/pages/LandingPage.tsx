@@ -431,18 +431,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* LOGOS */}
-      <section className="py-16 border-t border-white/5">
+      {/* LOGOS - CARROSSEL INFINITO */}
+      <section className="py-16 border-t border-white/5 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <p className="text-center text-xs uppercase tracking-widest text-slate-500 mb-8">
             Empresas que confiam no nosso trabalho
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 items-center">
-            {logos.map((logo) => (
+        </div>
+        <div className="relative group [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="flex gap-6 w-max animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused]">
+            {[...logos, ...logos].map((logo, i) => (
               <div
-                key={logo.nome}
+                key={`${logo.nome}-${i}`}
                 title={logo.nome}
-                className="aspect-square rounded-xl bg-white/[0.03] border border-white/10 p-3 grid place-items-center hover:bg-white/[0.06] hover:border-teal-400/30 transition-all"
+                className="shrink-0 w-32 h-32 sm:w-36 sm:h-36 rounded-xl bg-white/[0.03] border border-white/10 p-3 grid place-items-center hover:bg-white/[0.06] hover:border-teal-400/30 transition-all"
               >
                 <img
                   src={logo.src}
@@ -455,6 +457,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
 
       {/* RODAPÉ */}
       <footer className="border-t border-white/5 bg-[#080E1A]">
