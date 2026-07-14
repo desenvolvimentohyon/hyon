@@ -638,46 +638,62 @@ export default function LandingPage() {
       {/* SOLUÇÕES */}
       <section id="solucoes" className="py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <Reveal className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs uppercase tracking-widest text-cyan-300">Nossas soluções</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Sistemas sob medida para o seu negócio</h2>
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">
+              Sistemas <span className="cine-gradient-text">sob medida</span> para o seu negócio
+            </h2>
             <p className="mt-3 text-slate-400">Modulares, escaláveis e prontos para crescer com você.</p>
-          </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {SOLUCOES.map((s) => (
-              <div key={s.title}
-                className="group p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06] transition-all">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#2563EB]/25 to-[#7C3AED]/25 border border-white/10 grid place-items-center mb-4 group-hover:scale-110 transition-transform">
-                  <s.icon className="w-5 h-5 text-cyan-300" />
-                </div>
-                <h3 className="font-semibold text-base">{s.title}</h3>
-                <p className="text-sm text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
-                <a href={waLink(`Quero saber mais sobre: ${s.title}.`)} target="_blank" rel="noreferrer"
-                   className="mt-4 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1 group/link">
-                  Saiba mais <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-1" />
-                </a>
-              </div>
+            {SOLUCOES.map((s, i) => (
+              <motion.div
+                key={s.title}
+                initial={{ opacity: 0, y: 28, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.7, delay: (i % 8) * 0.06, ease: [0.22,1,0.36,1] }}
+              >
+                <TiltCard intensity={7} className="group h-full p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-violet-400/40 hover:bg-white/[0.06] transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#2563EB]/30 to-[#7C3AED]/30 border border-white/10 grid place-items-center mb-4 group-hover:scale-110 transition-transform shadow-[0_8px_24px_-8px_rgba(124,58,237,0.5)]">
+                    <s.icon className="w-5 h-5 text-cyan-300" />
+                  </div>
+                  <h3 className="font-semibold text-base">{s.title}</h3>
+                  <p className="text-sm text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
+                  <a href={waLink(`Quero saber mais sobre: ${s.title}.`)} target="_blank" rel="noreferrer"
+                     className="mt-4 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1 group/link">
+                    Saiba mais <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-1" />
+                  </a>
+                </TiltCard>
+              </motion.div>
             ))}
           </div>
-          <div className="mt-10 text-center"><CTAWhats msg="Quero uma demonstração dos sistemas Hyon.">Solicitar demonstração</CTAWhats></div>
+          <Reveal className="mt-10 text-center"><CTAWhats msg="Quero uma demonstração dos sistemas Hyon.">Solicitar demonstração</CTAWhats></Reveal>
         </div>
       </section>
 
       {/* BENEFÍCIOS */}
       <section className="py-20 border-t border-white/5 bg-white/[0.015]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefícios que fazem diferença</h2>
+          <Reveal className="text-center max-w-2xl mx-auto mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefícios que fazem <span className="cine-gradient-text">diferença</span></h2>
             <p className="mt-3 text-slate-400">Tudo que sua operação precisa em uma única plataforma.</p>
-          </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {BENEFICIOS.map((b) => (
-              <div key={b.title} className="p-4 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md flex items-center gap-3 hover:border-cyan-400/30 transition-all">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2563EB]/25 to-[#06B6D4]/25 border border-white/10 grid place-items-center">
+            {BENEFICIOS.map((b, i) => (
+              <motion.div
+                key={b.title}
+                initial={{ opacity: 0, x: i % 2 ? 24 : -24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.7, delay: (i % 6) * 0.06 }}
+                className="p-4 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md flex items-center gap-3 hover:border-cyan-400/40 hover:bg-white/[0.06] hover:-translate-y-0.5 transition-all"
+              >
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2563EB]/30 to-[#06B6D4]/30 border border-white/10 grid place-items-center">
                   <b.icon className="w-4.5 h-4.5 text-cyan-300" />
                 </div>
                 <span className="text-sm text-slate-200">{b.title}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -686,52 +702,60 @@ export default function LandingPage() {
       {/* PLANOS */}
       <section id="planos" className="py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <Reveal className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs uppercase tracking-widest text-violet-300">Planos</span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Escolha o plano ideal para o seu momento</h2>
             <p className="mt-3 text-slate-400">Comece pequeno, cresça sem limites.</p>
-          </div>
+          </Reveal>
           <div className="grid md:grid-cols-3 gap-5">
-            {PLANOS.map((p) => (
-              <div key={p.nome}
-                className={`relative p-7 rounded-3xl border backdrop-blur-md transition-all hover:-translate-y-1 ${
-                  p.destaque
-                    ? "border-violet-400/40 bg-gradient-to-b from-violet-500/10 to-cyan-500/5 shadow-[0_20px_60px_-20px_rgba(124,58,237,0.5)]"
-                    : "border-white/10 bg-white/[0.03] hover:border-cyan-400/30"
-                }`}
+            {PLANOS.map((p, i) => (
+              <motion.div
+                key={p.nome}
+                initial={{ opacity: 0, y: 40, scale: 0.94 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.9, delay: i * 0.12, ease: [0.22,1,0.36,1] }}
               >
-                {p.destaque && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-[#2563EB] to-[#7C3AED] text-white shadow-lg">
-                    Mais vendido
-                  </span>
-                )}
-                <div className="text-lg font-semibold">{p.nome}</div>
-                <div className="text-sm text-slate-400 mt-0.5">{p.subtitulo}</div>
-                <div className="mt-5 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold bg-gradient-to-r from-[#60A5FA] to-[#A78BFA] bg-clip-text text-transparent">{p.preco}</span>
-                  {p.periodo && <span className="text-slate-400 text-sm">{p.periodo}</span>}
-                </div>
-                <ul className="mt-6 space-y-2.5">
-                  {p.recursos.map((r) => (
-                    <li key={r} className="flex items-start gap-2 text-sm text-slate-300">
-                      <Check className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> {r}
-                    </li>
-                  ))}
-                </ul>
-                <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`)} target="_blank" rel="noreferrer" className="block mt-7">
-                  <Button className={`w-full ${
-                    p.destaque
-                      ? "bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)]"
-                      : "bg-white/10 hover:bg-white/15 text-white border border-white/15"
-                  }`}>
-                    <MessageCircle className="w-4 h-4 mr-2" /> Contratar pelo WhatsApp
-                  </Button>
-                </a>
-              </div>
+                <TiltCard intensity={p.destaque ? 8 : 5} className={`relative h-full p-7 rounded-3xl border backdrop-blur-md transition-all ${
+                  p.destaque
+                    ? "border-violet-400/50 bg-gradient-to-b from-violet-500/15 to-cyan-500/5 shadow-[0_30px_80px_-20px_rgba(124,58,237,0.55)]"
+                    : "border-white/10 bg-white/[0.03] hover:border-cyan-400/40"
+                }`}>
+                  {p.destaque && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-[#2563EB] to-[#7C3AED] text-white shadow-lg">
+                      Mais vendido
+                    </span>
+                  )}
+                  <div className="text-lg font-semibold">{p.nome}</div>
+                  <div className="text-sm text-slate-400 mt-0.5">{p.subtitulo}</div>
+                  <div className="mt-5 flex items-baseline gap-1">
+                    <span className="text-4xl font-bold cine-gradient-text">{p.preco}</span>
+                    {p.periodo && <span className="text-slate-400 text-sm">{p.periodo}</span>}
+                  </div>
+                  <ul className="mt-6 space-y-2.5">
+                    {p.recursos.map((r) => (
+                      <li key={r} className="flex items-start gap-2 text-sm text-slate-300">
+                        <Check className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> {r}
+                      </li>
+                    ))}
+                  </ul>
+                  <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`)} target="_blank" rel="noreferrer" className="block mt-7">
+                    <Button className={`w-full cine-btn-shimmer ${
+                      p.destaque
+                        ? "bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)]"
+                        : "bg-white/10 hover:bg-white/15 text-white border border-white/15"
+                    }`}>
+                      <MessageCircle className="w-4 h-4 mr-2" /> Contratar pelo WhatsApp
+                    </Button>
+                  </a>
+                </TiltCard>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
+
+
 
       {/* COMPARATIVO */}
       <section className="py-20 border-t border-white/5 bg-white/[0.015]">
