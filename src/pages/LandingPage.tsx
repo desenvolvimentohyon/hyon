@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import hyonLogo from "@/assets/hyon-logo-offwhite.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCNPJ } from "@/lib/cnpjUtils";
@@ -14,6 +15,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  CinematicBackdrop, CursorSpotlight, Reveal, TiltCard, SplashScreen, Magnetic,
+} from "@/pages/landing/CinematicFX";
+
 
 /* ---------------- Empresa dinâmica ---------------- */
 type EmpresaInfo = {
@@ -352,25 +357,26 @@ export default function LandingPage() {
   const statsAnim = [s0, s1, s2, s3];
 
   const CTAWhats = ({ children = "Falar com um especialista", msg }: { children?: React.ReactNode; msg?: string }) => (
-    <a href={waLink(msg)} target="_blank" rel="noreferrer">
-      <Button
-        size="lg"
-        className="bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(37,211,102,0.75)] transition-all"
-      >
-        <MessageCircle className="w-4 h-4 mr-2" /> {children}
-      </Button>
-    </a>
+    <Magnetic strength={0.18}>
+      <a href={waLink(msg)} target="_blank" rel="noreferrer">
+        <Button
+          size="lg"
+          className="cine-btn-shimmer bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(37,211,102,0.85)] hover:scale-[1.02] transition-all"
+        >
+          <MessageCircle className="w-4 h-4 mr-2" /> {children}
+        </Button>
+      </a>
+    </Magnetic>
   );
 
   return (
     <div className="dark min-h-screen bg-[#09090B] text-slate-100 font-sans antialiased [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white">
-      {/* Fundo global com gradientes/partículas */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[#2563EB]/25 blur-[140px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-[#7C3AED]/25 blur-[140px]" />
-        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full bg-[#06B6D4]/20 blur-[140px]" />
-        <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]" />
-      </div>
+      <SplashScreen logoUrl={hyonLogo.url} />
+      <CursorSpotlight />
+      <CinematicBackdrop />
+
+      {/* Fundo global agora é gerido pelo CinematicBackdrop acima */}
+
 
       {/* Faixa de campanha */}
       <div className="relative z-40 text-center text-xs sm:text-sm py-2 px-4 bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#06B6D4] text-white">
@@ -435,45 +441,70 @@ export default function LandingPage() {
       {/* HERO */}
       <section id="inicio" className="relative min-h-[92vh] flex items-center py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 animate-fade-in">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-cyan-300 mb-6">
+          <div className="lg:col-span-7">
+            <motion.span
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22,1,0.36,1] }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-cyan-300 mb-6 backdrop-blur-md"
+            >
               <ShieldCheck className="w-3.5 h-3.5" /> Tecnologia que gera resultado
-            </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
+            </motion.span>
+            <motion.h1
+              initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 1.0, ease: [0.22,1,0.36,1], delay: 0.1 }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight"
+            >
               Transformamos a gestão da sua empresa com{" "}
-              <span className="bg-gradient-to-r from-[#60A5FA] via-[#A78BFA] to-[#22D3EE] bg-clip-text text-transparent">
-                tecnologia inteligente
-              </span>
-              .
-            </h1>
-            <p className="mt-6 text-lg text-slate-300 max-w-2xl">
+              <span className="cine-gradient-text">tecnologia inteligente</span>.
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35 }}
+              className="mt-6 text-lg text-slate-300 max-w-2xl"
+            >
               Sistemas completos para lojas, restaurantes, assistência técnica, controle de estoque,
               emissão fiscal e muito mais.
-            </p>
-            <p className="mt-3 text-slate-400">
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.55 }}
+              className="mt-3 text-slate-400"
+            >
               Mais produtividade. Mais controle. Mais lucro.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.7 }}
+              className="mt-8 flex flex-wrap gap-3"
+            >
               <CTAWhats>Falar pelo WhatsApp</CTAWhats>
-              <a href="#solucoes">
-                <Button size="lg" variant="outline"
-                  className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 backdrop-blur-md">
-                  Solicitar Demonstração <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </a>
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400">
+              <Magnetic strength={0.12}>
+                <a href="#solucoes">
+                  <Button size="lg" variant="outline"
+                    className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 backdrop-blur-md">
+                    Solicitar Demonstração <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </a>
+              </Magnetic>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.9 }}
+              className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400"
+            >
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Dados criptografados</span>
               <span className="inline-flex items-center gap-1.5"><Cloud className="w-4 h-4 text-cyan-400" /> 100% em nuvem</span>
               <span className="inline-flex items-center gap-1.5"><Headphones className="w-4 h-4 text-violet-400" /> Suporte humano</span>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Mockup */}
-          <div className="lg:col-span-5">
-            <div className="relative mx-auto max-w-lg">
-              <div className="absolute -inset-6 bg-gradient-to-br from-[#2563EB]/40 via-[#7C3AED]/40 to-[#06B6D4]/40 blur-3xl rounded-[32px]" />
-              <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3 shadow-2xl">
+          {/* Mockup 3D flutuante */}
+          <motion.div
+            initial={{ opacity: 0, y: 40, rotateX: 20 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 1.2, ease: [0.22,1,0.36,1], delay: 0.2 }}
+            className="lg:col-span-5"
+            style={{ perspective: 1400 }}
+          >
+            <TiltCard intensity={10} className="relative mx-auto max-w-lg rounded-[24px]">
+              <div className="absolute -inset-6 bg-gradient-to-br from-[#2563EB]/40 via-[#7C3AED]/40 to-[#06B6D4]/40 blur-3xl rounded-[32px] cine-aurora" />
+              <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.7)] cine-float">
                 {/* barra de janela */}
                 <div className="flex items-center gap-1.5 px-2 pb-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
@@ -524,35 +555,52 @@ export default function LandingPage() {
                 </div>
               </div>
               {/* elementos flutuantes */}
-              <div className="hidden md:flex absolute -left-8 top-10 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl animate-fade-in">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 1 }}
+                className="hidden md:flex absolute -left-8 top-10 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl cine-float"
+                style={{ animationDelay: "-2s" }}
+              >
                 <ShieldCheck className="w-4 h-4 text-emerald-400" /> Backup em nuvem
-              </div>
-              <div className="hidden md:flex absolute -right-6 bottom-8 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl animate-fade-in">
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 1.15 }}
+                className="hidden md:flex absolute -right-6 bottom-8 items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-200 shadow-xl cine-float"
+                style={{ animationDelay: "-4s" }}
+              >
                 <Zap className="w-4 h-4 text-yellow-300" /> Sincronização em tempo real
-              </div>
-            </div>
-          </div>
+              </motion.div>
+            </TiltCard>
+          </motion.div>
         </div>
       </section>
+
 
       {/* STATS */}
       <section id="stats" className="py-14 border-y border-white/5 bg-white/[0.015]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
           {STATS.map((s, i) => (
-            <div key={s.label} className="text-center p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-              <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#60A5FA] via-[#A78BFA] to-[#22D3EE] bg-clip-text text-transparent tabular-nums">
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 22, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.8, delay: i * 0.09, ease: [0.22,1,0.36,1] }}
+              className="text-center p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-cyan-400/30 hover:bg-white/[0.05] transition-all"
+            >
+              <div className="text-3xl sm:text-4xl font-bold cine-gradient-text tabular-nums">
                 {statsAnim[i]}
               </div>
               <div className="text-sm text-slate-400 mt-1">{s.label}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
 
+
       {/* SOBRE */}
       <section id="sobre" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center">
-          <div>
+          <Reveal>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Tecnologia que impulsiona negócios.</h2>
             <p className="mt-5 text-slate-300 leading-relaxed">
               A <strong>Hyon Tecnologia</strong> desenvolve soluções completas para gestão empresarial,
@@ -564,64 +612,88 @@ export default function LandingPage() {
               com previsibilidade, segurança e escala.
             </p>
             <div className="mt-6"><CTAWhats msg="Quero conhecer melhor a Hyon Tecnologia.">Conversar com um consultor</CTAWhats></div>
-          </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 gap-3">
-            {DIFERENCIAIS.map((d) => (
-              <div key={d.title}
-                className="p-5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-white/[0.06] transition-all">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB]/25 to-[#7C3AED]/25 border border-white/10 grid place-items-center mb-3">
-                  <d.icon className="w-5 h-5 text-cyan-300" />
-                </div>
-                <div className="font-medium">{d.title}</div>
-              </div>
+            {DIFERENCIAIS.map((d, i) => (
+              <motion.div
+                key={d.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.7, delay: i * 0.07, ease: [0.22,1,0.36,1] }}
+              >
+                <TiltCard intensity={6} className="p-5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-cyan-400/30 hover:bg-white/[0.06] transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB]/25 to-[#7C3AED]/25 border border-white/10 grid place-items-center mb-3">
+                    <d.icon className="w-5 h-5 text-cyan-300" />
+                  </div>
+                  <div className="font-medium">{d.title}</div>
+                </TiltCard>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
+
       {/* SOLUÇÕES */}
       <section id="solucoes" className="py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <Reveal className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs uppercase tracking-widest text-cyan-300">Nossas soluções</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Sistemas sob medida para o seu negócio</h2>
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">
+              Sistemas <span className="cine-gradient-text">sob medida</span> para o seu negócio
+            </h2>
             <p className="mt-3 text-slate-400">Modulares, escaláveis e prontos para crescer com você.</p>
-          </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {SOLUCOES.map((s) => (
-              <div key={s.title}
-                className="group p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.06] transition-all">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#2563EB]/25 to-[#7C3AED]/25 border border-white/10 grid place-items-center mb-4 group-hover:scale-110 transition-transform">
-                  <s.icon className="w-5 h-5 text-cyan-300" />
-                </div>
-                <h3 className="font-semibold text-base">{s.title}</h3>
-                <p className="text-sm text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
-                <a href={waLink(`Quero saber mais sobre: ${s.title}.`)} target="_blank" rel="noreferrer"
-                   className="mt-4 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1 group/link">
-                  Saiba mais <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-1" />
-                </a>
-              </div>
+            {SOLUCOES.map((s, i) => (
+              <motion.div
+                key={s.title}
+                initial={{ opacity: 0, y: 28, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.7, delay: (i % 8) * 0.06, ease: [0.22,1,0.36,1] }}
+              >
+                <TiltCard intensity={7} className="group h-full p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-violet-400/40 hover:bg-white/[0.06] transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#2563EB]/30 to-[#7C3AED]/30 border border-white/10 grid place-items-center mb-4 group-hover:scale-110 transition-transform shadow-[0_8px_24px_-8px_rgba(124,58,237,0.5)]">
+                    <s.icon className="w-5 h-5 text-cyan-300" />
+                  </div>
+                  <h3 className="font-semibold text-base">{s.title}</h3>
+                  <p className="text-sm text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
+                  <a href={waLink(`Quero saber mais sobre: ${s.title}.`)} target="_blank" rel="noreferrer"
+                     className="mt-4 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1 group/link">
+                    Saiba mais <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-1" />
+                  </a>
+                </TiltCard>
+              </motion.div>
             ))}
           </div>
-          <div className="mt-10 text-center"><CTAWhats msg="Quero uma demonstração dos sistemas Hyon.">Solicitar demonstração</CTAWhats></div>
+          <Reveal className="mt-10 text-center"><CTAWhats msg="Quero uma demonstração dos sistemas Hyon.">Solicitar demonstração</CTAWhats></Reveal>
         </div>
       </section>
 
       {/* BENEFÍCIOS */}
       <section className="py-20 border-t border-white/5 bg-white/[0.015]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefícios que fazem diferença</h2>
+          <Reveal className="text-center max-w-2xl mx-auto mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Benefícios que fazem <span className="cine-gradient-text">diferença</span></h2>
             <p className="mt-3 text-slate-400">Tudo que sua operação precisa em uma única plataforma.</p>
-          </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {BENEFICIOS.map((b) => (
-              <div key={b.title} className="p-4 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md flex items-center gap-3 hover:border-cyan-400/30 transition-all">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2563EB]/25 to-[#06B6D4]/25 border border-white/10 grid place-items-center">
+            {BENEFICIOS.map((b, i) => (
+              <motion.div
+                key={b.title}
+                initial={{ opacity: 0, x: i % 2 ? 24 : -24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.7, delay: (i % 6) * 0.06 }}
+                className="p-4 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md flex items-center gap-3 hover:border-cyan-400/40 hover:bg-white/[0.06] hover:-translate-y-0.5 transition-all"
+              >
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2563EB]/30 to-[#06B6D4]/30 border border-white/10 grid place-items-center">
                   <b.icon className="w-4.5 h-4.5 text-cyan-300" />
                 </div>
                 <span className="text-sm text-slate-200">{b.title}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -630,52 +702,60 @@ export default function LandingPage() {
       {/* PLANOS */}
       <section id="planos" className="py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <Reveal className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs uppercase tracking-widest text-violet-300">Planos</span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Escolha o plano ideal para o seu momento</h2>
             <p className="mt-3 text-slate-400">Comece pequeno, cresça sem limites.</p>
-          </div>
+          </Reveal>
           <div className="grid md:grid-cols-3 gap-5">
-            {PLANOS.map((p) => (
-              <div key={p.nome}
-                className={`relative p-7 rounded-3xl border backdrop-blur-md transition-all hover:-translate-y-1 ${
-                  p.destaque
-                    ? "border-violet-400/40 bg-gradient-to-b from-violet-500/10 to-cyan-500/5 shadow-[0_20px_60px_-20px_rgba(124,58,237,0.5)]"
-                    : "border-white/10 bg-white/[0.03] hover:border-cyan-400/30"
-                }`}
+            {PLANOS.map((p, i) => (
+              <motion.div
+                key={p.nome}
+                initial={{ opacity: 0, y: 40, scale: 0.94 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.9, delay: i * 0.12, ease: [0.22,1,0.36,1] }}
               >
-                {p.destaque && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-[#2563EB] to-[#7C3AED] text-white shadow-lg">
-                    Mais vendido
-                  </span>
-                )}
-                <div className="text-lg font-semibold">{p.nome}</div>
-                <div className="text-sm text-slate-400 mt-0.5">{p.subtitulo}</div>
-                <div className="mt-5 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold bg-gradient-to-r from-[#60A5FA] to-[#A78BFA] bg-clip-text text-transparent">{p.preco}</span>
-                  {p.periodo && <span className="text-slate-400 text-sm">{p.periodo}</span>}
-                </div>
-                <ul className="mt-6 space-y-2.5">
-                  {p.recursos.map((r) => (
-                    <li key={r} className="flex items-start gap-2 text-sm text-slate-300">
-                      <Check className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> {r}
-                    </li>
-                  ))}
-                </ul>
-                <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`)} target="_blank" rel="noreferrer" className="block mt-7">
-                  <Button className={`w-full ${
-                    p.destaque
-                      ? "bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)]"
-                      : "bg-white/10 hover:bg-white/15 text-white border border-white/15"
-                  }`}>
-                    <MessageCircle className="w-4 h-4 mr-2" /> Contratar pelo WhatsApp
-                  </Button>
-                </a>
-              </div>
+                <TiltCard intensity={p.destaque ? 8 : 5} className={`relative h-full p-7 rounded-3xl border backdrop-blur-md transition-all ${
+                  p.destaque
+                    ? "border-violet-400/50 bg-gradient-to-b from-violet-500/15 to-cyan-500/5 shadow-[0_30px_80px_-20px_rgba(124,58,237,0.55)]"
+                    : "border-white/10 bg-white/[0.03] hover:border-cyan-400/40"
+                }`}>
+                  {p.destaque && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-[#2563EB] to-[#7C3AED] text-white shadow-lg">
+                      Mais vendido
+                    </span>
+                  )}
+                  <div className="text-lg font-semibold">{p.nome}</div>
+                  <div className="text-sm text-slate-400 mt-0.5">{p.subtitulo}</div>
+                  <div className="mt-5 flex items-baseline gap-1">
+                    <span className="text-4xl font-bold cine-gradient-text">{p.preco}</span>
+                    {p.periodo && <span className="text-slate-400 text-sm">{p.periodo}</span>}
+                  </div>
+                  <ul className="mt-6 space-y-2.5">
+                    {p.recursos.map((r) => (
+                      <li key={r} className="flex items-start gap-2 text-sm text-slate-300">
+                        <Check className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" /> {r}
+                      </li>
+                    ))}
+                  </ul>
+                  <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`)} target="_blank" rel="noreferrer" className="block mt-7">
+                    <Button className={`w-full cine-btn-shimmer ${
+                      p.destaque
+                        ? "bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)]"
+                        : "bg-white/10 hover:bg-white/15 text-white border border-white/15"
+                    }`}>
+                      <MessageCircle className="w-4 h-4 mr-2" /> Contratar pelo WhatsApp
+                    </Button>
+                  </a>
+                </TiltCard>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
+
+
 
       {/* COMPARATIVO */}
       <section className="py-20 border-t border-white/5 bg-white/[0.015]">
@@ -833,27 +913,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section id="contato" className="py-24 relative overflow-hidden">
+      {/* CTA FINAL — convergência de luz */}
+      <section id="contato" className="py-28 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#06B6D4] opacity-25" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_60%)]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#06B6D4] opacity-30" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(37,211,102,0.28),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.10),transparent_70%)]" />
+          {/* Raios de luz convergentes */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-white/5 cine-aurora" />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-white/10 cine-aurora" style={{ animationDelay: "-6s" }} />
         </div>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Pronto para transformar sua empresa?</h2>
-          <p className="mt-4 text-lg text-slate-300 max-w-2xl mx-auto">
+        <Reveal className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+            Pronto para <span className="cine-gradient-text">transformar</span> sua empresa?
+          </h2>
+          <p className="mt-5 text-lg text-slate-300 max-w-2xl mx-auto">
             Fale agora com um especialista e descubra como a Hyon pode automatizar sua gestão.
           </p>
-          <div className="mt-8 flex justify-center">
-            <a href={waLink("Quero transformar minha empresa com a Hyon!")} target="_blank" rel="noreferrer">
-              <Button size="lg" className="text-base px-8 py-6 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_20px_60px_-15px_rgba(37,211,102,0.7)] animate-pulse">
-                <MessageCircle className="w-5 h-5 mr-2" /> Quero falar no WhatsApp
-              </Button>
-            </a>
-          </div>
-          <p className="mt-4 text-xs text-slate-400">Atendimento humano, resposta rápida.</p>
-        </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} transition={{ duration: 1, delay: 0.2, ease: [0.22,1,0.36,1] }}
+            className="mt-10 flex justify-center"
+          >
+            <Magnetic strength={0.28}>
+              <a href={waLink("Quero transformar minha empresa com a Hyon!")} target="_blank" rel="noreferrer">
+                <Button size="lg" className="cine-btn-shimmer cine-glow-breath text-base px-10 py-7 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white rounded-2xl hover:scale-[1.04] transition-transform">
+                  <MessageCircle className="w-5 h-5 mr-2" /> Falar com um Especialista
+                </Button>
+              </a>
+            </Magnetic>
+          </motion.div>
+          <p className="mt-5 text-xs text-slate-300/80">Atendimento humano, resposta rápida.</p>
+        </Reveal>
       </section>
+
 
       {/* RODAPÉ */}
       <footer className="border-t border-white/5 bg-[#050609]">
