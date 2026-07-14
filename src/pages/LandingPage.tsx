@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import hyonLogo from "@/assets/hyon-logo-horizontal.png.asset.json";
 
 import {
   Rocket, ShieldCheck, TrendingUp, Users, Building2, Headphones,
@@ -103,11 +104,9 @@ export default function LandingPage() {
       {/* Topbar simples */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-[#0B1220]/70 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-blue-500 grid place-items-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold tracking-tight">Sua Empresa</span>
+          <div className="flex items-center gap-3">
+            <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-9 w-auto invert brightness-0" style={{ filter: "invert(1)" }} />
+            <span className="font-semibold tracking-tight text-lg">HYON <span className="text-teal-400">TECNOLOGIA</span></span>
           </div>
           <a href="#contato" className="hidden sm:inline text-sm text-slate-300 hover:text-white">
             Falar com especialista →
@@ -305,11 +304,9 @@ export default function LandingPage() {
       <footer className="border-t border-white/5 bg-[#080E1A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-blue-500 grid place-items-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-semibold">Sua Empresa</span>
+            <div className="flex items-center gap-3 mb-4">
+              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-8 w-auto" style={{ filter: "invert(1)" }} />
+              <span className="font-semibold">HYON <span className="text-teal-400">TECNOLOGIA</span></span>
             </div>
             <p className="text-sm text-slate-400">Tecnologia e gestão para empresas que querem crescer com previsibilidade.</p>
           </div>
@@ -343,7 +340,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="border-t border-white/5 py-6 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} Sua Empresa. Todos os direitos reservados.
+          © {new Date().getFullYear()} Hyon Tecnologia. Todos os direitos reservados.
         </div>
       </footer>
     </div>
