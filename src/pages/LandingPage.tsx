@@ -395,13 +395,19 @@ export default function LandingPage() {
           <p className="text-center text-xs uppercase tracking-widest text-slate-500 mb-8">
             Empresas que confiam no nosso trabalho
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6 items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 items-center">
             {logos.map((logo) => (
               <div
-                key={logo}
-                className="text-center text-xl font-semibold text-slate-500 grayscale hover:grayscale-0 hover:text-teal-300 transition-all cursor-default"
+                key={logo.nome}
+                title={logo.nome}
+                className="aspect-square rounded-xl bg-white/[0.03] border border-white/10 p-3 grid place-items-center hover:bg-white/[0.06] hover:border-teal-400/30 transition-all"
               >
-                {logo}
+                <img
+                  src={logo.src}
+                  alt={logo.nome}
+                  loading="lazy"
+                  className="max-h-full max-w-full object-contain rounded-lg opacity-90 hover:opacity-100 transition-opacity"
+                />
               </div>
             ))}
           </div>
