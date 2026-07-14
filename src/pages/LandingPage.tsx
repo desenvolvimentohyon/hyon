@@ -150,7 +150,6 @@ const logos = [
 
 export default function LandingPage() {
   const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
-  const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
   const WA_FALLBACK = "7331911744";
   const waDigits = (EMPRESA.whatsapp || "").replace(/\D/g, "");
   const waNumber = waDigits.length >= 10 ? waDigits : WA_FALLBACK;
@@ -183,37 +182,6 @@ export default function LandingPage() {
   }, []);
 
 
-  const validar = () => {
-    const e: typeof errors = {};
-    if (form.nome.trim().length < 2) e.nome = "Informe seu nome completo";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "E-mail inválido";
-    if (form.telefone.replace(/\D/g, "").length < 10) e.telefone = "Telefone inválido";
-    if (form.mensagem.trim().length < 5) e.mensagem = "Conte um pouco sobre sua necessidade";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSubmit = async (ev: FormEvent) => {
-    ev.preventDefault();
-    if (!validar()) return;
-    setStatus("sending");
-    try {
-      const payload: LeadPayload = {
-        ...form,
-        origem: "landing-page",
-        data: new Date().toISOString(),
-      };
-      const res = await enviarLeadParaCRM(payload);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setStatus("success");
-      toast.success("Recebemos seu contato! Retornaremos em breve.");
-      setForm({ nome: "", email: "", telefone: "", mensagem: "" });
-    } catch (err) {
-      console.error("Falha ao enviar lead:", err);
-      setStatus("error");
-      toast.error("Não conseguimos enviar agora. Tente novamente em instantes.");
-    }
-  };
 
   return (
     <div className="dark min-h-screen bg-[#0B1220] text-slate-100 font-sans [&_h1]:text-slate-100 [&_h2]:text-slate-100 [&_h3]:text-slate-100 [&_h4]:text-slate-100">
