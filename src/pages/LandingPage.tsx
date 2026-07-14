@@ -135,6 +135,16 @@ import corteletti from "@/assets/clientes/corteletti.jpg.asset.json";
 import queijariadomonte from "@/assets/clientes/queijariadomonte.jpg.asset.json";
 import essenza from "@/assets/clientes/essenza.jpg.asset.json";
 import bistrodolago from "@/assets/clientes/bistrodolago.jpg.asset.json";
+import pizzariaatlantica from "@/assets/clientes/pizzariaatlantica.jpg.asset.json";
+import avaranda from "@/assets/clientes/avaranda.jpg.asset.json";
+import escritorio from "@/assets/clientes/escritorio.jpg.asset.json";
+import pousadacasa from "@/assets/clientes/pousadacasa.jpg.asset.json";
+import cardoso from "@/assets/clientes/cardoso.jpg.asset.json";
+import lfmultimarcas from "@/assets/clientes/lfmultimarcas.jpg.asset.json";
+import medeirospizza from "@/assets/clientes/medeirospizza.jpg.asset.json";
+import galegolanches from "@/assets/clientes/galegolanches.jpg.asset.json";
+import cabanadocal from "@/assets/clientes/cabanadocal.png.asset.json";
+import acouguedoclaudio from "@/assets/clientes/acouguedoclaudio.png.asset.json";
 
 const logos = [
   { nome: "Moinho das Artes", src: moinho.url },
@@ -157,7 +167,18 @@ const logos = [
   { nome: "Queijaria do Monte", src: queijariadomonte.url },
   { nome: "Essenza Corumbau", src: essenza.url },
   { nome: "Bistrô do Lago", src: bistrodolago.url },
+  { nome: "Pizzaria Atlântica", src: pizzariaatlantica.url },
+  { nome: "A Varanda Bistrot & Buffets", src: avaranda.url },
+  { nome: "Escritório Petiscaria e Pizzaria", src: escritorio.url },
+  { nome: "Pousada Casa", src: pousadacasa.url },
+  { nome: "Construtora Cardoso", src: cardoso.url },
+  { nome: "LF Multimarcas", src: lfmultimarcas.url },
+  { nome: "Medeiros Pizza", src: medeirospizza.url },
+  { nome: "Galego Lanche's", src: galegolanches.url },
+  { nome: "Cabana do Cal", src: cabanadocal.url },
+  { nome: "Açougue do Cláudio", src: acouguedoclaudio.url },
 ];
+
 
 
 export default function LandingPage() {
@@ -410,18 +431,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* LOGOS */}
-      <section className="py-16 border-t border-white/5">
+      {/* LOGOS - CARROSSEL INFINITO */}
+      <section className="py-16 border-t border-white/5 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <p className="text-center text-xs uppercase tracking-widest text-slate-500 mb-8">
             Empresas que confiam no nosso trabalho
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 items-center">
-            {logos.map((logo) => (
+        </div>
+        <div className="relative group [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="flex gap-6 w-max animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused]">
+            {[...logos, ...logos].map((logo, i) => (
               <div
-                key={logo.nome}
+                key={`${logo.nome}-${i}`}
                 title={logo.nome}
-                className="aspect-square rounded-xl bg-white/[0.03] border border-white/10 p-3 grid place-items-center hover:bg-white/[0.06] hover:border-teal-400/30 transition-all"
+                className="shrink-0 w-32 h-32 sm:w-36 sm:h-36 rounded-xl bg-white/[0.03] border border-white/10 p-3 grid place-items-center hover:bg-white/[0.06] hover:border-teal-400/30 transition-all"
               >
                 <img
                   src={logo.src}
@@ -434,6 +457,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
 
       {/* RODAPÉ */}
       <footer className="border-t border-white/5 bg-[#080E1A]">
