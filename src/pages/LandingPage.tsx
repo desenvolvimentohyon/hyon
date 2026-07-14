@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import hyonLogo from "@/assets/hyon-logo-offwhite.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCNPJ } from "@/lib/cnpjUtils";
@@ -14,6 +15,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  CinematicBackdrop, CursorSpotlight, Reveal, TiltCard, SplashScreen, Magnetic,
+} from "@/pages/landing/CinematicFX";
+
 
 /* ---------------- Empresa dinâmica ---------------- */
 type EmpresaInfo = {
