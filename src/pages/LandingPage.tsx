@@ -375,13 +375,8 @@ export default function LandingPage() {
       <CursorSpotlight />
       <CinematicBackdrop />
 
-      {/* Fundo global com gradientes/partículas */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[#2563EB]/25 blur-[140px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full bg-[#7C3AED]/25 blur-[140px]" />
-        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full bg-[#06B6D4]/20 blur-[140px]" />
-        <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]" />
-      </div>
+      {/* Fundo global agora é gerido pelo CinematicBackdrop acima */}
+
 
       {/* Faixa de campanha */}
       <div className="relative z-40 text-center text-xs sm:text-sm py-2 px-4 bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#06B6D4] text-white">
