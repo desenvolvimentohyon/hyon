@@ -419,7 +419,7 @@ export default function LandingPage() {
               <li className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-teal-400 shrink-0" />
                 <a href={waLink} target="_blank" rel="noreferrer" className="hover:text-white">
-                  WhatsApp: {EMPRESA.whatsappFmt}
+                  WhatsApp: {waFmt}
                 </a>
                 <button
                   type="button"
