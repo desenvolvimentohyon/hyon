@@ -579,15 +579,23 @@ export default function LandingPage() {
       <section id="stats" className="py-14 border-y border-white/5 bg-white/[0.015]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
           {STATS.map((s, i) => (
-            <div key={s.label} className="text-center p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
-              <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[#60A5FA] via-[#A78BFA] to-[#22D3EE] bg-clip-text text-transparent tabular-nums">
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 22, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.8, delay: i * 0.09, ease: [0.22,1,0.36,1] }}
+              className="text-center p-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-cyan-400/30 hover:bg-white/[0.05] transition-all"
+            >
+              <div className="text-3xl sm:text-4xl font-bold cine-gradient-text tabular-nums">
                 {statsAnim[i]}
               </div>
               <div className="text-sm text-slate-400 mt-1">{s.label}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
+
 
       {/* SOBRE */}
       <section id="sobre" className="py-20">
