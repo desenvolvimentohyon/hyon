@@ -32,3 +32,7 @@ verify_jwt = false
 [functions.invite-user]
 verify_jwt = true
 
+[functions.public-company-profile]
+verify_jwt = false
+
+
