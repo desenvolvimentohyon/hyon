@@ -232,33 +232,26 @@ export function Topbar() {
       <SidebarTrigger className="shrink-0" />
 
       {/* Breadcrumb — desktop only */}
-      {breadcrumb.length > 0 && (
+      {breadcrumb && (
         <Breadcrumb className="hidden md:flex min-w-0 max-w-[40%]">
           <BreadcrumbList className="gap-1.5 text-[12px]">
-            {breadcrumb.map((crumb, idx) => {
-              const last = idx === breadcrumb.length - 1;
-              return (
-                <BreadcrumbItem key={`${crumb.label}-${idx}`} className="text-muted-foreground/70">
-                  {last || !crumb.url ? (
-                    <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[220px]">
-                      {crumb.label}
-                    </BreadcrumbPage>
-                  ) : (
-                    <>
-                      <BreadcrumbLink asChild>
-                        <Link to={crumb.url} className="hover:text-foreground transition-colors truncate max-w-[160px] inline-block">
-                          {crumb.label}
-                        </Link>
-                      </BreadcrumbLink>
-                      <BreadcrumbSeparator className="text-muted-foreground/30" />
-                    </>
-                  )}
-                </BreadcrumbItem>
-              );
-            })}
+            <BreadcrumbItem className="text-muted-foreground/70">
+              <BreadcrumbLink asChild>
+                <Link to={breadcrumb.parent.children[0]?.url || "/"} className="hover:text-foreground transition-colors truncate max-w-[160px] inline-block">
+                  {breadcrumb.parent.title}
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-muted-foreground/30" />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[220px]">
+                {breadcrumb.child.title}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       )}
+
 
       <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-md ml-auto">
         <div className="relative">
