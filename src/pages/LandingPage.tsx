@@ -251,7 +251,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B1220] text-slate-100 font-sans">
+    <div className="dark min-h-screen bg-[#0B1220] text-slate-100 font-sans [&_h1]:text-slate-100 [&_h2]:text-slate-100 [&_h3]:text-slate-100 [&_h4]:text-slate-100">
       {/* Topbar simples */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-[#0B1220]/70 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
