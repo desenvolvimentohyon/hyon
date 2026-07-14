@@ -115,7 +115,29 @@ const stats = [
   { valor: "4.9", label: "Nota no Google" },
 ];
 
-const logos = ["Acme", "Globex", "Umbrella", "Initech", "Hooli", "Stark", "Wayne", "Vandelay"];
+import moinho from "@/assets/clientes/moinho.jpg.asset.json";
+import nativa from "@/assets/clientes/nativa.jpg.asset.json";
+import emporio from "@/assets/clientes/emporio.jpg.asset.json";
+import canaldopampo from "@/assets/clientes/canaldopampo.jpg.asset.json";
+import churrascariabatata from "@/assets/clientes/churrascariabatata.jpg.asset.json";
+import hiperpao from "@/assets/clientes/hiperpao.jpg.asset.json";
+import bompastel from "@/assets/clientes/bompastel.jpg.asset.json";
+import bistroportuga from "@/assets/clientes/bistroportuga.jpg.asset.json";
+import saraiva from "@/assets/clientes/saraiva.jpg.asset.json";
+import jocotoka from "@/assets/clientes/jocotoka.jpg.asset.json";
+
+const logos = [
+  { nome: "Moinho das Artes", src: moinho.url },
+  { nome: "Barraca Nativa", src: nativa.url },
+  { nome: "Empório Oliva", src: emporio.url },
+  { nome: "Canal do Pampo", src: canaldopampo.url },
+  { nome: "Churrascaria do Batata", src: churrascariabatata.url },
+  { nome: "Hiper Pão", src: hiperpao.url },
+  { nome: "Lanchonete Bom Pastel", src: bompastel.url },
+  { nome: "Bistrô do Portuga", src: bistroportuga.url },
+  { nome: "Floricultura Saraiva", src: saraiva.url },
+  { nome: "Jocotoka Village", src: jocotoka.url },
+];
 
 export default function LandingPage() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", mensagem: "" });
