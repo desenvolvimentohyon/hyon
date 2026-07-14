@@ -122,7 +122,18 @@ export default function LandingPage() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [EMPRESA, setEmpresa] = useState<EmpresaInfo>(EMPRESA_FALLBACK);
-  const waLink = `https://wa.me/55${EMPRESA.whatsapp}`;
+  const waNumber = EMPRESA.whatsapp || "7331911744";
+  const waLink = `https://wa.me/55${waNumber}`;
+
+  const copyWhatsapp = async () => {
+    const text = EMPRESA.whatsappFmt || waNumber;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("WhatsApp copiado!", { description: text });
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -403,10 +414,18 @@ export default function LandingPage() {
                 <a href={`mailto:${EMPRESA.email}`} className="hover:text-white">{EMPRESA.email}</a>
               </li>
               <li className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-teal-400" />
+                <MessageCircle className="w-4 h-4 text-teal-400 shrink-0" />
                 <a href={waLink} target="_blank" rel="noreferrer" className="hover:text-white">
                   WhatsApp: {EMPRESA.whatsappFmt}
                 </a>
+                <button
+                  type="button"
+                  onClick={copyWhatsapp}
+                  className="ml-1 text-xs px-2 py-0.5 rounded border border-slate-700 text-slate-300 hover:text-white hover:border-teal-400 transition-colors"
+                  aria-label="Copiar número do WhatsApp"
+                >
+                  Copiar
+                </button>
               </li>
             </ul>
           </div>
