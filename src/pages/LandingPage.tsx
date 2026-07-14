@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { motion } from "framer-motion";
+
 import {
   Rocket, ShieldCheck, TrendingUp, Users, Building2, Headphones,
   Landmark, ShoppingBag, Mail, MapPin, MessageCircle, Instagram,
