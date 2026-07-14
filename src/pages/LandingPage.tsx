@@ -123,7 +123,7 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <div}}}>
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-teal-300 mb-6">
               <ShieldCheck className="w-3.5 h-3.5" /> Soluções que geram resultado
             </span>
@@ -145,14 +145,11 @@ export default function LandingPage() {
                 </Button>
               </a>
             </div>
-          </motion.div>
+          </div>
 
           {/* Form Hero */}
-          <motion.div
-            id="contato"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
+          <div
+            id="contato"}}}
             className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 sm:p-8 shadow-2xl"
           >
             <h2 className="text-xl font-semibold mb-1">Fale com um especialista</h2>
@@ -229,7 +226,7 @@ export default function LandingPage() {
                 <p className="text-sm text-red-400 text-center">Erro ao enviar. Tente novamente ou fale pelo WhatsApp.</p>
               )}
             </form>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -242,12 +239,8 @@ export default function LandingPage() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {segmentos.map((s, i) => (
-              <motion.div
-                key={s.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
+              <div
+                key={s.title}}}}}
                 className="p-6 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-teal-400/30 transition-all group"
               >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-teal-500/20 to-blue-500/20 border border-white/10 grid place-items-center mb-4 group-hover:scale-110 transition-transform">
@@ -255,7 +248,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-semibold text-lg">{s.title}</h3>
                 <p className="text-sm text-slate-400 mt-1">{s.desc}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
