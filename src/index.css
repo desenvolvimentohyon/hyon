@@ -303,19 +303,23 @@
 
 
   .kpi-card {
-    @apply bg-card border rounded-lg p-5 transition-all duration-200;
+    @apply bg-card border rounded-xl p-5 transition-all duration-200;
     border-color: hsl(var(--border));
+    box-shadow: var(--shadow-card);
   }
   .kpi-card:hover {
-    border-color: hsl(var(--primary) / 0.28);
-    transform: translateY(-1px);
+    border-color: hsl(var(--foreground) / 0.14);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
   }
 
   .neon-border {
     border-color: hsl(var(--border));
+    transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
   }
   .neon-border:hover {
-    border-color: hsl(var(--primary) / 0.28);
+    border-color: hsl(var(--foreground) / 0.16);
+    box-shadow: var(--shadow-card-hover);
   }
 
 
@@ -330,13 +334,14 @@
   }
 
   .list-row {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg border bg-card cursor-pointer transition-all duration-150;
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl border bg-card cursor-pointer transition-all duration-200;
     border-color: hsl(var(--border));
   }
   .list-row:hover {
-    background-color: hsl(var(--accent) / 0.55);
-    border-color: hsl(var(--primary) / 0.25);
-    transform: translateX(2px);
+    background-color: hsl(var(--accent) / 0.5);
+    border-color: hsl(var(--foreground) / 0.14);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
   }
 
   .domain-border-left {
