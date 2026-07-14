@@ -340,7 +340,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="border-t border-white/5 py-6 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} Sua Empresa. Todos os direitos reservados.
+          © {new Date().getFullYear()} Hyon Tecnologia. Todos os direitos reservados.
         </div>
       </footer>
     </div>
