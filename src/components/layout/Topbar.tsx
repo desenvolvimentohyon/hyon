@@ -228,20 +228,50 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 sm:gap-3 bg-background/60 backdrop-blur-xl px-2 sm:px-4" style={{ borderBottom: "1px solid hsl(var(--glass-border))" }}>
+    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 sm:gap-3 bg-background/75 backdrop-blur-xl px-2 sm:px-4" style={{ borderBottom: "1px solid hsl(var(--border) / 0.6)" }}>
       <SidebarTrigger className="shrink-0" />
 
-      <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-xl ml-auto">
+      {/* Breadcrumb — desktop only */}
+      {breadcrumb.length > 0 && (
+        <Breadcrumb className="hidden md:flex min-w-0 max-w-[40%]">
+          <BreadcrumbList className="gap-1.5 text-[12px]">
+            {breadcrumb.map((crumb, idx) => {
+              const last = idx === breadcrumb.length - 1;
+              return (
+                <BreadcrumbItem key={`${crumb.label}-${idx}`} className="text-muted-foreground/70">
+                  {last || !crumb.url ? (
+                    <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[220px]">
+                      {crumb.label}
+                    </BreadcrumbPage>
+                  ) : (
+                    <>
+                      <BreadcrumbLink asChild>
+                        <Link to={crumb.url} className="hover:text-foreground transition-colors truncate max-w-[160px] inline-block">
+                          {crumb.label}
+                        </Link>
+                      </BreadcrumbLink>
+                      <BreadcrumbSeparator className="text-muted-foreground/30" />
+                    </>
+                  )}
+                </BreadcrumbItem>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
+      )}
+
+      <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-md ml-auto">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
           <Input
-            placeholder="Buscar..."
+            placeholder="Buscar tarefas, clientes..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="pl-10 pr-3 h-10 bg-muted/40 border-0 rounded-lg focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/30 transition-all focus-glow"
+            className="pl-9 pr-3 h-9 text-[13px] bg-muted/50 border border-transparent rounded-lg placeholder:text-muted-foreground/50 focus-visible:bg-background focus-visible:border-border focus-visible:ring-2 focus-visible:ring-primary/15 transition-all"
           />
         </div>
       </form>
+
 
       <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
         {/* Online/Offline indicator */}
