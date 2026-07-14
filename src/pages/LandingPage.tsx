@@ -600,7 +600,7 @@ export default function LandingPage() {
       {/* SOBRE */}
       <section id="sobre" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center">
-          <div>
+          <Reveal>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Tecnologia que impulsiona negócios.</h2>
             <p className="mt-5 text-slate-300 leading-relaxed">
               A <strong>Hyon Tecnologia</strong> desenvolve soluções completas para gestão empresarial,
@@ -612,20 +612,28 @@ export default function LandingPage() {
               com previsibilidade, segurança e escala.
             </p>
             <div className="mt-6"><CTAWhats msg="Quero conhecer melhor a Hyon Tecnologia.">Conversar com um consultor</CTAWhats></div>
-          </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 gap-3">
-            {DIFERENCIAIS.map((d) => (
-              <div key={d.title}
-                className="p-5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-white/[0.06] transition-all">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB]/25 to-[#7C3AED]/25 border border-white/10 grid place-items-center mb-3">
-                  <d.icon className="w-5 h-5 text-cyan-300" />
-                </div>
-                <div className="font-medium">{d.title}</div>
-              </div>
+            {DIFERENCIAIS.map((d, i) => (
+              <motion.div
+                key={d.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.7, delay: i * 0.07, ease: [0.22,1,0.36,1] }}
+              >
+                <TiltCard intensity={6} className="p-5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-cyan-400/30 hover:bg-white/[0.06] transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB]/25 to-[#7C3AED]/25 border border-white/10 grid place-items-center mb-3">
+                    <d.icon className="w-5 h-5 text-cyan-300" />
+                  </div>
+                  <div className="font-medium">{d.title}</div>
+                </TiltCard>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
+
 
       {/* SOLUÇÕES */}
       <section id="solucoes" className="py-20 border-t border-white/5">
