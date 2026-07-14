@@ -189,7 +189,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-40 backdrop-blur-md bg-[#0B1220]/70 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-16 sm:h-20 w-auto" />
+            <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-10 sm:h-14 md:h-16 lg:h-20 w-auto max-w-[45vw] object-contain" />
           </div>
           <a href="#contato" className="hidden sm:inline text-sm text-slate-300 hover:text-white">
             Falar com especialista →
@@ -388,7 +388,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-24 sm:h-28 w-auto" />
+              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto max-w-[55vw] object-contain" />
             </div>
             <p className="text-sm text-slate-400">Tecnologia e gestão para empresas que querem crescer com previsibilidade.</p>
             <p className="text-xs text-slate-500 mt-3">{EMPRESA.razao}</p>
