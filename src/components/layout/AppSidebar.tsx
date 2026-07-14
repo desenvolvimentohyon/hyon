@@ -336,28 +336,29 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3 pt-2">
-        <Separator className="mb-2 bg-sidebar-border/30" />
-        <div className="space-y-2">
-          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl border border-sidebar-border/30 bg-sidebar-accent/40">
-            <div className="h-8 w-8 rounded-lg bg-sidebar-accent flex items-center justify-center shrink-0 border border-sidebar-border/40">
-              <span className="text-[11px] font-semibold text-sidebar-foreground/70">
+        <Separator className="mb-3 bg-sidebar-border/30" />
+        <div className="space-y-2.5">
+          <div className="flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl border border-sidebar-border/40 bg-sidebar-accent/30 hover:bg-sidebar-accent/50 transition-colors">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-sidebar-accent to-sidebar-accent/60 flex items-center justify-center shrink-0 border border-sidebar-border/50 shadow-sm">
+              <span className="text-[11px] font-semibold text-sidebar-foreground/80 tracking-wide">
                 {initials}
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[12px] font-medium text-sidebar-foreground/80 truncate">
+              <p className="text-[12.5px] font-medium text-sidebar-foreground/90 truncate leading-tight">
                 {currentUser?.nome || profile?.full_name || "Usuário"}
               </p>
-              <p className="text-[10px] text-sidebar-foreground/40 capitalize truncate">
+              <p className="text-[10px] text-sidebar-foreground/45 capitalize truncate mt-0.5 tracking-wide">
                 {profile?.role || "usuário"}
               </p>
             </div>
           </div>
           <div className="text-center">
-            <p className="text-[9px] text-sidebar-foreground/20 font-mono">© 2026 Hyon Tecnologia · v{(() => { try { const d = new Date(__BUILD_TIMESTAMP__); const m = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; return `${String(d.getDate()).padStart(2,'0')}${m} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; } catch { return '1.0'; } })()}</p>
+            <p className="text-[9px] text-sidebar-foreground/25 font-mono tracking-tight">© 2026 Hyon Tecnologia · v{(() => { try { const d = new Date(__BUILD_TIMESTAMP__); const m = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()]; return `${String(d.getDate()).padStart(2,'0')}${m} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; } catch { return '1.0'; } })()}</p>
           </div>
         </div>
       </SidebarFooter>
+
     </Sidebar>
   );
 }
