@@ -304,11 +304,9 @@ export default function LandingPage() {
       <footer className="border-t border-white/5 bg-[#080E1A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-blue-500 grid place-items-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-semibold">Sua Empresa</span>
+            <div className="flex items-center gap-3 mb-4">
+              <img src={hyonLogo.url} alt="Hyon Tecnologia" className="h-8 w-auto" style={{ filter: "invert(1)" }} />
+              <span className="font-semibold">HYON <span className="text-teal-400">TECNOLOGIA</span></span>
             </div>
             <p className="text-sm text-slate-400">Tecnologia e gestão para empresas que querem crescer com previsibilidade.</p>
           </div>
