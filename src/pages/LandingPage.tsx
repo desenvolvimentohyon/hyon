@@ -913,27 +913,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section id="contato" className="py-24 relative overflow-hidden">
+      {/* CTA FINAL — convergência de luz */}
+      <section id="contato" className="py-28 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#06B6D4] opacity-25" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_60%)]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#06B6D4] opacity-30" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(37,211,102,0.28),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.10),transparent_70%)]" />
+          {/* Raios de luz convergentes */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-white/5 cine-aurora" />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-white/10 cine-aurora" style={{ animationDelay: "-6s" }} />
         </div>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Pronto para transformar sua empresa?</h2>
-          <p className="mt-4 text-lg text-slate-300 max-w-2xl mx-auto">
+        <Reveal className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+            Pronto para <span className="cine-gradient-text">transformar</span> sua empresa?
+          </h2>
+          <p className="mt-5 text-lg text-slate-300 max-w-2xl mx-auto">
             Fale agora com um especialista e descubra como a Hyon pode automatizar sua gestão.
           </p>
-          <div className="mt-8 flex justify-center">
-            <a href={waLink("Quero transformar minha empresa com a Hyon!")} target="_blank" rel="noreferrer">
-              <Button size="lg" className="text-base px-8 py-6 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_20px_60px_-15px_rgba(37,211,102,0.7)] animate-pulse">
-                <MessageCircle className="w-5 h-5 mr-2" /> Quero falar no WhatsApp
-              </Button>
-            </a>
-          </div>
-          <p className="mt-4 text-xs text-slate-400">Atendimento humano, resposta rápida.</p>
-        </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} transition={{ duration: 1, delay: 0.2, ease: [0.22,1,0.36,1] }}
+            className="mt-10 flex justify-center"
+          >
+            <Magnetic strength={0.28}>
+              <a href={waLink("Quero transformar minha empresa com a Hyon!")} target="_blank" rel="noreferrer">
+                <Button size="lg" className="cine-btn-shimmer cine-glow-breath text-base px-10 py-7 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white rounded-2xl hover:scale-[1.04] transition-transform">
+                  <MessageCircle className="w-5 h-5 mr-2" /> Falar com um Especialista
+                </Button>
+              </a>
+            </Magnetic>
+          </motion.div>
+          <p className="mt-5 text-xs text-slate-300/80">Atendimento humano, resposta rápida.</p>
+        </Reveal>
       </section>
+
 
       {/* RODAPÉ */}
       <footer className="border-t border-white/5 bg-[#050609]">
