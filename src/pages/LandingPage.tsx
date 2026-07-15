@@ -455,7 +455,9 @@ export default function LandingPage() {
                   {n.label}
                 </a>
               ))}
-              <a href={waLink()} target="_blank" rel="noreferrer" className="mt-2">
+              <a href={waLink("Olá! Vim pelo menu mobile.", "mobile_menu")}
+                 target="_blank" rel="noreferrer" className="mt-2"
+                 onClick={() => handleWaClick("mobile_menu")}>
                 <Button className="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white">
                   <MessageCircle className="w-4 h-4 mr-2" /> Falar no WhatsApp
                 </Button>
