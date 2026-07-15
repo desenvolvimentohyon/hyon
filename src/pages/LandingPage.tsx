@@ -431,11 +431,13 @@ export default function LandingPage() {
             ))}
           </nav>
           <div className="hidden sm:block">
-            <a href={waLink("Quero solicitar uma demonstração da Hyon.")} target="_blank" rel="noreferrer">
-              <Button className="bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:opacity-95 text-white shadow-[0_8px_30px_-8px_rgba(124,58,237,0.6)]">
-                Solicitar Demonstração
-              </Button>
-            </a>
+          <a href={waLink("Quero solicitar uma demonstração da Hyon.", "header_demo")}
+             target="_blank" rel="noreferrer"
+             onClick={() => handleWaClick("header_demo")}>
+            <Button className="bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:opacity-95 text-white shadow-[0_8px_30px_-8px_rgba(124,58,237,0.6)]">
+              Solicitar Demonstração
+            </Button>
+          </a>
           </div>
           <button
             className="lg:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5"
