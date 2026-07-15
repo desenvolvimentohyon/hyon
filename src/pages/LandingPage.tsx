@@ -1104,7 +1104,10 @@ export default function LandingPage() {
               <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Instagram className="w-4 h-4" /></a>
               <a href="#" aria-label="LinkedIn" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Linkedin className="w-4 h-4" /></a>
               <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Facebook className="w-4 h-4" /></a>
-              <a href={waLink()} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/30 grid place-items-center hover:bg-emerald-500/25 transition-all">
+              <a href={waLink("Olá! Vim pelas redes sociais.", "footer_social")}
+                 target="_blank" rel="noreferrer" aria-label="WhatsApp"
+                 onClick={() => handleWaClick("footer_social")}
+                 className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/30 grid place-items-center hover:bg-emerald-500/25 transition-all">
                 <MessageCircle className="w-4 h-4 text-emerald-300" />
               </a>
             </div>
