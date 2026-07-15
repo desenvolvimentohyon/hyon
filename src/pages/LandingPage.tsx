@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import {
   CinematicBackdrop, CursorSpotlight, Reveal, TiltCard, SplashScreen, Magnetic,
 } from "@/pages/landing/CinematicFX";
+import { buildWhatsAppLink, trackWhatsAppClick, getUtmParams } from "@/lib/tracking";
 
 
 /* ---------------- Empresa dinâmica ---------------- */
