@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import {
   CinematicBackdrop, CursorSpotlight, Reveal, TiltCard, SplashScreen, Magnetic,
 } from "@/pages/landing/CinematicFX";
+import { buildWhatsAppLink, trackWhatsAppClick, getUtmParams } from "@/lib/tracking";
 
 
 /* ---------------- Empresa dinâmica ---------------- */
@@ -340,13 +341,24 @@ export default function LandingPage() {
   const waNumber = waDigits.length >= 10 ? waDigits : WA_FALLBACK;
   const waFmt = waDigits.length >= 10 ? (EMPRESA.whatsappFmt || formatPhoneBR(waNumber)) : formatPhoneBR(WA_FALLBACK);
   const waLink = useMemo(
-    () => (msg = "Olá! Gostaria de falar com um especialista da Hyon Tecnologia.") =>
-      `https://wa.me/55${waNumber}?text=${encodeURIComponent(msg)}`,
+    () => (msg = "Olá! Gostaria de falar com um especialista da Hyon Tecnologia.", source = "generic") =>
+      buildWhatsAppLink({ phone: `55${waNumber}`, message: msg, source }),
     [waNumber]
   );
 
+  // Captura UTM na montagem (persiste first-touch)
+  useEffect(() => { getUtmParams(); }, []);
+
+  const handleWaClick = (source: string, extra: Record<string, unknown> = {}) => {
+    trackWhatsAppClick(source, { phone: waNumber, ...extra });
+  };
+
   const copyWhatsapp = async () => {
-    try { await navigator.clipboard.writeText(waFmt); toast.success("WhatsApp copiado!", { description: waFmt }); }
+    try {
+      await navigator.clipboard.writeText(waFmt);
+      toast.success("WhatsApp copiado!", { description: waFmt });
+      handleWaClick("copy_number");
+    }
     catch { toast.error("Não foi possível copiar"); }
   };
 
@@ -356,9 +368,18 @@ export default function LandingPage() {
   const s3 = useCountUp(STATS[3].valor, statsInView);
   const statsAnim = [s0, s1, s2, s3];
 
-  const CTAWhats = ({ children = "Falar com um especialista", msg }: { children?: React.ReactNode; msg?: string }) => (
+  const CTAWhats = ({
+    children = "Falar com um especialista",
+    msg,
+    source = "cta_whats",
+  }: { children?: React.ReactNode; msg?: string; source?: string }) => (
     <Magnetic strength={0.18}>
-      <a href={waLink(msg)} target="_blank" rel="noreferrer">
+      <a
+        href={waLink(msg, source)}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => handleWaClick(source, { message: msg })}
+      >
         <Button
           size="lg"
           className="cine-btn-shimmer bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(37,211,102,0.85)] hover:scale-[1.02] transition-all"
@@ -368,6 +389,7 @@ export default function LandingPage() {
       </a>
     </Magnetic>
   );
+
 
   return (
     <div className="dark min-h-screen bg-[#09090B] text-slate-100 font-sans antialiased [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white">
@@ -382,7 +404,10 @@ export default function LandingPage() {
       <div className="relative z-40 text-center text-xs sm:text-sm py-2 px-4 bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#06B6D4] text-white">
         <Sparkles className="inline w-3.5 h-3.5 mr-1.5 -mt-0.5" />
         Implantação com desconto por tempo limitado —
-        <a href={waLink("Quero aproveitar o desconto na implantação!")} className="underline underline-offset-2 font-semibold ml-1">
+        <a href={waLink("Quero aproveitar o desconto na implantação!", "promo_banner")}
+           target="_blank" rel="noreferrer"
+           onClick={() => handleWaClick("promo_banner")}
+           className="underline underline-offset-2 font-semibold ml-1">
           fale com um especialista
         </a>
       </div>
@@ -406,11 +431,13 @@ export default function LandingPage() {
             ))}
           </nav>
           <div className="hidden sm:block">
-            <a href={waLink("Quero solicitar uma demonstração da Hyon.")} target="_blank" rel="noreferrer">
-              <Button className="bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:opacity-95 text-white shadow-[0_8px_30px_-8px_rgba(124,58,237,0.6)]">
-                Solicitar Demonstração
-              </Button>
-            </a>
+          <a href={waLink("Quero solicitar uma demonstração da Hyon.", "header_demo")}
+             target="_blank" rel="noreferrer"
+             onClick={() => handleWaClick("header_demo")}>
+            <Button className="bg-gradient-to-r from-[#2563EB] to-[#7C3AED] hover:opacity-95 text-white shadow-[0_8px_30px_-8px_rgba(124,58,237,0.6)]">
+              Solicitar Demonstração
+            </Button>
+          </a>
           </div>
           <button
             className="lg:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5"
@@ -428,7 +455,9 @@ export default function LandingPage() {
                   {n.label}
                 </a>
               ))}
-              <a href={waLink()} target="_blank" rel="noreferrer" className="mt-2">
+              <a href={waLink("Olá! Vim pelo menu mobile.", "mobile_menu")}
+                 target="_blank" rel="noreferrer" className="mt-2"
+                 onClick={() => handleWaClick("mobile_menu")}>
                 <Button className="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white">
                   <MessageCircle className="w-4 h-4 mr-2" /> Falar no WhatsApp
                 </Button>
@@ -723,7 +752,9 @@ export default function LandingPage() {
                   </div>
                   <h3 className="font-semibold text-base">{s.title}</h3>
                   <p className="text-sm text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
-                  <a href={waLink(`Quero saber mais sobre: ${s.title}.`)} target="_blank" rel="noreferrer"
+                  <a href={waLink(`Quero saber mais sobre: ${s.title}.`, `solucao_${s.title}`)}
+                     target="_blank" rel="noreferrer"
+                     onClick={() => handleWaClick("solucao_card", { solucao: s.title })}
                      className="mt-4 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1 group/link">
                     Saiba mais <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-1" />
                   </a>
@@ -802,7 +833,10 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`)} target="_blank" rel="noreferrer" className="block mt-7">
+                  <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`, `plano_${p.nome}`)}
+                     target="_blank" rel="noreferrer"
+                     onClick={() => handleWaClick("plano_cta", { plano: p.nome })}
+                     className="block mt-7">
                     <Button className={`w-full cine-btn-shimmer ${
                       p.destaque
                         ? "bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)]"
@@ -868,7 +902,9 @@ export default function LandingPage() {
                   <s.icon className="w-5 h-5 text-cyan-300" />
                 </div>
                 <h3 className="font-semibold">{s.title}</h3>
-                <a href={waLink(`Quero um orçamento para: ${s.title}.`)} target="_blank" rel="noreferrer"
+                <a href={waLink(`Quero um orçamento para: ${s.title}.`, `servico_${s.title}`)}
+                   target="_blank" rel="noreferrer"
+                   onClick={() => handleWaClick("servico_adicional", { servico: s.title })}
                    className="mt-3 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1">
                   Solicitar orçamento <ArrowRight className="w-3.5 h-3.5" />
                 </a>
@@ -999,7 +1035,9 @@ export default function LandingPage() {
             className="mt-10 flex justify-center"
           >
             <Magnetic strength={0.28}>
-              <a href={waLink("Quero transformar minha empresa com a Hyon!")} target="_blank" rel="noreferrer">
+              <a href={waLink("Quero transformar minha empresa com a Hyon!", "cta_final")}
+                 target="_blank" rel="noreferrer"
+                 onClick={() => handleWaClick("cta_final")}>
                 <Button size="lg" className="cine-btn-shimmer cine-glow-breath text-base px-10 py-7 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white rounded-2xl hover:scale-[1.04] transition-transform">
                   <MessageCircle className="w-5 h-5 mr-2" /> Falar com um Especialista
                 </Button>
@@ -1037,7 +1075,10 @@ export default function LandingPage() {
               </li>
               <li className="flex items-center gap-2 flex-wrap">
                 <MessageCircle className="w-4 h-4 text-cyan-400 shrink-0" />
-                <a href={waLink()} target="_blank" rel="noreferrer" className="hover:text-white">WhatsApp: {waFmt}</a>
+                <a href={waLink("Olá, quero falar com a Hyon.", "footer_link")}
+                   target="_blank" rel="noreferrer"
+                   onClick={() => handleWaClick("footer_link")}
+                   className="hover:text-white">WhatsApp: {waFmt}</a>
                 <button type="button" onClick={copyWhatsapp}
                   className="text-xs px-2 py-0.5 rounded border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-400 transition-colors">
                   Copiar
@@ -1063,7 +1104,10 @@ export default function LandingPage() {
               <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Instagram className="w-4 h-4" /></a>
               <a href="#" aria-label="LinkedIn" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Linkedin className="w-4 h-4" /></a>
               <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Facebook className="w-4 h-4" /></a>
-              <a href={waLink()} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/30 grid place-items-center hover:bg-emerald-500/25 transition-all">
+              <a href={waLink("Olá! Vim pelas redes sociais.", "footer_social")}
+                 target="_blank" rel="noreferrer" aria-label="WhatsApp"
+                 onClick={() => handleWaClick("footer_social")}
+                 className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/30 grid place-items-center hover:bg-emerald-500/25 transition-all">
                 <MessageCircle className="w-4 h-4 text-emerald-300" />
               </a>
             </div>
@@ -1080,7 +1124,9 @@ export default function LandingPage() {
 
       {/* Botão flutuante WhatsApp */}
       <a
-        href={waLink()} target="_blank" rel="noreferrer"
+        href={waLink("Olá! Vim pelo botão flutuante do site.", "floating_button")}
+        target="_blank" rel="noreferrer"
+        onClick={() => handleWaClick("floating_button")}
         className="fixed bottom-5 right-5 z-50 group"
         aria-label="Falar no WhatsApp"
       >
