@@ -902,7 +902,9 @@ export default function LandingPage() {
                   <s.icon className="w-5 h-5 text-cyan-300" />
                 </div>
                 <h3 className="font-semibold">{s.title}</h3>
-                <a href={waLink(`Quero um orçamento para: ${s.title}.`)} target="_blank" rel="noreferrer"
+                <a href={waLink(`Quero um orçamento para: ${s.title}.`, `servico_${s.title}`)}
+                   target="_blank" rel="noreferrer"
+                   onClick={() => handleWaClick("servico_adicional", { servico: s.title })}
                    className="mt-3 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1">
                   Solicitar orçamento <ArrowRight className="w-3.5 h-3.5" />
                 </a>
