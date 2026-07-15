@@ -1035,7 +1035,9 @@ export default function LandingPage() {
             className="mt-10 flex justify-center"
           >
             <Magnetic strength={0.28}>
-              <a href={waLink("Quero transformar minha empresa com a Hyon!")} target="_blank" rel="noreferrer">
+              <a href={waLink("Quero transformar minha empresa com a Hyon!", "cta_final")}
+                 target="_blank" rel="noreferrer"
+                 onClick={() => handleWaClick("cta_final")}>
                 <Button size="lg" className="cine-btn-shimmer cine-glow-breath text-base px-10 py-7 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white rounded-2xl hover:scale-[1.04] transition-transform">
                   <MessageCircle className="w-5 h-5 mr-2" /> Falar com um Especialista
                 </Button>
