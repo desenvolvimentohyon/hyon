@@ -833,7 +833,10 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`)} target="_blank" rel="noreferrer" className="block mt-7">
+                  <a href={waLink(`Tenho interesse no plano ${p.nome} da Hyon.`, `plano_${p.nome}`)}
+                     target="_blank" rel="noreferrer"
+                     onClick={() => handleWaClick("plano_cta", { plano: p.nome })}
+                     className="block mt-7">
                     <Button className={`w-full cine-btn-shimmer ${
                       p.destaque
                         ? "bg-gradient-to-r from-[#25D366] to-[#128C7E] text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)]"
