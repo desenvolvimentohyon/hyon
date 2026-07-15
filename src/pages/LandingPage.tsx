@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import {
   CinematicBackdrop, CursorSpotlight, Reveal, TiltCard, SplashScreen, Magnetic,
 } from "@/pages/landing/CinematicFX";
+import PlanBuilder from "@/pages/landing/PlanBuilder";
 import { buildWhatsAppLink, trackWhatsAppClick, getUtmParams } from "@/lib/tracking";
 
 
@@ -797,9 +798,18 @@ export default function LandingPage() {
       <section id="planos" className="py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <Reveal className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs uppercase tracking-widest text-violet-300">Planos</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Escolha o plano ideal para o seu momento</h2>
-            <p className="mt-3 text-slate-400">Comece pequeno, cresça sem limites.</p>
+            <span className="text-xs uppercase tracking-widest text-violet-300">Monte seu plano</span>
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight">Um plano feito sob medida para o seu negócio</h2>
+            <p className="mt-3 text-slate-400">Escolha o segmento, selecione os módulos e receba sua proposta na hora.</p>
+          </Reveal>
+
+          <div className="mb-16">
+            <PlanBuilder waNumber={waNumber} />
+          </div>
+
+          <Reveal className="text-center max-w-2xl mx-auto mb-8">
+            <span className="text-xs uppercase tracking-widest text-cyan-300">Planos prontos</span>
+            <h3 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight">Ou comece com um plano padrão</h3>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-5">
             {PLANOS.map((p, i) => (
