@@ -341,13 +341,24 @@ export default function LandingPage() {
   const waNumber = waDigits.length >= 10 ? waDigits : WA_FALLBACK;
   const waFmt = waDigits.length >= 10 ? (EMPRESA.whatsappFmt || formatPhoneBR(waNumber)) : formatPhoneBR(WA_FALLBACK);
   const waLink = useMemo(
-    () => (msg = "Olá! Gostaria de falar com um especialista da Hyon Tecnologia.") =>
-      `https://wa.me/55${waNumber}?text=${encodeURIComponent(msg)}`,
+    () => (msg = "Olá! Gostaria de falar com um especialista da Hyon Tecnologia.", source = "generic") =>
+      buildWhatsAppLink({ phone: `55${waNumber}`, message: msg, source }),
     [waNumber]
   );
 
+  // Captura UTM na montagem (persiste first-touch)
+  useEffect(() => { getUtmParams(); }, []);
+
+  const handleWaClick = (source: string, extra: Record<string, unknown> = {}) => {
+    trackWhatsAppClick(source, { phone: waNumber, ...extra });
+  };
+
   const copyWhatsapp = async () => {
-    try { await navigator.clipboard.writeText(waFmt); toast.success("WhatsApp copiado!", { description: waFmt }); }
+    try {
+      await navigator.clipboard.writeText(waFmt);
+      toast.success("WhatsApp copiado!", { description: waFmt });
+      handleWaClick("copy_number");
+    }
     catch { toast.error("Não foi possível copiar"); }
   };
 
@@ -357,9 +368,18 @@ export default function LandingPage() {
   const s3 = useCountUp(STATS[3].valor, statsInView);
   const statsAnim = [s0, s1, s2, s3];
 
-  const CTAWhats = ({ children = "Falar com um especialista", msg }: { children?: React.ReactNode; msg?: string }) => (
+  const CTAWhats = ({
+    children = "Falar com um especialista",
+    msg,
+    source = "cta_whats",
+  }: { children?: React.ReactNode; msg?: string; source?: string }) => (
     <Magnetic strength={0.18}>
-      <a href={waLink(msg)} target="_blank" rel="noreferrer">
+      <a
+        href={waLink(msg, source)}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => handleWaClick(source, { message: msg })}
+      >
         <Button
           size="lg"
           className="cine-btn-shimmer bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:opacity-95 text-white shadow-[0_10px_40px_-10px_rgba(37,211,102,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(37,211,102,0.85)] hover:scale-[1.02] transition-all"
@@ -369,6 +389,7 @@ export default function LandingPage() {
       </a>
     </Magnetic>
   );
+
 
   return (
     <div className="dark min-h-screen bg-[#09090B] text-slate-100 font-sans antialiased [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white">
