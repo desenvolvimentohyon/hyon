@@ -1883,6 +1883,57 @@ export type Database = {
           },
         ]
       }
+      landing_plan_leads: {
+        Row: {
+          contact_company: string | null
+          contact_email: string | null
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          id: string
+          modules: Json
+          monthly_total: number
+          observacoes: string | null
+          segment: string
+          setup_total: number
+          status: string
+          updated_at: string
+          utm: Json | null
+        }
+        Insert: {
+          contact_company?: string | null
+          contact_email?: string | null
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          id?: string
+          modules?: Json
+          monthly_total?: number
+          observacoes?: string | null
+          segment: string
+          setup_total?: number
+          status?: string
+          updated_at?: string
+          utm?: Json | null
+        }
+        Update: {
+          contact_company?: string | null
+          contact_email?: string | null
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          id?: string
+          modules?: Json
+          monthly_total?: number
+          observacoes?: string | null
+          segment?: string
+          setup_total?: number
+          status?: string
+          updated_at?: string
+          utm?: Json | null
+        }
+        Relationships: []
+      }
       monthly_adjustments: {
         Row: {
           adjustment_date: string
