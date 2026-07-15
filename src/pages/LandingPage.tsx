@@ -1124,7 +1124,9 @@ export default function LandingPage() {
 
       {/* Botão flutuante WhatsApp */}
       <a
-        href={waLink()} target="_blank" rel="noreferrer"
+        href={waLink("Olá! Vim pelo botão flutuante do site.", "floating_button")}
+        target="_blank" rel="noreferrer"
+        onClick={() => handleWaClick("floating_button")}
         className="fixed bottom-5 right-5 z-50 group"
         aria-label="Falar no WhatsApp"
       >
