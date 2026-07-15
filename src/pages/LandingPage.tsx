@@ -1075,7 +1075,10 @@ export default function LandingPage() {
               </li>
               <li className="flex items-center gap-2 flex-wrap">
                 <MessageCircle className="w-4 h-4 text-cyan-400 shrink-0" />
-                <a href={waLink()} target="_blank" rel="noreferrer" className="hover:text-white">WhatsApp: {waFmt}</a>
+                <a href={waLink("Olá, quero falar com a Hyon.", "footer_link")}
+                   target="_blank" rel="noreferrer"
+                   onClick={() => handleWaClick("footer_link")}
+                   className="hover:text-white">WhatsApp: {waFmt}</a>
                 <button type="button" onClick={copyWhatsapp}
                   className="text-xs px-2 py-0.5 rounded border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-400 transition-colors">
                   Copiar
