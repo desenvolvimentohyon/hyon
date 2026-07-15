@@ -499,7 +499,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 40, rotateX: 20 }}
             animate={{ opacity: 1, y: 0, rotateX: 0 }}
             transition={{ duration: 1.2, ease: [0.22,1,0.36,1], delay: 0.2 }}
-            className="lg:col-span-5"
+            className="lg:col-span-5 relative"
             style={{ perspective: 1400 }}
           >
             <TiltCard intensity={10} className="relative mx-auto max-w-lg rounded-[24px]">
@@ -570,7 +570,70 @@ export default function LandingPage() {
                 <Zap className="w-4 h-4 text-yellow-300" /> Sincronização em tempo real
               </motion.div>
             </TiltCard>
+
+            {/* Tablet flutuante girando — mesma iluminação/tilt do notebook */}
+            <motion.div
+              initial={{ opacity: 0, y: 60, rotateY: -30 }}
+              animate={{ opacity: 1, y: 0, rotateY: 0 }}
+              transition={{ duration: 1.4, ease: [0.22,1,0.36,1], delay: 0.6 }}
+              className="hidden md:block absolute -bottom-16 -right-4 lg:-right-10 w-[190px] lg:w-[220px] z-20"
+              style={{ perspective: 1200 }}
+            >
+              <motion.div
+                animate={{ rotateY: [-14, 14, -14], rotateX: [4, -4, 4], y: [0, -10, 0] }}
+                transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="relative"
+              >
+                {/* aurora glow igual ao notebook */}
+                <div className="absolute -inset-5 bg-gradient-to-br from-[#2563EB]/40 via-[#7C3AED]/40 to-[#06B6D4]/40 blur-3xl rounded-[28px] cine-aurora" style={{ animationDelay: "-6s" }} />
+                {/* moldura do tablet */}
+                <div className="relative rounded-[22px] border border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-xl p-2 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.75)]">
+                  <div className="rounded-[16px] bg-[#0B1220] border border-white/5 p-3 space-y-2 aspect-[3/4] overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <div className="text-[9px] text-slate-400">Hyon Mobile</div>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    </div>
+                    <div className="rounded-lg bg-white/[0.03] border border-white/10 p-2">
+                      <div className="text-[8px] text-slate-400">Recebido hoje</div>
+                      <div className="text-xs font-semibold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent tabular-nums">R$ 12.480</div>
+                    </div>
+                    <div className="h-16 rounded-lg bg-gradient-to-tr from-[#2563EB]/25 via-[#7C3AED]/25 to-[#06B6D4]/25 border border-white/10 relative overflow-hidden">
+                      <svg viewBox="0 0 100 60" className="absolute inset-0 w-full h-full">
+                        <polyline fill="none" stroke="url(#gt)" strokeWidth="1.8"
+                          points="0,45 12,38 24,42 36,26 48,30 60,18 72,24 84,10 100,16" />
+                        <defs>
+                          <linearGradient id="gt" x1="0" x2="1">
+                            <stop offset="0%" stopColor="#60A5FA" />
+                            <stop offset="100%" stopColor="#22D3EE" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                    <div className="space-y-1.5">
+                      {[
+                        { i: Receipt, l: "NFe #4219", c: "text-cyan-300" },
+                        { i: Zap, l: "PIX confirmado", c: "text-yellow-300" },
+                        { i: ShieldCheck, l: "Backup ok", c: "text-emerald-300" },
+                      ].map((r, idx) => {
+                        const Ico = r.i;
+                        return (
+                          <div key={idx} className="rounded-md bg-white/[0.03] border border-white/10 p-1.5 text-[9px] text-slate-300 flex items-center gap-1.5">
+                            <Ico className={`w-3 h-3 ${r.c}`} /> {r.l}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {/* speaker */}
+                  <div className="absolute top-1/2 -translate-y-1/2 left-1 w-[3px] h-8 rounded-full bg-white/10" />
+                </div>
+                {/* reflexo/shine */}
+                <span className="pointer-events-none absolute inset-0 rounded-[22px] bg-[radial-gradient(120%_60%_at_20%_0%,rgba(255,255,255,0.18),transparent_60%)]" />
+              </motion.div>
+            </motion.div>
           </motion.div>
+
         </div>
       </section>
 
