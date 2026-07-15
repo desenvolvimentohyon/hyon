@@ -752,7 +752,9 @@ export default function LandingPage() {
                   </div>
                   <h3 className="font-semibold text-base">{s.title}</h3>
                   <p className="text-sm text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
-                  <a href={waLink(`Quero saber mais sobre: ${s.title}.`)} target="_blank" rel="noreferrer"
+                  <a href={waLink(`Quero saber mais sobre: ${s.title}.`, `solucao_${s.title}`)}
+                     target="_blank" rel="noreferrer"
+                     onClick={() => handleWaClick("solucao_card", { solucao: s.title })}
                      className="mt-4 inline-flex items-center text-sm text-cyan-300 hover:text-white gap-1 group/link">
                     Saiba mais <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-1" />
                   </a>
