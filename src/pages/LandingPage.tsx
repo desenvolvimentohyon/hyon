@@ -404,7 +404,10 @@ export default function LandingPage() {
       <div className="relative z-40 text-center text-xs sm:text-sm py-2 px-4 bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#06B6D4] text-white">
         <Sparkles className="inline w-3.5 h-3.5 mr-1.5 -mt-0.5" />
         Implantação com desconto por tempo limitado —
-        <a href={waLink("Quero aproveitar o desconto na implantação!")} className="underline underline-offset-2 font-semibold ml-1">
+        <a href={waLink("Quero aproveitar o desconto na implantação!", "promo_banner")}
+           target="_blank" rel="noreferrer"
+           onClick={() => handleWaClick("promo_banner")}
+           className="underline underline-offset-2 font-semibold ml-1">
           fale com um especialista
         </a>
       </div>
