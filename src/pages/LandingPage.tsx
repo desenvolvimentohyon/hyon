@@ -833,9 +833,9 @@ export default function LandingPage() {
                   <div className="text-lg font-semibold">{p.nome}</div>
                   <div className="text-sm text-slate-400 mt-0.5">{p.subtitulo}</div>
                   <div className="mt-5 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold cine-gradient-text">{p.preco}</span>
-                    {p.periodo && <span className="text-slate-400 text-sm">{p.periodo}</span>}
+                    <span className="text-2xl font-bold cine-gradient-text">Sob consulta</span>
                   </div>
+
                   <ul className="mt-6 space-y-2.5">
                     {p.recursos.map((r) => (
                       <li key={r} className="flex items-start gap-2 text-sm text-slate-300">
