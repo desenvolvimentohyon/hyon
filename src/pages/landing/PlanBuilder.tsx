@@ -117,8 +117,8 @@ export default function PlanBuilder({ waNumber }: Props) {
         `Olá! Montei um plano no site da Hyon:`,
         `• Segmento: ${segment.label}`,
         `• Módulos: ${modulesPayload.map(m => m.label).join(", ") || "Nenhum extra"}`,
-        `• Mensalidade estimada: ${BRL(totals.month)}/mês`,
-        `• Implantação estimada: ${BRL(totals.setup)}`,
+        `• Gostaria de receber uma proposta personalizada.`,
+
         ``,
         `Meus dados: ${form.nome}${form.empresa ? " — " + form.empresa : ""} | ${form.telefone}${form.email ? " | " + form.email : ""}`,
         form.obs ? `Obs: ${form.obs}` : "",
