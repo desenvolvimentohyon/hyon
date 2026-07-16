@@ -189,7 +189,7 @@ export default function PlanBuilder({ waNumber }: Props) {
                     <s.icon className="w-5 h-5 text-cyan-300" />
                   </div>
                   <div className="font-semibold text-white">{s.label}</div>
-                  <div className="text-xs text-slate-400 mt-1">A partir de {BRL(s.basePriceMonth)}/mês</div>
+                  <div className="text-xs text-slate-400 mt-1">Solução personalizada</div>
                   <ArrowRight className="absolute top-4 right-4 w-4 h-4 text-slate-500 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all" />
                 </motion.button>
               ))}
