@@ -153,8 +153,10 @@ Deno.serve(async (req) => {
         full_name: fullName,
         role: dbRole,
         custom_role_id: customRoleId,
+        phone,
         is_active: true,
       }, { onConflict: "id" });
+
 
     if (upsertErr) {
       return json({ error: "Convite enviado, mas falha ao vincular profile: " + upsertErr.message }, 500);
