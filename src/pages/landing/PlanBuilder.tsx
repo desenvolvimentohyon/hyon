@@ -259,15 +259,8 @@ export default function PlanBuilder({ waNumber }: Props) {
               <aside className="lg:sticky lg:top-6 h-fit p-5 rounded-2xl border border-violet-400/30 bg-gradient-to-b from-violet-500/10 to-cyan-500/5 backdrop-blur-md">
                 <div className="text-xs uppercase tracking-widest text-violet-300">Seu plano</div>
                 <div className="mt-3 pb-3 border-b border-white/10">
-                  <div className="text-sm text-slate-400">Base ({segment.label})</div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-slate-300">Mensalidade</span>
-                    <span className="text-white font-medium">{BRL(segment.basePriceMonth)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-300">Implantação</span>
-                    <span className="text-white font-medium">{BRL(segment.baseSetup)}</span>
-                  </div>
+                  <div className="text-sm text-slate-400">Base</div>
+                  <div className="text-white font-medium mt-1">{segment.label}</div>
                 </div>
                 <div className="mt-3 pb-3 border-b border-white/10">
                   <div className="text-sm text-slate-400 mb-1">Módulos ({selected.size})</div>
@@ -276,24 +269,21 @@ export default function PlanBuilder({ waNumber }: Props) {
                     : Array.from(selected).map(id => {
                         const m = MODULOS.find(x => x.id === id)!;
                         return (
-                          <div key={id} className="flex justify-between text-xs py-0.5">
-                            <span className="text-slate-300 truncate pr-2">{m.label}</span>
-                            <span className="text-slate-400 shrink-0">{BRL(m.priceMonth)}</span>
+                          <div key={id} className="text-xs py-0.5 text-slate-300 truncate">
+                            {m.label}
                           </div>
                         );
                       })
                   }
                 </div>
-                <div className="mt-4 space-y-1">
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-slate-300">Total mensal</span>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">{BRL(totals.month)}</span>
+                <div className="mt-4">
+                  <div className="text-sm text-slate-300">Valor</div>
+                  <div className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent mt-1">
+                    Sob consulta
                   </div>
-                  <div className="flex justify-between text-xs text-slate-400">
-                    <span>Implantação (única)</span>
-                    <span>{BRL(totals.setup)}</span>
-                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Envie sua seleção e retornamos com uma proposta personalizada.</p>
                 </div>
+
                 <Button onClick={() => setStep(3)} className="w-full mt-5 bg-gradient-to-r from-[#2563EB] to-[#7C3AED] text-white shadow-[0_10px_30px_-10px_rgba(124,58,237,0.6)]">
                   Continuar <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
