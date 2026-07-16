@@ -247,10 +247,7 @@ export default function PlanBuilder({ waNumber }: Props) {
                             </div>
                           </div>
                           <p className="text-xs text-slate-400 mt-1 line-clamp-2">{m.desc}</p>
-                          <div className="mt-2 flex items-baseline gap-2 text-xs">
-                            <span className="text-cyan-300 font-semibold">{BRL(m.priceMonth)}/mês</span>
-                            <span className="text-slate-500">+ {BRL(m.setup)} implantação</span>
-                          </div>
+
                         </div>
                       </div>
                     </button>
