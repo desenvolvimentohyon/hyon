@@ -643,7 +643,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="flex items-end justify-between gap-2">
-                  <p className="font-display text-[22px] lg:text-[26px] font-normal tracking-[-0.02em] leading-none text-foreground">
+                  <p className="text-[22px] lg:text-[26px] font-bold tabular-nums tracking-[-0.02em] leading-none text-foreground">
                     {k.value}
                   </p>
                   <Sparkline data={k.spark} color={k.color} height={28} />
