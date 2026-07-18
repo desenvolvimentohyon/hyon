@@ -296,6 +296,36 @@ export default function UsuariosConfig() {
                 </SelectContent>
               </Select>
             </div>
+            {!editingUser && (
+              <div className="rounded-lg border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={formUser.definirSenha}
+                      onCheckedChange={v => setFormUser(p => ({ ...p, definirSenha: v, password: v ? p.password : "" }))}
+                    />
+                    <Label className="cursor-pointer">Definir senha agora</Label>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {formUser.definirSenha ? "Usuário já acessa sem confirmar e-mail" : "Convite será enviado por e-mail"}
+                  </span>
+                </div>
+                {formUser.definirSenha && (
+                  <div>
+                    <Label>Senha *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        value={formUser.password}
+                        onChange={e => setFormUser(p => ({ ...p, password: e.target.value }))}
+                        placeholder="Mínimo 6 caracteres"
+                      />
+                      <Button type="button" variant="outline" onClick={generatePassword}>Gerar</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Switch checked={formUser.ativo} onCheckedChange={v => setFormUser(p => ({ ...p, ativo: v }))} />
               <Label>Usuário ativo</Label>
