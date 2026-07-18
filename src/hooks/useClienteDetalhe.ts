@@ -143,12 +143,18 @@ export function useClienteDetalhe(clienteId: string | null) {
 
   const updateCliente = useCallback(async (changes: Partial<ClienteFull>) => {
     if (!clienteId) return false;
+    // Optimistic: aplica localmente antes do round-trip
+    setCliente(prev => prev ? ({ ...prev, ...changes, metadata: { ...(prev as any).metadata, ...((changes as any).metadata || {}) } }) as any : prev);
     const { error } = await supabase.from("clients").update(changes as any).eq("id", clienteId);
-    if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); return false; }
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+      fetchCliente(); // rollback via refetch
+      return false;
+    }
     toast({ title: "Salvo com sucesso!" });
-    fetchCliente();
     return true;
   }, [clienteId, fetchCliente]);
+
 
   const addContact = useCallback(async (contact: Omit<ClienteContact, "id" | "org_id" | "client_id" | "created_at" | "updated_at">) => {
     if (!clienteId || !orgId) return;
