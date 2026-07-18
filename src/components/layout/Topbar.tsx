@@ -317,7 +317,7 @@ export function Topbar() {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-96 p-0 rounded-xl shadow-elevated" align="end" sideOffset={8}>
+          <PopoverContent className="w-[calc(100vw-1rem)] sm:w-96 p-0 rounded-xl shadow-elevated" align="end" sideOffset={8}>
             <div className="px-4 py-3 border-b">
               <h4 className="font-semibold text-sm">Notificações</h4>
               <p className="text-xs text-muted-foreground">
