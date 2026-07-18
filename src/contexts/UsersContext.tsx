@@ -206,7 +206,11 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
       toast.error((data as any).error);
       throw new Error((data as any).error);
     }
-    toast.success("Usuário desativado!");
+    if ((data as any)?.already_inactive) {
+      toast.success("Usuário já estava inativo; bloqueio de acesso confirmado.");
+    } else {
+      toast.success("Usuário desativado!");
+    }
     fetchAll();
   }, [fetchAll]);
 

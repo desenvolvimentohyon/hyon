@@ -160,6 +160,15 @@ Deno.serve(async (req) => {
       }
     }
 
+    const { error: reactivateAuthErr } = await supabaseAdmin.auth.admin.updateUserById(targetUserId, {
+      ban_duration: "none",
+      user_metadata: { full_name: fullName },
+    });
+
+    if (reactivateAuthErr) {
+      return json({ error: "Usuário localizado, mas não foi possível liberar o acesso: " + reactivateAuthErr.message }, 500);
+    }
+
     const { error: upsertErr } = await supabaseAdmin
       .from("profiles")
       .upsert({
