@@ -15,6 +15,7 @@ interface InviteBody {
   role?: string;
   custom_role_id?: string | null;
   phone?: string;
+  password?: string;
 }
 
 const DEFAULT_ROLES = new Set([
