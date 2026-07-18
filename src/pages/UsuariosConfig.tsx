@@ -255,7 +255,7 @@ export default function UsuariosConfig() {
                       </CardTitle>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditRole(r.id)}><Pencil className="h-3.5 w-3.5" /></Button>
-                        {!r.sistema && <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { deleteRole(r.id); toast.success("Perfil removido"); }}><Trash2 className="h-3.5 w-3.5" /></Button>}
+                        {!r.sistema && <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setRoleToDelete(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>}
                       </div>
                     </div>
                     <CardDescription>{r.descricao}</CardDescription>
