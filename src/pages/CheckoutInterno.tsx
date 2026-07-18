@@ -61,7 +61,7 @@ export default function CheckoutInterno() {
       supabase.from("plans").select("id, name, discount_percent").eq("active", true),
       supabase.from("system_modules").select("id, name, sale_value, system_id, is_global").eq("active", true),
       supabase.from("deployment_regions").select("id, name, base_value, additional_fee").eq("active", true),
-      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate").limit(1).single(),
+      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate").limit(1).maybeSingle(),
     ]);
     setSystems(sys || []);
     setPlans(pln || []);
