@@ -164,9 +164,11 @@ export default function Parceiros() {
       if (error) { toast.error("Erro: " + error.message); return; }
       toast.success("Parceiro atualizado!");
     } else {
-      const { data: org } = await supabase.from("organizations").select("id").limit(1).single();
-      if (!org) { toast.error("Organização não encontrada"); return; }
-      const { error } = await supabase.from("partners").insert({ ...payload, org_id: org.id });
+      const { data: authUser } = await supabase.auth.getUser();
+      if (!authUser.user) { toast.error("Não autenticado"); return; }
+      const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", authUser.user.id).maybeSingle();
+      if (!profile?.org_id) { toast.error("Organização não encontrada"); return; }
+      const { error } = await supabase.from("partners").insert({ ...payload, org_id: profile.org_id });
       if (error) { toast.error("Erro: " + error.message); return; }
       toast.success("Parceiro criado!");
     }

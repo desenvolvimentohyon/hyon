@@ -61,7 +61,7 @@ export default function CheckoutInterno() {
       supabase.from("plans").select("id, name, discount_percent").eq("active", true),
       supabase.from("system_modules").select("id, name, sale_value, system_id, is_global").eq("active", true),
       supabase.from("deployment_regions").select("id, name, base_value, additional_fee").eq("active", true),
-      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate").limit(1).single(),
+      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate").limit(1).maybeSingle(),
     ]);
     setSystems(sys || []);
     setPlans(pln || []);
@@ -138,7 +138,9 @@ export default function CheckoutInterno() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("org_id").limit(1).single();
+      const { data: authUser } = await supabase.auth.getUser();
+      if (!authUser.user) throw new Error("Não autenticado");
+      const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", authUser.user.id).maybeSingle();
       if (!profile) throw new Error("Perfil não encontrado");
       const orgId = profile.org_id;
 
