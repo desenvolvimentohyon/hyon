@@ -186,9 +186,17 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   }, [fetchAll]);
 
   const deleteUser = useCallback(async (id: string) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      throw new Error("Sessão expirada");
+    }
     const { data, error } = await supabase.functions.invoke("delete-user", {
       body: { user_id: id },
+      headers: { Authorization: `Bearer ${token}` },
     });
+
     if (error) {
       const msg = await getFunctionErrorMessage(error, "Erro ao desativar usuário");
       toast.error(msg);
