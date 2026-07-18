@@ -55,7 +55,7 @@ export default function UsuariosConfig() {
     const u = users.find(x => x.id === id);
     if (!u) return;
     setEditingUser(id);
-    setFormUser({ nome: u.nome, email: u.email, telefone: u.telefone || "", roleId: u.roleId, ativo: u.ativo });
+    setFormUser({ nome: u.nome, email: u.email, telefone: u.telefone || "", roleId: u.roleId, ativo: u.ativo, password: "", definirSenha: false });
     setUserModal(true);
   };
 
