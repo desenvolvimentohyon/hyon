@@ -47,7 +47,7 @@ export default function UsuariosConfig() {
 
   const openNewUser = () => {
     setEditingUser(null);
-    setFormUser({ nome: "", email: "", telefone: "", roleId: roles[0]?.id || "", ativo: true });
+    setFormUser({ nome: "", email: "", telefone: "", roleId: roles[0]?.id || "", ativo: true, password: "", definirSenha: false });
     setUserModal(true);
   };
 
