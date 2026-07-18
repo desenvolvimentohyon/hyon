@@ -1,8 +1,13 @@
 // Edge function: invite-user
 // Cria, reativa ou atualiza um usuário e vincula o profile à organização do admin chamador.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 const DEFAULT_ROLES = new Set([
   "admin",
