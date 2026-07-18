@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Users, Shield, Plus, Pencil, Trash2, Search, UserCheck, UserX } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Users, Shield, Plus, Pencil, Trash2, Search, UserCheck, UserX, Save, RotateCcw, Lock } from "lucide-react";
 
 export default function UsuariosConfig() {
   const { users, roles, addUser, updateUser, deleteUser, addRole, updateRole, deleteRole, getRole } = useUsers();
@@ -36,6 +37,26 @@ export default function UsuariosConfig() {
   const [formRole, setFormRole] = useState({ nome: "", descricao: "", permissions: [] as string[] });
   const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
+  // Inline permission editing per role
+  const [inlinePerms, setInlinePerms] = useState<Record<string, string[]>>({});
+  const setInlinePermsFor = (roleId: string, perms: string[]) => {
+    setInlinePerms(prev => ({ ...prev, [roleId]: perms }));
+  };
+  const resetInlinePerms = (roleId: string) => {
+    setInlinePerms(prev => {
+      const next = { ...prev };
+      delete next[roleId];
+      return next;
+    });
+  };
+  const saveInlinePerms = async (roleId: string) => {
+    const perms = inlinePerms[roleId];
+    if (!perms) return;
+    await updateRole(roleId, { permissions: perms });
+    resetInlinePerms(roleId);
+    toast.success("Permissões atualizadas!");
+  };
 
   // Filter users
   const filteredUsers = useMemo(() => {
@@ -238,40 +259,124 @@ export default function UsuariosConfig() {
 
         {/* ── Perfis de Acesso ── */}
         <TabsContent value="perfis" className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-sm text-muted-foreground">
+              Expanda um perfil para editar suas permissões diretamente. Perfis de sistema são somente leitura.
+            </p>
             <Button size="sm" onClick={openNewRole} className="gap-1.5"><Plus className="h-4 w-4" />Novo Perfil</Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Accordion type="multiple" className="space-y-2">
             {roles.map(r => {
               const usersCount = users.filter(u => u.roleId === r.id).length;
+              const edited = inlinePerms[r.id] ?? r.permissions;
+              const dirty = inlinePerms[r.id] !== undefined
+                && (inlinePerms[r.id].length !== r.permissions.length
+                  || inlinePerms[r.id].some(p => !r.permissions.includes(p)));
               return (
-                <Card key={r.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Shield className="h-4 w-4" />{r.nome}
-                        {r.sistema && <Badge variant="outline" className="text-[9px]">Sistema</Badge>}
-                      </CardTitle>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditRole(r.id)}><Pencil className="h-3.5 w-3.5" /></Button>
-                        {!r.sistema && <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setRoleToDelete(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>}
+                <AccordionItem key={r.id} value={r.id} className="border rounded-lg bg-card px-3">
+                  <AccordionTrigger className="hover:no-underline py-3">
+                    <div className="flex items-center gap-3 flex-1 pr-2">
+                      <Shield className="h-4 w-4 text-primary" />
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">{r.nome}</span>
+                          {r.sistema && <Badge variant="outline" className="text-[9px] gap-1"><Lock className="h-2.5 w-2.5" />Sistema</Badge>}
+                          {dirty && <Badge className="text-[9px] bg-amber-500/15 text-amber-700 dark:text-amber-300">Alterações pendentes</Badge>}
+                        </div>
+                        {r.descricao && <p className="text-xs text-muted-foreground mt-0.5">{r.descricao}</p>}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Badge variant="secondary">{edited.length} permissões</Badge>
+                        <Badge variant="outline">{usersCount} usuário(s)</Badge>
                       </div>
                     </div>
-                    <CardDescription>{r.descricao}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{r.permissions.length} permissões</span>
-                      <Badge variant="secondary">{usersCount} usuário(s)</Badge>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-1 pb-4">
+                    <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" disabled={r.sistema} onClick={() => setInlinePermsFor(r.id, [...ALL_PERMISSIONS])}>
+                          Marcar todas
+                        </Button>
+                        <Button variant="outline" size="sm" disabled={r.sistema} onClick={() => setInlinePermsFor(r.id, [])}>
+                          Limpar
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        {!r.sistema && (
+                          <>
+                            <Button variant="ghost" size="sm" className="gap-1.5" disabled={!dirty} onClick={() => resetInlinePerms(r.id)}>
+                              <RotateCcw className="h-3.5 w-3.5" />Descartar
+                            </Button>
+                            <Button size="sm" className="gap-1.5" disabled={!dirty} onClick={() => saveInlinePerms(r.id)}>
+                              <Save className="h-3.5 w-3.5" />Salvar permissões
+                            </Button>
+                            <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => openEditRole(r.id)}>
+                              <Pencil className="h-3.5 w-3.5" />Nome / descrição
+                            </Button>
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-destructive" onClick={() => setRoleToDelete(r.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />Excluir
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {Object.entries(MODULOS_PERMISSOES).map(([key, modulo]) => {
+                        const acoesIds = modulo.acoes.map(a => a.id);
+                        const marcadas = acoesIds.filter(a => edited.includes(a)).length;
+                        const allChecked = marcadas === acoesIds.length;
+                        return (
+                          <div key={key} className="rounded-lg border p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Checkbox
+                                checked={allChecked}
+                                disabled={r.sistema}
+                                onCheckedChange={() => {
+                                  const next = allChecked
+                                    ? edited.filter(p => !acoesIds.includes(p))
+                                    : [...new Set([...edited, ...acoesIds])];
+                                  setInlinePermsFor(r.id, next);
+                                }}
+                              />
+                              <span className="font-medium text-sm">{modulo.label}</span>
+                              <Badge variant="outline" className="text-[9px] ml-auto">
+                                {marcadas}/{acoesIds.length}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-1 gap-1.5 pl-6">
+                              {modulo.acoes.map(acao => {
+                                const checked = edited.includes(acao.id);
+                                return (
+                                  <label key={acao.id} className={`flex items-center gap-2 text-xs ${r.sistema ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}>
+                                    <Checkbox
+                                      checked={checked}
+                                      disabled={r.sistema}
+                                      onCheckedChange={() => {
+                                        const next = checked
+                                          ? edited.filter(p => p !== acao.id)
+                                          : [...edited, acao.id];
+                                        setInlinePermsFor(r.id, next);
+                                      }}
+                                    />
+                                    {acao.label}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               );
             })}
-          </div>
+          </Accordion>
         </TabsContent>
       </Tabs>
+
 
       {/* ── Modal Usuário ── */}
       <Dialog open={userModal} onOpenChange={setUserModal}>
