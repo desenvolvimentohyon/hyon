@@ -2562,6 +2562,7 @@ export type Database = {
           id: string
           is_active: boolean
           org_id: string
+          phone: string | null
           role: string
           updated_at: string
         }
@@ -2572,6 +2573,7 @@ export type Database = {
           id: string
           is_active?: boolean
           org_id: string
+          phone?: string | null
           role?: string
           updated_at?: string
         }
@@ -2582,6 +2584,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           org_id?: string
+          phone?: string | null
           role?: string
           updated_at?: string
         }
