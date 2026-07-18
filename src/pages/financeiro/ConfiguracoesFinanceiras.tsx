@@ -54,7 +54,7 @@ export default function ConfiguracoesFinanceiras() {
 
   const loadBillingRules = async () => {
     try {
-      const { data } = await supabase.from("billing_rules").select("*").limit(1).single();
+      const { data } = await supabase.from("billing_rules").select("*").limit(1).maybeSingle();
       if (data) {
         setBillingRules({
           id: data.id,
@@ -72,8 +72,11 @@ export default function ConfiguracoesFinanceiras() {
 
   const saveBillingRules = async () => {
     try {
-      const { data: profile } = await supabase.from("profiles").select("org_id").limit(1).single();
+      const { data: authUser } = await supabase.auth.getUser();
+      if (!authUser.user) return;
+      const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", authUser.user.id).maybeSingle();
       if (!profile) return;
+
 
       if (billingRules.id) {
         await supabase.from("billing_rules").update({
