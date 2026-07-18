@@ -34,6 +34,8 @@ export default function UsuariosConfig() {
   const [roleModal, setRoleModal] = useState(false);
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [formRole, setFormRole] = useState({ nome: "", descricao: "", permissions: [] as string[] });
+  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Filter users
   const filteredUsers = useMemo(() => {
