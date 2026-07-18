@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Users, Shield, Plus, Pencil, Trash2, Search, UserCheck, UserX } from "lucide-react";
@@ -33,6 +34,8 @@ export default function UsuariosConfig() {
   const [roleModal, setRoleModal] = useState(false);
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [formRole, setFormRole] = useState({ nome: "", descricao: "", permissions: [] as string[] });
+  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Filter users
   const filteredUsers = useMemo(() => {
@@ -218,7 +221,7 @@ export default function UsuariosConfig() {
                         <TableCell>
                           <div className="flex gap-1">
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditUser(u.id)}><Pencil className="h-3.5 w-3.5" /></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { deleteUser(u.id); toast.success("Usuário removido"); }}><Trash2 className="h-3.5 w-3.5" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setUserToDelete(u.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -252,7 +255,7 @@ export default function UsuariosConfig() {
                       </CardTitle>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditRole(r.id)}><Pencil className="h-3.5 w-3.5" /></Button>
-                        {!r.sistema && <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { deleteRole(r.id); toast.success("Perfil removido"); }}><Trash2 className="h-3.5 w-3.5" /></Button>}
+                        {!r.sistema && <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setRoleToDelete(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>}
                       </div>
                     </div>
                     <CardDescription>{r.descricao}</CardDescription>
@@ -406,6 +409,73 @@ export default function UsuariosConfig() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Confirmar exclusão de perfil ── */}
+      <AlertDialog open={!!roleToDelete} onOpenChange={(o) => !o && setRoleToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir perfil de acesso?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(() => {
+                const r = roles.find(x => x.id === roleToDelete);
+                const count = users.filter(u => u.roleId === roleToDelete).length;
+                return (
+                  <>
+                    Esta ação removerá o perfil <strong>{r?.nome}</strong> permanentemente.
+                    {count > 0 && (
+                      <> Existem <strong>{count}</strong> usuário(s) vinculado(s) a este perfil — reatribua-os antes de excluir.</>
+                    )}
+                  </>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (roleToDelete) {
+                  const count = users.filter(u => u.roleId === roleToDelete).length;
+                  if (count > 0) {
+                    toast.error("Reatribua os usuários antes de excluir este perfil.");
+                  } else {
+                    deleteRole(roleToDelete);
+                    toast.success("Perfil removido");
+                  }
+                }
+                setRoleToDelete(null);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Confirmar exclusão de usuário ── */}
+      <AlertDialog open={!!userToDelete} onOpenChange={(o) => !o && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desativar usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O usuário será desativado e perderá acesso ao sistema. Você pode reativá-lo depois.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (userToDelete) deleteUser(userToDelete);
+                setUserToDelete(null);
+              }}
+            >
+              Desativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
