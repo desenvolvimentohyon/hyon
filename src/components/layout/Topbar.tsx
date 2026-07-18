@@ -253,8 +253,8 @@ export function Topbar() {
       )}
 
 
-      <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-md ml-auto">
-        <div className="relative">
+      <form onSubmit={handleSearch} className="hidden sm:flex flex-1 min-w-0 max-w-md ml-auto">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
           <Input
             placeholder="Buscar tarefas, clientes..."
@@ -264,6 +264,7 @@ export function Topbar() {
           />
         </div>
       </form>
+      <div className="flex-1 sm:hidden" />
 
 
       <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
@@ -316,7 +317,7 @@ export function Topbar() {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-96 p-0 rounded-xl shadow-elevated" align="end" sideOffset={8}>
+          <PopoverContent className="w-[calc(100vw-1rem)] sm:w-96 p-0 rounded-xl shadow-elevated" align="end" sideOffset={8}>
             <div className="px-4 py-3 border-b">
               <h4 className="font-semibold text-sm">Notificações</h4>
               <p className="text-xs text-muted-foreground">

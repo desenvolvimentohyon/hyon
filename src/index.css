@@ -295,6 +295,17 @@
   }
   .table-scroll > table { min-width: 640px; }
 
+  /* Prevent flex/grid children from forcing overflow on small screens */
+  .min-w-0-safe { min-width: 0; }
+
+  /* Ensure touch targets meet 40px minimum on mobile */
+  @media (max-width: 640px) {
+    button:not(.btn-inline), a[role="button"], [role="menuitem"] {
+      min-height: 36px;
+    }
+  }
+
+
   .stat-value {
     @apply text-2xl font-semibold tracking-tight;
   }
