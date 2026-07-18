@@ -2558,6 +2558,7 @@ export type Database = {
         Row: {
           created_at: string
           custom_role_id: string | null
+          email: string | null
           full_name: string
           id: string
           is_active: boolean
@@ -2569,6 +2570,7 @@ export type Database = {
         Insert: {
           created_at?: string
           custom_role_id?: string | null
+          email?: string | null
           full_name?: string
           id: string
           is_active?: boolean
@@ -2580,6 +2582,7 @@ export type Database = {
         Update: {
           created_at?: string
           custom_role_id?: string | null
+          email?: string | null
           full_name?: string
           id?: string
           is_active?: boolean

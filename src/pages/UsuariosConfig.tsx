@@ -29,7 +29,7 @@ export default function UsuariosConfig() {
   // User modal
   const [userModal, setUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [formUser, setFormUser] = useState({ nome: "", email: "", telefone: "", roleId: "", ativo: true, password: "", definirSenha: false });
+  const [formUser, setFormUser] = useState({ nome: "", email: "", telefone: "", roleId: "", ativo: true, password: "" });
 
   // Role modal
   const [roleModal, setRoleModal] = useState(false);
@@ -71,7 +71,7 @@ export default function UsuariosConfig() {
 
   const openNewUser = () => {
     setEditingUser(null);
-    setFormUser({ nome: "", email: "", telefone: "", roleId: roles[0]?.id || "", ativo: true, password: "", definirSenha: false });
+    setFormUser({ nome: "", email: "", telefone: "", roleId: roles[0]?.id || "leitura", ativo: true, password: "" });
     setUserModal(true);
   };
 
@@ -79,7 +79,7 @@ export default function UsuariosConfig() {
     const u = users.find(x => x.id === id);
     if (!u) return;
     setEditingUser(id);
-    setFormUser({ nome: u.nome, email: u.email, telefone: u.telefone || "", roleId: u.roleId, ativo: u.ativo, password: "", definirSenha: false });
+    setFormUser({ nome: u.nome, email: u.email, telefone: u.telefone || "", roleId: u.roleId, ativo: u.ativo, password: "" });
     setUserModal(true);
   };
 
@@ -88,7 +88,7 @@ export default function UsuariosConfig() {
       toast.error("Nome e email são obrigatórios");
       return;
     }
-    if (!editingUser && formUser.definirSenha) {
+    if (!editingUser) {
       if (!formUser.password || formUser.password.length < 6) {
         toast.error("A senha deve ter no mínimo 6 caracteres");
         return;
@@ -101,7 +101,7 @@ export default function UsuariosConfig() {
       } else {
         await addUser({
           ...formUser,
-          password: formUser.definirSenha ? formUser.password : undefined,
+          password: formUser.password,
         });
       }
       setUserModal(false);
@@ -114,7 +114,7 @@ export default function UsuariosConfig() {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$";
     let pwd = "";
     for (let i = 0; i < 12; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
-    setFormUser(p => ({ ...p, password: pwd, definirSenha: true }));
+    setFormUser(p => ({ ...p, password: pwd }));
   };
 
 
@@ -380,7 +380,7 @@ export default function UsuariosConfig() {
 
       {/* ── Modal Usuário ── */}
       <Dialog open={userModal} onOpenChange={setUserModal}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader><DialogTitle>{editingUser ? "Editar Usuário" : "Novo Usuário"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
@@ -406,32 +406,19 @@ export default function UsuariosConfig() {
             </div>
             {!editingUser && (
               <div className="rounded-lg border p-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={formUser.definirSenha}
-                      onCheckedChange={v => setFormUser(p => ({ ...p, definirSenha: v, password: v ? p.password : "" }))}
+                <div>
+                  <Label>Senha de acesso *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={formUser.password}
+                      onChange={e => setFormUser(p => ({ ...p, password: e.target.value }))}
+                      placeholder="Mínimo 6 caracteres"
                     />
-                    <Label className="cursor-pointer">Definir senha agora</Label>
+                    <Button type="button" variant="outline" onClick={generatePassword}>Gerar</Button>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {formUser.definirSenha ? "Usuário já acessa sem confirmar e-mail" : "Convite será enviado por e-mail"}
-                  </span>
+                  <p className="mt-1 text-xs text-muted-foreground">O usuário entra com este e-mail e senha imediatamente.</p>
                 </div>
-                {formUser.definirSenha && (
-                  <div>
-                    <Label>Senha *</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        value={formUser.password}
-                        onChange={e => setFormUser(p => ({ ...p, password: e.target.value }))}
-                        placeholder="Mínimo 6 caracteres"
-                      />
-                      <Button type="button" variant="outline" onClick={generatePassword}>Gerar</Button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
             <div className="flex items-center gap-2">
@@ -571,8 +558,8 @@ export default function UsuariosConfig() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (userToDelete) deleteUser(userToDelete);
+              onClick={async () => {
+                if (userToDelete) await deleteUser(userToDelete);
                 setUserToDelete(null);
               }}
             >

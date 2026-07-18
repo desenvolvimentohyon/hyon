@@ -42,10 +42,27 @@ function dbToRole(r: any): Role {
 
 function dbToUser(r: any): AppUser {
   return {
-    id: r.id, nome: r.full_name, email: "",
+    id: r.id, nome: r.full_name, email: r.email || "",
+    telefone: r.phone || undefined,
     ativo: r.is_active, roleId: r.custom_role_id || r.role,
     criadoEm: r.created_at, atualizadoEm: r.updated_at,
   };
+}
+
+async function getFunctionErrorMessage(error: unknown, fallback: string) {
+  const baseMessage = error instanceof Error ? error.message : fallback;
+  const maybeContext = (error as { context?: unknown })?.context;
+
+  if (maybeContext instanceof Response) {
+    try {
+      const body = await maybeContext.clone().json() as { error?: string; message?: string };
+      return body.error || body.message || baseMessage;
+    } catch {
+      return baseMessage;
+    }
+  }
+
+  return baseMessage;
 }
 
 interface UsersState {
@@ -57,8 +74,8 @@ interface UsersState {
 
 interface UsersContextType extends UsersState {
   addUser: (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm"> & { password?: string }) => Promise<void>;
-  updateUser: (id: string, changes: Partial<AppUser>) => void;
-  deleteUser: (id: string) => void;
+  updateUser: (id: string, changes: Partial<AppUser>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
   setCurrentUser: (id: string) => void;
   getUser: (id: string) => AppUser | undefined;
   getCurrentUser: () => AppUser | undefined;
@@ -120,12 +137,12 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
         email: u.email,
         full_name: u.nome,
         role: u.roleId,
-        phone: (u as any).telefone,
+        phone: u.telefone,
         password: u.password,
       },
     });
     if (error) {
-      const msg = (data as any)?.error || error.message || "Erro ao convidar usuário";
+      const msg = await getFunctionErrorMessage(error, "Erro ao convidar usuário");
       toast.error(msg);
       throw new Error(msg);
     }
@@ -136,7 +153,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     if (u.password) {
       toast.success("Usuário criado com senha definida!");
     } else {
-      toast.success("Convite enviado por e-mail!");
+      toast.success("Usuário criado e convite enviado por e-mail!");
     }
     fetchAll();
   }, [fetchAll]);
@@ -144,6 +161,8 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     const upd: any = {};
     if (changes.nome !== undefined) upd.full_name = changes.nome;
+    if (changes.email !== undefined) upd.email = changes.email;
+    if (changes.telefone !== undefined) upd.phone = changes.telefone;
     if (changes.ativo !== undefined) upd.is_active = changes.ativo;
     if (changes.roleId !== undefined) {
       if (DEFAULT_ROLE_PERMISSIONS[changes.roleId]) {
@@ -159,8 +178,18 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   }, [fetchAll]);
 
   const deleteUser = useCallback(async (id: string) => {
-    const { error } = await supabase.from("profiles").update({ is_active: false }).eq("id", id);
-    if (error) { toast.error("Erro ao desativar usuário: " + error.message); return; }
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: id },
+    });
+    if (error) {
+      const msg = await getFunctionErrorMessage(error, "Erro ao desativar usuário");
+      toast.error(msg);
+      throw new Error(msg);
+    }
+    if (data && (data as any).error) {
+      toast.error((data as any).error);
+      throw new Error((data as any).error);
+    }
     toast.success("Usuário desativado!");
     fetchAll();
   }, [fetchAll]);

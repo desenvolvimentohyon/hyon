@@ -66,8 +66,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchProfile]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error as Error };
+
+    if (data.user) {
+      const { data: signedProfile, error: profileError } = await supabase
+        .from("profiles")
+        .select("is_active")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (profileError || !signedProfile?.is_active) {
+        await supabase.auth.signOut();
+        return { error: new Error("Usuário inativo ou sem perfil de acesso. Contate o administrador.") };
+      }
+    }
+
+    return { error: null };
   }, []);
 
   const signOut = useCallback(async () => {
