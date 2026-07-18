@@ -133,7 +133,11 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
       toast.error((data as any).error);
       throw new Error((data as any).error);
     }
-    toast.success("Convite enviado por e-mail!");
+    if (u.password) {
+      toast.success("Usuário criado com senha definida!");
+    } else {
+      toast.success("Convite enviado por e-mail!");
+    }
     fetchAll();
   }, [fetchAll]);
 
