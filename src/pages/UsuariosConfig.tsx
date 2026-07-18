@@ -27,7 +27,7 @@ export default function UsuariosConfig() {
   // User modal
   const [userModal, setUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [formUser, setFormUser] = useState({ nome: "", email: "", telefone: "", roleId: "", ativo: true });
+  const [formUser, setFormUser] = useState({ nome: "", email: "", telefone: "", roleId: "", ativo: true, password: "", definirSenha: false });
 
   // Role modal
   const [roleModal, setRoleModal] = useState(false);
@@ -47,7 +47,7 @@ export default function UsuariosConfig() {
 
   const openNewUser = () => {
     setEditingUser(null);
-    setFormUser({ nome: "", email: "", telefone: "", roleId: roles[0]?.id || "", ativo: true });
+    setFormUser({ nome: "", email: "", telefone: "", roleId: roles[0]?.id || "", ativo: true, password: "", definirSenha: false });
     setUserModal(true);
   };
 
@@ -55,7 +55,7 @@ export default function UsuariosConfig() {
     const u = users.find(x => x.id === id);
     if (!u) return;
     setEditingUser(id);
-    setFormUser({ nome: u.nome, email: u.email, telefone: u.telefone || "", roleId: u.roleId, ativo: u.ativo });
+    setFormUser({ nome: u.nome, email: u.email, telefone: u.telefone || "", roleId: u.roleId, ativo: u.ativo, password: "", definirSenha: false });
     setUserModal(true);
   };
 
@@ -64,18 +64,33 @@ export default function UsuariosConfig() {
       toast.error("Nome e email são obrigatórios");
       return;
     }
+    if (!editingUser && formUser.definirSenha) {
+      if (!formUser.password || formUser.password.length < 6) {
+        toast.error("A senha deve ter no mínimo 6 caracteres");
+        return;
+      }
+    }
     try {
       if (editingUser) {
         await updateUser(editingUser, formUser);
         toast.success("Usuário atualizado!");
       } else {
-        await addUser(formUser);
-        // toast de sucesso é disparado pelo context após confirmação do convite
+        await addUser({
+          ...formUser,
+          password: formUser.definirSenha ? formUser.password : undefined,
+        });
       }
       setUserModal(false);
     } catch {
       // erro já sinalizado via toast pelo context
     }
+  };
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$";
+    let pwd = "";
+    for (let i = 0; i < 12; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+    setFormUser(p => ({ ...p, password: pwd, definirSenha: true }));
   };
 
 
@@ -281,6 +296,36 @@ export default function UsuariosConfig() {
                 </SelectContent>
               </Select>
             </div>
+            {!editingUser && (
+              <div className="rounded-lg border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={formUser.definirSenha}
+                      onCheckedChange={v => setFormUser(p => ({ ...p, definirSenha: v, password: v ? p.password : "" }))}
+                    />
+                    <Label className="cursor-pointer">Definir senha agora</Label>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {formUser.definirSenha ? "Usuário já acessa sem confirmar e-mail" : "Convite será enviado por e-mail"}
+                  </span>
+                </div>
+                {formUser.definirSenha && (
+                  <div>
+                    <Label>Senha *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        value={formUser.password}
+                        onChange={e => setFormUser(p => ({ ...p, password: e.target.value }))}
+                        placeholder="Mínimo 6 caracteres"
+                      />
+                      <Button type="button" variant="outline" onClick={generatePassword}>Gerar</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Switch checked={formUser.ativo} onCheckedChange={v => setFormUser(p => ({ ...p, ativo: v }))} />
               <Label>Usuário ativo</Label>

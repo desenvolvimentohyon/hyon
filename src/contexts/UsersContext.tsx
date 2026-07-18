@@ -56,7 +56,7 @@ interface UsersState {
 }
 
 interface UsersContextType extends UsersState {
-  addUser: (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => void;
+  addUser: (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm"> & { password?: string }) => Promise<void>;
   updateUser: (id: string, changes: Partial<AppUser>) => void;
   deleteUser: (id: string) => void;
   setCurrentUser: (id: string) => void;
@@ -114,13 +114,14 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const addUser = useCallback(async (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => {
+  const addUser = useCallback(async (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm"> & { password?: string }) => {
     const { data, error } = await supabase.functions.invoke("invite-user", {
       body: {
         email: u.email,
         full_name: u.nome,
         role: u.roleId,
         phone: (u as any).telefone,
+        password: u.password,
       },
     });
     if (error) {
@@ -132,7 +133,11 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
       toast.error((data as any).error);
       throw new Error((data as any).error);
     }
-    toast.success("Convite enviado por e-mail!");
+    if (u.password) {
+      toast.success("Usuário criado com senha definida!");
+    } else {
+      toast.success("Convite enviado por e-mail!");
+    }
     fetchAll();
   }, [fetchAll]);
 

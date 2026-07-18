@@ -15,6 +15,7 @@ interface InviteBody {
   role?: string;
   custom_role_id?: string | null;
   phone?: string;
+  password?: string;
 }
 
 const DEFAULT_ROLES = new Set([
@@ -123,24 +124,46 @@ Deno.serve(async (req) => {
       dbRole = "leitura";
     }
 
-    // Envia o convite. Se o e-mail já existir, retorna erro amigável.
-    const redirectTo = req.headers.get("origin")
-      ? `${req.headers.get("origin")}/auth`
-      : undefined;
-
-    const { data: inviteData, error: inviteErr } = await supabaseAdmin.auth.admin
-      .inviteUserByEmail(email, {
-        data: { full_name: fullName },
-        redirectTo,
-      });
-
-    if (inviteErr || !inviteData?.user) {
-      const msg = inviteErr?.message ?? "Falha ao enviar convite";
-      const status = /already/i.test(msg) ? 409 : 400;
-      return json({ error: msg }, status);
+    const password = typeof body.password === "string" && body.password.length > 0
+      ? body.password.trim()
+      : null;
+    if (password && password.length < 6) {
+      return json({ error: "A senha deve ter no mínimo 6 caracteres" }, 400);
     }
 
-    const newUserId = inviteData.user.id;
+    // Se senha foi informada, cria o usuário direto (já confirmado).
+    // Caso contrário, envia convite por e-mail.
+    let newUserId: string;
+    if (password) {
+      const { data: createData, error: createErr } = await supabaseAdmin.auth.admin
+        .createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { full_name: fullName },
+        });
+      if (createErr || !createData?.user) {
+        const msg = createErr?.message ?? "Falha ao criar usuário";
+        const status = /already|registered|exists/i.test(msg) ? 409 : 400;
+        return json({ error: msg }, status);
+      }
+      newUserId = createData.user.id;
+    } else {
+      const redirectTo = req.headers.get("origin")
+        ? `${req.headers.get("origin")}/auth`
+        : undefined;
+      const { data: inviteData, error: inviteErr } = await supabaseAdmin.auth.admin
+        .inviteUserByEmail(email, {
+          data: { full_name: fullName },
+          redirectTo,
+        });
+      if (inviteErr || !inviteData?.user) {
+        const msg = inviteErr?.message ?? "Falha ao enviar convite";
+        const status = /already/i.test(msg) ? 409 : 400;
+        return json({ error: msg }, status);
+      }
+      newUserId = inviteData.user.id;
+    }
 
     // O trigger handle_new_user já criou uma linha em profiles em uma org default.
     // Sobrescreve para a org do admin chamador.
