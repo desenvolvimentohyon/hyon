@@ -30,7 +30,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.invite-user]
-verify_jwt = true
+verify_jwt = false
 
 [functions.public-company-profile]
 verify_jwt = false
