@@ -64,18 +64,33 @@ export default function UsuariosConfig() {
       toast.error("Nome e email são obrigatórios");
       return;
     }
+    if (!editingUser && formUser.definirSenha) {
+      if (!formUser.password || formUser.password.length < 6) {
+        toast.error("A senha deve ter no mínimo 6 caracteres");
+        return;
+      }
+    }
     try {
       if (editingUser) {
         await updateUser(editingUser, formUser);
         toast.success("Usuário atualizado!");
       } else {
-        await addUser(formUser);
-        // toast de sucesso é disparado pelo context após confirmação do convite
+        await addUser({
+          ...formUser,
+          password: formUser.definirSenha ? formUser.password : undefined,
+        });
       }
       setUserModal(false);
     } catch {
       // erro já sinalizado via toast pelo context
     }
+  };
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$";
+    let pwd = "";
+    for (let i = 0; i < 12; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+    setFormUser(p => ({ ...p, password: pwd, definirSenha: true }));
   };
 
 
