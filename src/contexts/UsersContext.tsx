@@ -132,6 +132,12 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const addUser = useCallback(async (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm"> & { password?: string }) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      throw new Error("Sessão expirada");
+    }
     const { data, error } = await supabase.functions.invoke("invite-user", {
       body: {
         email: u.email,
@@ -140,6 +146,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
         phone: u.telefone,
         password: u.password,
       },
+      headers: { Authorization: `Bearer ${token}` },
     });
     if (error) {
       const msg = await getFunctionErrorMessage(error, "Erro ao convidar usuário");
@@ -157,6 +164,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
     }
     fetchAll();
   }, [fetchAll]);
+
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     const upd: any = {};
@@ -178,9 +186,17 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
   }, [fetchAll]);
 
   const deleteUser = useCallback(async (id: string) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      throw new Error("Sessão expirada");
+    }
     const { data, error } = await supabase.functions.invoke("delete-user", {
       body: { user_id: id },
+      headers: { Authorization: `Bearer ${token}` },
     });
+
     if (error) {
       const msg = await getFunctionErrorMessage(error, "Erro ao desativar usuário");
       toast.error(msg);
