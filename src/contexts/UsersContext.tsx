@@ -49,6 +49,22 @@ function dbToUser(r: any): AppUser {
   };
 }
 
+async function getFunctionErrorMessage(error: unknown, fallback: string) {
+  const baseMessage = error instanceof Error ? error.message : fallback;
+  const maybeContext = (error as { context?: unknown })?.context;
+
+  if (maybeContext instanceof Response) {
+    try {
+      const body = await maybeContext.clone().json() as { error?: string; message?: string };
+      return body.error || body.message || baseMessage;
+    } catch {
+      return baseMessage;
+    }
+  }
+
+  return baseMessage;
+}
+
 interface UsersState {
   users: AppUser[];
   roles: Role[];
@@ -126,7 +142,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
       },
     });
     if (error) {
-      const msg = (data as any)?.error || error.message || "Erro ao convidar usuário";
+      const msg = await getFunctionErrorMessage(error, "Erro ao convidar usuário");
       toast.error(msg);
       throw new Error(msg);
     }
@@ -166,7 +182,7 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
       body: { user_id: id },
     });
     if (error) {
-      const msg = (data as any)?.error || error.message || "Erro ao desativar usuário";
+      const msg = await getFunctionErrorMessage(error, "Erro ao desativar usuário");
       toast.error(msg);
       throw new Error(msg);
     }
