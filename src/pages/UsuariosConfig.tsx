@@ -38,6 +38,26 @@ export default function UsuariosConfig() {
   const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
+  // Inline permission editing per role
+  const [inlinePerms, setInlinePerms] = useState<Record<string, string[]>>({});
+  const setInlinePermsFor = (roleId: string, perms: string[]) => {
+    setInlinePerms(prev => ({ ...prev, [roleId]: perms }));
+  };
+  const resetInlinePerms = (roleId: string) => {
+    setInlinePerms(prev => {
+      const next = { ...prev };
+      delete next[roleId];
+      return next;
+    });
+  };
+  const saveInlinePerms = async (roleId: string) => {
+    const perms = inlinePerms[roleId];
+    if (!perms) return;
+    await updateRole(roleId, { permissions: perms });
+    resetInlinePerms(roleId);
+    toast.success("Permissões atualizadas!");
+  };
+
   // Filter users
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
