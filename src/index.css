@@ -247,8 +247,14 @@
   /* Consistent, accessible focus ring */
   :focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.55);
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.65);
     transition: box-shadow 0.15s ease-out;
+  }
+
+  /* Selection color */
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
   }
 
   /* Refined scrollbars (WebKit) */
