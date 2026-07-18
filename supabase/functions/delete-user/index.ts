@@ -5,7 +5,7 @@ import { z } from "npm:zod@3.23.8";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version, accept-profile, content-profile, prefer",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -68,18 +68,20 @@ Deno.serve(async (req) => {
 
     const { data: targetProfile, error: targetErr } = await supabaseAdmin
       .from("profiles")
-      .select("id, org_id")
+      .select("id, org_id, is_active")
       .eq("id", targetId)
       .single();
 
     if (targetErr || !targetProfile) return json({ error: "Usuário não encontrado" }, 404);
     if (targetProfile.org_id !== callerProfile.org_id) return json({ error: "Usuário pertence a outra organização" }, 403);
 
-    const { error: profileErr } = await supabaseAdmin
-      .from("profiles")
-      .update({ is_active: false })
-      .eq("id", targetId)
-      .eq("org_id", callerProfile.org_id);
+    const { error: profileErr } = targetProfile.is_active
+      ? await supabaseAdmin
+        .from("profiles")
+        .update({ is_active: false })
+        .eq("id", targetId)
+        .eq("org_id", callerProfile.org_id)
+      : { error: null };
 
     if (profileErr) return json({ error: "Falha ao desativar perfil: " + profileErr.message }, 500);
 
@@ -89,7 +91,7 @@ Deno.serve(async (req) => {
 
     if (authErr) return json({ error: "Perfil desativado, mas falha ao bloquear login: " + authErr.message }, 500);
 
-    return json({ ok: true }, 200);
+    return json({ ok: true, already_inactive: !targetProfile.is_active }, 200);
   } catch (e) {
     console.error("[delete-user] error:", e);
     return json({ error: (e as Error).message ?? "Erro interno" }, 500);
