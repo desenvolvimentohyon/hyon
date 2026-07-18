@@ -409,6 +409,73 @@ export default function UsuariosConfig() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Confirmar exclusão de perfil ── */}
+      <AlertDialog open={!!roleToDelete} onOpenChange={(o) => !o && setRoleToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir perfil de acesso?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(() => {
+                const r = roles.find(x => x.id === roleToDelete);
+                const count = users.filter(u => u.roleId === roleToDelete).length;
+                return (
+                  <>
+                    Esta ação removerá o perfil <strong>{r?.nome}</strong> permanentemente.
+                    {count > 0 && (
+                      <> Existem <strong>{count}</strong> usuário(s) vinculado(s) a este perfil — reatribua-os antes de excluir.</>
+                    )}
+                  </>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (roleToDelete) {
+                  const count = users.filter(u => u.roleId === roleToDelete).length;
+                  if (count > 0) {
+                    toast.error("Reatribua os usuários antes de excluir este perfil.");
+                  } else {
+                    deleteRole(roleToDelete);
+                    toast.success("Perfil removido");
+                  }
+                }
+                setRoleToDelete(null);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Confirmar exclusão de usuário ── */}
+      <AlertDialog open={!!userToDelete} onOpenChange={(o) => !o && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desativar usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O usuário será desativado e perderá acesso ao sistema. Você pode reativá-lo depois.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (userToDelete) deleteUser(userToDelete);
+                setUserToDelete(null);
+              }}
+            >
+              Desativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
