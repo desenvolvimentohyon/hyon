@@ -114,13 +114,14 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const addUser = useCallback(async (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => {
+  const addUser = useCallback(async (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm"> & { password?: string }) => {
     const { data, error } = await supabase.functions.invoke("invite-user", {
       body: {
         email: u.email,
         full_name: u.nome,
         role: u.roleId,
         phone: (u as any).telefone,
+        password: u.password,
       },
     });
     if (error) {
