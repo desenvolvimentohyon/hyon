@@ -85,14 +85,27 @@ export default function TabMensalidadeNew({ cliente, formData, onChange }: Props
             <div><Label>Valor Total do Plano (R$)</Label><CurrencyInput value={planTotalValue} onValueChange={handleTotalValueChange} /></div>
           )}
           <div>
-            <Label>Valor Final Mensal (R$){isNotMonthly ? " — calculado" : ""}</Label>
+            <Label className="flex items-center justify-between">
+              <span>Valor Final Mensal (R$)</span>
+              {isNotMonthly && planTotalValue > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onChange({ monthly_value_final: Math.round((planTotalValue / divisor) * 100) / 100 } as any)}
+                  className="text-[11px] text-primary hover:underline"
+                >
+                  Recalcular ({(planTotalValue / divisor).toFixed(2)})
+                </button>
+              )}
+            </Label>
             <CurrencyInput
               value={Number(formData.monthly_value_final ?? cliente.monthly_value_final ?? 0)}
               onValueChange={v => onChange({ monthly_value_final: v } as any)}
-              disabled={isNotMonthly}
-              className={isNotMonthly ? "bg-muted/50" : ""}
             />
+            {isNotMonthly && (
+              <p className="text-[11px] text-muted-foreground mt-1">Sugerido pelo plano — edite se precisar sobrescrever.</p>
+            )}
           </div>
+
           <div>
             <Label>Dia de Vencimento</Label>
             <Select value={String(formData.default_due_day ?? cliente.default_due_day ?? 5)} onValueChange={v => onChange({ default_due_day: Number(v) } as any)}>
