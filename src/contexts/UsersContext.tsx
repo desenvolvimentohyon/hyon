@@ -56,7 +56,7 @@ interface UsersState {
 }
 
 interface UsersContextType extends UsersState {
-  addUser: (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm">) => void;
+  addUser: (u: Omit<AppUser, "id" | "criadoEm" | "atualizadoEm"> & { password?: string }) => Promise<void>;
   updateUser: (id: string, changes: Partial<AppUser>) => void;
   deleteUser: (id: string) => void;
   setCurrentUser: (id: string) => void;
