@@ -27,7 +27,7 @@ export default function UsuariosConfig() {
   // User modal
   const [userModal, setUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [formUser, setFormUser] = useState({ nome: "", email: "", telefone: "", roleId: "", ativo: true });
+  const [formUser, setFormUser] = useState({ nome: "", email: "", telefone: "", roleId: "", ativo: true, password: "", definirSenha: false });
 
   // Role modal
   const [roleModal, setRoleModal] = useState(false);
