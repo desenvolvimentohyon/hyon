@@ -138,7 +138,9 @@ export default function CheckoutInterno() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("org_id").limit(1).single();
+      const { data: authUser } = await supabase.auth.getUser();
+      if (!authUser.user) throw new Error("Não autenticado");
+      const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", authUser.user.id).maybeSingle();
       if (!profile) throw new Error("Perfil não encontrado");
       const orgId = profile.org_id;
 
