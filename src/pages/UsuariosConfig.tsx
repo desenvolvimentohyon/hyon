@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Users, Shield, Plus, Pencil, Trash2, Search, UserCheck, UserX } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Users, Shield, Plus, Pencil, Trash2, Search, UserCheck, UserX, Save, RotateCcw, Lock } from "lucide-react";
 
 export default function UsuariosConfig() {
   const { users, roles, addUser, updateUser, deleteUser, addRole, updateRole, deleteRole, getRole } = useUsers();
