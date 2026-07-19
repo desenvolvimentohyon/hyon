@@ -28,6 +28,14 @@ export const modules: ParentModule[] = [
     directUrl: "/",
     children: [
       { title: "Visão Geral", url: "/", icon: LayoutDashboard, description: "Indicadores e resumo geral" },
+    ],
+  },
+  {
+    id: "inteligencia",
+    title: "Inteligência",
+    icon: BarChart3,
+    directUrl: "/executivo",
+    children: [
       { title: "Painel Executivo", url: "/executivo", icon: BarChart3, description: "Métricas estratégicas e KPIs" },
       { title: "Radar de Crescimento", url: "/radar-crescimento", icon: Rocket, description: "Métricas de crescimento" },
     ],

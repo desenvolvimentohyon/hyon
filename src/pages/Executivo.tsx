@@ -209,7 +209,7 @@ export default function Executivo() {
           </Button>
         }
       />
-      <ModuleNavGrid moduleId="dashboard" />
+      <ModuleNavGrid moduleId="inteligencia" />
 
       <Tabs defaultValue="resumo" className="w-full">
         <TabsList>
