@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateCNPJ, cleanCNPJ, formatCNPJ, maskDocument, type CnpjLookupResult } from "@/lib/cnpjUtils";
 import { ClienteCard } from "@/components/clientes/ClienteCard";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
+import { ReceitaSection } from "./receita/ReceitaSection";
 
 function PortalLinkButton({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(false);
@@ -333,6 +334,13 @@ export default function Clientes() {
       />
       <ModuleNavGrid moduleId="clientes" />
 
+      <Tabs defaultValue="clientes" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="clientes" className="gap-1.5"><Users className="h-3.5 w-3.5" />Cadastro de Clientes</TabsTrigger>
+          <TabsTrigger value="receita" className="gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Receita e MRR</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="clientes" className="space-y-4 mt-0">
       <div className="flex flex-wrap gap-3 items-end">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -433,6 +441,12 @@ export default function Clientes() {
           );
         })}
       </div>
+        </TabsContent>
+
+        <TabsContent value="receita" className="mt-0">
+          <ReceitaSection />
+        </TabsContent>
+      </Tabs>
 
       {/* Batch Edit Dialog */}
       <Dialog open={showBatchEdit} onOpenChange={setShowBatchEdit}>
