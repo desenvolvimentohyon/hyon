@@ -452,6 +452,35 @@ export default function Dashboard() {
     status: s, count: propostas.filter(p => p.statusCRM === s).length,
   }));
 
+  // ── Overdue days from financial_titles (real) ──────────────────────
+  const { data: overdueRaw } = useQuery({
+    queryKey: ["dashboard_overdue_titles"],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("financial_titles")
+        .select("client_id, due_at")
+        .eq("type", "receber")
+        .in("status", ["aberto", "vencido"])
+        .lt("due_at", today);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+  });
+
+  const overdueByClient = useMemo(() => {
+    const map = new Map<string, number>();
+    const now = Date.now();
+    (overdueRaw || []).forEach((t: any) => {
+      if (!t.client_id || !t.due_at) return;
+      const dias = Math.floor((now - new Date(t.due_at + "T00:00:00").getTime()) / 86400000);
+      const prev = map.get(t.client_id) || 0;
+      if (dias > prev) map.set(t.client_id, dias);
+    });
+    return map;
+  }, [overdueRaw]);
+
   // ── Receita metrics ─────────────────────────────────────────────────
   const receitaMetricas = useMemo(() => {
     const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
@@ -463,13 +492,13 @@ export default function Dashboard() {
     const custos = clientesReceita.filter(c => c.custoAtivo).reduce((s, c) => s + c.valorCustoMensal, 0);
     const margem = mrr - custos;
     const emAtraso = clientesReceita.filter(c => c.statusCliente === "atraso");
-    const emAtrasoComDias = emAtraso.map(c => {
-      return { ...c, diasAtraso: 0 };
-    }).sort((a, b) => b.diasAtraso - a.diasAtraso);
+    const emAtrasoComDias = emAtraso
+      .map(c => ({ ...c, diasAtraso: overdueByClient.get(c.id) || 0 }))
+      .sort((a, b) => b.diasAtraso - a.diasAtraso);
     const alertaCritico30 = emAtrasoComDias.filter(c => c.diasAtraso > 30);
     const alertaCritico7 = emAtrasoComDias.filter(c => c.diasAtraso > 7 && c.diasAtraso <= 30);
     return { mrr, arr, ticket, churnRate, margem, custos, emAtraso: emAtrasoComDias, alertaCritico7, alertaCritico30, ativosCount: ativos.length };
-  }, [clientesReceita]);
+  }, [clientesReceita, overdueByClient]);
 
   // ── Systems distribution ────────────────────────────────────────────
   const { sistemas: sistemaCatalogo } = useParametros();
