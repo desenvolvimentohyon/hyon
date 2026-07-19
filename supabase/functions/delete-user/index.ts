@@ -1,6 +1,6 @@
 // Edge function: delete-user
-// Desativa o usuário no profile e bloqueia login no Auth, mantendo soft-delete.
-import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+// Desativa ou reativa o usuário: atualiza profile e ban_duration no Auth.
+import { createClient } from "npm:@supabase/supabase-js@2.47.10";
 import { z } from "npm:zod@3.23.8";
 
 const corsHeaders = {
@@ -9,8 +9,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const DeleteUserBodySchema = z.object({
+const BodySchema = z.object({
   user_id: z.string().uuid("Usuário inválido"),
+  action: z.enum(["deactivate", "reactivate"]).default("deactivate"),
 });
 
 Deno.serve(async (req) => {
@@ -33,12 +34,15 @@ Deno.serve(async (req) => {
     const { data: userData, error: userErr } = await supabaseCaller.auth.getUser();
     if (userErr || !userData?.user) return json({ error: "Sessão inválida" }, 401);
 
-    const parsed = DeleteUserBodySchema.safeParse(await req.json().catch(() => null));
+    const parsed = BodySchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) return json({ error: parsed.error.errors[0]?.message ?? "Dados inválidos" }, 400);
 
     const callerId = userData.user.id;
     const targetId = parsed.data.user_id;
-    if (callerId === targetId) return json({ error: "Você não pode desativar o próprio usuário." }, 400);
+    const action = parsed.data.action;
+    if (callerId === targetId && action === "deactivate") {
+      return json({ error: "Você não pode desativar o próprio usuário." }, 400);
+    }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -64,7 +68,7 @@ Deno.serve(async (req) => {
         permissions.includes("usuarios:editar") ||
         permissions.includes("configuracoes:editar");
     }
-    if (!allowed) return json({ error: "Sem permissão para desativar usuários" }, 403);
+    if (!allowed) return json({ error: "Sem permissão para alterar status de usuários" }, 403);
 
     const { data: targetProfile, error: targetErr } = await supabaseAdmin
       .from("profiles")
@@ -75,23 +79,25 @@ Deno.serve(async (req) => {
     if (targetErr || !targetProfile) return json({ error: "Usuário não encontrado" }, 404);
     if (targetProfile.org_id !== callerProfile.org_id) return json({ error: "Usuário pertence a outra organização" }, 403);
 
-    const { error: profileErr } = targetProfile.is_active
-      ? await supabaseAdmin
-        .from("profiles")
-        .update({ is_active: false })
-        .eq("id", targetId)
-        .eq("org_id", callerProfile.org_id)
-      : { error: null };
+    const desiredActive = action === "reactivate";
+    const banDuration = desiredActive ? "none" : "876000h";
+    const alreadyInState = targetProfile.is_active === desiredActive;
 
-    if (profileErr) return json({ error: "Falha ao desativar perfil: " + profileErr.message }, 500);
+    if (!alreadyInState) {
+      const { error: profileErr } = await supabaseAdmin
+        .from("profiles")
+        .update({ is_active: desiredActive })
+        .eq("id", targetId)
+        .eq("org_id", callerProfile.org_id);
+      if (profileErr) return json({ error: "Falha ao atualizar perfil: " + profileErr.message }, 500);
+    }
 
     const { error: authErr } = await supabaseAdmin.auth.admin.updateUserById(targetId, {
-      ban_duration: "876000h",
+      ban_duration: banDuration,
     });
+    if (authErr) return json({ error: "Perfil atualizado, mas falha no Auth: " + authErr.message }, 500);
 
-    if (authErr) return json({ error: "Perfil desativado, mas falha ao bloquear login: " + authErr.message }, 500);
-
-    return json({ ok: true, already_inactive: !targetProfile.is_active }, 200);
+    return json({ ok: true, action, already_in_state: alreadyInState }, 200);
   } catch (e) {
     console.error("[delete-user] error:", e);
     return json({ error: (e as Error).message ?? "Erro interno" }, 500);
