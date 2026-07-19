@@ -45,7 +45,7 @@ export default function RadarCrescimento() {
         icon={Rocket}
         iconClassName="text-success"
       />
-      <ModuleNavGrid moduleId="dashboard" />
+      <ModuleNavGrid moduleId="inteligencia" />
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
         {kpiCards.map(k => (
