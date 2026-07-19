@@ -167,11 +167,30 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
 
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
+    // Alterações de status (ativo/inativo) precisam ir pela edge function
+    // para sincronizar o ban_duration no Auth.
+    if (changes.ativo !== undefined) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) { toast.error("Sessão expirada. Faça login novamente."); return; }
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: id, action: changes.ativo ? "reactivate" : "deactivate" },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (error) {
+        const msg = await getFunctionErrorMessage(error, "Erro ao alterar status");
+        toast.error(msg); return;
+      }
+      if (data && (data as any).error) { toast.error((data as any).error); return; }
+    }
+
     const upd: any = {};
     if (changes.nome !== undefined) upd.full_name = changes.nome;
-    if (changes.email !== undefined) upd.email = changes.email;
     if (changes.telefone !== undefined) upd.phone = changes.telefone;
-    if (changes.ativo !== undefined) upd.is_active = changes.ativo;
+    // Email não é sincronizado com auth.users por aqui — bloqueia edição silenciosa
+    if (changes.email !== undefined) {
+      toast.info("A alteração de e-mail deve ser feita pelo próprio usuário no login.");
+    }
     if (changes.roleId !== undefined) {
       if (DEFAULT_ROLE_PERMISSIONS[changes.roleId]) {
         upd.role = changes.roleId;
@@ -180,8 +199,10 @@ export function UsersProvider({ children }: { children: React.ReactNode }) {
         upd.custom_role_id = changes.roleId;
       }
     }
-    const { error } = await supabase.from("profiles").update(upd).eq("id", id);
-    if (error) { toast.error("Erro ao atualizar usuário: " + error.message); return; }
+    if (Object.keys(upd).length > 0) {
+      const { error } = await supabase.from("profiles").update(upd).eq("id", id);
+      if (error) { toast.error("Erro ao atualizar usuário: " + error.message); return; }
+    }
     fetchAll();
   }, [fetchAll]);
 
