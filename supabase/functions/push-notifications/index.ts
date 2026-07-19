@@ -327,18 +327,46 @@ Deno.serve(async (req) => {
     }
 
     if (action === "send") {
-      // Internal use: send push to specific users
-      const { userIds, title, messageBody, url: targetUrl, orgId: targetOrgId } = body;
+      // Internal use: send push to users within the caller's OWN organization only.
+      const { userIds, title, messageBody, url: targetUrl } = body;
       const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY")!;
       const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
 
-      // Use service role for cross-user sends
+      // Require admin permission to broadcast pushes
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const adminClient = createClient(supabaseUrl, serviceKey);
 
-      let query = adminClient.from("push_subscriptions").select("*").eq("is_active", true);
-      if (targetOrgId) query = query.eq("org_id", targetOrgId);
-      if (userIds?.length) query = query.in("user_id", userIds);
+      const { data: callerProfile } = await adminClient
+        .from("profiles")
+        .select("role, custom_role_id, org_id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (!callerProfile) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      let isAdmin = callerProfile.role === "admin" && !callerProfile.custom_role_id;
+      if (!isAdmin && callerProfile.custom_role_id) {
+        const { data: role } = await adminClient
+          .from("custom_roles")
+          .select("permissions")
+          .eq("id", callerProfile.custom_role_id)
+          .maybeSingle();
+        isAdmin = Array.isArray(role?.permissions) && role!.permissions.includes("admin");
+      }
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: "Admin permission required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // Force scope to caller's org — never trust client-supplied orgId
+      const callerOrgId = callerProfile.org_id;
+      let query = adminClient
+        .from("push_subscriptions")
+        .select("*")
+        .eq("is_active", true)
+        .eq("org_id", callerOrgId);
+      if (Array.isArray(userIds) && userIds.length) query = query.in("user_id", userIds);
 
       const { data: subs } = await query;
       if (!subs || subs.length === 0) {

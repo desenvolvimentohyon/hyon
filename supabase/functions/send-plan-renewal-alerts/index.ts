@@ -6,24 +6,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// ── Auth: accept x-cron-secret OR the anon key in Authorization ──
+// ── Auth: require secret CRON_SECRET header (anon key is NOT a valid substitute) ──
 function isCronAuthorized(req: Request): boolean {
+  const expected = Deno.env.get("CRON_SECRET");
+  if (!expected) return false;
   const cronSecret = req.headers.get("x-cron-secret");
-  if (cronSecret && cronSecret === Deno.env.get("CRON_SECRET")) return true;
-
+  if (cronSecret && cronSecret === expected) return true;
   const authHeader = req.headers.get("Authorization");
   if (authHeader) {
-    const token = authHeader.replace("Bearer ", "");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    if (anonKey && token === anonKey) return true;
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (token === expected) return true;
   }
-
-  const apiKey = req.headers.get("apikey");
-  if (apiKey) {
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    if (anonKey && apiKey === anonKey) return true;
-  }
-
   return false;
 }
 
