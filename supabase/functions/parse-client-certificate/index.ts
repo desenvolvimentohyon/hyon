@@ -1,11 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import forge from "https://esm.sh/node-forge@1.3.1";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import {
+  corsHeaders,
+  jsonResponse,
+  parsePkcs12,
+  binaryStrToBytes,
+} from "../_shared/certificate-parser.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -15,10 +14,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
     const supabase = createClient(
@@ -28,39 +24,27 @@ Deno.serve(async (req) => {
     );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const userId = user.id;
+    if (authError || !user) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("org_id, role")
-      .eq("id", userId)
+      .eq("id", user.id)
       .single();
 
-    if (!profile) {
-      return new Response(JSON.stringify({ error: "Profile not found" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!profile) return jsonResponse({ error: "Profile not found" }, 403);
 
     const orgId = profile.org_id;
     const { fileBase64, password, clientId } = await req.json();
 
     if (!fileBase64 || !password || !clientId) {
-      return new Response(JSON.stringify({ error: "Arquivo, senha e clientId são obrigatórios" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse(
+        { error: "Arquivo, senha e clientId são obrigatórios" },
+        400
+      );
     }
 
-    // Verify client belongs to org
+    // Verifica se o cliente pertence à org
     const { data: client } = await supabase
       .from("clients")
       .select("id")
@@ -68,59 +52,29 @@ Deno.serve(async (req) => {
       .eq("org_id", orgId)
       .single();
 
-    if (!client) {
-      return new Response(JSON.stringify({ error: "Cliente não encontrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!client) return jsonResponse({ error: "Cliente não encontrado" }, 404);
 
-    // Decode and parse PKCS#12
-    const binaryStr = atob(fileBase64);
-    const derBytes = forge.util.createBuffer(binaryStr, "raw");
-
-    let p12;
+    let parsed;
     try {
-      const asn1 = forge.asn1.fromDer(derBytes);
-      p12 = forge.pkcs12.pkcs12FromAsn1(asn1, password);
-    } catch {
-      return new Response(
-        JSON.stringify({ error: "Senha incorreta ou arquivo inválido" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      parsed = parsePkcs12(fileBase64, password);
+    } catch (e) {
+      return jsonResponse({ error: (e as Error).message }, 400);
     }
 
-    const bags = p12.getBags({ bagType: forge.pki.oids.certBag });
-    const certBags = bags[forge.pki.oids.certBag];
+    const { cn, validFrom, validTo, binaryStr } = parsed;
 
-    if (!certBags || certBags.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Nenhum certificado encontrado no arquivo" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const cert = certBags[0].cert!;
-    const cnAttr = cert.subject.getField("CN");
-    const cn = cnAttr ? cnAttr.value : null;
-    const validFrom = cert.validity.notBefore.toISOString().split("T")[0];
-    const validTo = cert.validity.notAfter.toISOString().split("T")[0];
-
-    // Upload file to storage
-    const fileBytes = Uint8Array.from(binaryStr, (c) => c.charCodeAt(0));
     const filePath = `${orgId}/${clientId}/certificado.pfx`;
-
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+    await adminClient.storage
+      .from("client-attachments")
+      .upload(filePath, binaryStrToBytes(binaryStr), {
+        contentType: "application/x-pkcs12",
+        upsert: true,
+      });
 
-    await adminClient.storage.from("client-attachments").upload(filePath, fileBytes, {
-      contentType: "application/x-pkcs12",
-      upsert: true,
-    });
-
-    // Update client
     const { error: updateError } = await supabase
       .from("clients")
       .update({
@@ -132,26 +86,21 @@ Deno.serve(async (req) => {
       .eq("org_id", orgId);
 
     if (updateError) {
-      return new Response(
-        JSON.stringify({ error: "Erro ao salvar dados: " + updateError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return jsonResponse(
+        { error: "Erro ao salvar dados: " + updateError.message },
+        500
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        cert_cn: cn,
-        cert_valid_from: validFrom,
-        cert_valid_to: validTo,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (e: any) {
-    console.error("parse-client-certificate error:", e);
-    return new Response(
-      JSON.stringify({ error: "Erro interno ao processar certificado" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({
+      success: true,
+      cert_cn: cn,
+      cert_valid_from: validFrom,
+      cert_valid_to: validTo,
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "unknown";
+    console.error("parse-client-certificate error:", msg);
+    return jsonResponse({ error: "Erro interno ao processar certificado" }, 500);
   }
 });
