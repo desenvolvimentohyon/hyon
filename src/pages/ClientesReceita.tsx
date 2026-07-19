@@ -440,6 +440,12 @@ export default function Clientes() {
           );
         })}
       </div>
+        </TabsContent>
+
+        <TabsContent value="receita" className="mt-0">
+          <ReceitaSection />
+        </TabsContent>
+      </Tabs>
 
       {/* Batch Edit Dialog */}
       <Dialog open={showBatchEdit} onOpenChange={setShowBatchEdit}>
