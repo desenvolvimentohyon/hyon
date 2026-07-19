@@ -408,6 +408,7 @@ export default function Dashboard() {
   const { clientesReceita, suporteEventos, loading: receitaLoading } = useReceita();
   const navigate = useNavigate();
   const [chartMode, setChartMode] = useState<"mrr" | "custos" | "margem">("mrr");
+  const [evolutionScope, setEvolutionScope] = useState<"realizado" | "previsto">("realizado");
 
   const dataLoading = appLoading || receitaLoading;
   const allLoading = dataLoading || propostasLoading;
@@ -563,11 +564,30 @@ export default function Dashboard() {
     },
   });
 
+  // ── Evolution chart data (from financial_titles) ──────────────────
+  const { data: evolutionRaw } = useQuery({
+    queryKey: ["dashboard_evolution", evolutionScope],
+    queryFn: async () => {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
+      const statuses = evolutionScope === "realizado" ? ["pago"] : ["pago", "aberto", "vencido"];
+      const { data, error } = await supabase
+        .from("financial_titles")
+        .select("type, value_final, competency, status")
+        .gte("competency", sixMonthsAgo.toISOString().slice(0, 7))
+        .in("status", statuses);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+  });
+
   const evolutionData = useMemo(() => {
-    const now = new Date();
+    const nowD = new Date();
     const months: { key: string; label: string }[] = [];
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1);
       months.push({
         key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
         label: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }),
@@ -575,18 +595,64 @@ export default function Dashboard() {
     }
     return months.map(m => {
       const items = (evolutionRaw || []).filter((t: any) => t.competency === m.key);
-      const receita = items.filter((t: any) => t.type === "receber").reduce((s: number, t: any) => s + Number(t.value_original), 0);
-      const despesa = items.filter((t: any) => t.type === "pagar").reduce((s: number, t: any) => s + Number(t.value_original), 0);
+      const receita = items.filter((t: any) => t.type === "receber").reduce((s: number, t: any) => s + Number(t.value_final || 0), 0);
+      const despesa = items.filter((t: any) => t.type === "pagar").reduce((s: number, t: any) => s + Number(t.value_final || 0), 0);
       return { name: m.label, MRR: receita, Custos: despesa, Margem: receita - despesa };
     });
   }, [evolutionRaw]);
+
+  const evolutionHasData = useMemo(() => evolutionData.some(d => d.MRR > 0 || d.Custos > 0), [evolutionData]);
+
+  // ── Historical churn (real) ─────────────────────────────────────────
+  const { data: churnHistoric } = useQuery({
+    queryKey: ["dashboard_churn_history"],
+    queryFn: async () => {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
+      const [{ data: cancels }, { data: created }] = await Promise.all([
+        supabase.from("clients").select("cancelled_at").not("cancelled_at", "is", null).gte("cancelled_at", sixMonthsAgo.toISOString()),
+        supabase.from("clients").select("created_at").lt("created_at", new Date().toISOString()),
+      ]);
+      return { cancels: cancels || [], created: created || [] };
+    },
+    staleTime: 300_000,
+  });
 
   // ── Sparkline data for KPIs ─────────────────────────────────────────
   const sparkMrr = useMemo(() => evolutionData.map(d => d.MRR), [evolutionData]);
   const sparkArr = useMemo(() => evolutionData.map(d => d.MRR * 12), [evolutionData]);
   const sparkTicket = useMemo(() => evolutionData.map(d => receitaMetricas.ativosCount > 0 ? d.MRR / receitaMetricas.ativosCount : 0), [evolutionData, receitaMetricas.ativosCount]);
-  const sparkChurn = useMemo(() => [5.2, 4.8, 4.5, 3.9, 3.5, receitaMetricas.churnRate], [receitaMetricas.churnRate]);
+  const sparkChurn = useMemo(() => {
+    const nowD = new Date();
+    const months: string[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1);
+      months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    const cancels = churnHistoric?.cancels || [];
+    const created = churnHistoric?.created || [];
+    return months.map(m => {
+      const cancelados = cancels.filter((c: any) => (c.cancelled_at || "").slice(0, 7) === m).length;
+      const baseAtivos = created.filter((c: any) => (c.created_at || "").slice(0, 7) <= m).length;
+      return baseAtivos > 0 ? (cancelados / baseAtivos) * 100 : 0;
+    });
+  }, [churnHistoric]);
   const sparkMargem = useMemo(() => evolutionData.map(d => d.Margem), [evolutionData]);
+
+  // ── Variação MoM ────────────────────────────────────────────────────
+  const pctChange = (arr: number[]) => {
+    if (arr.length < 2) return null;
+    const prev = arr[arr.length - 2];
+    const cur = arr[arr.length - 1];
+    if (prev === 0) return cur === 0 ? 0 : null;
+    return ((cur - prev) / Math.abs(prev)) * 100;
+  };
+  const varMrr = pctChange(sparkMrr);
+  const varArr = pctChange(sparkArr);
+  const varTicket = pctChange(sparkTicket);
+  const varChurn = pctChange(sparkChurn);
+  const varMargem = pctChange(sparkMargem);
 
   // ── My tasks ────────────────────────────────────────────────────────
   const minhasTarefas = tarefas
