@@ -357,10 +357,6 @@ export function Topbar() {
           </PopoverContent>
         </Popover>
 
-        <Button size="sm" onClick={() => navigate("/tarefas?nova=1")} className="gap-1.5 rounded-lg shadow-sm">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Nova Tarefa</span>
-        </Button>
 
         <Button
           variant="ghost"
