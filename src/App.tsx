@@ -132,7 +132,7 @@ function AuthGate() {
                       <Route path="/tarefas" element={<Tarefas />} />
                       <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
                       <Route path="/clientes" element={<ClientesReceita />} />
-                      <Route path="/receita" element={<Receita />} />
+                      <Route path="/receita" element={<Navigate to="/clientes" replace />} />
                       <Route path="/tecnicos" element={<Tecnicos />} />
                       <Route path="/configuracoes" element={<Configuracoes />} />
                       <Route path="/comercial" element={<Comercial />} />
