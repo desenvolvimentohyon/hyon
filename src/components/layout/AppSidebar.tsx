@@ -23,6 +23,7 @@ const MAX_FAVORITES = 8;
 
 const MODULE_SIDEBAR_COLORS: Record<string, { active: string; icon: string; bg: string }> = {
   dashboard: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-sky-400", bg: "bg-sidebar-accent/40" },
+  inteligencia: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-sky-400", bg: "bg-sidebar-accent/40" },
   clientes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-emerald-400", bg: "bg-sidebar-accent/40" },
   comercial: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-indigo-400", bg: "bg-sidebar-accent/40" },
   financeiro: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-green-400", bg: "bg-sidebar-accent/40" },

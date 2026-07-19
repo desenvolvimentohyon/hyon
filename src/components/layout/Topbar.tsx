@@ -237,7 +237,7 @@ export function Topbar() {
           <BreadcrumbList className="gap-1.5 text-[12px]">
             <BreadcrumbItem className="text-muted-foreground/70">
               <BreadcrumbLink asChild>
-                <Link to={breadcrumb.parent.children[0]?.url || "/"} className="hover:text-foreground transition-colors truncate max-w-[160px] inline-block">
+                <Link to={breadcrumb.parent.directUrl || breadcrumb.parent.children[0]?.url || "/"} className="hover:text-foreground transition-colors truncate max-w-[160px] inline-block">
                   {breadcrumb.parent.title}
                 </Link>
               </BreadcrumbLink>
