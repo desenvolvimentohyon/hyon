@@ -216,6 +216,9 @@ export default function Executivo() {
           <TabsTrigger value="resumo" className="gap-1.5">
             <Gauge className="h-3.5 w-3.5" /> Resumo
           </TabsTrigger>
+          <TabsTrigger value="crescimento" className="gap-1.5">
+            <Rocket className="h-3.5 w-3.5" /> Crescimento
+          </TabsTrigger>
           <TabsTrigger value="detalhado" className="gap-1.5">
             <BarChart3 className="h-3.5 w-3.5" /> Detalhado
           </TabsTrigger>
