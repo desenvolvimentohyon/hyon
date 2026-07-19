@@ -26,13 +26,21 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return jsonResponse({ error: "Unauthorized" }, 401);
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("org_id, role")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile) return jsonResponse({ error: "Profile not found" }, 403);
+    if (profileError) {
+      return jsonResponse({ error: "Erro ao consultar perfil do usuário" }, 500);
+    }
+    if (!profile) {
+      return jsonResponse({ error: "Perfil não encontrado para este usuário" }, 404);
+    }
+    if (!profile.org_id) {
+      return jsonResponse({ error: "Usuário sem organização vinculada" }, 403);
+    }
     if (profile.role !== "admin") {
       return jsonResponse({ error: "Acesso restrito a administradores" }, 403);
     }
