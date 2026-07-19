@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateCNPJ, cleanCNPJ, formatCNPJ, maskDocument, type CnpjLookupResult } from "@/lib/cnpjUtils";
 import { ClienteCard } from "@/components/clientes/ClienteCard";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
+import { ReceitaSection } from "./receita/ReceitaSection";
 
 function PortalLinkButton({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(false);
