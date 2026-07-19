@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 const MODULE_COLORS: Record<string, { color: string; bg: string; border: string }> = {
   dashboard: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/40" },
+  inteligencia: { color: "text-sky-500", bg: "bg-sky-500/10", border: "border-sky-500/40" },
   clientes: { color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/40" },
   comercial: { color: "text-indigo-500", bg: "bg-indigo-500/10", border: "border-indigo-500/40" },
   financeiro: { color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/40" },
