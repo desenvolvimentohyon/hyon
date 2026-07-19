@@ -30,11 +30,11 @@ export function useCockpitCharts() {
       }
 
       try {
-        // MRR: financial_titles type=receita, status=pago, grouped by competency
+        // MRR: financial_titles type=receber, status=pago, grouped by competency
         const { data: titles } = await supabase
           .from("financial_titles")
           .select("competency, value_final")
-          .eq("type", "receita")
+          .eq("type", "receber")
           .eq("status", "pago")
           .in("competency", months);
 
