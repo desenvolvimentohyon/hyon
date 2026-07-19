@@ -823,6 +823,7 @@ export default function Dashboard() {
                   )}
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
