@@ -662,11 +662,11 @@ export default function Dashboard() {
 
   // ── KPI card definitions ────────────────────────────────────────────
   const receitaKpis = [
-    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkMrr },
-    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkArr },
-    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkTicket },
-    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: `${receitaMetricas.churnRate.toFixed(1)}%`, icon: Percent, color: RECEITA_COLORS.churn, domain: "churn" as const, spark: sparkChurn },
-    { label: "Margem", value: fmt(receitaMetricas.margem), icon: BarChart3, color: RECEITA_COLORS.margem, domain: "margem" as const, spark: sparkMargem },
+    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita, spark: sparkMrr, variation: varMrr, invertColor: false },
+    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita, spark: sparkArr, variation: varArr, invertColor: false },
+    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita, spark: sparkTicket, variation: varTicket, invertColor: false },
+    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: `${receitaMetricas.churnRate.toFixed(1)}%`, icon: Percent, color: RECEITA_COLORS.churn, spark: sparkChurn, variation: varChurn, invertColor: true },
+    { label: "Margem", value: fmt(receitaMetricas.margem), icon: BarChart3, color: RECEITA_COLORS.margem, spark: sparkMargem, variation: varMargem, invertColor: false },
   ];
 
   const propostasKpis = [
@@ -727,6 +727,23 @@ export default function Dashboard() {
                   </p>
                   <Sparkline data={k.spark} color={k.color} height={28} />
                 </div>
+                {k.variation !== null && k.variation !== undefined && (
+                  <div className="mt-2 flex items-center gap-1">
+                    {(() => {
+                      const positive = k.invertColor ? k.variation < 0 : k.variation > 0;
+                      const neutral = k.variation === 0;
+                      const cls = neutral ? "text-muted-foreground" : positive ? "text-success" : "text-destructive";
+                      const Icon = neutral ? Activity : k.variation > 0 ? TrendingUp : TrendingDown;
+                      return (
+                        <span className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold ${cls}`}>
+                          <Icon className="h-3 w-3" />
+                          {k.variation > 0 ? "+" : ""}{k.variation.toFixed(1)}%
+                          <span className="text-muted-foreground/60 font-normal ml-0.5">vs mês ant.</span>
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -740,21 +757,41 @@ export default function Dashboard() {
           {/* Painel principal — Evolução */}
           <Card className="lg:col-span-8 neon-border">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-primary" />Evolução
+                  <Badge variant="outline" className="text-[9px] font-normal uppercase tracking-wider">
+                    {evolutionScope === "realizado" ? "Pagos" : "Faturados"}
+                  </Badge>
                 </CardTitle>
-                <div className="flex gap-1">
-                  {(["mrr", "custos", "margem"] as const).map(m => (
-                    <Button key={m} variant={chartMode === m ? "secondary" : "ghost"} size="sm" className="text-[11px] h-7 px-2.5"
-                      onClick={() => setChartMode(m)}>
-                      {m === "mrr" ? "MRR" : m === "custos" ? "Custos" : "Margem"}
-                    </Button>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-0.5 bg-muted/40 rounded-md p-0.5">
+                    {(["realizado", "previsto"] as const).map(s => (
+                      <Button key={s} variant={evolutionScope === s ? "secondary" : "ghost"} size="sm" className="text-[10.5px] h-6 px-2"
+                        onClick={() => setEvolutionScope(s)}>
+                        {s === "realizado" ? "Realizado" : "Previsto"}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    {(["mrr", "custos", "margem"] as const).map(m => (
+                      <Button key={m} variant={chartMode === m ? "secondary" : "ghost"} size="sm" className="text-[11px] h-7 px-2.5"
+                        onClick={() => setChartMode(m)}>
+                        {m === "mrr" ? "MRR" : m === "custos" ? "Custos" : "Margem"}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="pb-4">
+              {!evolutionHasData ? (
+                <div className="h-[280px] flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
+                  <BarChart3 className="h-8 w-8 opacity-30" />
+                  <p className="text-sm">Sem lançamentos no período</p>
+                  <p className="text-[11px] opacity-70">Registre títulos financeiros para ver a evolução</p>
+                </div>
+              ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <AreaChart data={evolutionData}>
                   <defs>
