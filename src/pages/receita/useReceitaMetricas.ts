@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
 
 export const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
