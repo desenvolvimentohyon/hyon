@@ -680,7 +680,7 @@ export default function Dashboard() {
       <div className="space-y-6 chart-container">
         {/* ── Header ─────────────────────────────────────────────── */}
         <PageHeader
-          title="Visão Geral"
+          title="Dashboard"
           subtitle={`Bem-vindo, ${tecnicoNome}`}
           actions={
             <div className="flex items-center gap-2">

@@ -242,12 +242,16 @@ export function Topbar() {
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator className="text-muted-foreground/30" />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[220px]">
-                {breadcrumb.child.title}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
+            {breadcrumb.parent.children.length > 1 && (
+              <>
+                <BreadcrumbSeparator className="text-muted-foreground/30" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[220px]">
+                    {breadcrumb.child.title}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </>
+            )}
           </BreadcrumbList>
         </Breadcrumb>
       )}
