@@ -28,7 +28,6 @@ const Comercial = lazy(() => import("./pages/Comercial"));
 const Implantacao = lazy(() => import("./pages/Implantacao"));
 const Suporte = lazy(() => import("./pages/Suporte"));
 const Executivo = lazy(() => import("./pages/Executivo"));
-const RadarCrescimento = lazy(() => import("./pages/RadarCrescimento"));
 const Propostas = lazy(() => import("./pages/Propostas"));
 const PropostaDetalhe = lazy(() => import("./pages/PropostaDetalhe"));
 const PropostaInteligente = lazy(() => import("./pages/PropostaInteligente"));
@@ -139,7 +138,7 @@ function AuthGate() {
                       <Route path="/implantacao" element={<Implantacao />} />
                       <Route path="/suporte" element={<Suporte />} />
                       <Route path="/executivo" element={<Executivo />} />
-                      <Route path="/radar-crescimento" element={<RadarCrescimento />} />
+                      <Route path="/radar-crescimento" element={<Navigate to="/executivo" replace />} />
                       <Route path="/propostas" element={<Propostas />} />
                       <Route path="/propostas/nova" element={<PropostaInteligente />} />
                       <Route path="/propostas/:id" element={<PropostaDetalhe />} />

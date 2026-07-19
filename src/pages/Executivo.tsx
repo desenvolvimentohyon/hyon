@@ -216,6 +216,9 @@ export default function Executivo() {
           <TabsTrigger value="resumo" className="gap-1.5">
             <Gauge className="h-3.5 w-3.5" /> Resumo
           </TabsTrigger>
+          <TabsTrigger value="crescimento" className="gap-1.5">
+            <Rocket className="h-3.5 w-3.5" /> Crescimento
+          </TabsTrigger>
           <TabsTrigger value="detalhado" className="gap-1.5">
             <BarChart3 className="h-3.5 w-3.5" /> Detalhado
           </TabsTrigger>
@@ -335,6 +338,45 @@ export default function Executivo() {
             </CockpitCard>
           </div>
         </TabsContent>
+
+        {/* ══════════ ABA CRESCIMENTO (Radar) ══════════ */}
+        <TabsContent value="crescimento" className="space-y-4 mt-4">
+          {(() => {
+            const ativosR = clientesReceita.filter(c => c.mensalidadeAtiva);
+            const mrrR = ativosR.reduce((s, c) => s + c.valorMensalidade, 0);
+            const cancelados = clientesReceita.filter(c => c.statusCliente === "cancelado").length;
+            const total = clientesReceita.length || 1;
+            const churnPct = (cancelados / total) * 100;
+            const retencaoPct = 100 - churnPct;
+            const ticket = ativosR.length > 0 ? mrrR / ativosR.length : 0;
+            const custos = clientesReceita.filter(c => c.custoAtivo).reduce((s, c) => s + c.valorCustoMensal, 0);
+            const margem = mrrR - custos;
+            const cards = [
+              { label: "MRR Atual", value: fmt(mrrR), icon: DollarSign, color: "text-success" },
+              { label: "Churn", value: `${churnPct.toFixed(1)}%`, icon: TrendingDown, color: "text-destructive" },
+              { label: "Retenção", value: `${retencaoPct.toFixed(1)}%`, icon: Users, color: "text-primary" },
+              { label: "Ticket Médio", value: fmt(ticket), icon: TrendingUp, color: "text-info" },
+              { label: "Margem", value: fmt(margem), icon: Gauge, color: margem >= 0 ? "text-success" : "text-destructive" },
+              { label: "Clientes Ativos", value: String(ativosR.length), icon: Users, color: "text-primary" },
+            ];
+            return (
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+                {cards.map(k => (
+                  <Card key={k.label} className="neon-border">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{k.label}</span>
+                        <k.icon className={`h-4 w-4 ${k.color}`} />
+                      </div>
+                      <p className="text-xl font-bold tracking-tight">{k.value}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            );
+          })()}
+        </TabsContent>
+
 
         {/* ══════════ ABA DETALHADO (Executive) ══════════ */}
         <TabsContent value="detalhado" className="space-y-6 mt-4">
