@@ -32,16 +32,41 @@ export function useReceitaMetricas(clientesReceita: any[], suporteEventos: any[]
     : metricas.margemPercent >= 30 ? { text: "Atenção", color: "text-warning" }
     : { text: "Revisar custos", color: "text-destructive" };
 
-  const mrrTimeline = useMemo(() => {
-    const months: { name: string; mrr: number }[] = [];
+  // Real evolution from financial_titles (last 12 months)
+  const months12 = useMemo(() => {
+    const arr: { key: string; name: string }[] = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(); d.setMonth(d.getMonth() - i);
-      const label = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
-      const factor = 1 - (i * 0.02);
-      months.push({ name: label, mrr: Math.round(metricas.mrr * factor) });
+      arr.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+        name: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }),
+      });
     }
-    return months;
-  }, [metricas.mrr]);
+    return arr;
+  }, []);
+
+  const { data: evolutionRaw } = useQuery({
+    queryKey: ["receita_evolution_12m", months12.map(m => m.key).join(",")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("financial_titles")
+        .select("type, value_final, competency, status")
+        .in("competency", months12.map(m => m.key))
+        .eq("status", "pago");
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+  });
+
+  const mrrTimeline = useMemo(() => {
+    return months12.map(m => {
+      const receita = (evolutionRaw || [])
+        .filter((t: any) => t.competency === m.key && t.type === "receber")
+        .reduce((s: number, t: any) => s + Number(t.value_final || 0), 0);
+      return { name: m.name, mrr: Math.round(receita) };
+    });
+  }, [evolutionRaw, months12]);
 
   const arrVsMrr = useMemo(() => mrrTimeline.map(m => ({ name: m.name, MRR: m.mrr, ARR: m.mrr * 12 })), [mrrTimeline]);
 
@@ -83,10 +108,15 @@ export function useReceitaMetricas(clientesReceita: any[], suporteEventos: any[]
     })).filter(s => s.value > 0);
   }, [clientesReceita, activeSystemNames]);
 
-  const margemData = useMemo(() => mrrTimeline.map((m, i) => {
-    const custos = Math.round(metricas.custosTotal * (1 - ((11 - i) * 0.015)));
-    return { name: m.name, MRR: m.mrr, Custos: custos, Margem: m.mrr - custos };
-  }), [mrrTimeline, metricas.custosTotal]);
+  const margemData = useMemo(() => months12.map(m => {
+    const receita = (evolutionRaw || [])
+      .filter((t: any) => t.competency === m.key && t.type === "receber")
+      .reduce((s: number, t: any) => s + Number(t.value_final || 0), 0);
+    const custos = (evolutionRaw || [])
+      .filter((t: any) => t.competency === m.key && t.type === "pagar")
+      .reduce((s: number, t: any) => s + Number(t.value_final || 0), 0);
+    return { name: m.name, MRR: Math.round(receita), Custos: Math.round(custos), Margem: Math.round(receita - custos) };
+  }), [evolutionRaw, months12]);
 
   const clientesPorStatus = useMemo(() => {
     const statuses = [
