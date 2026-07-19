@@ -547,22 +547,6 @@ export default function Dashboard() {
       .slice(0, 10);
   }, [suporteEventos, clientesReceita]);
 
-  // ── Evolution chart data (from financial_titles) ──────────────────
-  const { data: evolutionRaw } = useQuery({
-    queryKey: ["dashboard_evolution"],
-    queryFn: async () => {
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-      sixMonthsAgo.setDate(1);
-      const { data, error } = await supabase
-        .from("financial_titles")
-        .select("type, value_original, competency, status")
-        .gte("competency", sixMonthsAgo.toISOString().slice(0, 7))
-        .in("status", ["pago", "aberto", "vencido"]);
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   // ── Evolution chart data (from financial_titles) ──────────────────
   const { data: evolutionRaw } = useQuery({
