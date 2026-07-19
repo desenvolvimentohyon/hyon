@@ -408,6 +408,7 @@ export default function Dashboard() {
   const { clientesReceita, suporteEventos, loading: receitaLoading } = useReceita();
   const navigate = useNavigate();
   const [chartMode, setChartMode] = useState<"mrr" | "custos" | "margem">("mrr");
+  const [evolutionScope, setEvolutionScope] = useState<"realizado" | "previsto">("realizado");
 
   const dataLoading = appLoading || receitaLoading;
   const allLoading = dataLoading || propostasLoading;
@@ -452,6 +453,35 @@ export default function Dashboard() {
     status: s, count: propostas.filter(p => p.statusCRM === s).length,
   }));
 
+  // ── Overdue days from financial_titles (real) ──────────────────────
+  const { data: overdueRaw } = useQuery({
+    queryKey: ["dashboard_overdue_titles"],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("financial_titles")
+        .select("client_id, due_at")
+        .eq("type", "receber")
+        .in("status", ["aberto", "vencido"])
+        .lt("due_at", today);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+  });
+
+  const overdueByClient = useMemo(() => {
+    const map = new Map<string, number>();
+    const now = Date.now();
+    (overdueRaw || []).forEach((t: any) => {
+      if (!t.client_id || !t.due_at) return;
+      const dias = Math.floor((now - new Date(t.due_at + "T00:00:00").getTime()) / 86400000);
+      const prev = map.get(t.client_id) || 0;
+      if (dias > prev) map.set(t.client_id, dias);
+    });
+    return map;
+  }, [overdueRaw]);
+
   // ── Receita metrics ─────────────────────────────────────────────────
   const receitaMetricas = useMemo(() => {
     const ativos = clientesReceita.filter(c => c.mensalidadeAtiva);
@@ -463,13 +493,13 @@ export default function Dashboard() {
     const custos = clientesReceita.filter(c => c.custoAtivo).reduce((s, c) => s + c.valorCustoMensal, 0);
     const margem = mrr - custos;
     const emAtraso = clientesReceita.filter(c => c.statusCliente === "atraso");
-    const emAtrasoComDias = emAtraso.map(c => {
-      return { ...c, diasAtraso: 0 };
-    }).sort((a, b) => b.diasAtraso - a.diasAtraso);
+    const emAtrasoComDias = emAtraso
+      .map(c => ({ ...c, diasAtraso: overdueByClient.get(c.id) || 0 }))
+      .sort((a, b) => b.diasAtraso - a.diasAtraso);
     const alertaCritico30 = emAtrasoComDias.filter(c => c.diasAtraso > 30);
     const alertaCritico7 = emAtrasoComDias.filter(c => c.diasAtraso > 7 && c.diasAtraso <= 30);
     return { mrr, arr, ticket, churnRate, margem, custos, emAtraso: emAtrasoComDias, alertaCritico7, alertaCritico30, ativosCount: ativos.length };
-  }, [clientesReceita]);
+  }, [clientesReceita, overdueByClient]);
 
   // ── Systems distribution ────────────────────────────────────────────
   const { sistemas: sistemaCatalogo } = useParametros();
@@ -517,28 +547,31 @@ export default function Dashboard() {
       .slice(0, 10);
   }, [suporteEventos, clientesReceita]);
 
+
   // ── Evolution chart data (from financial_titles) ──────────────────
   const { data: evolutionRaw } = useQuery({
-    queryKey: ["dashboard_evolution"],
+    queryKey: ["dashboard_evolution", evolutionScope],
     queryFn: async () => {
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
       sixMonthsAgo.setDate(1);
+      const statuses = evolutionScope === "realizado" ? ["pago"] : ["pago", "aberto", "vencido"];
       const { data, error } = await supabase
         .from("financial_titles")
-        .select("type, value_original, competency, status")
+        .select("type, value_final, competency, status")
         .gte("competency", sixMonthsAgo.toISOString().slice(0, 7))
-        .in("status", ["pago", "aberto", "vencido"]);
+        .in("status", statuses);
       if (error) throw error;
       return data || [];
     },
+    staleTime: 60_000,
   });
 
   const evolutionData = useMemo(() => {
-    const now = new Date();
+    const nowD = new Date();
     const months: { key: string; label: string }[] = [];
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1);
       months.push({
         key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
         label: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }),
@@ -546,18 +579,64 @@ export default function Dashboard() {
     }
     return months.map(m => {
       const items = (evolutionRaw || []).filter((t: any) => t.competency === m.key);
-      const receita = items.filter((t: any) => t.type === "receber").reduce((s: number, t: any) => s + Number(t.value_original), 0);
-      const despesa = items.filter((t: any) => t.type === "pagar").reduce((s: number, t: any) => s + Number(t.value_original), 0);
+      const receita = items.filter((t: any) => t.type === "receber").reduce((s: number, t: any) => s + Number(t.value_final || 0), 0);
+      const despesa = items.filter((t: any) => t.type === "pagar").reduce((s: number, t: any) => s + Number(t.value_final || 0), 0);
       return { name: m.label, MRR: receita, Custos: despesa, Margem: receita - despesa };
     });
   }, [evolutionRaw]);
+
+  const evolutionHasData = useMemo(() => evolutionData.some(d => d.MRR > 0 || d.Custos > 0), [evolutionData]);
+
+  // ── Historical churn (real) ─────────────────────────────────────────
+  const { data: churnHistoric } = useQuery({
+    queryKey: ["dashboard_churn_history"],
+    queryFn: async () => {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
+      const [{ data: cancels }, { data: created }] = await Promise.all([
+        supabase.from("clients").select("cancelled_at").not("cancelled_at", "is", null).gte("cancelled_at", sixMonthsAgo.toISOString()),
+        supabase.from("clients").select("created_at").lt("created_at", new Date().toISOString()),
+      ]);
+      return { cancels: cancels || [], created: created || [] };
+    },
+    staleTime: 300_000,
+  });
 
   // ── Sparkline data for KPIs ─────────────────────────────────────────
   const sparkMrr = useMemo(() => evolutionData.map(d => d.MRR), [evolutionData]);
   const sparkArr = useMemo(() => evolutionData.map(d => d.MRR * 12), [evolutionData]);
   const sparkTicket = useMemo(() => evolutionData.map(d => receitaMetricas.ativosCount > 0 ? d.MRR / receitaMetricas.ativosCount : 0), [evolutionData, receitaMetricas.ativosCount]);
-  const sparkChurn = useMemo(() => [5.2, 4.8, 4.5, 3.9, 3.5, receitaMetricas.churnRate], [receitaMetricas.churnRate]);
+  const sparkChurn = useMemo(() => {
+    const nowD = new Date();
+    const months: string[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1);
+      months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    const cancels = churnHistoric?.cancels || [];
+    const created = churnHistoric?.created || [];
+    return months.map(m => {
+      const cancelados = cancels.filter((c: any) => (c.cancelled_at || "").slice(0, 7) === m).length;
+      const baseAtivos = created.filter((c: any) => (c.created_at || "").slice(0, 7) <= m).length;
+      return baseAtivos > 0 ? (cancelados / baseAtivos) * 100 : 0;
+    });
+  }, [churnHistoric]);
   const sparkMargem = useMemo(() => evolutionData.map(d => d.Margem), [evolutionData]);
+
+  // ── Variação MoM ────────────────────────────────────────────────────
+  const pctChange = (arr: number[]) => {
+    if (arr.length < 2) return null;
+    const prev = arr[arr.length - 2];
+    const cur = arr[arr.length - 1];
+    if (prev === 0) return cur === 0 ? 0 : null;
+    return ((cur - prev) / Math.abs(prev)) * 100;
+  };
+  const varMrr = pctChange(sparkMrr);
+  const varArr = pctChange(sparkArr);
+  const varTicket = pctChange(sparkTicket);
+  const varChurn = pctChange(sparkChurn);
+  const varMargem = pctChange(sparkMargem);
 
   // ── My tasks ────────────────────────────────────────────────────────
   const minhasTarefas = tarefas
@@ -583,11 +662,11 @@ export default function Dashboard() {
 
   // ── KPI card definitions ────────────────────────────────────────────
   const receitaKpis = [
-    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkMrr },
-    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkArr },
-    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita, domain: "receita" as const, spark: sparkTicket },
-    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: `${receitaMetricas.churnRate.toFixed(1)}%`, icon: Percent, color: RECEITA_COLORS.churn, domain: "churn" as const, spark: sparkChurn },
-    { label: "Margem", value: fmt(receitaMetricas.margem), icon: BarChart3, color: RECEITA_COLORS.margem, domain: "margem" as const, spark: sparkMargem },
+    { label: "MRR", value: fmt(receitaMetricas.mrr), icon: DollarSign, color: RECEITA_COLORS.receita, spark: sparkMrr, variation: varMrr, invertColor: false },
+    { label: "ARR", value: fmt(receitaMetricas.arr), icon: TrendingUp, color: RECEITA_COLORS.receita, spark: sparkArr, variation: varArr, invertColor: false },
+    { label: "Ticket Médio", value: fmt(receitaMetricas.ticket), icon: Activity, color: RECEITA_COLORS.receita, spark: sparkTicket, variation: varTicket, invertColor: false },
+    { label: `Churn ${receitaMetricas.churnRate.toFixed(1)}%`, value: `${receitaMetricas.churnRate.toFixed(1)}%`, icon: Percent, color: RECEITA_COLORS.churn, spark: sparkChurn, variation: varChurn, invertColor: true },
+    { label: "Margem", value: fmt(receitaMetricas.margem), icon: BarChart3, color: RECEITA_COLORS.margem, spark: sparkMargem, variation: varMargem, invertColor: false },
   ];
 
   const propostasKpis = [
@@ -648,6 +727,23 @@ export default function Dashboard() {
                   </p>
                   <Sparkline data={k.spark} color={k.color} height={28} />
                 </div>
+                {k.variation !== null && k.variation !== undefined && (
+                  <div className="mt-2 flex items-center gap-1">
+                    {(() => {
+                      const positive = k.invertColor ? k.variation < 0 : k.variation > 0;
+                      const neutral = k.variation === 0;
+                      const cls = neutral ? "text-muted-foreground" : positive ? "text-success" : "text-destructive";
+                      const Icon = neutral ? Activity : k.variation > 0 ? TrendingUp : TrendingDown;
+                      return (
+                        <span className={`inline-flex items-center gap-0.5 text-[10.5px] font-semibold ${cls}`}>
+                          <Icon className="h-3 w-3" />
+                          {k.variation > 0 ? "+" : ""}{k.variation.toFixed(1)}%
+                          <span className="text-muted-foreground/60 font-normal ml-0.5">vs mês ant.</span>
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -661,21 +757,41 @@ export default function Dashboard() {
           {/* Painel principal — Evolução */}
           <Card className="lg:col-span-8 neon-border">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-primary" />Evolução
+                  <Badge variant="outline" className="text-[9px] font-normal uppercase tracking-wider">
+                    {evolutionScope === "realizado" ? "Pagos" : "Faturados"}
+                  </Badge>
                 </CardTitle>
-                <div className="flex gap-1">
-                  {(["mrr", "custos", "margem"] as const).map(m => (
-                    <Button key={m} variant={chartMode === m ? "secondary" : "ghost"} size="sm" className="text-[11px] h-7 px-2.5"
-                      onClick={() => setChartMode(m)}>
-                      {m === "mrr" ? "MRR" : m === "custos" ? "Custos" : "Margem"}
-                    </Button>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-0.5 bg-muted/40 rounded-md p-0.5">
+                    {(["realizado", "previsto"] as const).map(s => (
+                      <Button key={s} variant={evolutionScope === s ? "secondary" : "ghost"} size="sm" className="text-[10.5px] h-6 px-2"
+                        onClick={() => setEvolutionScope(s)}>
+                        {s === "realizado" ? "Realizado" : "Previsto"}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    {(["mrr", "custos", "margem"] as const).map(m => (
+                      <Button key={m} variant={chartMode === m ? "secondary" : "ghost"} size="sm" className="text-[11px] h-7 px-2.5"
+                        onClick={() => setChartMode(m)}>
+                        {m === "mrr" ? "MRR" : m === "custos" ? "Custos" : "Margem"}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="pb-4">
+              {!evolutionHasData ? (
+                <div className="h-[280px] flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
+                  <BarChart3 className="h-8 w-8 opacity-30" />
+                  <p className="text-sm">Sem lançamentos no período</p>
+                  <p className="text-[11px] opacity-70">Registre títulos financeiros para ver a evolução</p>
+                </div>
+              ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <AreaChart data={evolutionData}>
                   <defs>
@@ -707,6 +823,7 @@ export default function Dashboard() {
                   )}
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
