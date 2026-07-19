@@ -26,13 +26,21 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return jsonResponse({ error: "Unauthorized" }, 401);
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("org_id, role")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile) return jsonResponse({ error: "Profile not found" }, 403);
+    if (profileError) {
+      return jsonResponse({ error: "Erro ao consultar perfil do usuário" }, 500);
+    }
+    if (!profile) {
+      return jsonResponse({ error: "Perfil não encontrado para este usuário" }, 404);
+    }
+    if (!profile.org_id) {
+      return jsonResponse({ error: "Usuário sem organização vinculada" }, 403);
+    }
 
     const orgId = profile.org_id;
     const { fileBase64, password, clientId } = await req.json();
@@ -45,14 +53,22 @@ Deno.serve(async (req) => {
     }
 
     // Verifica se o cliente pertence à org
-    const { data: client } = await supabase
+    const { data: client, error: clientError } = await supabase
       .from("clients")
       .select("id")
       .eq("id", clientId)
       .eq("org_id", orgId)
-      .single();
+      .maybeSingle();
 
-    if (!client) return jsonResponse({ error: "Cliente não encontrado" }, 404);
+    if (clientError) {
+      return jsonResponse({ error: "Erro ao consultar cliente" }, 500);
+    }
+    if (!client) {
+      return jsonResponse(
+        { error: "Cliente não encontrado ou não pertence à sua organização" },
+        404
+      );
+    }
 
     let parsed;
     try {
