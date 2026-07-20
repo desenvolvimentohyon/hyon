@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_credentials: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          login: string | null
+          observacoes: string | null
+          org_id: string
+          senha: string | null
+          sistema: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          login?: string | null
+          observacoes?: string | null
+          org_id: string
+          senha?: string | null
+          sistema: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          login?: string | null
+          observacoes?: string | null
+          org_id?: string
+          senha?: string | null
+          sistema?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       asaas_settings: {
         Row: {
           created_at: string
