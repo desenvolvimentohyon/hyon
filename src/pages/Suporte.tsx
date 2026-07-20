@@ -141,6 +141,7 @@ export default function Suporte() {
           <TabsTrigger value="chamados">Chamados</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
           <TabsTrigger value="portal">Tickets Portal</TabsTrigger>
+          <TabsTrigger value="acessos">Acessos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sla" className="space-y-4">
