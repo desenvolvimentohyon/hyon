@@ -279,6 +279,96 @@ function PlanosVencendoCard() {
   );
 }
 
+// ── Certificados Digitais Vencendo Card ──────────────────────────────
+function CertificadosVencendoCard() {
+  const navigate = useNavigate();
+  const { data: expiring } = useQuery({
+    queryKey: ["certificados_vencendo"],
+    queryFn: async () => {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const limit = new Date(today); limit.setDate(limit.getDate() + 30);
+      const { data, error } = await supabase
+        .from("clients")
+        .select("id, name, cert_expires_at, primary_contact_phone, phone, billing_phone")
+        .not("cert_expires_at", "is", null)
+        .lte("cert_expires_at", limit.toISOString().slice(0, 10))
+        .order("cert_expires_at", { ascending: true })
+        .limit(15);
+      if (error) throw error;
+      return (data || []).map((c: any) => {
+        const end = new Date(c.cert_expires_at + "T00:00:00");
+        const days = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return { ...c, days_left: days };
+      });
+    },
+  });
+
+  if (!expiring || expiring.length === 0) return null;
+
+  const openWhatsApp = (c: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const raw = c.primary_contact_phone || c.phone || c.billing_phone || "";
+    const digits = String(raw).replace(/\D/g, "");
+    if (!digits) {
+      navigate(`/clientes?id=${c.id}`);
+      return;
+    }
+    const phone = digits.startsWith("55") ? digits : `55${digits}`;
+    const dateStr = new Date(c.cert_expires_at + "T00:00:00").toLocaleDateString("pt-BR");
+    const status = c.days_left < 0
+      ? `venceu em ${dateStr}`
+      : c.days_left === 0
+      ? `vence hoje (${dateStr})`
+      : `vence em ${c.days_left} dia${c.days_left !== 1 ? "s" : ""} (${dateStr})`;
+    const msg = `Olá, ${c.name}! Passando para avisar que o certificado digital A1 da sua empresa ${status}. Gostaria de renovar conosco?`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
+  return (
+    <Card className="neon-border border-warning/30">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Shield className="h-4 w-4 text-warning" />
+          Certificados Digitais Vencendo (30 dias)
+          <Badge variant="outline" className="text-[10px]">{expiring.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {expiring.map((c: any) => (
+            <div
+              key={c.id}
+              className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-colors duration-150"
+              onClick={(e) => openWhatsApp(c, e)}
+              title="Clique para falar no WhatsApp sobre a renovação"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{c.name}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {c.days_left < 0
+                    ? `Vencido há ${Math.abs(c.days_left)}d · ${new Date(c.cert_expires_at + "T00:00:00").toLocaleDateString("pt-BR")}`
+                    : `Vence ${new Date(c.cert_expires_at + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                </p>
+              </div>
+              <Badge
+                className={`text-[10px] ${
+                  c.days_left < 0 || c.days_left <= 7
+                    ? "bg-destructive text-destructive-foreground"
+                    : c.days_left <= 15
+                    ? "bg-warning text-warning-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {c.days_left < 0 ? "Vencido" : `${c.days_left}d`}
+              </Badge>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Renovações em Andamento Card ─────────────────────────────────────
 function RenovacoesCard() {
   const navigate = useNavigate();
@@ -1159,6 +1249,7 @@ export default function Dashboard() {
         {/* Indicações + Planos Vencendo + Renovações + Executive Widgets */}
         <IndicacoesRecebidasCard />
         <PlanosVencendoCard />
+        <CertificadosVencendoCard />
         <RenovacoesCard />
 
         <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
