@@ -95,7 +95,6 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
   if (loading) {
     return (
@@ -115,8 +114,6 @@ function AuthGate() {
   }
 
   if (!user) {
-    // Public landing at root; explicit /login for the sign-in screen
-    if (location.pathname === "/") return <LandingPage />;
     return <Auth />;
   }
 
