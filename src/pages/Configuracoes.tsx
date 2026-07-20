@@ -107,6 +107,7 @@ export default function Configuracoes() {
     { value: "dados", label: "Dados", description: "Importar / Exportar", icon: Database, colorClass: "text-sky-500", bgClass: "bg-sky-500/10", borderClass: "border-sky-500/30" },
     { value: "usuarios", label: "Usuários", description: "Acessos e perfis", icon: Users, colorClass: "text-pink-500", bgClass: "bg-pink-500/10", borderClass: "border-pink-500/30" },
     { value: "desenvolvimento", label: "Desenvolvimento", description: "Templates de projeto", icon: Code2, colorClass: "text-indigo-500", bgClass: "bg-indigo-500/10", borderClass: "border-indigo-500/30" },
+    { value: "landing", label: "Landing Page", description: "Link para bio do Instagram", icon: Link2, colorClass: "text-fuchsia-500", bgClass: "bg-fuchsia-500/10", borderClass: "border-fuchsia-500/30" },
   ];
 
   // Subtab state for "Configurações Gerais"
