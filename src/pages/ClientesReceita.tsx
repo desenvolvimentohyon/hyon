@@ -83,6 +83,13 @@ export default function Clientes() {
   const { sistemas, modulos } = useParametros();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") === "receita" ? "receita" : "clientes";
+  const handleTabChange = (v: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (v === "receita") next.set("tab", "receita"); else next.delete("tab");
+    setSearchParams(next, { replace: true });
+  };
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroSistema, setFiltroSistema] = useState<string>("todos");
