@@ -538,7 +538,9 @@ export default function Configuracoes() {
 
             {/* ── Landing Page ── */}
             <TabsContent value="landing" className="space-y-4">
-              <LandingLinkCard />
+              <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+                <LandingLinkCard />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </TabsContent>
