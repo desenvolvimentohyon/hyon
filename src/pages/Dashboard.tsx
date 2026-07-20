@@ -1249,6 +1249,7 @@ export default function Dashboard() {
         {/* Indicações + Planos Vencendo + Renovações + Executive Widgets */}
         <IndicacoesRecebidasCard />
         <PlanosVencendoCard />
+        <CertificadosVencendoCard />
         <RenovacoesCard />
 
         <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
