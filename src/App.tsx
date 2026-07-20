@@ -191,7 +191,8 @@ const App = () => (
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
               <Route path="/aceite/:numero" element={<AceiteRedirect />} />
-              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/bio" element={<LandingPage />} />
+              <Route path="/landing" element={<Navigate to="/bio" replace />} />
               <Route path="/proposta/:token" element={<PropostaPublica />} />
               <Route path="/portal/:token" element={<PortalCliente />} />
               <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
