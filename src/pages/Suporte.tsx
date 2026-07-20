@@ -16,6 +16,7 @@ import { exportSLAPDF } from "@/lib/pdfRelatorioSLA";
 import { toast } from "sonner";
 import { useSuporteMetricas } from "./suporte/useSuporteMetricas";
 import { PortalTicketsTab } from "./suporte/PortalTicketsTab";
+import { AcessosTab } from "./suporte/AcessosTab";
 import { PIE_COLORS, rankIcons, rankColors, satisfacaoLabel, getSlaStatus } from "./suporte/helpers";
 
 export default function Suporte() {
