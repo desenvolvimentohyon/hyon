@@ -534,6 +534,11 @@ export default function Configuracoes() {
                 <TabDesenvolvimento />
               </Suspense>
             </TabsContent>
+
+            {/* ── Landing Page ── */}
+            <TabsContent value="landing" className="space-y-4">
+              <LandingLinkCard />
+            </TabsContent>
           </Tabs>
         </TabsContent>
 
