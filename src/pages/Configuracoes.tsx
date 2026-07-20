@@ -26,7 +26,8 @@ import { SubtabGrid, type SubtabItem } from "@/components/configuracoes/SubtabGr
 import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
-  FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users, Code2
+  FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users, Code2,
+  Link2, Copy, ExternalLink, Instagram
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
@@ -36,6 +37,7 @@ const TabImplantacao = lazy(() => import("@/components/configuracoes/TabImplanta
 const PushNotificationsSettings = lazy(() => import("@/components/configuracoes/PushNotificationsSettings"));
 const UsuariosConfig = lazy(() => import("@/pages/UsuariosConfig"));
 const TabDesenvolvimento = lazy(() => import("@/components/configuracoes/TabDesenvolvimento"));
+const LandingLinkCard = lazy(() => import("@/components/configuracoes/LandingLinkCard"));
 
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -106,6 +108,7 @@ export default function Configuracoes() {
     { value: "dados", label: "Dados", description: "Importar / Exportar", icon: Database, colorClass: "text-sky-500", bgClass: "bg-sky-500/10", borderClass: "border-sky-500/30" },
     { value: "usuarios", label: "Usuários", description: "Acessos e perfis", icon: Users, colorClass: "text-pink-500", bgClass: "bg-pink-500/10", borderClass: "border-pink-500/30" },
     { value: "desenvolvimento", label: "Desenvolvimento", description: "Templates de projeto", icon: Code2, colorClass: "text-indigo-500", bgClass: "bg-indigo-500/10", borderClass: "border-indigo-500/30" },
+    { value: "landing", label: "Landing Page", description: "Link para bio do Instagram", icon: Link2, colorClass: "text-fuchsia-500", bgClass: "bg-fuchsia-500/10", borderClass: "border-fuchsia-500/30" },
   ];
 
   // Subtab state for "Configurações Gerais"
@@ -530,6 +533,13 @@ export default function Configuracoes() {
             <TabsContent value="desenvolvimento">
               <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
                 <TabDesenvolvimento />
+              </Suspense>
+            </TabsContent>
+
+            {/* ── Landing Page ── */}
+            <TabsContent value="landing" className="space-y-4">
+              <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+                <LandingLinkCard />
               </Suspense>
             </TabsContent>
           </Tabs>
