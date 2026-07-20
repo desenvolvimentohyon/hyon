@@ -342,7 +342,7 @@ export default function Clientes() {
       />
       <ModuleNavGrid moduleId="clientes" />
 
-      <Tabs defaultValue="clientes" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList>
           <TabsTrigger value="clientes" className="gap-1.5"><Users className="h-3.5 w-3.5" />Cadastro de Clientes</TabsTrigger>
           <TabsTrigger value="receita" className="gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Receita e MRR</TabsTrigger>
