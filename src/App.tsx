@@ -15,7 +15,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PwaInstallBanner } from "@/components/PwaInstallBanner";
 import Auth from "./pages/Auth";
-import { useLocation } from "react-router-dom";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -95,7 +94,6 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
   if (loading) {
     return (
@@ -115,8 +113,6 @@ function AuthGate() {
   }
 
   if (!user) {
-    // Public landing at root; explicit /login for the sign-in screen
-    if (location.pathname === "/") return <LandingPage />;
     return <Auth />;
   }
 
@@ -195,7 +191,8 @@ const App = () => (
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
               <Route path="/aceite/:numero" element={<AceiteRedirect />} />
-              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/bio" element={<LandingPage />} />
+              <Route path="/landing" element={<Navigate to="/bio" replace />} />
               <Route path="/proposta/:token" element={<PropostaPublica />} />
               <Route path="/portal/:token" element={<PortalCliente />} />
               <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
