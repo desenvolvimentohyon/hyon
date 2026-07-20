@@ -15,6 +15,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PwaInstallBanner } from "@/components/PwaInstallBanner";
 import Auth from "./pages/Auth";
+import { useLocation } from "react-router-dom";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -94,6 +95,7 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -113,6 +115,8 @@ function AuthGate() {
   }
 
   if (!user) {
+    // Public landing at root; explicit /login for the sign-in screen
+    if (location.pathname === "/") return <LandingPage />;
     return <Auth />;
   }
 
