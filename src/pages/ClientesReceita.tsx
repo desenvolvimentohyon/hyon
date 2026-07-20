@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useParametros } from "@/contexts/ParametrosContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,13 @@ export default function Clientes() {
   const { sistemas, modulos } = useParametros();
   const sistemasAtivos = sistemas.filter(s => s.ativo);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") === "receita" ? "receita" : "clientes";
+  const handleTabChange = (v: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (v === "receita") next.set("tab", "receita"); else next.delete("tab");
+    setSearchParams(next, { replace: true });
+  };
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroSistema, setFiltroSistema] = useState<string>("todos");
@@ -334,7 +342,7 @@ export default function Clientes() {
       />
       <ModuleNavGrid moduleId="clientes" />
 
-      <Tabs defaultValue="clientes" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList>
           <TabsTrigger value="clientes" className="gap-1.5"><Users className="h-3.5 w-3.5" />Cadastro de Clientes</TabsTrigger>
           <TabsTrigger value="receita" className="gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Receita e MRR</TabsTrigger>
