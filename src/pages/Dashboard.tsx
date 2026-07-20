@@ -707,7 +707,7 @@ export default function Dashboard() {
             <Card
               key={k.label}
               className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated border border-border/60 bg-card"
-              onClick={() => navigate("/receita")}
+              onClick={() => navigate("/clientes?tab=receita")}
             >
               <CardContent className="p-4 lg:p-5">
                 <div className="flex items-center justify-between mb-3">
