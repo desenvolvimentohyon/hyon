@@ -489,6 +489,10 @@ export default function Suporte() {
         <TabsContent value="portal" className="space-y-4">
           <PortalTicketsTab />
         </TabsContent>
+
+        <TabsContent value="acessos" className="space-y-4">
+          <AcessosTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
