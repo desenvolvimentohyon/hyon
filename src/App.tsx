@@ -15,7 +15,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PwaInstallBanner } from "@/components/PwaInstallBanner";
 import Auth from "./pages/Auth";
-import { useLocation } from "react-router-dom";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
