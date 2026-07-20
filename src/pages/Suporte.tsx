@@ -16,6 +16,7 @@ import { exportSLAPDF } from "@/lib/pdfRelatorioSLA";
 import { toast } from "sonner";
 import { useSuporteMetricas } from "./suporte/useSuporteMetricas";
 import { PortalTicketsTab } from "./suporte/PortalTicketsTab";
+import { AcessosTab } from "./suporte/AcessosTab";
 import { PIE_COLORS, rankIcons, rankColors, satisfacaoLabel, getSlaStatus } from "./suporte/helpers";
 
 export default function Suporte() {
@@ -140,6 +141,7 @@ export default function Suporte() {
           <TabsTrigger value="chamados">Chamados</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
           <TabsTrigger value="portal">Tickets Portal</TabsTrigger>
+          <TabsTrigger value="acessos">Acessos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sla" className="space-y-4">
@@ -486,6 +488,10 @@ export default function Suporte() {
 
         <TabsContent value="portal" className="space-y-4">
           <PortalTicketsTab />
+        </TabsContent>
+
+        <TabsContent value="acessos" className="space-y-4">
+          <AcessosTab />
         </TabsContent>
       </Tabs>
     </div>
