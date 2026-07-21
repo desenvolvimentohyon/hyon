@@ -262,7 +262,7 @@ export default function PropostaInteligente() {
   }, [sistemaId, sistema, clienteId, cliente, plano, calc, modulosSelecionados, fluxoImplantacao, parcelasImplantacao, observacoes, parceiroId, parceiro, crmConfig, addProposta, addCliente, navigate, novoClienteNome, novoClienteTelefone, novoClienteEmail]);
 
   const sistemasAtivos = useMemo(() => sistemas.filter(s => s.ativo), [sistemas]);
-  const modulosDoSistema = useMemo(() => modulos.filter(m => m.ativo && m.sistemaId === sistemaId), [modulos, sistemaId]);
+  const modulosDoSistema = useMemo(() => modulos.filter(m => m.ativo && (m.sistemaIds || []).includes(sistemaId)), [modulos, sistemaId]);
   const planosAtivos = useMemo(() => planos.filter(p => p.ativo), [planos]);
   const formasAtivas = useMemo(() => formasPagamento.filter(f => f.ativo), [formasPagamento]);
 
