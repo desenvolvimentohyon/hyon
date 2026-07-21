@@ -521,7 +521,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
               if (!currentSystem) return;
               setSavingModule(true);
               try {
-                await addModulo({ nome: newModuleForm.nome, descricao: newModuleForm.descricao, valorCusto: newModuleForm.valorCusto, valorVenda: newModuleForm.valorVenda, ativo: true, sistemaId: currentSystem.id });
+                await addModulo({ nome: newModuleForm.nome, descricao: newModuleForm.descricao, valorCusto: newModuleForm.valorCusto, valorVenda: newModuleForm.valorVenda, ativo: true, sistemaIds: [currentSystem.id] });
                 setShowNewModuleDialog(false);
                 toast({ title: "Módulo criado com sucesso" });
               } catch {
