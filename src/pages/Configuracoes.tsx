@@ -294,6 +294,15 @@ export default function Configuracoes() {
               </CardContent></Card>
             </TabsContent>
 
+            {/* ── Planos de Módulos ── */}
+            <TabsContent value="planos-modulos" className="space-y-4">
+              <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+                <TabPlanosModulos />
+              </Suspense>
+            </TabsContent>
+
+
+
             {/* ── Planos e Descontos ── */}
             <TabsContent value="planos" className="space-y-4">
               <div className="flex justify-end"><Button size="sm" onClick={openNewPlano} className="gap-1.5"><Plus className="h-4 w-4" />Novo Plano</Button></div>
