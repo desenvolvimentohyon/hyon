@@ -595,16 +595,37 @@ export default function Configuracoes() {
           <div className="space-y-3">
             <div><Label>Nome *</Label><Input value={fModulo.nome} onChange={e => setFModulo(p => ({ ...p, nome: e.target.value }))} /></div>
             <div><Label>Descrição</Label><Input value={fModulo.descricao} onChange={e => setFModulo(p => ({ ...p, descricao: e.target.value }))} /></div>
-            <div className="flex items-center gap-2"><Switch checked={fModulo.isGlobal} onCheckedChange={v => setFModulo(p => ({ ...p, isGlobal: v, sistemaId: v ? "none" : p.sistemaId }))} /><Label>Módulo Global</Label></div>
+            <div className="flex items-center gap-2"><Switch checked={fModulo.isGlobal} onCheckedChange={v => setFModulo(p => ({ ...p, isGlobal: v, sistemaIds: v ? [] : p.sistemaIds }))} /><Label>Módulo Global</Label></div>
             {!fModulo.isGlobal && (
-              <div><Label>Sistema vinculado</Label>
-                <Select value={fModulo.sistemaId} onValueChange={v => setFModulo(p => ({ ...p, sistemaId: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {sistemas.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-2">
+                <Label>Sistemas vinculados</Label>
+                <p className="text-[11px] text-muted-foreground">Selecione um ou mais sistemas em que este módulo estará disponível.</p>
+                <div className="rounded-md border border-border p-2 max-h-48 overflow-y-auto space-y-1">
+                  {sistemas.length === 0 && <p className="text-xs text-muted-foreground p-2">Nenhum sistema cadastrado.</p>}
+                  {sistemas.map(s => {
+                    const checked = fModulo.sistemaIds.includes(s.id);
+                    return (
+                      <label key={s.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-primary"
+                          checked={checked}
+                          onChange={(e) => setFModulo(p => ({
+                            ...p,
+                            sistemaIds: e.target.checked
+                              ? [...p.sistemaIds, s.id]
+                              : p.sistemaIds.filter(id => id !== s.id),
+                          }))}
+                        />
+                        <span className="flex-1">{s.nome}</span>
+                        {!s.ativo && <Badge variant="secondary" className="text-[9px]">Inativo</Badge>}
+                      </label>
+                    );
+                  })}
+                </div>
+                {fModulo.sistemaIds.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground">{fModulo.sistemaIds.length} sistema(s) selecionado(s).</p>
+                )}
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
