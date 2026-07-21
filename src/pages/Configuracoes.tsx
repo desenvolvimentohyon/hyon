@@ -27,7 +27,7 @@ import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
   FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users, Code2,
-  Link2, Copy, ExternalLink, Instagram
+  Link2, Copy, ExternalLink, Instagram, Package
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
