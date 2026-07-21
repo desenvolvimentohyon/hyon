@@ -267,7 +267,7 @@ export default function TabPlanosModulos() {
               </div>
               <div className="space-y-1.5">
                 <Label>Valor mínimo total (piso)</Label>
-                <CurrencyInput value={form.min_total_value} onChange={(v) => setForm(f => ({ ...f, min_total_value: v }))} />
+                <CurrencyInput value={form.min_total_value} onValueChange={(v) => setForm(f => ({ ...f, min_total_value: v }))} />
                 <p className="text-[10px] text-muted-foreground">Nenhuma venda pode fechar abaixo deste valor.</p>
               </div>
               <div className="space-y-1.5 flex flex-col justify-end">
@@ -327,9 +327,9 @@ export default function TabPlanosModulos() {
                               <div className="font-medium">{mod?.nome || "?"}</div>
                               {invalid && <div className="text-[10px] text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />Mín. maior que máx.</div>}
                             </TableCell>
-                            <TableCell><CurrencyInput value={it.min_value} onChange={(v) => updateItem(idx, { min_value: v })} className="h-8 text-xs" /></TableCell>
-                            <TableCell><CurrencyInput value={it.max_value} onChange={(v) => updateItem(idx, { max_value: v })} className="h-8 text-xs" /></TableCell>
-                            <TableCell><CurrencyInput value={it.suggested_value} onChange={(v) => updateItem(idx, { suggested_value: v })} className="h-8 text-xs" /></TableCell>
+                            <TableCell><CurrencyInput value={it.min_value} onValueChange={(v) => updateItem(idx, { min_value: v })} className="h-8 text-xs" /></TableCell>
+                            <TableCell><CurrencyInput value={it.max_value} onValueChange={(v) => updateItem(idx, { max_value: v })} className="h-8 text-xs" /></TableCell>
+                            <TableCell><CurrencyInput value={it.suggested_value} onValueChange={(v) => updateItem(idx, { suggested_value: v })} className="h-8 text-xs" /></TableCell>
                             <TableCell>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeItem(idx)}><Trash2 className="h-3.5 w-3.5" /></Button>
                             </TableCell>
