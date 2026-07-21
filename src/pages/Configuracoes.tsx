@@ -82,14 +82,14 @@ export default function Configuracoes() {
   // Parametros modal state
   const [modal, setModal] = useState<{ type: string; editing: string | null } | null>(null);
   const [fSistema, setFSistema] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true });
-  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none", isGlobal: false });
+  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaIds: [] as string[], isGlobal: false });
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
   const [filtroSistemaModulo, setFiltroSistemaModulo] = useState("todos");
 
   const modulosFiltrados = useMemo(() => {
     if (filtroSistemaModulo === "todos") return modulos;
     if (filtroSistemaModulo === "global") return modulos.filter(m => m.isGlobal);
-    return modulos.filter(m => !m.isGlobal && m.sistemaId === filtroSistemaModulo);
+    return modulos.filter(m => !m.isGlobal && (m.sistemaIds || []).includes(filtroSistemaModulo));
   }, [modulos, filtroSistemaModulo]);
   const [fPlano, setFPlano] = useState({ nomePlano: "", descontoPercentual: 0, validadeMeses: 1, ativo: true });
   const [alertaDias, setAlertaDias] = useState(alertaCertificadoDias);
