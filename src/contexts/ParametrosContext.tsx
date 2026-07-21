@@ -12,10 +12,16 @@ function dbToSistema(r: any): SistemaCatalogo {
   };
 }
 function dbToModulo(r: any): ModuloCatalogo {
+  const ids: string[] = Array.isArray(r.system_ids) && r.system_ids.length > 0
+    ? r.system_ids
+    : (r.system_id ? [r.system_id] : []);
   return {
     id: r.id, nome: r.name, descricao: r.description || "",
     valorCusto: Number(r.cost_value) || 0, valorVenda: Number(r.sale_value) || 0,
-    ativo: r.active, sistemaId: r.system_id || undefined, isGlobal: r.is_global || false,
+    ativo: r.active,
+    sistemaIds: ids,
+    sistemaId: ids[0],
+    isGlobal: r.is_global || false,
   };
 }
 function dbToFormaPagamento(r: any): FormaPagamentoCatalogo {
