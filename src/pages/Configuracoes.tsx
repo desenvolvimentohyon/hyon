@@ -38,6 +38,7 @@ const PushNotificationsSettings = lazy(() => import("@/components/configuracoes/
 const UsuariosConfig = lazy(() => import("@/pages/UsuariosConfig"));
 const TabDesenvolvimento = lazy(() => import("@/components/configuracoes/TabDesenvolvimento"));
 const LandingLinkCard = lazy(() => import("@/components/configuracoes/LandingLinkCard"));
+const TabPlanosModulos = lazy(() => import("@/components/configuracoes/TabPlanosModulos"));
 
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
