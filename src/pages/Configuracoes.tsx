@@ -27,7 +27,7 @@ import {
   Download, Upload, Plus, Trash2, GripVertical, Loader2, Building2, Settings,
   Monitor, Puzzle, CreditCard, Tag, Pencil, Percent, AlertTriangle,
   FileText, BarChart3, Palette, Database, Rocket, Bell, Filter, Users, Code2,
-  Link2, Copy, ExternalLink, Instagram
+  Link2, Copy, ExternalLink, Instagram, Package
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
@@ -38,6 +38,7 @@ const PushNotificationsSettings = lazy(() => import("@/components/configuracoes/
 const UsuariosConfig = lazy(() => import("@/pages/UsuariosConfig"));
 const TabDesenvolvimento = lazy(() => import("@/components/configuracoes/TabDesenvolvimento"));
 const LandingLinkCard = lazy(() => import("@/components/configuracoes/LandingLinkCard"));
+const TabPlanosModulos = lazy(() => import("@/components/configuracoes/TabPlanosModulos"));
 
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -97,6 +98,7 @@ export default function Configuracoes() {
   const subtabItems: SubtabItem[] = [
     { value: "sistemas", label: "Sistemas", description: "Cadastro de sistemas", icon: Monitor, colorClass: "text-primary", bgClass: "bg-primary/10", borderClass: "border-primary/30" },
     { value: "modulos", label: "Módulos", description: "Módulos vinculados", icon: Puzzle, colorClass: "text-purple-500", bgClass: "bg-purple-500/10", borderClass: "border-purple-500/30" },
+    { value: "planos-modulos", label: "Planos de Módulos", description: "Pacotes com piso e teto", icon: Package, colorClass: "text-fuchsia-500", bgClass: "bg-fuchsia-500/10", borderClass: "border-fuchsia-500/30" },
     { value: "pagamento", label: "Formas de Pagamento", description: "Meios de cobrança", icon: CreditCard, colorClass: "text-emerald-500", bgClass: "bg-emerald-500/10", borderClass: "border-emerald-500/30" },
     { value: "planos", label: "Planos e Descontos", description: "Vigência e desconto", icon: Tag, colorClass: "text-amber-500", bgClass: "bg-amber-500/10", borderClass: "border-amber-500/30" },
     { value: "implantacao", label: "Implantação", description: "Custos de deploy", icon: Rocket, colorClass: "text-violet-500", bgClass: "bg-violet-500/10", borderClass: "border-violet-500/30" },
@@ -291,6 +293,15 @@ export default function Configuracoes() {
                 </Table>
               </CardContent></Card>
             </TabsContent>
+
+            {/* ── Planos de Módulos ── */}
+            <TabsContent value="planos-modulos" className="space-y-4">
+              <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+                <TabPlanosModulos />
+              </Suspense>
+            </TabsContent>
+
+
 
             {/* ── Planos e Descontos ── */}
             <TabsContent value="planos" className="space-y-4">
