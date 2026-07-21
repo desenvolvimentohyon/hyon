@@ -82,14 +82,14 @@ export default function Configuracoes() {
   // Parametros modal state
   const [modal, setModal] = useState<{ type: string; editing: string | null } | null>(null);
   const [fSistema, setFSistema] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true });
-  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none", isGlobal: false });
+  const [fModulo, setFModulo] = useState({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaIds: [] as string[], isGlobal: false });
   const [fForma, setFForma] = useState({ nome: "", ativo: true, observacao: "" });
   const [filtroSistemaModulo, setFiltroSistemaModulo] = useState("todos");
 
   const modulosFiltrados = useMemo(() => {
     if (filtroSistemaModulo === "todos") return modulos;
     if (filtroSistemaModulo === "global") return modulos.filter(m => m.isGlobal);
-    return modulos.filter(m => !m.isGlobal && m.sistemaId === filtroSistemaModulo);
+    return modulos.filter(m => !m.isGlobal && (m.sistemaIds || []).includes(filtroSistemaModulo));
   }, [modulos, filtroSistemaModulo]);
   const [fPlano, setFPlano] = useState({ nomePlano: "", descontoPercentual: 0, validadeMeses: 1, ativo: true });
   const [alertaDias, setAlertaDias] = useState(alertaCertificadoDias);
@@ -121,9 +121,9 @@ export default function Configuracoes() {
   const openEditSistema = (id: string) => { const s = sistemas.find(x => x.id === id); if (s) { setFSistema(s); setModal({ type: "sistema", editing: id }); } };
   const saveSistema = () => { if (!fSistema.nome.trim()) { sonnerToast.error("Nome obrigatório"); return; } modal?.editing ? updateSistema(modal.editing, fSistema) : addSistema(fSistema); setModal(null); sonnerToast.success("Sistema salvo!"); };
 
-  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaId: "none", isGlobal: false }); setModal({ type: "modulo", editing: null }); };
-  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ ...m, sistemaId: m.sistemaId || "none", isGlobal: m.isGlobal || false }); setModal({ type: "modulo", editing: id }); } };
-  const saveModulo = () => { if (!fModulo.nome.trim()) { sonnerToast.error("Nome obrigatório"); return; } const data = { ...fModulo, sistemaId: fModulo.isGlobal ? "" : (fModulo.sistemaId === "none" ? "" : fModulo.sistemaId) }; modal?.editing ? updateModulo(modal.editing, data) : addModulo(data); setModal(null); sonnerToast.success("Módulo salvo!"); };
+  const openNewModulo = () => { setFModulo({ nome: "", descricao: "", valorCusto: 0, valorVenda: 0, ativo: true, sistemaIds: [], isGlobal: false }); setModal({ type: "modulo", editing: null }); };
+  const openEditModulo = (id: string) => { const m = modulos.find(x => x.id === id); if (m) { setFModulo({ nome: m.nome, descricao: m.descricao, valorCusto: m.valorCusto, valorVenda: m.valorVenda, ativo: m.ativo, sistemaIds: m.sistemaIds || [], isGlobal: m.isGlobal || false }); setModal({ type: "modulo", editing: id }); } };
+  const saveModulo = () => { if (!fModulo.nome.trim()) { sonnerToast.error("Nome obrigatório"); return; } const data = { ...fModulo, sistemaIds: fModulo.isGlobal ? [] : fModulo.sistemaIds }; modal?.editing ? updateModulo(modal.editing, data) : addModulo(data); setModal(null); sonnerToast.success("Módulo salvo!"); };
 
   const openNewForma = () => { setFForma({ nome: "", ativo: true, observacao: "" }); setModal({ type: "forma", editing: null }); };
   const openEditForma = (id: string) => { const f = formasPagamento.find(x => x.id === id); if (f) { setFForma({ nome: f.nome, ativo: f.ativo, observacao: f.observacao || "" }); setModal({ type: "forma", editing: id }); } };
@@ -262,7 +262,18 @@ export default function Configuracoes() {
                     ) : modulosFiltrados.map(m => (
                       <TableRow key={m.id}>
                         <TableCell className="font-medium">{m.nome}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{m.isGlobal ? <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge> : (sistemas.find(s => s.id === m.sistemaId)?.nome || "—")}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {m.isGlobal ? (
+                            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge>
+                          ) : (m.sistemaIds || []).length === 0 ? "—" : (
+                            <div className="flex flex-wrap gap-1">
+                              {(m.sistemaIds || []).map(sid => {
+                                const s = sistemas.find(x => x.id === sid);
+                                return s ? <Badge key={sid} variant="outline" className="text-[10px]">{s.nome}</Badge> : null;
+                              })}
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right text-sm">{fmt(m.valorCusto)}</TableCell>
                         <TableCell className="text-right text-sm font-medium">{fmt(m.valorVenda)}</TableCell>
                         <TableCell>{m.ativo ? <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</TableCell>
@@ -584,16 +595,37 @@ export default function Configuracoes() {
           <div className="space-y-3">
             <div><Label>Nome *</Label><Input value={fModulo.nome} onChange={e => setFModulo(p => ({ ...p, nome: e.target.value }))} /></div>
             <div><Label>Descrição</Label><Input value={fModulo.descricao} onChange={e => setFModulo(p => ({ ...p, descricao: e.target.value }))} /></div>
-            <div className="flex items-center gap-2"><Switch checked={fModulo.isGlobal} onCheckedChange={v => setFModulo(p => ({ ...p, isGlobal: v, sistemaId: v ? "none" : p.sistemaId }))} /><Label>Módulo Global</Label></div>
+            <div className="flex items-center gap-2"><Switch checked={fModulo.isGlobal} onCheckedChange={v => setFModulo(p => ({ ...p, isGlobal: v, sistemaIds: v ? [] : p.sistemaIds }))} /><Label>Módulo Global</Label></div>
             {!fModulo.isGlobal && (
-              <div><Label>Sistema vinculado</Label>
-                <Select value={fModulo.sistemaId} onValueChange={v => setFModulo(p => ({ ...p, sistemaId: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {sistemas.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-2">
+                <Label>Sistemas vinculados</Label>
+                <p className="text-[11px] text-muted-foreground">Selecione um ou mais sistemas em que este módulo estará disponível.</p>
+                <div className="rounded-md border border-border p-2 max-h-48 overflow-y-auto space-y-1">
+                  {sistemas.length === 0 && <p className="text-xs text-muted-foreground p-2">Nenhum sistema cadastrado.</p>}
+                  {sistemas.map(s => {
+                    const checked = fModulo.sistemaIds.includes(s.id);
+                    return (
+                      <label key={s.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-primary"
+                          checked={checked}
+                          onChange={(e) => setFModulo(p => ({
+                            ...p,
+                            sistemaIds: e.target.checked
+                              ? [...p.sistemaIds, s.id]
+                              : p.sistemaIds.filter(id => id !== s.id),
+                          }))}
+                        />
+                        <span className="flex-1">{s.nome}</span>
+                        {!s.ativo && <Badge variant="secondary" className="text-[9px]">Inativo</Badge>}
+                      </label>
+                    );
+                  })}
+                </div>
+                {fModulo.sistemaIds.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground">{fModulo.sistemaIds.length} sistema(s) selecionado(s).</p>
+                )}
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">

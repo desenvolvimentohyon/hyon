@@ -12,10 +12,16 @@ function dbToSistema(r: any): SistemaCatalogo {
   };
 }
 function dbToModulo(r: any): ModuloCatalogo {
+  const ids: string[] = Array.isArray(r.system_ids) && r.system_ids.length > 0
+    ? r.system_ids
+    : (r.system_id ? [r.system_id] : []);
   return {
     id: r.id, nome: r.name, descricao: r.description || "",
     valorCusto: Number(r.cost_value) || 0, valorVenda: Number(r.sale_value) || 0,
-    ativo: r.active, sistemaId: r.system_id || undefined, isGlobal: r.is_global || false,
+    ativo: r.active,
+    sistemaIds: ids,
+    sistemaId: ids[0],
+    isGlobal: r.is_global || false,
   };
 }
 function dbToFormaPagamento(r: any): FormaPagamentoCatalogo {
@@ -114,10 +120,13 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
 
   const addModulo = useCallback(async (m: Omit<ModuloCatalogo, "id">) => {
     if (!orgId) return;
+    const ids = m.sistemaIds || [];
     const { error } = await supabase.from("system_modules").insert({
       org_id: orgId, name: m.nome, description: m.descricao,
       cost_value: m.valorCusto, sale_value: m.valorVenda, active: m.ativo,
-      system_id: m.sistemaId || null, is_global: m.isGlobal || false,
+      system_id: ids[0] || null,
+      system_ids: ids,
+      is_global: m.isGlobal || false,
     });
     if (error) { toast.error("Erro ao criar módulo"); return; }
     fetchAll();
@@ -130,7 +139,13 @@ export function ParametrosProvider({ children }: { children: React.ReactNode }) 
     if (c.valorCusto !== undefined) upd.cost_value = c.valorCusto;
     if (c.valorVenda !== undefined) upd.sale_value = c.valorVenda;
     if (c.ativo !== undefined) upd.active = c.ativo;
-    if (c.sistemaId !== undefined) upd.system_id = c.sistemaId;
+    if (c.sistemaIds !== undefined) {
+      upd.system_ids = c.sistemaIds;
+      upd.system_id = c.sistemaIds[0] || null;
+    } else if (c.sistemaId !== undefined) {
+      upd.system_id = c.sistemaId || null;
+      upd.system_ids = c.sistemaId ? [c.sistemaId] : [];
+    }
     if (c.isGlobal !== undefined) upd.is_global = c.isGlobal;
     const { error } = await supabase.from("system_modules").update(upd).eq("id", id);
     if (error) { toast.error("Erro ao atualizar módulo"); return; }

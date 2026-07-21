@@ -16,7 +16,9 @@ export interface ModuloCatalogo {
   valorCusto: number;
   valorVenda: number;
   ativo: boolean;
+  /** @deprecated usar sistemaIds (mantido por compatibilidade — primeiro sistema vinculado) */
   sistemaId?: string;
+  sistemaIds: string[];
   isGlobal?: boolean;
 }
 
