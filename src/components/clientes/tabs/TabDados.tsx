@@ -55,7 +55,7 @@ export default function TabDados({ cliente, formData, onChange, contacts, onAddC
   // Current system name (from form or persisted)
   const currentSystemName = v("system_name");
   const currentSystem = sistemas.find(s => s.nome === currentSystemName);
-  const systemModules = modulos.filter(m => m.ativo && (m.sistemaId === currentSystem?.id || m.isGlobal));
+  const systemModules = modulos.filter(m => m.ativo && ((currentSystem?.id && (m.sistemaIds || []).includes(currentSystem.id)) || m.isGlobal));
 
   const linkedModuleIds = useMemo(() => Array.from(linkedModules.keys()), [linkedModules]);
 
