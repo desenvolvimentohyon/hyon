@@ -262,7 +262,18 @@ export default function Configuracoes() {
                     ) : modulosFiltrados.map(m => (
                       <TableRow key={m.id}>
                         <TableCell className="font-medium">{m.nome}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{m.isGlobal ? <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge> : (sistemas.find(s => s.id === m.sistemaId)?.nome || "—")}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {m.isGlobal ? (
+                            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Global</Badge>
+                          ) : (m.sistemaIds || []).length === 0 ? "—" : (
+                            <div className="flex flex-wrap gap-1">
+                              {(m.sistemaIds || []).map(sid => {
+                                const s = sistemas.find(x => x.id === sid);
+                                return s ? <Badge key={sid} variant="outline" className="text-[10px]">{s.nome}</Badge> : null;
+                              })}
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right text-sm">{fmt(m.valorCusto)}</TableCell>
                         <TableCell className="text-right text-sm font-medium">{fmt(m.valorVenda)}</TableCell>
                         <TableCell>{m.ativo ? <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</TableCell>
