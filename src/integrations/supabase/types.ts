@@ -1973,6 +1973,98 @@ export type Database = {
         }
         Relationships: []
       }
+      module_plan_items: {
+        Row: {
+          created_at: string
+          id: string
+          max_value: number
+          min_value: number
+          module_id: string
+          plan_id: string
+          suggested_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_value?: number
+          min_value?: number
+          module_id: string
+          plan_id: string
+          suggested_value?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_value?: number
+          min_value?: number
+          module_id?: string
+          plan_id?: string
+          suggested_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_plan_items_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "system_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "module_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_plans: {
+        Row: {
+          active: boolean
+          allow_bonus: boolean
+          created_at: string
+          description: string | null
+          id: string
+          min_total_value: number
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allow_bonus?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          min_total_value?: number
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allow_bonus?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          min_total_value?: number
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_plans_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_adjustments: {
         Row: {
           adjustment_date: string
