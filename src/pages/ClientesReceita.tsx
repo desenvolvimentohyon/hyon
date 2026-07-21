@@ -174,7 +174,7 @@ export default function Clientes() {
   const selectedSistema = sistemas.find(s => s.nome === form.sistemaPrincipal);
   const availableModules = useMemo(() => {
     if (!selectedSistema) return [];
-    return modulos.filter(m => m.ativo && (m.sistemaId === selectedSistema.id || m.isGlobal));
+    return modulos.filter(m => m.ativo && ((m.sistemaIds || []).includes(selectedSistema.id) || m.isGlobal));
   }, [modulos, selectedSistema]);
 
   // Recalculate values when modules change
