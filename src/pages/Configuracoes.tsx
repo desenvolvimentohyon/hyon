@@ -98,6 +98,7 @@ export default function Configuracoes() {
   const subtabItems: SubtabItem[] = [
     { value: "sistemas", label: "Sistemas", description: "Cadastro de sistemas", icon: Monitor, colorClass: "text-primary", bgClass: "bg-primary/10", borderClass: "border-primary/30" },
     { value: "modulos", label: "Módulos", description: "Módulos vinculados", icon: Puzzle, colorClass: "text-purple-500", bgClass: "bg-purple-500/10", borderClass: "border-purple-500/30" },
+    { value: "planos-modulos", label: "Planos de Módulos", description: "Pacotes com piso e teto", icon: Package, colorClass: "text-fuchsia-500", bgClass: "bg-fuchsia-500/10", borderClass: "border-fuchsia-500/30" },
     { value: "pagamento", label: "Formas de Pagamento", description: "Meios de cobrança", icon: CreditCard, colorClass: "text-emerald-500", bgClass: "bg-emerald-500/10", borderClass: "border-emerald-500/30" },
     { value: "planos", label: "Planos e Descontos", description: "Vigência e desconto", icon: Tag, colorClass: "text-amber-500", bgClass: "bg-amber-500/10", borderClass: "border-amber-500/30" },
     { value: "implantacao", label: "Implantação", description: "Custos de deploy", icon: Rocket, colorClass: "text-violet-500", bgClass: "bg-violet-500/10", borderClass: "border-violet-500/30" },
