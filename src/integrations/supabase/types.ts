@@ -3099,6 +3099,7 @@ export type Database = {
           org_id: string
           sale_value: number
           system_id: string | null
+          system_ids: string[]
           updated_at: string
         }
         Insert: {
@@ -3112,6 +3113,7 @@ export type Database = {
           org_id: string
           sale_value?: number
           system_id?: string | null
+          system_ids?: string[]
           updated_at?: string
         }
         Update: {
@@ -3125,6 +3127,7 @@ export type Database = {
           org_id?: string
           sale_value?: number
           system_id?: string | null
+          system_ids?: string[]
           updated_at?: string
         }
         Relationships: [
