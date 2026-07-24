@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.5.0",
+    date: "2026-07-24",
+    changes: [
+      { type: "novo", text: "Precificação de implantação por sistema (override de KM, diária e taxa fixa)." },
+      { type: "melhoria", text: "Checkout Interno e Proposta Inteligente usam o motor unificado de setup." },
+      { type: "melhoria", text: "PlanBuilder da landing exibe implantação estimada por sistema selecionado." },
+      { type: "melhoria", text: "Reuniões integradas ao Google Calendar com lembretes push." },
+    ],
+  },
+  {
     version: "1.4.0",
     date: "2026-07-08",
     changes: [
