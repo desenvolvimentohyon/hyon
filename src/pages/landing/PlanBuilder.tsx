@@ -218,7 +218,7 @@ export default function PlanBuilder({ waNumber }: Props) {
 
             <div className="grid lg:grid-cols-[1fr_320px] gap-6">
               <div className="grid sm:grid-cols-2 gap-3">
-                {MODULOS.map((m) => {
+                {MODULOS.filter(m => !m.compatible || m.compatible.includes(segment.id)).map((m) => {
                   const active = selected.has(m.id);
                   const recomendado = segment.recommended.includes(m.id);
                   return (
