@@ -222,9 +222,12 @@ export default function TabPlanosModulos() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 flex-wrap">
                         <Package className="h-4 w-4 text-primary" />
                         {p.name}
+                        {p.system_id && sistemaMap.get(p.system_id) && (
+                          <Badge variant="outline" className="text-[10px]">{sistemaMap.get(p.system_id)?.nome}</Badge>
+                        )}
                         {!p.active && <Badge variant="secondary" className="text-[10px]">Inativo</Badge>}
                         {p.allow_bonus && <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"><Gift className="h-2.5 w-2.5 mr-0.5" />Bonificação</Badge>}
                       </CardTitle>
