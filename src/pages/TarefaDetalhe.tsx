@@ -373,6 +373,10 @@ export default function TarefaDetalhe() {
           </div>
         </TabsContent>
 
+        <TabsContent value="reunioes" className="mt-4">
+          <TarefaReunioes taskId={tarefa.id} />
+        </TabsContent>
+
         <TabsContent value="historico" className="mt-4">
           <div className="space-y-1">
             {tarefa.historico.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Nenhum registro</p>}
