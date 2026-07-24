@@ -41,6 +41,7 @@ export default function TarefaDetalhe() {
   const [observacoesText, setObservacoesText] = useState("");
   const [uploadingFoto, setUploadingFoto] = useState(false);
   const [fotoModal, setFotoModal] = useState<string | null>(null);
+  const [reunioesPendentes, setReunioesPendentes] = useState(0);
 
   useEffect(() => {
     if (!tarefa) return;
