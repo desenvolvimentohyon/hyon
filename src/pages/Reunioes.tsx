@@ -148,6 +148,7 @@ export default function Reunioes() {
       location: m.location || "",
       meeting_link: m.meeting_link || "",
       client_id: m.client_id || "none",
+      task_id: m.task_id || "none",
       status: m.status,
       internal_user_ids: m.internal_user_ids || [],
       external_guests: m.external_guests || [],
