@@ -158,6 +158,32 @@ export default function Reunioes() {
     loadMeetings();
   }, []);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const handledParamsRef = useRef(false);
+  useEffect(() => {
+    if (loading || handledParamsRef.current) return;
+    const openId = searchParams.get("open");
+    const isNew = searchParams.get("new");
+    const taskParam = searchParams.get("task");
+    if (openId) {
+      const m = meetings.find((x) => x.id === openId);
+      if (m) {
+        openEdit(m);
+        handledParamsRef.current = true;
+        searchParams.delete("open");
+        setSearchParams(searchParams, { replace: true });
+      }
+    } else if (isNew) {
+      setEditingId(null);
+      setForm({ ...emptyForm(), task_id: taskParam || "none" });
+      setOpenForm(true);
+      handledParamsRef.current = true;
+      searchParams.delete("new");
+      searchParams.delete("task");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [loading, meetings, searchParams, setSearchParams]);
+
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm());
