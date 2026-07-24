@@ -524,6 +524,14 @@ export default function PropostaInteligente() {
             descricao="Custos de deslocamento, diárias e região. Tudo é somado automaticamente."
             concluido={etapaImplantacao}
           >
+              {systemSetup?.override && (
+                <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-medium">Preço por sistema: {systemSetup.systemName}</span>
+                  {systemSetup.baseFee > 0 && <span>Taxa fixa: R$ {systemSetup.baseFee.toFixed(2)}</span>}
+                  <span>KM: R$ {systemSetup.costPerKm.toFixed(2)}</span>
+                  <span>Diária: R$ {systemSetup.dailyRate.toFixed(2)}</span>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Região</Label>
