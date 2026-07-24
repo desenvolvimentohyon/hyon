@@ -291,13 +291,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [tarefas, fetchAll]);
 
   // ===== Clientes — Optimistic updates =====
-  const addCliente = useCallback(async (c: Omit<Cliente, "id" | "criadoEm">) => {
-    if (!orgId) return;
+  const addCliente = useCallback(async (c: Omit<Cliente, "id" | "criadoEm">): Promise<Cliente | null> => {
+    if (!orgId) return null;
     const { data, error } = await supabase.from("clients").insert(clienteToDb(c, orgId)).select().single();
-    if (error) { toast.error("Erro ao criar cliente: " + error.message); return; }
+    if (error) { toast.error("Erro ao criar cliente: " + error.message); return null; }
     if (data) {
-      setClientes(prev => [...prev, dbToCliente(data)]);
+      const created = dbToCliente(data);
+      setClientes(prev => [...prev, created]);
+      return created;
     }
+    return null;
   }, [orgId]);
 
   const updateCliente = useCallback(async (id: string, changes: Partial<Cliente>) => {
