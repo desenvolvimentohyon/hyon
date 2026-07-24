@@ -25,6 +25,18 @@ interface Region {
   active: boolean;
 }
 
+interface SystemRow {
+  id: string;
+  name: string;
+  setup_override: boolean;
+  setup_cost_per_km: number;
+  setup_daily_rate: number;
+  setup_default_days: number;
+  setup_base_fee: number;
+  dirty?: boolean;
+  saving?: boolean;
+}
+
 export default function TabImplantacao() {
   const { profile } = useAuth();
   const orgId = profile?.org_id;
