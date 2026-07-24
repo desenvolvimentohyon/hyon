@@ -86,6 +86,7 @@ export const modules: ParentModule[] = [
     children: [
       { title: "Suporte", url: "/suporte", icon: Headphones, description: "Chamados e SLA de atendimento" },
       { title: "Tarefas", url: "/tarefas", icon: ListTodo, description: "Gestão de tarefas e atividades" },
+      { title: "Reuniões", url: "/reunioes", icon: Video, description: "Agenda, lembretes push e ata" },
       { title: "Implantação", url: "/implantacao", icon: Rocket, description: "Projetos de implantação" },
       { title: "Técnicos", url: "/tecnicos", icon: Wrench, description: "Equipe técnica e responsáveis" },
     ],
