@@ -92,6 +92,25 @@ export default function Reunioes() {
   const [form, setForm] = useState(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newGuest, setNewGuest] = useState({ name: "", email: "" });
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+  const gCal = useGoogleCalendar();
+
+  const handleSyncGoogle = async (meetingId: string) => {
+    if (!gCal.connected) {
+      toast.error("Conecte sua conta do Google Calendar nas Configurações primeiro.");
+      return;
+    }
+    setSyncingId(meetingId);
+    try {
+      const r = await gCal.syncMeeting(meetingId);
+      toast.success("Reunião sincronizada com Google Calendar! Convites enviados.");
+      await loadMeetings();
+      if (r?.html_link) window.open(r.html_link, "_blank");
+    } catch (e) {
+      toast.error("Falha ao sincronizar: " + (e as Error).message);
+    }
+    setSyncingId(null);
+  };
 
   const loadMeetings = async () => {
     setLoading(true);
