@@ -181,6 +181,7 @@ export default function TarefaDetalhe() {
           <TabsTrigger value="checklist" className="gap-1.5"><CheckSquare className="h-3.5 w-3.5" />Checklist</TabsTrigger>
           <TabsTrigger value="tempo" className="gap-1.5"><Clock className="h-3.5 w-3.5" />Tempo</TabsTrigger>
           <TabsTrigger value="comentarios" className="gap-1.5"><MessageSquare className="h-3.5 w-3.5" />Comentários</TabsTrigger>
+          <TabsTrigger value="reunioes" className="gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Reuniões</TabsTrigger>
           <TabsTrigger value="historico" className="gap-1.5"><History className="h-3.5 w-3.5" />Histórico</TabsTrigger>
         </TabsList>
 
