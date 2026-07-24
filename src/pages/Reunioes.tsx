@@ -37,6 +37,7 @@ interface Meeting {
   location: string | null;
   meeting_link: string | null;
   client_id: string | null;
+  task_id: string | null;
   status: MeetingStatus;
   internal_user_ids: string[];
   external_guests: ExternalGuest[];
