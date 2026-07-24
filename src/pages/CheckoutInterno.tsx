@@ -12,14 +12,25 @@ import { ArrowRight, ArrowLeft, CheckCircle, ShoppingCart, SkipForward } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
+import { computeSetup, resolveSetupInput } from "@/lib/pricing/setup";
+import type { OrgSetupDefaults, SystemSetupPricing } from "@/lib/pricing/types";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-interface System { id: string; name: string; sale_value: number }
+interface System {
+  id: string;
+  name: string;
+  sale_value: number;
+  setup_override?: boolean;
+  setup_cost_per_km?: number;
+  setup_daily_rate?: number;
+  setup_default_days?: number;
+  setup_base_fee?: number;
+}
 interface Plan { id: string; name: string; discount_percent: number }
 interface Module { id: string; name: string; sale_value: number; system_id: string | null; is_global: boolean }
 interface Region { id: string; name: string; base_value: number; additional_fee: number }
-interface CompanyImpl { impl_cost_per_km: number; impl_daily_rate: number }
+interface CompanyImpl { impl_cost_per_km: number; impl_daily_rate: number; impl_default_days?: number }
 
 export default function CheckoutInterno() {
   const [step, setStep] = useState(0);
