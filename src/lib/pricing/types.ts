@@ -104,7 +104,9 @@ export interface SetupQuote {
   distance: number;
   region: number;
   labor: number;
+  systemFee: number;
   total: number;
+  systemLabel?: string;
 }
 
 export interface Quote {
