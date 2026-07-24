@@ -518,6 +518,11 @@ function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, 
                     <span className="font-medium">{m.title}</span>
                     <Badge variant="outline" className={cn("text-xs", STATUS_STYLE[m.status].className)}>{STATUS_STYLE[m.status].label}</Badge>
                     {client && <Badge variant="secondary" className="text-xs">{client.nome}</Badge>}
+                    {m.google_event_id && (
+                      <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Google Calendar
+                      </Badge>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
                     <span className="flex items-center gap-1">
