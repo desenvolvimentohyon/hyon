@@ -11,8 +11,15 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { buildWhatsAppLink, trackWhatsAppClick, getUtmParams } from "@/lib/tracking";
+import { computeSetup, resolveSetupInput } from "@/lib/pricing/setup";
+import type { OrgSetupDefaults, SystemSetupPricing } from "@/lib/pricing/types";
+import { formatCurrency } from "@/lib/utils";
 
-type CatalogSystem = { id: string; name: string; description: string | null; sale_value: number };
+type CatalogSystem = {
+  id: string; name: string; description: string | null; sale_value: number;
+  setup_override: boolean; setup_cost_per_km: number; setup_daily_rate: number;
+  setup_default_days: number; setup_base_fee: number;
+};
 type CatalogPlanItem = { module_id: string; name: string; suggested_value: number };
 type CatalogPlan = {
   id: string; name: string; description: string | null;
@@ -23,7 +30,10 @@ type CatalogModule = {
   id: string; name: string; description: string | null;
   sale_value: number; system_ids: string[]; is_global: boolean;
 };
-type Catalog = { systems: CatalogSystem[]; plans: CatalogPlan[]; modules: CatalogModule[] };
+type Catalog = {
+  systems: CatalogSystem[]; plans: CatalogPlan[]; modules: CatalogModule[];
+  setupDefaults: OrgSetupDefaults | null;
+};
 
 interface Props { waNumber: string }
 
@@ -75,15 +85,34 @@ export default function PlanBuilder({ waNumber }: Props) {
     );
   }, [catalog, systemId, plan]);
 
+  const setupEstimate = useMemo(() => {
+    if (!system) return null;
+    const orgDefaults: OrgSetupDefaults = catalog?.setupDefaults ?? {
+      costPerKm: 0, dailyRate: 0, defaultDays: 0,
+    };
+    const sysPricing: SystemSetupPricing = {
+      systemId: system.id,
+      systemName: system.name,
+      override: system.setup_override,
+      costPerKm: system.setup_cost_per_km,
+      dailyRate: system.setup_daily_rate,
+      defaultDays: system.setup_default_days,
+      baseFee: system.setup_base_fee,
+    };
+    // Landing público: distância desconhecida → estimativa a partir de (dias × diária + taxa fixa do sistema).
+    const resolved = resolveSetupInput({ distanceKm: 0 }, sysPricing, orgDefaults);
+    return computeSetup(resolved);
+  }, [system, catalog]);
+
   const totals = useMemo(() => {
-    if (!plan) return { month: 0 };
+    if (!plan) return { month: 0, setup: 0 };
     let month = plan.min_total_value;
     extras.forEach((id) => {
       const m = catalog?.modules.find((x) => x.id === id);
       if (m) month += Number(m.sale_value);
     });
-    return { month };
-  }, [plan, extras, catalog]);
+    return { month, setup: setupEstimate?.total ?? 0 };
+  }, [plan, extras, catalog, setupEstimate]);
 
   const pickSystem = (id: string) => {
     setSystemId(id);
@@ -126,7 +155,7 @@ export default function PlanBuilder({ waNumber }: Props) {
         segment: `${system.name} — ${plan.name}`,
         modules: modulesPayload,
         monthly_total: totals.month,
-        setup_total: 0,
+        setup_total: totals.setup,
         contact_name: form.nome.trim(),
         contact_company: form.empresa.trim() || null,
         contact_phone: form.telefone.replace(/\D/g, ""),
@@ -136,11 +165,15 @@ export default function PlanBuilder({ waNumber }: Props) {
       });
       if (error) throw error;
 
+      const setupLine = totals.setup > 0
+        ? `• Implantação estimada (a partir de): ${formatCurrency(totals.setup)}`
+        : "";
       const linhas = [
         `Olá! Montei um plano no site da Hyon:`,
         `• Sistema: ${system.name}`,
         `• Plano: ${plan.name}`,
         `• Módulos: ${modulesPayload.map((m) => m.label).join(", ") || "Nenhum extra"}`,
+        setupLine,
         `• Gostaria de receber uma proposta personalizada.`,
         ``,
         `Meus dados: ${form.nome}${form.empresa ? " — " + form.empresa : ""} | ${form.telefone}${form.email ? " | " + form.email : ""}`,
@@ -404,6 +437,20 @@ export default function PlanBuilder({ waNumber }: Props) {
                     })}
                   </ul>
                 </div>
+                {setupEstimate && setupEstimate.total > 0 && (
+                  <div className="mt-3 pb-3 border-b border-white/10">
+                    <div className="text-slate-400 text-xs">Implantação estimada</div>
+                    <div className="text-sm font-semibold text-white mt-0.5">
+                      a partir de {formatCurrency(setupEstimate.total)}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      {system.setup_override
+                        ? `Preço específico do sistema ${system.name}.`
+                        : "Baseado nos parâmetros padrão da empresa."}
+                      {" "}Valor final considera distância real até seu endereço.
+                    </p>
+                  </div>
+                )}
                 <div className="mt-4">
                   <div className="text-sm text-slate-300">Investimento</div>
                   <div className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent mt-1">
