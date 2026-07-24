@@ -53,31 +53,37 @@ export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, priori
               {columnTasks.map((t: Tarefa) => {
                 const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || { label: t.tipoOperacional, bgClass: "bg-muted text-muted-foreground" };
                 return (
-                  <Card
-                    key={t.id}
-                    draggable
-                    onDragStart={e => handleDragStart(e, t.id)}
-                    onDragEnd={() => { setDragId(null); setDragOver(null); }}
-                    className={`cursor-grab active:cursor-grabbing transition-all duration-150 hover:shadow-card-hover ${statusRowColor(t.status)} ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
-                  >
-                    <CardContent className="p-3 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium leading-tight cursor-pointer hover:underline" onClick={() => navigate(`/tarefas/${t.id}`)}>{t.titulo}</p>
-                        {isAtrasada(t) && <Badge variant="destructive" className="text-[9px] shrink-0">Atrasada</Badge>}
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <Badge className={`text-[9px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge>
-                        <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
-                        <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
-                      </div>
-                      <div className="pt-1 border-t border-border/30">
-                        <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <HoverCard key={t.id} openDelay={300} closeDelay={100}>
+                    <HoverCardTrigger asChild>
+                      <Card
+                        draggable
+                        onDragStart={e => handleDragStart(e, t.id)}
+                        onDragEnd={() => { setDragId(null); setDragOver(null); }}
+                        className={`cursor-grab active:cursor-grabbing transition-all duration-150 hover:shadow-card-hover ${statusRowColor(t.status)} ${dragId === t.id ? "opacity-50 scale-95" : ""}`}
+                      >
+                        <CardContent className="p-3 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium leading-tight cursor-pointer hover:underline" onClick={() => navigate(`/tarefas/${t.id}`)}>{t.titulo}</p>
+                            {isAtrasada(t) && <Badge variant="destructive" className="text-[9px] shrink-0">Atrasada</Badge>}
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Badge className={`text-[9px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge>
+                            <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
+                            <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
+                          </div>
+                          <div className="pt-1 border-t border-border/30">
+                            <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </HoverCardTrigger>
+                    <HoverCardContent side="right" align="start" className="p-3">
+                      <TarefaReunioesPreview taskId={t.id} />
+                    </HoverCardContent>
+                  </HoverCard>
                 );
               })}
             </div>
