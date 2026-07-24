@@ -787,7 +787,7 @@ export default function Dashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate("/reunioes?nova=1")}
+                    onClick={() => navigate("/reunioes?new=1")}
                     className="gap-1.5"
                     aria-label="Agendar reunião"
                   >
