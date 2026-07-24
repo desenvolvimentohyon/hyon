@@ -341,17 +341,23 @@ export default function TabPlanosModulos() {
                 <Label className="text-sm font-semibold">Módulos incluídos ({form.items.length})</Label>
               </div>
               <div className="flex gap-2">
-                <Select value={addModuleId} onValueChange={setAddModuleId}>
-                  <SelectTrigger className="flex-1 h-9"><SelectValue placeholder="Selecione um módulo para adicionar" /></SelectTrigger>
+                <Select value={addModuleId} onValueChange={setAddModuleId} disabled={!form.system_id}>
+                  <SelectTrigger className="flex-1 h-9">
+                    <SelectValue placeholder={form.system_id ? "Selecione um módulo para adicionar" : "Selecione um sistema primeiro"} />
+                  </SelectTrigger>
                   <SelectContent>
-                    {availableModules.length === 0 && <SelectItem value="__none" disabled>Todos os módulos já adicionados</SelectItem>}
+                    {availableModules.length === 0 && (
+                      <SelectItem value="__none" disabled>
+                        {form.system_id ? "Nenhum módulo disponível para este sistema" : "Selecione um sistema primeiro"}
+                      </SelectItem>
+                    )}
                     {availableModules.map(m => {
-                      const sys = m.sistemaId ? sistemaMap.get(m.sistemaId)?.nome : (m.isGlobal ? "Global" : "—");
+                      const sys = m.isGlobal ? "Global" : (sistemaMap.get(form.system_id!)?.nome || "—");
                       return <SelectItem key={m.id} value={m.id}>{m.nome} <span className="text-muted-foreground text-xs">— {sys}</span></SelectItem>;
                     })}
                   </SelectContent>
                 </Select>
-                <Button type="button" size="sm" onClick={addItem} disabled={!addModuleId}><Plus className="h-4 w-4" /></Button>
+                <Button type="button" size="sm" onClick={addItem} disabled={!addModuleId || !form.system_id}><Plus className="h-4 w-4" /></Button>
               </div>
 
               {form.items.length > 0 && (
