@@ -52,8 +52,9 @@ export default function TabPlanosModulos() {
     min_total_value: number;
     allow_bonus: boolean;
     active: boolean;
+    system_id: string | null;
     items: PlanItem[];
-  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, items: [] });
+  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
   const [addModuleId, setAddModuleId] = useState<string>("");
 
   const moduleMap = useMemo(() => new Map(modulos.map(m => [m.id, m])), [modulos]);
