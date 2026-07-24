@@ -72,13 +72,14 @@ export default function TabPlanosModulos() {
       const { data } = await supabase.from("module_plan_items").select("*").in("plan_id", planIds);
       itemsData = data || [];
     }
-    setPlans((planData || []).map(p => ({
+    setPlans((planData || []).map((p: any) => ({
       id: p.id,
       name: p.name,
       description: p.description,
       min_total_value: Number(p.min_total_value) || 0,
       allow_bonus: p.allow_bonus,
       active: p.active,
+      system_id: p.system_id ?? null,
       items: itemsData.filter(i => i.plan_id === p.id).map(i => ({
         id: i.id, module_id: i.module_id,
         min_value: Number(i.min_value) || 0,
