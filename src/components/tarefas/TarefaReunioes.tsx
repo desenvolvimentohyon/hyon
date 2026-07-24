@@ -49,6 +49,7 @@ export function TarefaReunioes({
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("todas");
+  const [sortOrder, setSortOrder] = useState<"proximas" | "recentes">("proximas");
 
   const load = async () => {
     setLoading(true);
