@@ -38,6 +38,7 @@ const PushNotificationsSettings = lazy(() => import("@/components/configuracoes/
 const UsuariosConfig = lazy(() => import("@/pages/UsuariosConfig"));
 const TabDesenvolvimento = lazy(() => import("@/components/configuracoes/TabDesenvolvimento"));
 const LandingLinkCard = lazy(() => import("@/components/configuracoes/LandingLinkCard"));
+const GoogleCalendarConnectCard = lazy(() => import("@/components/configuracoes/GoogleCalendarConnectCard"));
 const TabPlanosModulos = lazy(() => import("@/components/configuracoes/TabPlanosModulos"));
 
 
@@ -523,6 +524,7 @@ export default function Configuracoes() {
             <TabsContent value="push" className="space-y-4">
               <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
                 <PushNotificationsSettings />
+                <GoogleCalendarConnectCard />
               </Suspense>
             </TabsContent>
 

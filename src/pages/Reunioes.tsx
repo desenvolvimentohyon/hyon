@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2 } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +92,25 @@ export default function Reunioes() {
   const [form, setForm] = useState(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newGuest, setNewGuest] = useState({ name: "", email: "" });
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+  const gCal = useGoogleCalendar();
+
+  const handleSyncGoogle = async (meetingId: string) => {
+    if (!gCal.connected) {
+      toast.error("Conecte sua conta do Google Calendar nas Configurações primeiro.");
+      return;
+    }
+    setSyncingId(meetingId);
+    try {
+      const r = await gCal.syncMeeting(meetingId);
+      toast.success("Reunião sincronizada com Google Calendar! Convites enviados.");
+      await loadMeetings();
+      if (r?.html_link) window.open(r.html_link, "_blank");
+    } catch (e) {
+      toast.error("Falha ao sincronizar: " + (e as Error).message);
+    }
+    setSyncingId(null);
+  };
 
   const loadMeetings = async () => {
     setLoading(true);
@@ -320,8 +340,8 @@ export default function Reunioes() {
         </TabsContent>
 
         <TabsContent value="list" className="space-y-4">
-          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} loading={loading} clientes={clientes} users={users} />
-          <MeetingList title="Histórico" items={past} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} loading={false} clientes={clientes} users={users} />
+          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
+          <MeetingList title="Histórico" items={past} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
         </TabsContent>
       </Tabs>
 
@@ -465,12 +485,15 @@ interface MeetingListProps {
   items: Meeting[];
   onEdit: (m: Meeting) => void;
   onDelete: (id: string) => void;
+  onSync: (id: string) => void;
+  googleConnected: boolean;
+  syncingId: string | null;
   loading: boolean;
   clientes: Array<{ id: string; nome: string }>;
   users: Array<{ id: string; nome?: string; email?: string }>;
 }
 
-function MeetingList({ title, items, onEdit, onDelete, loading, clientes, users }: MeetingListProps) {
+function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -495,6 +518,11 @@ function MeetingList({ title, items, onEdit, onDelete, loading, clientes, users 
                     <span className="font-medium">{m.title}</span>
                     <Badge variant="outline" className={cn("text-xs", STATUS_STYLE[m.status].className)}>{STATUS_STYLE[m.status].label}</Badge>
                     {client && <Badge variant="secondary" className="text-xs">{client.nome}</Badge>}
+                    {m.google_event_id && (
+                      <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Google Calendar
+                      </Badge>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
                     <span className="flex items-center gap-1">
@@ -550,6 +578,18 @@ function MeetingList({ title, items, onEdit, onDelete, loading, clientes, users 
                   >
                     <Download className="h-3.5 w-3.5" />
                   </Button>
+                  {googleConnected && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-primary"
+                      title={m.google_event_id ? "Atualizar no Google Calendar" : "Sincronizar com Google Calendar (envia convites)"}
+                      disabled={syncingId === m.id}
+                      onClick={() => onSync(m.id)}
+                    >
+                      <RefreshCw className={cn("h-3.5 w-3.5", syncingId === m.id && "animate-spin")} />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(m)}>
                     <Edit3 className="h-3.5 w-3.5" />
                   </Button>

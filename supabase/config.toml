@@ -35,4 +35,8 @@ verify_jwt = false
 [functions.public-company-profile]
 verify_jwt = false
 
+[functions.google-oauth-callback]
+verify_jwt = false
+
+
 
