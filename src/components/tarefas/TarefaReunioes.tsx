@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarPlus, Edit3, Video, MapPin, ExternalLink, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+type StatusFilter = "todas" | "agendada" | "realizada" | "cancelada";
+type TimeFilter = "todas" | "hoje" | "atrasadas" | "futuras";
 
 interface TaskMeeting {
   id: string;
