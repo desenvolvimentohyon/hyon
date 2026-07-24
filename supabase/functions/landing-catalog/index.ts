@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     const [systemsRes, plansRes, itemsRes, modulesRes] = await Promise.all([
       supabase.from("systems_catalog").select("id,name,description,sale_value")
         .eq("org_id", org.id).eq("active", true).order("name"),
-      supabase.from("module_plans").select("id,name,description,min_total_value,allow_bonus,system_id")
+      supabase.from("module_plans").select("id,name,description,min_total_value,allow_bonus,system_id,bonus_count,recommended,cycle_discounts")
         .eq("org_id", org.id).eq("active", true).order("name"),
       supabase.from("module_plan_items").select("plan_id,module_id,suggested_value"),
       supabase.from("system_modules").select("id,name,description,sale_value,system_ids,is_global")
@@ -59,6 +59,9 @@ Deno.serve(async (req) => {
       min_total_value: Number(p.min_total_value),
       allow_bonus: p.allow_bonus,
       system_id: p.system_id,
+      bonus_count: Number(p.bonus_count) || 0,
+      recommended: !!p.recommended,
+      cycle_discounts: p.cycle_discounts ?? { quarterly: 5, annual: 10 },
       items: itemsByPlan.get(p.id) ?? [],
     }));
 
