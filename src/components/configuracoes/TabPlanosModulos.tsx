@@ -164,7 +164,7 @@ export default function TabPlanosModulos() {
   const save = async () => {
     if (!orgId) return;
     if (!form.name.trim()) { toast.error("Nome do plano é obrigatório"); return; }
-    if (!form.system_id) { toast.error("Selecione o sistema vinculado ao plano"); return; }
+    if (!form.system_id && form.items.length > 0) { toast.error("Selecione o sistema vinculado ao plano"); return; }
     if (invalidRanges.length > 0) { toast.error("Existem módulos com valor mínimo maior que o máximo"); return; }
 
     if (modal?.editing) {
