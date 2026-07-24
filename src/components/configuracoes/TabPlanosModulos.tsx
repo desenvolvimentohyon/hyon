@@ -357,8 +357,44 @@ export default function TabPlanosModulos() {
                   <Label className="text-xs cursor-pointer">Plano ativo</Label>
                   <Switch checked={form.active} onCheckedChange={(v) => setForm(f => ({ ...f, active: v }))} />
                 </div>
+                <div className="flex items-center justify-between rounded-md border border-border p-2.5">
+                  <div>
+                    <Label className="text-xs cursor-pointer">Plano recomendado</Label>
+                    <p className="text-[10px] text-muted-foreground">Destaca este plano no comparativo.</p>
+                  </div>
+                  <Switch checked={form.recommended} onCheckedChange={(v) => setForm(f => ({ ...f, recommended: v }))} />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Módulos bônus inclusos</Label>
+                <Input type="number" min={0} value={form.bonus_count}
+                  onChange={(e) => setForm(f => ({ ...f, bonus_count: Math.max(0, Number(e.target.value) || 0) }))} />
+                <p className="text-[10px] text-muted-foreground">
+                  Nº de módulos extras mais baratos que entram como brinde automaticamente.
+                </p>
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label>Descontos por ciclo (%)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Trimestral</Label>
+                    <Input type="number" min={0} max={100} value={form.cycle_discounts.quarterly}
+                      onChange={(e) => setForm(f => ({ ...f, cycle_discounts: { ...f.cycle_discounts, quarterly: Math.max(0, Math.min(100, Number(e.target.value) || 0)) } }))} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Anual</Label>
+                    <Input type="number" min={0} max={100} value={form.cycle_discounts.annual}
+                      onChange={(e) => setForm(f => ({ ...f, cycle_discounts: { ...f.cycle_discounts, annual: Math.max(0, Math.min(100, Number(e.target.value) || 0)) } }))} />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Descontos aplicados quando o cliente escolhe pagamento adiantado no trimestre ou ano.
+                </p>
               </div>
             </div>
+
 
             <Separator />
 
