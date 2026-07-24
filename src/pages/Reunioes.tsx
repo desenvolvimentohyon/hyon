@@ -78,7 +78,7 @@ function emptyForm() {
 
 export default function Reunioes() {
   const { user } = useAuth();
-  const { clientes } = useAppContext();
+  const { clientes } = useApp();
   const { users } = useUsers();
 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
