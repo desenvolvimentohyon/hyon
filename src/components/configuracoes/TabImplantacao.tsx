@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, MapPin, Car, CalendarDays, Calculator } from "lucide-react";
+import { Plus, Pencil, Trash2, MapPin, Car, CalendarDays, Calculator, Layers, Save } from "lucide-react";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
