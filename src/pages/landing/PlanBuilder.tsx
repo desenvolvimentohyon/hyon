@@ -155,7 +155,7 @@ export default function PlanBuilder({ waNumber }: Props) {
         segment: `${system.name} — ${plan.name}`,
         modules: modulesPayload,
         monthly_total: totals.month,
-        setup_total: 0,
+        setup_total: totals.setup,
         contact_name: form.nome.trim(),
         contact_company: form.empresa.trim() || null,
         contact_phone: form.telefone.replace(/\D/g, ""),
@@ -165,11 +165,15 @@ export default function PlanBuilder({ waNumber }: Props) {
       });
       if (error) throw error;
 
+      const setupLine = totals.setup > 0
+        ? `• Implantação estimada (a partir de): ${formatCurrency(totals.setup)}`
+        : "";
       const linhas = [
         `Olá! Montei um plano no site da Hyon:`,
         `• Sistema: ${system.name}`,
         `• Plano: ${plan.name}`,
         `• Módulos: ${modulesPayload.map((m) => m.label).join(", ") || "Nenhum extra"}`,
+        setupLine,
         `• Gostaria de receber uma proposta personalizada.`,
         ``,
         `Meus dados: ${form.nome}${form.empresa ? " — " + form.empresa : ""} | ${form.telefone}${form.email ? " | " + form.email : ""}`,
