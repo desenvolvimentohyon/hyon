@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft, Play, Pause, Plus, Clock, MessageSquare, History, FileText, CheckSquare, Trash2, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, Play, Pause, Plus, Clock, MessageSquare, History, FileText, CheckSquare, Trash2, ImagePlus, X, CalendarDays } from "lucide-react";
+import { TarefaReunioes } from "@/components/tarefas/TarefaReunioes";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
