@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, MapPin, Car, CalendarDays, Calculator } from "lucide-react";
+import { Plus, Pencil, Trash2, MapPin, Car, CalendarDays, Calculator, Layers, Save } from "lucide-react";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -23,6 +23,18 @@ interface Region {
   base_value: number;
   additional_fee: number;
   active: boolean;
+}
+
+interface SystemRow {
+  id: string;
+  name: string;
+  setup_override: boolean;
+  setup_cost_per_km: number;
+  setup_daily_rate: number;
+  setup_default_days: number;
+  setup_base_fee: number;
+  dirty?: boolean;
+  saving?: boolean;
 }
 
 export default function TabImplantacao() {
@@ -45,11 +57,59 @@ export default function TabImplantacao() {
   const [calcRegionId, setCalcRegionId] = useState("");
   const [calcDays, setCalcDays] = useState(1);
 
+  // Systems (per-system deployment pricing)
+  const [systems, setSystems] = useState<SystemRow[]>([]);
+  const [calcSystemId, setCalcSystemId] = useState<string>("none");
+
   useEffect(() => {
     if (!orgId) return;
     loadCompanyProfile();
     loadRegions();
+    loadSystems();
   }, [orgId]);
+
+  const loadSystems = async () => {
+    const { data } = await supabase
+      .from("systems_catalog")
+      .select("id, name, setup_override, setup_cost_per_km, setup_daily_rate, setup_default_days, setup_base_fee, active")
+      .eq("org_id", orgId!)
+      .eq("active", true)
+      .order("name");
+    if (data) {
+      setSystems(data.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        setup_override: !!s.setup_override,
+        setup_cost_per_km: Number(s.setup_cost_per_km) || 0,
+        setup_daily_rate: Number(s.setup_daily_rate) || 0,
+        setup_default_days: Number(s.setup_default_days) || 1,
+        setup_base_fee: Number(s.setup_base_fee) || 0,
+      })));
+    }
+  };
+
+  const patchSystem = (id: string, patch: Partial<SystemRow>) => {
+    setSystems((prev) => prev.map((s) => s.id === id ? { ...s, ...patch, dirty: true } : s));
+  };
+
+  const saveSystem = async (row: SystemRow) => {
+    setSystems((prev) => prev.map((s) => s.id === row.id ? { ...s, saving: true } : s));
+    const { error } = await supabase
+      .from("systems_catalog")
+      .update({
+        setup_override: row.setup_override,
+        setup_cost_per_km: row.setup_cost_per_km,
+        setup_daily_rate: row.setup_daily_rate,
+        setup_default_days: row.setup_default_days,
+        setup_base_fee: row.setup_base_fee,
+      })
+      .eq("id", row.id);
+    setSystems((prev) => prev.map((s) => s.id === row.id
+      ? { ...s, saving: false, dirty: !!error }
+      : s));
+    if (error) { toast.error("Erro ao salvar sistema"); return; }
+    toast.success(`Preço de implantação de "${row.name}" salvo!`);
+  };
 
   const loadCompanyProfile = async () => {
     const { data } = await supabase
@@ -119,14 +179,22 @@ export default function TabImplantacao() {
 
   const activeRegions = regions.filter(r => r.active);
   const selectedRegion = activeRegions.find(r => r.id === calcRegionId);
+  const selectedCalcSystem = systems.find(s => s.id === calcSystemId);
+  const overrideActive = !!selectedCalcSystem?.setup_override;
 
   const calcResult = useMemo(() => {
-    const kmCost = calcKm * costPerKm;
+    const kmRate = overrideActive ? selectedCalcSystem!.setup_cost_per_km : costPerKm;
+    const dRate = overrideActive ? selectedCalcSystem!.setup_daily_rate : dailyRate;
+    const sysFee = overrideActive ? selectedCalcSystem!.setup_base_fee : 0;
+    const kmCost = calcKm * kmRate;
     const regionBase = selectedRegion?.base_value || 0;
     const regionFee = selectedRegion?.additional_fee || 0;
-    const dailyCost = calcDays * dailyRate;
-    return { kmCost, regionBase, regionFee, dailyCost, total: kmCost + regionBase + regionFee + dailyCost };
-  }, [calcKm, costPerKm, selectedRegion, calcDays, dailyRate]);
+    const dailyCost = calcDays * dRate;
+    return {
+      kmCost, regionBase, regionFee, dailyCost, sysFee, kmRate, dRate,
+      total: kmCost + regionBase + regionFee + dailyCost + sysFee,
+    };
+  }, [calcKm, costPerKm, selectedRegion, calcDays, dailyRate, selectedCalcSystem, overrideActive]);
 
   return (
     <div className="space-y-6">
@@ -230,6 +298,107 @@ export default function TabImplantacao() {
         </CardContent>
       </Card>
 
+      {/* Precificação por Sistema */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10">
+              <Layers className="h-4 w-4 text-sky-500" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Precificação por Sistema</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Ative para usar valores próprios de implantação em cada sistema. Quando desligado, usa os padrões da empresa acima.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Sistema</TableHead>
+                <TableHead className="w-24">Próprio</TableHead>
+                <TableHead className="text-right">R$/km</TableHead>
+                <TableHead className="text-right">Diária</TableHead>
+                <TableHead className="text-right w-20">Dias</TableHead>
+                <TableHead className="text-right">Taxa fixa</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {systems.map(s => {
+                const disabled = !s.setup_override;
+                return (
+                  <TableRow key={s.id} className={disabled ? "opacity-70" : ""}>
+                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={s.setup_override}
+                        onCheckedChange={(v) => patchSystem(s.id, { setup_override: v })}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CurrencyInput
+                        value={s.setup_cost_per_km}
+                        onValueChange={(v) => patchSystem(s.id, { setup_cost_per_km: v })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CurrencyInput
+                        value={s.setup_daily_rate}
+                        onValueChange={(v) => patchSystem(s.id, { setup_daily_rate: v })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={s.setup_default_days}
+                        onChange={(e) => patchSystem(s.id, { setup_default_days: Number(e.target.value) || 1 })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CurrencyInput
+                        value={s.setup_base_fee}
+                        onValueChange={(v) => patchSystem(s.id, { setup_base_fee: v })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        disabled={!s.dirty || s.saving}
+                        onClick={() => saveSystem(s)}
+                        title="Salvar sistema"
+                      >
+                        <Save className="h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {systems.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Nenhum sistema ativo cadastrado
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
       {/* Calculadora */}
       <Card>
         <CardHeader className="pb-3">
@@ -241,7 +410,21 @@ export default function TabImplantacao() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <Label className="text-xs">Sistema</Label>
+              <Select value={calcSystemId} onValueChange={setCalcSystemId}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Padrão da empresa</SelectItem>
+                  {systems.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}{s.setup_override ? " • próprio" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label className="text-xs">Distância (km)</Label>
               <Input type="number" min={0} value={calcKm} onChange={e => setCalcKm(Number(e.target.value))} className="h-9" />
@@ -263,11 +446,17 @@ export default function TabImplantacao() {
             </div>
           </div>
 
+          {overrideActive && (
+            <div className="text-xs text-sky-600 dark:text-sky-400 bg-sky-500/5 border border-sky-500/20 rounded-md px-3 py-2">
+              Usando precificação própria do sistema <b>{selectedCalcSystem?.name}</b>.
+            </div>
+          )}
+
           <Separator />
 
           <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Deslocamento ({calcKm} km × {fmt(costPerKm)}/km)</span>
+              <span className="text-muted-foreground">Deslocamento ({calcKm} km × {fmt(calcResult.kmRate)}/km)</span>
               <span className="font-medium">{fmt(calcResult.kmCost)}</span>
             </div>
             {selectedRegion && (
@@ -283,9 +472,15 @@ export default function TabImplantacao() {
               </>
             )}
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Diárias ({calcDays} × {fmt(dailyRate)})</span>
+              <span className="text-muted-foreground">Diárias ({calcDays} × {fmt(calcResult.dRate)})</span>
               <span className="font-medium">{fmt(calcResult.dailyCost)}</span>
             </div>
+            {overrideActive && calcResult.sysFee > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Taxa fixa do sistema</span>
+                <span className="font-medium">{fmt(calcResult.sysFee)}</span>
+              </div>
+            )}
             <Separator />
             <div className="flex justify-between text-base font-bold">
               <span>Valor da Implantação</span>

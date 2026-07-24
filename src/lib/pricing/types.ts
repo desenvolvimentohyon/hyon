@@ -54,6 +54,28 @@ export interface QuoteSetupInput {
   dailyRate?: number;
   /** Custo fixo da região. */
   regionBase?: number;
+  /** Taxa fixa da implantação do sistema selecionado. */
+  systemFee?: number;
+  /** Nome do sistema aplicado (informativo/log). */
+  systemLabel?: string;
+}
+
+/** Parâmetros de implantação específicos de um sistema (override). */
+export interface SystemSetupPricing {
+  systemId: string;
+  systemName: string;
+  override: boolean;
+  costPerKm: number;
+  dailyRate: number;
+  defaultDays: number;
+  baseFee: number;
+}
+
+/** Padrões globais de implantação da empresa (fallback). */
+export interface OrgSetupDefaults {
+  costPerKm: number;
+  dailyRate: number;
+  defaultDays: number;
 }
 
 export interface QuoteInput {
@@ -82,7 +104,9 @@ export interface SetupQuote {
   distance: number;
   region: number;
   labor: number;
+  systemFee: number;
   total: number;
+  systemLabel?: string;
 }
 
 export interface Quote {
