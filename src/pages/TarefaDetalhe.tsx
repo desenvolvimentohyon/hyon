@@ -382,7 +382,7 @@ export default function TarefaDetalhe() {
         </TabsContent>
 
         <TabsContent value="reunioes" className="mt-4">
-          <TarefaReunioes taskId={tarefa.id} />
+          <TarefaReunioes taskId={tarefa.id} onPendingChange={setReunioesPendentes} />
         </TabsContent>
 
         <TabsContent value="historico" className="mt-4">
