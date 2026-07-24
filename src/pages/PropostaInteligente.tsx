@@ -136,6 +136,17 @@ export default function PropostaInteligente() {
     [modulos, moduloIds]
   );
 
+  const systemSetup = useMemo<SystemSetupPricing | null>(
+    () => (sistemaId && systemsSetup[sistemaId]) || null,
+    [sistemaId, systemsSetup]
+  );
+
+  const orgSetupDefaults = useMemo<OrgSetupDefaults>(() => ({
+    costPerKm: companyImpl.impl_cost_per_km || 0,
+    dailyRate: companyImpl.impl_daily_rate || 0,
+    defaultDays: companyImpl.impl_default_days || 1,
+  }), [companyImpl]);
+
   const calc = useMemo(() => {
     const sistemaValor = 0;
     const modulosValor = modulosSelecionados.reduce((sum, m) => sum + m.valorVenda, 0);
@@ -146,10 +157,21 @@ export default function PropostaInteligente() {
     const descontoManualValor = valorAposPlano * (descontoManualPercent / 100);
     const mensalidadeFinal = Math.max(0, valorAposPlano - descontoManualValor - descontoManualReais);
 
-    const implKm = distanciaKm * companyImpl.impl_cost_per_km;
-    const implRegiao = regiao ? regiao.base_value + regiao.additional_fee : 0;
-    const implDiarias = dias * companyImpl.impl_daily_rate;
-    const implantacaoBruto = implKm + implRegiao + implDiarias;
+    const resolved = resolveSetupInput(
+      {
+        distanceKm: distanciaKm,
+        days: dias,
+        regionBase: regiao ? regiao.base_value + regiao.additional_fee : 0,
+      },
+      systemSetup,
+      orgSetupDefaults,
+    );
+    const setupQuote = computeSetup(resolved);
+    const implKm = setupQuote.distance;
+    const implRegiao = setupQuote.region;
+    const implDiarias = setupQuote.labor;
+    const implSistema = setupQuote.systemFee;
+    const implantacaoBruto = setupQuote.total;
     const descontoImplPercentVal = implantacaoBruto * (descontoImplPercent / 100);
     const implantacaoTotal = Math.max(0, implantacaoBruto - descontoImplPercentVal - descontoImplReais);
 
@@ -163,10 +185,11 @@ export default function PropostaInteligente() {
     return {
       sistemaValor, modulosValor, mensalidadeBase,
       descontoPercent, descontoValor, descontoManualValor, descontoManualReais, mensalidadeFinal,
-      implKm, implRegiao, implDiarias, implantacaoBruto, descontoImplPercentVal, descontoImplReais, implantacaoTotal,
+      implKm, implRegiao, implDiarias, implSistema, implantacaoBruto, descontoImplPercentVal, descontoImplReais, implantacaoTotal,
       comissaoImpl, comissaoRecur,
     };
-  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
+  }, [sistema, modulosSelecionados, plano, distanciaKm, orgSetupDefaults, regiao, dias, parceiro, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais, systemSetup]);
+
 
   const resumoData = useMemo(() => ({
     sistemaNome: sistema?.nome || "",
