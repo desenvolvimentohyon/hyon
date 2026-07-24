@@ -153,44 +153,28 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex items-center justify-start gap-1 sm:gap-3 h-auto bg-transparent p-0 overflow-x-auto">
+          <TabsList className="w-full flex items-center justify-start gap-1 h-auto bg-transparent p-0 border-b border-border rounded-none overflow-x-auto">
             {TABS.map(tab => {
               const Icon = tab.icon;
-              const palette = TAB_COLORS[tab.value] || TAB_COLORS.dados;
-              const isActive = activeTab === tab.value;
               return (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
                   className={cn(
-                    "group flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl min-w-[72px] transition-all duration-300 hover:scale-105",
-                    "data-[state=active]:shadow-sm",
-                    isActive ? palette.color : palette.inactiveColor
+                    "relative flex items-center gap-2 px-3 py-2 rounded-none bg-transparent text-muted-foreground",
+                    "border-b-2 border-transparent -mb-px shadow-none",
+                    "hover:text-foreground transition-colors",
+                    "data-[state=active]:text-foreground data-[state=active]:border-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent"
                   )}
                 >
-                  <div
-                    className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300",
-                      isActive
-                        ? cn(palette.bg, palette.border, palette.color)
-                        : cn("bg-muted/50 border-border/40", palette.inactiveColor, "group-hover:border-border", `group-hover:${palette.color}`)
-                    )}
-                    style={isActive ? { boxShadow: palette.glow } : undefined}
-                  >
-                    <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                  </div>
-                  <span className={cn(
-                    "text-[11px] font-medium transition-colors duration-300",
-                    isActive ? palette.color : cn(palette.inactiveColor, `group-hover:${palette.color}`)
-                  )}>
-                    {tab.label}
-                  </span>
+                  <Icon className="h-4 w-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
                 </TabsTrigger>
               );
             })}
           </TabsList>
 
-          <div className="rounded-lg border border-border p-6 bg-card">
+          <div className="pt-6">
             <TabsContent value="dados" className="mt-0">
               <TabDados
                 cliente={cliente}
@@ -227,6 +211,7 @@ export default function ClienteDetalhe({ clienteId, onBack }: Props) {
               <TabPagamentos clienteId={clienteId} />
             </TabsContent>
           </div>
+
         </Tabs>
       </div>
 
