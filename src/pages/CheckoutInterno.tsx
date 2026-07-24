@@ -12,14 +12,25 @@ import { ArrowRight, ArrowLeft, CheckCircle, ShoppingCart, SkipForward } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { maskDocument } from "@/lib/cnpjUtils";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
+import { computeSetup, resolveSetupInput } from "@/lib/pricing/setup";
+import type { OrgSetupDefaults, SystemSetupPricing } from "@/lib/pricing/types";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-interface System { id: string; name: string; sale_value: number }
+interface System {
+  id: string;
+  name: string;
+  sale_value: number;
+  setup_override?: boolean;
+  setup_cost_per_km?: number;
+  setup_daily_rate?: number;
+  setup_default_days?: number;
+  setup_base_fee?: number;
+}
 interface Plan { id: string; name: string; discount_percent: number }
 interface Module { id: string; name: string; sale_value: number; system_id: string | null; is_global: boolean }
 interface Region { id: string; name: string; base_value: number; additional_fee: number }
-interface CompanyImpl { impl_cost_per_km: number; impl_daily_rate: number }
+interface CompanyImpl { impl_cost_per_km: number; impl_daily_rate: number; impl_default_days?: number }
 
 export default function CheckoutInterno() {
   const [step, setStep] = useState(0);
@@ -57,11 +68,11 @@ export default function CheckoutInterno() {
 
   const loadData = async () => {
     const [{ data: sys }, { data: pln }, { data: mods }, { data: regs }, { data: cp }] = await Promise.all([
-      supabase.from("systems_catalog").select("id, name, sale_value").eq("active", true),
+      supabase.from("systems_catalog").select("id, name, sale_value, setup_override, setup_cost_per_km, setup_daily_rate, setup_default_days, setup_base_fee").eq("active", true),
       supabase.from("plans").select("id, name, discount_percent").eq("active", true),
       supabase.from("system_modules").select("id, name, sale_value, system_id, is_global").eq("active", true),
       supabase.from("deployment_regions").select("id, name, base_value, additional_fee").eq("active", true),
-      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate").limit(1).maybeSingle(),
+      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate, impl_default_days").limit(1).maybeSingle(),
     ]);
     setSystems(sys || []);
     setPlans(pln || []);
@@ -95,14 +106,47 @@ export default function CheckoutInterno() {
   const totalDiscount = Math.min(100, planDiscount + customDiscount);
   const finalValue = baseValue * (1 - totalDiscount / 100);
 
-  // Implantation value
-  const implValue = useMemo(() => {
-    if (!selectedRegion) return 0;
-    let total = selectedRegion.base_value + selectedRegion.additional_fee;
-    if (chargeKm) total += distanceKm * companyImpl.impl_cost_per_km;
-    if (chargeDiary) total += diaryDays * companyImpl.impl_daily_rate;
-    return total;
-  }, [selectedRegion, chargeKm, chargeDiary, distanceKm, diaryDays, companyImpl]);
+  // Resolve setup pricing honoring per-system override
+  const systemSetupPricing = useMemo<SystemSetupPricing | null>(() => {
+    if (!selectedSystem) return null;
+    return {
+      systemId: selectedSystem.id,
+      systemName: selectedSystem.name,
+      override: !!selectedSystem.setup_override,
+      costPerKm: Number(selectedSystem.setup_cost_per_km) || 0,
+      dailyRate: Number(selectedSystem.setup_daily_rate) || 0,
+      defaultDays: Number(selectedSystem.setup_default_days) || 1,
+      baseFee: Number(selectedSystem.setup_base_fee) || 0,
+    };
+  }, [selectedSystem]);
+
+  const orgSetupDefaults = useMemo<OrgSetupDefaults>(() => ({
+    costPerKm: companyImpl.impl_cost_per_km || 0,
+    dailyRate: companyImpl.impl_daily_rate || 0,
+    defaultDays: companyImpl.impl_default_days || 1,
+  }), [companyImpl]);
+
+  const setupQuote = useMemo(() => {
+    if (!selectedRegion) {
+      // still compute for system fee / labor / km even without region? require region for now
+      return computeSetup({ systemFee: 0 });
+    }
+    const resolved = resolveSetupInput(
+      {
+        distanceKm: chargeKm ? distanceKm : 0,
+        days: chargeDiary ? diaryDays : 0,
+        regionBase: selectedRegion.base_value + selectedRegion.additional_fee,
+      },
+      systemSetupPricing,
+      orgSetupDefaults,
+    );
+    return computeSetup(resolved);
+  }, [selectedRegion, chargeKm, chargeDiary, distanceKm, diaryDays, systemSetupPricing, orgSetupDefaults]);
+
+  const implValue = setupQuote.total;
+  const effectiveCostPerKm = systemSetupPricing?.override ? systemSetupPricing.costPerKm : orgSetupDefaults.costPerKm;
+  const effectiveDailyRate = systemSetupPricing?.override ? systemSetupPricing.dailyRate : orgSetupDefaults.dailyRate;
+
 
   const steps = ["Sistema", "Módulos", "Plano", "Implantação", "Desconto", "Cliente", "Resumo"];
 
@@ -403,7 +447,7 @@ export default function CheckoutInterno() {
                           className="w-20 h-8 text-sm"
                           placeholder="KM"
                         />
-                        <span className="text-xs text-muted-foreground">× {fmt(companyImpl.impl_cost_per_km)}/km</span>
+                        <span className="text-xs text-muted-foreground">× {fmt(effectiveCostPerKm)}/km</span>
                       </div>
                     )}
                   </div>
@@ -420,13 +464,24 @@ export default function CheckoutInterno() {
                           className="w-20 h-8 text-sm"
                           placeholder="Dias"
                         />
-                        <span className="text-xs text-muted-foreground">× {fmt(companyImpl.impl_daily_rate)}/dia</span>
+                        <span className="text-xs text-muted-foreground">× {fmt(effectiveDailyRate)}/dia</span>
                       </div>
                     )}
                   </div>
+                  {systemSetupPricing?.override && setupQuote.systemFee > 0 && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted-foreground">Taxa fixa do sistema ({systemSetupPricing.systemName})</span>
+                      <span className="font-medium">{fmt(setupQuote.systemFee)}</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground text-sm">Valor da Implantação</span>
+                    <span className="text-muted-foreground text-sm">
+                      Valor da Implantação
+                      {systemSetupPricing?.override && (
+                        <Badge variant="secondary" className="ml-2 text-[10px]">preço por sistema</Badge>
+                      )}
+                    </span>
                     <span className="text-xl font-bold text-primary">{fmt(implValue)}</span>
                   </div>
                 </div>

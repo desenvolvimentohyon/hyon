@@ -21,6 +21,8 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { PropostaResumoLateral } from "@/components/propostas/PropostaResumoLateral";
 import { EtapaCard } from "@/components/propostas/EtapaCard";
 import { PropostaProgresso } from "@/components/propostas/PropostaProgresso";
+import { computeSetup, resolveSetupInput } from "@/lib/pricing/setup";
+import type { OrgSetupDefaults, SystemSetupPricing } from "@/lib/pricing/types";
 
 import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText, Plus, Sparkles } from "lucide-react";
 
@@ -57,6 +59,7 @@ export default function PropostaInteligente() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
   const [companyImpl, setCompanyImpl] = useState<CompanyImpl>({ impl_cost_per_km: 0, impl_daily_rate: 0, impl_default_days: 1 });
+  const [systemsSetup, setSystemsSetup] = useState<Record<string, SystemSetupPricing>>({});
   const [gerando, setGerando] = useState(false);
 
   // Form state
@@ -89,11 +92,25 @@ export default function PropostaInteligente() {
       supabase.from("partners").select("id, name, commission_implant_percent, commission_recur_percent, commission_recur_months, commission_recur_apply_on").eq("active", true).order("name"),
       supabase.from("deployment_regions").select("*").eq("active", true).order("name"),
       supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate, impl_default_days").maybeSingle(),
-    ]).then(([pRes, rRes, cRes]) => {
+      supabase.from("systems_catalog").select("id, name, setup_override, setup_cost_per_km, setup_daily_rate, setup_default_days, setup_base_fee").eq("active", true),
+    ]).then(([pRes, rRes, cRes, sRes]) => {
       if (pRes.data) setPartners(pRes.data as any);
       if (rRes.data) setRegions(rRes.data as any);
-      if (cRes.data) {
-        setCompanyImpl(cRes.data as any);
+      if (cRes.data) setCompanyImpl(cRes.data as any);
+      if (sRes.data) {
+        const map: Record<string, SystemSetupPricing> = {};
+        for (const s of sRes.data as any[]) {
+          map[s.id] = {
+            systemId: s.id,
+            systemName: s.name,
+            override: !!s.setup_override,
+            costPerKm: Number(s.setup_cost_per_km) || 0,
+            dailyRate: Number(s.setup_daily_rate) || 0,
+            defaultDays: Number(s.setup_default_days) || 1,
+            baseFee: Number(s.setup_base_fee) || 0,
+          };
+        }
+        setSystemsSetup(map);
       }
     });
   }, []);
@@ -119,6 +136,17 @@ export default function PropostaInteligente() {
     [modulos, moduloIds]
   );
 
+  const systemSetup = useMemo<SystemSetupPricing | null>(
+    () => (sistemaId && systemsSetup[sistemaId]) || null,
+    [sistemaId, systemsSetup]
+  );
+
+  const orgSetupDefaults = useMemo<OrgSetupDefaults>(() => ({
+    costPerKm: companyImpl.impl_cost_per_km || 0,
+    dailyRate: companyImpl.impl_daily_rate || 0,
+    defaultDays: companyImpl.impl_default_days || 1,
+  }), [companyImpl]);
+
   const calc = useMemo(() => {
     const sistemaValor = 0;
     const modulosValor = modulosSelecionados.reduce((sum, m) => sum + m.valorVenda, 0);
@@ -129,10 +157,21 @@ export default function PropostaInteligente() {
     const descontoManualValor = valorAposPlano * (descontoManualPercent / 100);
     const mensalidadeFinal = Math.max(0, valorAposPlano - descontoManualValor - descontoManualReais);
 
-    const implKm = distanciaKm * companyImpl.impl_cost_per_km;
-    const implRegiao = regiao ? regiao.base_value + regiao.additional_fee : 0;
-    const implDiarias = dias * companyImpl.impl_daily_rate;
-    const implantacaoBruto = implKm + implRegiao + implDiarias;
+    const resolved = resolveSetupInput(
+      {
+        distanceKm: distanciaKm,
+        days: dias,
+        regionBase: regiao ? regiao.base_value + regiao.additional_fee : 0,
+      },
+      systemSetup,
+      orgSetupDefaults,
+    );
+    const setupQuote = computeSetup(resolved);
+    const implKm = setupQuote.distance;
+    const implRegiao = setupQuote.region;
+    const implDiarias = setupQuote.labor;
+    const implSistema = setupQuote.systemFee;
+    const implantacaoBruto = setupQuote.total;
     const descontoImplPercentVal = implantacaoBruto * (descontoImplPercent / 100);
     const implantacaoTotal = Math.max(0, implantacaoBruto - descontoImplPercentVal - descontoImplReais);
 
@@ -146,10 +185,11 @@ export default function PropostaInteligente() {
     return {
       sistemaValor, modulosValor, mensalidadeBase,
       descontoPercent, descontoValor, descontoManualValor, descontoManualReais, mensalidadeFinal,
-      implKm, implRegiao, implDiarias, implantacaoBruto, descontoImplPercentVal, descontoImplReais, implantacaoTotal,
+      implKm, implRegiao, implDiarias, implSistema, implantacaoBruto, descontoImplPercentVal, descontoImplReais, implantacaoTotal,
       comissaoImpl, comissaoRecur,
     };
-  }, [sistema, modulosSelecionados, plano, distanciaKm, companyImpl, regiao, dias, parceiro, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais]);
+  }, [sistema, modulosSelecionados, plano, distanciaKm, orgSetupDefaults, regiao, dias, parceiro, descontoManualPercent, descontoManualReais, descontoImplPercent, descontoImplReais, systemSetup]);
+
 
   const resumoData = useMemo(() => ({
     sistemaNome: sistema?.nome || "",
@@ -484,6 +524,14 @@ export default function PropostaInteligente() {
             descricao="Custos de deslocamento, diárias e região. Tudo é somado automaticamente."
             concluido={etapaImplantacao}
           >
+              {systemSetup?.override && (
+                <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-medium">Preço por sistema: {systemSetup.systemName}</span>
+                  {systemSetup.baseFee > 0 && <span>Taxa fixa: R$ {systemSetup.baseFee.toFixed(2)}</span>}
+                  <span>KM: R$ {systemSetup.costPerKm.toFixed(2)}</span>
+                  <span>Diária: R$ {systemSetup.dailyRate.toFixed(2)}</span>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Região</Label>
