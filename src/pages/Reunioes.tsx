@@ -177,6 +177,7 @@ export default function Reunioes() {
       location: form.location.trim() || null,
       meeting_link: form.meeting_link.trim() || null,
       client_id: form.client_id === "none" ? null : form.client_id,
+      task_id: form.task_id === "none" ? null : form.task_id,
       status: form.status,
       internal_user_ids: form.internal_user_ids,
       external_guests: form.external_guests as unknown as never,
