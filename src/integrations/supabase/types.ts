@@ -3305,6 +3305,11 @@ export type Database = {
           name: string
           org_id: string
           sale_value: number
+          setup_base_fee: number
+          setup_cost_per_km: number
+          setup_daily_rate: number
+          setup_default_days: number
+          setup_override: boolean
           updated_at: string
         }
         Insert: {
@@ -3316,6 +3321,11 @@ export type Database = {
           name: string
           org_id: string
           sale_value?: number
+          setup_base_fee?: number
+          setup_cost_per_km?: number
+          setup_daily_rate?: number
+          setup_default_days?: number
+          setup_override?: boolean
           updated_at?: string
         }
         Update: {
@@ -3327,6 +3337,11 @@ export type Database = {
           name?: string
           org_id?: string
           sale_value?: number
+          setup_base_fee?: number
+          setup_cost_per_km?: number
+          setup_daily_rate?: number
+          setup_default_days?: number
+          setup_override?: boolean
           updated_at?: string
         }
         Relationships: [
