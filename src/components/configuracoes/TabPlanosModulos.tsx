@@ -137,13 +137,15 @@ export default function TabPlanosModulos() {
   const save = async () => {
     if (!orgId) return;
     if (!form.name.trim()) { toast.error("Nome do plano é obrigatório"); return; }
+    if (!form.system_id) { toast.error("Selecione o sistema vinculado ao plano"); return; }
     if (invalidRanges.length > 0) { toast.error("Existem módulos com valor mínimo maior que o máximo"); return; }
 
     if (modal?.editing) {
       const { error } = await supabase.from("module_plans").update({
         name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
-      }).eq("id", modal.editing);
+        system_id: form.system_id,
+      } as any).eq("id", modal.editing);
       if (error) { toast.error("Erro ao salvar plano"); return; }
       await supabase.from("module_plan_items").delete().eq("plan_id", modal.editing);
       if (form.items.length > 0) {
@@ -158,7 +160,8 @@ export default function TabPlanosModulos() {
       const { data, error } = await supabase.from("module_plans").insert({
         org_id: orgId, name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
-      }).select("id").single();
+        system_id: form.system_id,
+      } as any).select("id").single();
       if (error || !data) { toast.error("Erro ao criar plano"); return; }
       if (form.items.length > 0) {
         const rows = form.items.map(i => ({
@@ -181,7 +184,15 @@ export default function TabPlanosModulos() {
     fetchAll();
   };
 
-  const availableModules = modulos.filter(m => m.ativo && !form.items.some(i => i.module_id === m.id));
+  // Módulos disponíveis: ativos, do sistema selecionado (ou globais), e não já adicionados
+  const availableModules = modulos.filter(m => {
+    if (!m.ativo) return false;
+    if (form.items.some(i => i.module_id === m.id)) return false;
+    if (!form.system_id) return false;
+    if (m.isGlobal) return true;
+    const ids: string[] = (m as any).sistemaIds || (m.sistemaId ? [m.sistemaId] : []);
+    return ids.includes(form.system_id);
+  });
 
   return (
     <div className="space-y-4">
