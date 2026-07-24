@@ -138,6 +138,7 @@ function AuthGate() {
                       <Route path="/comercial" element={<Comercial />} />
                       <Route path="/implantacao" element={<Implantacao />} />
                       <Route path="/suporte" element={<Suporte />} />
+                      <Route path="/reunioes" element={<Reunioes />} />
                       <Route path="/executivo" element={<Executivo />} />
                       <Route path="/radar-crescimento" element={<Navigate to="/executivo" replace />} />
                       <Route path="/propostas" element={<Propostas />} />
