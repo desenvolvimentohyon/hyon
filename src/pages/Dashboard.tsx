@@ -12,7 +12,7 @@ import {
   AlertTriangle, Plus, Users, TrendingUp, TrendingDown,
   Headphones, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
   Shield, BarChart3, PieChart as PieChartIcon,
-  ExternalLink, RefreshCw, Download, Clock, Zap,
+  ExternalLink, RefreshCw, Download, Clock, Zap, CalendarPlus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
