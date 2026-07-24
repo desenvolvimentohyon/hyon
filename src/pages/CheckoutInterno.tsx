@@ -468,9 +468,20 @@ export default function CheckoutInterno() {
                       </div>
                     )}
                   </div>
+                  {systemSetupPricing?.override && setupQuote.systemFee > 0 && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted-foreground">Taxa fixa do sistema ({systemSetupPricing.systemName})</span>
+                      <span className="font-medium">{fmt(setupQuote.systemFee)}</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground text-sm">Valor da Implantação</span>
+                    <span className="text-muted-foreground text-sm">
+                      Valor da Implantação
+                      {systemSetupPricing?.override && (
+                        <Badge variant="secondary" className="ml-2 text-[10px]">preço por sistema</Badge>
+                      )}
+                    </span>
                     <span className="text-xl font-bold text-primary">{fmt(implValue)}</span>
                   </div>
                 </div>
