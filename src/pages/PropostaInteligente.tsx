@@ -21,6 +21,8 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { PropostaResumoLateral } from "@/components/propostas/PropostaResumoLateral";
 import { EtapaCard } from "@/components/propostas/EtapaCard";
 import { PropostaProgresso } from "@/components/propostas/PropostaProgresso";
+import { computeSetup, resolveSetupInput } from "@/lib/pricing/setup";
+import type { OrgSetupDefaults, SystemSetupPricing } from "@/lib/pricing/types";
 
 import { ArrowLeft, User, Monitor, Puzzle, Tag, MapPin, Users, CreditCard, FileText, Plus, Sparkles } from "lucide-react";
 
