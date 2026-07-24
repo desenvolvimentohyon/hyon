@@ -92,11 +92,25 @@ export default function PropostaInteligente() {
       supabase.from("partners").select("id, name, commission_implant_percent, commission_recur_percent, commission_recur_months, commission_recur_apply_on").eq("active", true).order("name"),
       supabase.from("deployment_regions").select("*").eq("active", true).order("name"),
       supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate, impl_default_days").maybeSingle(),
-    ]).then(([pRes, rRes, cRes]) => {
+      supabase.from("systems_catalog").select("id, name, setup_override, setup_cost_per_km, setup_daily_rate, setup_default_days, setup_base_fee").eq("active", true),
+    ]).then(([pRes, rRes, cRes, sRes]) => {
       if (pRes.data) setPartners(pRes.data as any);
       if (rRes.data) setRegions(rRes.data as any);
-      if (cRes.data) {
-        setCompanyImpl(cRes.data as any);
+      if (cRes.data) setCompanyImpl(cRes.data as any);
+      if (sRes.data) {
+        const map: Record<string, SystemSetupPricing> = {};
+        for (const s of sRes.data as any[]) {
+          map[s.id] = {
+            systemId: s.id,
+            systemName: s.name,
+            override: !!s.setup_override,
+            costPerKm: Number(s.setup_cost_per_km) || 0,
+            dailyRate: Number(s.setup_daily_rate) || 0,
+            defaultDays: Number(s.setup_default_days) || 1,
+            baseFee: Number(s.setup_base_fee) || 0,
+          };
+        }
+        setSystemsSetup(map);
       }
     });
   }, []);
