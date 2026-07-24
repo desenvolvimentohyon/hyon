@@ -437,6 +437,20 @@ export default function PlanBuilder({ waNumber }: Props) {
                     })}
                   </ul>
                 </div>
+                {setupEstimate && setupEstimate.total > 0 && (
+                  <div className="mt-3 pb-3 border-b border-white/10">
+                    <div className="text-slate-400 text-xs">Implantação estimada</div>
+                    <div className="text-sm font-semibold text-white mt-0.5">
+                      a partir de {formatCurrency(setupEstimate.total)}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      {system.setup_override
+                        ? `Preço específico do sistema ${system.name}.`
+                        : "Baseado nos parâmetros padrão da empresa."}
+                      {" "}Valor final considera distância real até seu endereço.
+                    </p>
+                  </div>
+                )}
                 <div className="mt-4">
                   <div className="text-sm text-slate-300">Investimento</div>
                   <div className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent mt-1">
