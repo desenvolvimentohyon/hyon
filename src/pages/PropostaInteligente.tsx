@@ -59,6 +59,7 @@ export default function PropostaInteligente() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
   const [companyImpl, setCompanyImpl] = useState<CompanyImpl>({ impl_cost_per_km: 0, impl_daily_rate: 0, impl_default_days: 1 });
+  const [systemsSetup, setSystemsSetup] = useState<Record<string, SystemSetupPricing>>({});
   const [gerando, setGerando] = useState(false);
 
   // Form state
