@@ -519,6 +519,35 @@ export default function Reunioes() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={newClientOpen} onOpenChange={setNewClientOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>Nome *</Label>
+              <Input value={newClient.nome} onChange={(e) => setNewClient({ ...newClient, nome: e.target.value })} placeholder="Nome do cliente" autoFocus />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>Telefone</Label>
+                <Input value={newClient.telefone} onChange={(e) => setNewClient({ ...newClient, telefone: e.target.value })} placeholder="(00) 00000-0000" />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input type="email" value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} placeholder="email@..." />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Você poderá completar os demais dados na aba Clientes.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewClientOpen(false)} disabled={savingClient}>Cancelar</Button>
+            <Button onClick={handleCreateClient} disabled={savingClient}>{savingClient ? "Salvando..." : "Cadastrar e vincular"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
