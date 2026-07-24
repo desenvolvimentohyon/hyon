@@ -298,6 +298,107 @@ export default function TabImplantacao() {
         </CardContent>
       </Card>
 
+      {/* Precificação por Sistema */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10">
+              <Layers className="h-4 w-4 text-sky-500" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Precificação por Sistema</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Ative para usar valores próprios de implantação em cada sistema. Quando desligado, usa os padrões da empresa acima.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Sistema</TableHead>
+                <TableHead className="w-24">Próprio</TableHead>
+                <TableHead className="text-right">R$/km</TableHead>
+                <TableHead className="text-right">Diária</TableHead>
+                <TableHead className="text-right w-20">Dias</TableHead>
+                <TableHead className="text-right">Taxa fixa</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {systems.map(s => {
+                const disabled = !s.setup_override;
+                return (
+                  <TableRow key={s.id} className={disabled ? "opacity-70" : ""}>
+                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={s.setup_override}
+                        onCheckedChange={(v) => patchSystem(s.id, { setup_override: v })}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CurrencyInput
+                        value={s.setup_cost_per_km}
+                        onValueChange={(v) => patchSystem(s.id, { setup_cost_per_km: v })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CurrencyInput
+                        value={s.setup_daily_rate}
+                        onValueChange={(v) => patchSystem(s.id, { setup_daily_rate: v })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={s.setup_default_days}
+                        onChange={(e) => patchSystem(s.id, { setup_default_days: Number(e.target.value) || 1 })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CurrencyInput
+                        value={s.setup_base_fee}
+                        onValueChange={(v) => patchSystem(s.id, { setup_base_fee: v })}
+                        disabled={disabled}
+                        className="h-8 text-right"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        disabled={!s.dirty || s.saving}
+                        onClick={() => saveSystem(s)}
+                        title="Salvar sistema"
+                      >
+                        <Save className="h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {systems.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Nenhum sistema ativo cadastrado
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
       {/* Calculadora */}
       <Card>
         <CardHeader className="pb-3">
@@ -309,7 +410,21 @@ export default function TabImplantacao() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <Label className="text-xs">Sistema</Label>
+              <Select value={calcSystemId} onValueChange={setCalcSystemId}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Padrão da empresa</SelectItem>
+                  {systems.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}{s.setup_override ? " • próprio" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label className="text-xs">Distância (km)</Label>
               <Input type="number" min={0} value={calcKm} onChange={e => setCalcKm(Number(e.target.value))} className="h-9" />
@@ -330,6 +445,12 @@ export default function TabImplantacao() {
               <Input type="number" min={1} value={calcDays} onChange={e => setCalcDays(Number(e.target.value))} className="h-9" />
             </div>
           </div>
+
+          {overrideActive && (
+            <div className="text-xs text-sky-600 dark:text-sky-400 bg-sky-500/5 border border-sky-500/20 rounded-md px-3 py-2">
+              Usando precificação própria do sistema <b>{selectedCalcSystem?.name}</b>.
+            </div>
+          )}
 
           <Separator />
 
