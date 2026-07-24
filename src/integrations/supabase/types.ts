@@ -1973,6 +1973,83 @@ export type Database = {
         }
         Relationships: []
       }
+      meetings: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string
+          external_guests: Json
+          google_event_id: string | null
+          id: string
+          internal_user_ids: string[]
+          location: string | null
+          meeting_link: string | null
+          notes: string | null
+          org_id: string
+          reminded_15m: boolean
+          reminded_1d: boolean
+          reminded_1h: boolean
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          ends_at: string
+          external_guests?: Json
+          google_event_id?: string | null
+          id?: string
+          internal_user_ids?: string[]
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          org_id: string
+          reminded_15m?: boolean
+          reminded_1d?: boolean
+          reminded_1h?: boolean
+          starts_at: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string
+          external_guests?: Json
+          google_event_id?: string | null
+          id?: string
+          internal_user_ids?: string[]
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          org_id?: string
+          reminded_15m?: boolean
+          reminded_1d?: boolean
+          reminded_1h?: boolean
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_plan_items: {
         Row: {
           created_at: string
