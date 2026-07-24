@@ -281,6 +281,20 @@ export default function Clientes() {
 
   const handleCriar = () => {
     if (!form.nome.trim()) { toast({ title: "Nome obrigatório", variant: "destructive" }); return; }
+    if (form.planoAnual) {
+      if (!form.planoDataInicio || !form.planoDataFim) {
+        toast({ title: "Informe início e fim do plano anual", variant: "destructive" }); return;
+      }
+      if (form.planoDataFim <= form.planoDataInicio) {
+        toast({ title: "Data fim deve ser posterior à data início", variant: "destructive" }); return;
+      }
+    }
+    const planData = form.planoAnual ? {
+      billing_plan: "anual",
+      plan_start_date: form.planoDataInicio,
+      plan_end_date: form.planoDataFim,
+      plan_paid_amount: Number(form.planoValorPago) || 0,
+    } : null;
     addClienteReceita({
       nome: form.nome.trim(),
       documento: form.documento || undefined,
@@ -291,14 +305,14 @@ export default function Clientes() {
       statusCliente: "ativo",
       mensalidadeAtiva: true,
       valorMensalidade: Number(form.valorMensalidade) || 0,
-      dataInicio: new Date().toISOString(),
+      dataInicio: form.planoAnual ? new Date(form.planoDataInicio + "T00:00:00").toISOString() : new Date().toISOString(),
       dataCancelamento: null,
       motivoCancelamento: null,
       observacoes: form.observacoes || undefined,
       custoAtivo: true,
       valorCustoMensal: Number(form.valorCustoMensal) || 0,
       sistemaCusto: form.sistemaPrincipal as any,
-    }, Array.from(selectedModuleIds));
+    }, Array.from(selectedModuleIds), planData);
     toast({ title: "Cliente cadastrado!" });
     setShowNovo(false);
     resetForm();
