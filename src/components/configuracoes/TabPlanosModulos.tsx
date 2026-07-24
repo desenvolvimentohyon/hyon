@@ -93,7 +93,7 @@ export default function TabPlanosModulos() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const openNew = () => {
-    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, items: [] });
+    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
     setAddModuleId("");
     setModal({ editing: null });
   };
@@ -105,6 +105,7 @@ export default function TabPlanosModulos() {
       min_total_value: p.min_total_value,
       allow_bonus: p.allow_bonus,
       active: p.active,
+      system_id: p.system_id ?? null,
       items: p.items.map(i => ({ ...i })),
     });
     setAddModuleId("");
