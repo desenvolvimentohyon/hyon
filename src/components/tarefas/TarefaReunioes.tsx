@@ -47,6 +47,8 @@ export function TarefaReunioes({
   const navigate = useNavigate();
   const [meetings, setMeetings] = useState<TaskMeeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("todas");
 
   const load = async () => {
     setLoading(true);
