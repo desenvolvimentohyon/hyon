@@ -2148,36 +2148,48 @@ export type Database = {
         Row: {
           active: boolean
           allow_bonus: boolean
+          bonus_count: number
           created_at: string
+          cycle_discounts: Json
           description: string | null
           id: string
           min_total_value: number
+          min_value: number
           name: string
           org_id: string
+          recommended: boolean
           system_id: string | null
           updated_at: string
         }
         Insert: {
           active?: boolean
           allow_bonus?: boolean
+          bonus_count?: number
           created_at?: string
+          cycle_discounts?: Json
           description?: string | null
           id?: string
           min_total_value?: number
+          min_value?: number
           name: string
           org_id: string
+          recommended?: boolean
           system_id?: string | null
           updated_at?: string
         }
         Update: {
           active?: boolean
           allow_bonus?: boolean
+          bonus_count?: number
           created_at?: string
+          cycle_discounts?: Json
           description?: string | null
           id?: string
           min_total_value?: number
+          min_value?: number
           name?: string
           org_id?: string
+          recommended?: boolean
           system_id?: string | null
           updated_at?: string
         }
@@ -2926,6 +2938,7 @@ export type Database = {
           alert_days_before_expiry: number
           company_name: string | null
           created_at: string
+          default_cycle_discounts: Json
           default_message_template: string | null
           default_send_method: string
           default_valid_days: number
@@ -2940,6 +2953,7 @@ export type Database = {
           alert_days_before_expiry?: number
           company_name?: string | null
           created_at?: string
+          default_cycle_discounts?: Json
           default_message_template?: string | null
           default_send_method?: string
           default_valid_days?: number
@@ -2954,6 +2968,7 @@ export type Database = {
           alert_days_before_expiry?: number
           company_name?: string | null
           created_at?: string
+          default_cycle_discounts?: Json
           default_message_template?: string | null
           default_send_method?: string
           default_valid_days?: number

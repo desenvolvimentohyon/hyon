@@ -25,6 +25,8 @@ interface PlanItem {
   suggested_value: number;
 }
 
+interface CycleDisc { quarterly: number; annual: number }
+
 interface Plan {
   id: string;
   name: string;
@@ -33,8 +35,13 @@ interface Plan {
   allow_bonus: boolean;
   active: boolean;
   system_id: string | null;
+  bonus_count: number;
+  recommended: boolean;
+  cycle_discounts: CycleDisc;
   items: PlanItem[];
 }
+
+const DEFAULT_CYCLE: CycleDisc = { quarterly: 5, annual: 10 };
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -53,8 +60,11 @@ export default function TabPlanosModulos() {
     allow_bonus: boolean;
     active: boolean;
     system_id: string | null;
+    bonus_count: number;
+    recommended: boolean;
+    cycle_discounts: CycleDisc;
     items: PlanItem[];
-  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
+  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, bonus_count: 0, recommended: false, cycle_discounts: DEFAULT_CYCLE, items: [] });
   const [addModuleId, setAddModuleId] = useState<string>("");
 
   const moduleMap = useMemo(() => new Map(modulos.map(m => [m.id, m])), [modulos]);
@@ -80,6 +90,11 @@ export default function TabPlanosModulos() {
       allow_bonus: p.allow_bonus,
       active: p.active,
       system_id: p.system_id ?? null,
+      bonus_count: Number(p.bonus_count) || 0,
+      recommended: !!p.recommended,
+      cycle_discounts: (p.cycle_discounts && typeof p.cycle_discounts === "object")
+        ? { quarterly: Number(p.cycle_discounts.quarterly) || 0, annual: Number(p.cycle_discounts.annual) || 0 }
+        : DEFAULT_CYCLE,
       items: itemsData.filter(i => i.plan_id === p.id).map(i => ({
         id: i.id, module_id: i.module_id,
         min_value: Number(i.min_value) || 0,
@@ -93,7 +108,7 @@ export default function TabPlanosModulos() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const openNew = () => {
-    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
+    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, bonus_count: 0, recommended: false, cycle_discounts: DEFAULT_CYCLE, items: [] });
     setAddModuleId("");
     setModal({ editing: null });
   };
@@ -106,6 +121,9 @@ export default function TabPlanosModulos() {
       allow_bonus: p.allow_bonus,
       active: p.active,
       system_id: p.system_id ?? null,
+      bonus_count: p.bonus_count,
+      recommended: p.recommended,
+      cycle_discounts: { ...p.cycle_discounts },
       items: p.items.map(i => ({ ...i })),
     });
     setAddModuleId("");
@@ -145,6 +163,9 @@ export default function TabPlanosModulos() {
         name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
         system_id: form.system_id,
+        bonus_count: form.bonus_count,
+        recommended: form.recommended,
+        cycle_discounts: form.cycle_discounts,
       } as any).eq("id", modal.editing);
       if (error) { toast.error("Erro ao salvar plano"); return; }
       await supabase.from("module_plan_items").delete().eq("plan_id", modal.editing);
@@ -161,6 +182,9 @@ export default function TabPlanosModulos() {
         org_id: orgId, name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
         system_id: form.system_id,
+        bonus_count: form.bonus_count,
+        recommended: form.recommended,
+        cycle_discounts: form.cycle_discounts,
       } as any).select("id").single();
       if (error || !data) { toast.error("Erro ao criar plano"); return; }
       if (form.items.length > 0) {
@@ -229,6 +253,8 @@ export default function TabPlanosModulos() {
                           <Badge variant="outline" className="text-[10px]">{sistemaMap.get(p.system_id)?.nome}</Badge>
                         )}
                         {!p.active && <Badge variant="secondary" className="text-[10px]">Inativo</Badge>}
+                        {p.recommended && <Badge className="text-[10px] bg-primary/15 text-primary border-primary/30 border">★ Recomendado</Badge>}
+                        {p.bonus_count > 0 && <Badge variant="outline" className="text-[10px]">{p.bonus_count} bônus</Badge>}
                         {p.allow_bonus && <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"><Gift className="h-2.5 w-2.5 mr-0.5" />Bonificação</Badge>}
                       </CardTitle>
                       {p.description && <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>}
@@ -331,8 +357,44 @@ export default function TabPlanosModulos() {
                   <Label className="text-xs cursor-pointer">Plano ativo</Label>
                   <Switch checked={form.active} onCheckedChange={(v) => setForm(f => ({ ...f, active: v }))} />
                 </div>
+                <div className="flex items-center justify-between rounded-md border border-border p-2.5">
+                  <div>
+                    <Label className="text-xs cursor-pointer">Plano recomendado</Label>
+                    <p className="text-[10px] text-muted-foreground">Destaca este plano no comparativo.</p>
+                  </div>
+                  <Switch checked={form.recommended} onCheckedChange={(v) => setForm(f => ({ ...f, recommended: v }))} />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Módulos bônus inclusos</Label>
+                <Input type="number" min={0} value={form.bonus_count}
+                  onChange={(e) => setForm(f => ({ ...f, bonus_count: Math.max(0, Number(e.target.value) || 0) }))} />
+                <p className="text-[10px] text-muted-foreground">
+                  Nº de módulos extras mais baratos que entram como brinde automaticamente.
+                </p>
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label>Descontos por ciclo (%)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Trimestral</Label>
+                    <Input type="number" min={0} max={100} value={form.cycle_discounts.quarterly}
+                      onChange={(e) => setForm(f => ({ ...f, cycle_discounts: { ...f.cycle_discounts, quarterly: Math.max(0, Math.min(100, Number(e.target.value) || 0)) } }))} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Anual</Label>
+                    <Input type="number" min={0} max={100} value={form.cycle_discounts.annual}
+                      onChange={(e) => setForm(f => ({ ...f, cycle_discounts: { ...f.cycle_discounts, annual: Math.max(0, Math.min(100, Number(e.target.value) || 0)) } }))} />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Descontos aplicados quando o cliente escolhe pagamento adiantado no trimestre ou ano.
+                </p>
               </div>
             </div>
+
 
             <Separator />
 
