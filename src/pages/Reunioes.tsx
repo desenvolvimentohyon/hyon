@@ -485,12 +485,15 @@ interface MeetingListProps {
   items: Meeting[];
   onEdit: (m: Meeting) => void;
   onDelete: (id: string) => void;
+  onSync: (id: string) => void;
+  googleConnected: boolean;
+  syncingId: string | null;
   loading: boolean;
   clientes: Array<{ id: string; nome: string }>;
   users: Array<{ id: string; nome?: string; email?: string }>;
 }
 
-function MeetingList({ title, items, onEdit, onDelete, loading, clientes, users }: MeetingListProps) {
+function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
