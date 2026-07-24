@@ -2029,6 +2029,7 @@ export type Database = {
           reminded_1h: boolean
           starts_at: string
           status: string
+          task_id: string | null
           title: string
           updated_at: string
         }
@@ -2051,6 +2052,7 @@ export type Database = {
           reminded_1h?: boolean
           starts_at: string
           status?: string
+          task_id?: string | null
           title: string
           updated_at?: string
         }
@@ -2073,6 +2075,7 @@ export type Database = {
           reminded_1h?: boolean
           starts_at?: string
           status?: string
+          task_id?: string | null
           title?: string
           updated_at?: string
         }
@@ -2082,6 +2085,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
