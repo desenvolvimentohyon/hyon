@@ -77,7 +77,7 @@ export function TarefaReunioes({
 
   const filtered = useMemo(() => {
     const now = new Date();
-    return meetings.filter((m) => {
+    const list = meetings.filter((m) => {
       if (statusFilter !== "todas" && m.status !== statusFilter) return false;
       if (timeFilter !== "todas") {
         const start = new Date(m.starts_at);
@@ -88,7 +88,21 @@ export function TarefaReunioes({
       }
       return true;
     });
-  }, [meetings, statusFilter, timeFilter]);
+    if (sortOrder === "proximas") {
+      // Futuras primeiro (ascendente), passadas depois (mais recente primeiro)
+      const nowMs = now.getTime();
+      const future = list
+        .filter((m) => new Date(m.starts_at).getTime() >= nowMs)
+        .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+      const past = list
+        .filter((m) => new Date(m.starts_at).getTime() < nowMs)
+        .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
+      return [...future, ...past];
+    }
+    return [...list].sort(
+      (a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
+    );
+  }, [meetings, statusFilter, timeFilter, sortOrder]);
 
   const statusChips: { value: StatusFilter; label: string }[] = [
     { value: "todas", label: "Todas" },
