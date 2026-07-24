@@ -114,13 +114,22 @@ export default function TabPlanosModulos() {
   };
 
   const openEdit = (p: Plan) => {
+    // Legacy plans may have system_id = null; infer from the first item's module system.
+    let inferredSystemId = p.system_id ?? null;
+    if (!inferredSystemId && p.items.length > 0) {
+      for (const it of p.items) {
+        const mod = moduleMap.get(it.module_id);
+        const ids = mod?.sistemaIds || (mod?.sistemaId ? [mod.sistemaId] : []);
+        if (ids && ids.length > 0) { inferredSystemId = ids[0]; break; }
+      }
+    }
     setForm({
       name: p.name,
       description: p.description || "",
       min_total_value: p.min_total_value,
       allow_bonus: p.allow_bonus,
       active: p.active,
-      system_id: p.system_id ?? null,
+      system_id: inferredSystemId,
       bonus_count: p.bonus_count,
       recommended: p.recommended,
       cycle_discounts: { ...p.cycle_discounts },
@@ -155,7 +164,7 @@ export default function TabPlanosModulos() {
   const save = async () => {
     if (!orgId) return;
     if (!form.name.trim()) { toast.error("Nome do plano é obrigatório"); return; }
-    if (!form.system_id) { toast.error("Selecione o sistema vinculado ao plano"); return; }
+    if (!form.system_id && form.items.length > 0) { toast.error("Selecione o sistema vinculado ao plano"); return; }
     if (invalidRanges.length > 0) { toast.error("Existem módulos com valor mínimo maior que o máximo"); return; }
 
     if (modal?.editing) {
