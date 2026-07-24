@@ -68,11 +68,11 @@ export default function CheckoutInterno() {
 
   const loadData = async () => {
     const [{ data: sys }, { data: pln }, { data: mods }, { data: regs }, { data: cp }] = await Promise.all([
-      supabase.from("systems_catalog").select("id, name, sale_value").eq("active", true),
+      supabase.from("systems_catalog").select("id, name, sale_value, setup_override, setup_cost_per_km, setup_daily_rate, setup_default_days, setup_base_fee").eq("active", true),
       supabase.from("plans").select("id, name, discount_percent").eq("active", true),
       supabase.from("system_modules").select("id, name, sale_value, system_id, is_global").eq("active", true),
       supabase.from("deployment_regions").select("id, name, base_value, additional_fee").eq("active", true),
-      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate").limit(1).maybeSingle(),
+      supabase.from("company_profile").select("impl_cost_per_km, impl_daily_rate, impl_default_days").limit(1).maybeSingle(),
     ]);
     setSystems(sys || []);
     setPlans(pln || []);
@@ -106,14 +106,47 @@ export default function CheckoutInterno() {
   const totalDiscount = Math.min(100, planDiscount + customDiscount);
   const finalValue = baseValue * (1 - totalDiscount / 100);
 
-  // Implantation value
-  const implValue = useMemo(() => {
-    if (!selectedRegion) return 0;
-    let total = selectedRegion.base_value + selectedRegion.additional_fee;
-    if (chargeKm) total += distanceKm * companyImpl.impl_cost_per_km;
-    if (chargeDiary) total += diaryDays * companyImpl.impl_daily_rate;
-    return total;
-  }, [selectedRegion, chargeKm, chargeDiary, distanceKm, diaryDays, companyImpl]);
+  // Resolve setup pricing honoring per-system override
+  const systemSetupPricing = useMemo<SystemSetupPricing | null>(() => {
+    if (!selectedSystem) return null;
+    return {
+      systemId: selectedSystem.id,
+      systemName: selectedSystem.name,
+      override: !!selectedSystem.setup_override,
+      costPerKm: Number(selectedSystem.setup_cost_per_km) || 0,
+      dailyRate: Number(selectedSystem.setup_daily_rate) || 0,
+      defaultDays: Number(selectedSystem.setup_default_days) || 1,
+      baseFee: Number(selectedSystem.setup_base_fee) || 0,
+    };
+  }, [selectedSystem]);
+
+  const orgSetupDefaults = useMemo<OrgSetupDefaults>(() => ({
+    costPerKm: companyImpl.impl_cost_per_km || 0,
+    dailyRate: companyImpl.impl_daily_rate || 0,
+    defaultDays: companyImpl.impl_default_days || 1,
+  }), [companyImpl]);
+
+  const setupQuote = useMemo(() => {
+    if (!selectedRegion) {
+      // still compute for system fee / labor / km even without region? require region for now
+      return computeSetup({ systemFee: 0 });
+    }
+    const resolved = resolveSetupInput(
+      {
+        distanceKm: chargeKm ? distanceKm : 0,
+        days: chargeDiary ? diaryDays : 0,
+        regionBase: selectedRegion.base_value + selectedRegion.additional_fee,
+      },
+      systemSetupPricing,
+      orgSetupDefaults,
+    );
+    return computeSetup(resolved);
+  }, [selectedRegion, chargeKm, chargeDiary, distanceKm, diaryDays, systemSetupPricing, orgSetupDefaults]);
+
+  const implValue = setupQuote.total;
+  const effectiveCostPerKm = systemSetupPricing?.override ? systemSetupPricing.costPerKm : orgSetupDefaults.costPerKm;
+  const effectiveDailyRate = systemSetupPricing?.override ? systemSetupPricing.dailyRate : orgSetupDefaults.dailyRate;
+
 
   const steps = ["Sistema", "Módulos", "Plano", "Implantação", "Desconto", "Cliente", "Resumo"];
 
