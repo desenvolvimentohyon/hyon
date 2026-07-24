@@ -321,8 +321,8 @@ export default function Reunioes() {
         </TabsContent>
 
         <TabsContent value="list" className="space-y-4">
-          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} loading={loading} clientes={clientes} users={users} />
-          <MeetingList title="Histórico" items={past} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} loading={false} clientes={clientes} users={users} />
+          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
+          <MeetingList title="Histórico" items={past} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
         </TabsContent>
       </Tabs>
 
