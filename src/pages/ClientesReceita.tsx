@@ -209,7 +209,14 @@ export default function Clientes() {
   const cnpjLookupRef = useRef<string>("");
 
   const resetForm = () => {
-    setForm({ nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "", valorMensalidade: "", valorCustoMensal: "", observacoes: "" });
+    setForm({
+      nome: "", documento: "", telefone: "", email: "", cidade: "", sistemaPrincipal: "",
+      valorMensalidade: "", valorCustoMensal: "", observacoes: "",
+      planoAnual: false,
+      planoValorPago: "",
+      planoDataInicio: new Date().toISOString().slice(0, 10),
+      planoDataFim: (() => { const d = new Date(); d.setFullYear(d.getFullYear() + 1); return d.toISOString().slice(0, 10); })(),
+    });
     setSelectedModuleIds(new Set());
     setCnpjLookupData(null);
   };
