@@ -32,6 +32,7 @@ interface Plan {
   min_total_value: number;
   allow_bonus: boolean;
   active: boolean;
+  system_id: string | null;
   items: PlanItem[];
 }
 
