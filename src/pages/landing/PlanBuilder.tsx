@@ -11,8 +11,15 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { buildWhatsAppLink, trackWhatsAppClick, getUtmParams } from "@/lib/tracking";
+import { computeSetup, resolveSetupInput } from "@/lib/pricing/setup";
+import type { OrgSetupDefaults, SystemSetupPricing } from "@/lib/pricing/types";
+import { formatCurrency } from "@/lib/utils";
 
-type CatalogSystem = { id: string; name: string; description: string | null; sale_value: number };
+type CatalogSystem = {
+  id: string; name: string; description: string | null; sale_value: number;
+  setup_override: boolean; setup_cost_per_km: number; setup_daily_rate: number;
+  setup_default_days: number; setup_base_fee: number;
+};
 type CatalogPlanItem = { module_id: string; name: string; suggested_value: number };
 type CatalogPlan = {
   id: string; name: string; description: string | null;
@@ -23,7 +30,10 @@ type CatalogModule = {
   id: string; name: string; description: string | null;
   sale_value: number; system_ids: string[]; is_global: boolean;
 };
-type Catalog = { systems: CatalogSystem[]; plans: CatalogPlan[]; modules: CatalogModule[] };
+type Catalog = {
+  systems: CatalogSystem[]; plans: CatalogPlan[]; modules: CatalogModule[];
+  setupDefaults: OrgSetupDefaults | null;
+};
 
 interface Props { waNumber: string }
 
