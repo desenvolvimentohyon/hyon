@@ -464,7 +464,7 @@ export default function CheckoutInterno() {
                           className="w-20 h-8 text-sm"
                           placeholder="Dias"
                         />
-                        <span className="text-xs text-muted-foreground">× {fmt(companyImpl.impl_daily_rate)}/dia</span>
+                        <span className="text-xs text-muted-foreground">× {fmt(effectiveDailyRate)}/dia</span>
                       </div>
                     )}
                   </div>
