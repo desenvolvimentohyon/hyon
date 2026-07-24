@@ -25,6 +25,8 @@ interface PlanItem {
   suggested_value: number;
 }
 
+interface CycleDisc { quarterly: number; annual: number }
+
 interface Plan {
   id: string;
   name: string;
@@ -33,8 +35,13 @@ interface Plan {
   allow_bonus: boolean;
   active: boolean;
   system_id: string | null;
+  bonus_count: number;
+  recommended: boolean;
+  cycle_discounts: CycleDisc;
   items: PlanItem[];
 }
+
+const DEFAULT_CYCLE: CycleDisc = { quarterly: 5, annual: 10 };
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -53,8 +60,11 @@ export default function TabPlanosModulos() {
     allow_bonus: boolean;
     active: boolean;
     system_id: string | null;
+    bonus_count: number;
+    recommended: boolean;
+    cycle_discounts: CycleDisc;
     items: PlanItem[];
-  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
+  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, bonus_count: 0, recommended: false, cycle_discounts: DEFAULT_CYCLE, items: [] });
   const [addModuleId, setAddModuleId] = useState<string>("");
 
   const moduleMap = useMemo(() => new Map(modulos.map(m => [m.id, m])), [modulos]);
@@ -80,6 +90,11 @@ export default function TabPlanosModulos() {
       allow_bonus: p.allow_bonus,
       active: p.active,
       system_id: p.system_id ?? null,
+      bonus_count: Number(p.bonus_count) || 0,
+      recommended: !!p.recommended,
+      cycle_discounts: (p.cycle_discounts && typeof p.cycle_discounts === "object")
+        ? { quarterly: Number(p.cycle_discounts.quarterly) || 0, annual: Number(p.cycle_discounts.annual) || 0 }
+        : DEFAULT_CYCLE,
       items: itemsData.filter(i => i.plan_id === p.id).map(i => ({
         id: i.id, module_id: i.module_id,
         min_value: Number(i.min_value) || 0,
@@ -93,7 +108,7 @@ export default function TabPlanosModulos() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const openNew = () => {
-    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
+    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, bonus_count: 0, recommended: false, cycle_discounts: DEFAULT_CYCLE, items: [] });
     setAddModuleId("");
     setModal({ editing: null });
   };
@@ -106,6 +121,9 @@ export default function TabPlanosModulos() {
       allow_bonus: p.allow_bonus,
       active: p.active,
       system_id: p.system_id ?? null,
+      bonus_count: p.bonus_count,
+      recommended: p.recommended,
+      cycle_discounts: { ...p.cycle_discounts },
       items: p.items.map(i => ({ ...i })),
     });
     setAddModuleId("");
