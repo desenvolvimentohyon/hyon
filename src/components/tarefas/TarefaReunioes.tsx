@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarPlus, Edit3, Video, MapPin, ExternalLink, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+type StatusFilter = "todas" | "agendada" | "realizada" | "cancelada";
+type TimeFilter = "todas" | "hoje" | "atrasadas" | "futuras";
 
 interface TaskMeeting {
   id: string;
@@ -43,6 +47,8 @@ export function TarefaReunioes({
   const navigate = useNavigate();
   const [meetings, setMeetings] = useState<TaskMeeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("todas");
 
   const load = async () => {
     setLoading(true);
@@ -68,13 +74,51 @@ export function TarefaReunioes({
   const handleNew = () => navigate(`/reunioes?new=1&task=${taskId}`);
   const handleEdit = (id: string) => navigate(`/reunioes?open=${id}`);
 
+  const filtered = useMemo(() => {
+    const now = new Date();
+    return meetings.filter((m) => {
+      if (statusFilter !== "todas" && m.status !== statusFilter) return false;
+      if (timeFilter !== "todas") {
+        const start = new Date(m.starts_at);
+        const end = new Date(m.ends_at);
+        if (timeFilter === "hoje" && !isToday(start)) return false;
+        if (timeFilter === "atrasadas" && !(m.status === "agendada" && end < now)) return false;
+        if (timeFilter === "futuras" && !(start > now)) return false;
+      }
+      return true;
+    });
+  }, [meetings, statusFilter, timeFilter]);
+
+  const statusChips: { value: StatusFilter; label: string }[] = [
+    { value: "todas", label: "Todas" },
+    { value: "agendada", label: "Agendadas" },
+    { value: "realizada", label: "Realizadas" },
+    { value: "cancelada", label: "Canceladas" },
+  ];
+  const timeChips: { value: TimeFilter; label: string }[] = [
+    { value: "todas", label: "Qualquer prazo" },
+    { value: "hoje", label: "Hoje" },
+    { value: "atrasadas", label: "Atrasadas" },
+    { value: "futuras", label: "Futuras" },
+  ];
+
+  const chipCls = (active: boolean) =>
+    cn(
+      "px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors",
+      active
+        ? "bg-primary text-primary-foreground border-primary"
+        : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+    );
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold">Reuniões vinculadas</h3>
           <p className="text-xs text-muted-foreground">
-            {meetings.length === 0 ? "Nenhuma reunião" : `${meetings.length} reunião(ões)`}
+            {meetings.length === 0
+              ? "Nenhuma reunião"
+              : `${filtered.length} de ${meetings.length}`}
           </p>
         </div>
         <Button size="sm" onClick={handleNew} className="gap-1.5">
@@ -82,6 +126,25 @@ export function TarefaReunioes({
           Nova reunião
         </Button>
       </div>
+
+      {meetings.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {statusChips.map((c) => (
+              <button key={c.value} type="button" onClick={() => setStatusFilter(c.value)} className={chipCls(statusFilter === c.value)}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {timeChips.map((c) => (
+              <button key={c.value} type="button" onClick={() => setTimeFilter(c.value)} className={chipCls(timeFilter === c.value)}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <p className="text-sm text-muted-foreground text-center py-6">Carregando...</p>
@@ -91,9 +154,15 @@ export function TarefaReunioes({
             Nenhuma reunião vinculada a esta tarefa.
           </CardContent>
         </Card>
+      ) : filtered.length === 0 ? (
+        <Card>
+          <CardContent className="py-6 text-center text-sm text-muted-foreground">
+            Nenhuma reunião corresponde aos filtros.
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-2">
-          {meetings.map((m) => (
+          {filtered.map((m) => (
             <Card key={m.id} className="hover:border-primary/40 transition-colors">
               <CardContent className="p-3 flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0 space-y-1">
