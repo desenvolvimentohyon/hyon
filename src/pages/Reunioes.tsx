@@ -578,6 +578,18 @@ function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, 
                   >
                     <Download className="h-3.5 w-3.5" />
                   </Button>
+                  {googleConnected && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-primary"
+                      title={m.google_event_id ? "Atualizar no Google Calendar" : "Sincronizar com Google Calendar (envia convites)"}
+                      disabled={syncingId === m.id}
+                      onClick={() => onSync(m.id)}
+                    >
+                      <RefreshCw className={cn("h-3.5 w-3.5", syncingId === m.id && "animate-spin")} />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(m)}>
                     <Edit3 className="h-3.5 w-3.5" />
                   </Button>
