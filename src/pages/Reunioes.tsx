@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAppContext } from "@/contexts/AppContext";
+import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
