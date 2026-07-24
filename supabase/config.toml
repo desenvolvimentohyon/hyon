@@ -38,5 +38,6 @@ verify_jwt = false
 [functions.google-oauth-callback]
 verify_jwt = false
 
-
+[functions.landing-catalog]
+verify_jwt = false
 
