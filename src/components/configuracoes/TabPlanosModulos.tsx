@@ -253,6 +253,8 @@ export default function TabPlanosModulos() {
                           <Badge variant="outline" className="text-[10px]">{sistemaMap.get(p.system_id)?.nome}</Badge>
                         )}
                         {!p.active && <Badge variant="secondary" className="text-[10px]">Inativo</Badge>}
+                        {p.recommended && <Badge className="text-[10px] bg-primary/15 text-primary border-primary/30 border">★ Recomendado</Badge>}
+                        {p.bonus_count > 0 && <Badge variant="outline" className="text-[10px]">{p.bonus_count} bônus</Badge>}
                         {p.allow_bonus && <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"><Gift className="h-2.5 w-2.5 mr-0.5" />Bonificação</Badge>}
                       </CardTitle>
                       {p.description && <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>}
