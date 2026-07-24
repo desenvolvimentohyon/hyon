@@ -179,14 +179,22 @@ export default function TabImplantacao() {
 
   const activeRegions = regions.filter(r => r.active);
   const selectedRegion = activeRegions.find(r => r.id === calcRegionId);
+  const selectedCalcSystem = systems.find(s => s.id === calcSystemId);
+  const overrideActive = !!selectedCalcSystem?.setup_override;
 
   const calcResult = useMemo(() => {
-    const kmCost = calcKm * costPerKm;
+    const kmRate = overrideActive ? selectedCalcSystem!.setup_cost_per_km : costPerKm;
+    const dRate = overrideActive ? selectedCalcSystem!.setup_daily_rate : dailyRate;
+    const sysFee = overrideActive ? selectedCalcSystem!.setup_base_fee : 0;
+    const kmCost = calcKm * kmRate;
     const regionBase = selectedRegion?.base_value || 0;
     const regionFee = selectedRegion?.additional_fee || 0;
-    const dailyCost = calcDays * dailyRate;
-    return { kmCost, regionBase, regionFee, dailyCost, total: kmCost + regionBase + regionFee + dailyCost };
-  }, [calcKm, costPerKm, selectedRegion, calcDays, dailyRate]);
+    const dailyCost = calcDays * dRate;
+    return {
+      kmCost, regionBase, regionFee, dailyCost, sysFee, kmRate, dRate,
+      total: kmCost + regionBase + regionFee + dailyCost + sysFee,
+    };
+  }, [calcKm, costPerKm, selectedRegion, calcDays, dailyRate, selectedCalcSystem, overrideActive]);
 
   return (
     <div className="space-y-6">
