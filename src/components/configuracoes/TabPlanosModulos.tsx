@@ -280,6 +280,37 @@ export default function TabPlanosModulos() {
                 <Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex.: Plano Essencial" />
               </div>
               <div className="space-y-1.5 md:col-span-2">
+                <Label>Sistema vinculado *</Label>
+                <Select
+                  value={form.system_id ?? ""}
+                  onValueChange={(v) => {
+                    // Ao trocar de sistema, limpa módulos incompatíveis
+                    setForm(f => {
+                      const kept = f.items.filter(it => {
+                        const mod = moduleMap.get(it.module_id);
+                        if (!mod) return false;
+                        if (mod.isGlobal) return true;
+                        const ids: string[] = (mod as any).sistemaIds || (mod.sistemaId ? [mod.sistemaId] : []);
+                        return ids.includes(v);
+                      });
+                      if (kept.length !== f.items.length) {
+                        toast.info("Módulos incompatíveis com o novo sistema foram removidos");
+                      }
+                      return { ...f, system_id: v, items: kept };
+                    });
+                    setAddModuleId("");
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+                  <SelectContent>
+                    {sistemas.filter(s => s.ativo !== false).map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">Apenas módulos deste sistema (e globais) ficarão disponíveis abaixo.</p>
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
                 <Label>Descrição</Label>
                 <Textarea rows={2} value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Para quem é este plano?" />
               </div>
