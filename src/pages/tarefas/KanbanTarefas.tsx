@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { Tarefa, StatusTarefa, STATUS_ORDER } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
 import { statusRowColor } from "./helpers";
 import { LiveTimer } from "./LiveTimer";
+import { TarefaReunioesPreview } from "@/components/tarefas/TarefaReunioesPreview";
 
 export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
