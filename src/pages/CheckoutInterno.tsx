@@ -447,7 +447,7 @@ export default function CheckoutInterno() {
                           className="w-20 h-8 text-sm"
                           placeholder="KM"
                         />
-                        <span className="text-xs text-muted-foreground">× {fmt(companyImpl.impl_cost_per_km)}/km</span>
+                        <span className="text-xs text-muted-foreground">× {fmt(effectiveCostPerKm)}/km</span>
                       </div>
                     )}
                   </div>
