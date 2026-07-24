@@ -95,7 +95,32 @@ export default function Reunioes() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newGuest, setNewGuest] = useState({ name: "", email: "" });
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [newClient, setNewClient] = useState({ nome: "", telefone: "", email: "" });
+  const [savingClient, setSavingClient] = useState(false);
   const gCal = useGoogleCalendar();
+
+  const handleCreateClient = async () => {
+    if (!newClient.nome.trim()) return toast.error("Informe o nome do cliente");
+    setSavingClient(true);
+    try {
+      const created = await addCliente({
+        nome: newClient.nome.trim(),
+        telefone: newClient.telefone.trim(),
+        email: newClient.email.trim(),
+        documento: "",
+        observacoes: "",
+      } as any);
+      if (created?.id) {
+        setForm((f) => ({ ...f, client_id: created.id }));
+        toast.success("Cliente cadastrado e vinculado");
+        setNewClient({ nome: "", telefone: "", email: "" });
+        setNewClientOpen(false);
+      }
+    } finally {
+      setSavingClient(false);
+    }
+  };
 
   const handleSyncGoogle = async (meetingId: string) => {
     if (!gCal.connected) {
