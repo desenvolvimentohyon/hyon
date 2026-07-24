@@ -605,6 +605,55 @@ export default function Clientes() {
               </div>
             )}
             <div><Label>Custo Mensal (R$)</Label><CurrencyInput value={Number(form.valorCustoMensal) || 0} onValueChange={v => setForm(f => ({ ...f, valorCustoMensal: String(v) }))} /></div>
+
+            {/* Plano Anual */}
+            <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-medium cursor-pointer" htmlFor="planoAnual">Ativar Plano Anual</Label>
+                </div>
+                <Switch
+                  id="planoAnual"
+                  checked={form.planoAnual}
+                  onCheckedChange={(v) => setForm(f => {
+                    if (!v) return { ...f, planoAnual: false };
+                    // Auto-calc end date from start when enabling
+                    const start = f.planoDataInicio || new Date().toISOString().slice(0, 10);
+                    const end = (() => { const d = new Date(start + "T00:00:00"); d.setFullYear(d.getFullYear() + 1); return d.toISOString().slice(0, 10); })();
+                    return { ...f, planoAnual: true, planoDataInicio: start, planoDataFim: f.planoDataFim || end };
+                  })}
+                />
+              </div>
+              {form.planoAnual && (
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Valor Pago (R$)</Label>
+                    <CurrencyInput value={Number(form.planoValorPago) || 0} onValueChange={v => setForm(f => ({ ...f, planoValorPago: String(v) }))} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Início do Contrato</Label>
+                      <Input type="date" value={form.planoDataInicio} onChange={e => {
+                        const start = e.target.value;
+                        setForm(f => {
+                          const end = (() => { const d = new Date(start + "T00:00:00"); d.setFullYear(d.getFullYear() + 1); return d.toISOString().slice(0, 10); })();
+                          return { ...f, planoDataInicio: start, planoDataFim: end };
+                        });
+                      }} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Fim do Contrato</Label>
+                      <Input type="date" value={form.planoDataFim} onChange={e => setForm(f => ({ ...f, planoDataFim: e.target.value }))} />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Um alerta push será disparado automaticamente 30 dias antes do vencimento.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
           </div>
           <DialogFooter>
