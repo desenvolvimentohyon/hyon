@@ -168,6 +168,10 @@ export default function Clientes() {
     nome: "", documento: "", telefone: "", email: "", cidade: "",
     sistemaPrincipal: "",
     valorMensalidade: "", valorCustoMensal: "", observacoes: "",
+    planoAnual: false,
+    planoValorPago: "",
+    planoDataInicio: new Date().toISOString().slice(0, 10),
+    planoDataFim: (() => { const d = new Date(); d.setFullYear(d.getFullYear() + 1); return d.toISOString().slice(0, 10); })(),
   });
   const [selectedModuleIds, setSelectedModuleIds] = useState<Set<string>>(new Set());
 
