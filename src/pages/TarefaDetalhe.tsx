@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft, Play, Pause, Plus, Clock, MessageSquare, History, FileText, CheckSquare, Trash2, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, Play, Pause, Plus, Clock, MessageSquare, History, FileText, CheckSquare, Trash2, ImagePlus, X, CalendarDays } from "lucide-react";
+import { TarefaReunioes } from "@/components/tarefas/TarefaReunioes";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -180,6 +181,7 @@ export default function TarefaDetalhe() {
           <TabsTrigger value="checklist" className="gap-1.5"><CheckSquare className="h-3.5 w-3.5" />Checklist</TabsTrigger>
           <TabsTrigger value="tempo" className="gap-1.5"><Clock className="h-3.5 w-3.5" />Tempo</TabsTrigger>
           <TabsTrigger value="comentarios" className="gap-1.5"><MessageSquare className="h-3.5 w-3.5" />Comentários</TabsTrigger>
+          <TabsTrigger value="reunioes" className="gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Reuniões</TabsTrigger>
           <TabsTrigger value="historico" className="gap-1.5"><History className="h-3.5 w-3.5" />Histórico</TabsTrigger>
         </TabsList>
 
@@ -369,6 +371,10 @@ export default function TarefaDetalhe() {
               </div>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="reunioes" className="mt-4">
+          <TarefaReunioes taskId={tarefa.id} />
         </TabsContent>
 
         <TabsContent value="historico" className="mt-4">
