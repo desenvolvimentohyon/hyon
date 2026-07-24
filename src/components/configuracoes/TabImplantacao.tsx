@@ -63,6 +63,60 @@ export default function TabImplantacao() {
     loadRegions();
   }, [orgId]);
 
+  // Systems (per-system deployment pricing)
+  const [systems, setSystems] = useState<SystemRow[]>([]);
+  const [calcSystemId, setCalcSystemId] = useState<string>("none");
+
+  useEffect(() => {
+    if (!orgId) return;
+    loadCompanyProfile();
+    loadRegions();
+    loadSystems();
+  }, [orgId]);
+
+  const loadSystems = async () => {
+    const { data } = await supabase
+      .from("systems_catalog")
+      .select("id, name, setup_override, setup_cost_per_km, setup_daily_rate, setup_default_days, setup_base_fee, active")
+      .eq("org_id", orgId!)
+      .eq("active", true)
+      .order("name");
+    if (data) {
+      setSystems(data.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        setup_override: !!s.setup_override,
+        setup_cost_per_km: Number(s.setup_cost_per_km) || 0,
+        setup_daily_rate: Number(s.setup_daily_rate) || 0,
+        setup_default_days: Number(s.setup_default_days) || 1,
+        setup_base_fee: Number(s.setup_base_fee) || 0,
+      })));
+    }
+  };
+
+  const patchSystem = (id: string, patch: Partial<SystemRow>) => {
+    setSystems((prev) => prev.map((s) => s.id === id ? { ...s, ...patch, dirty: true } : s));
+  };
+
+  const saveSystem = async (row: SystemRow) => {
+    setSystems((prev) => prev.map((s) => s.id === row.id ? { ...s, saving: true } : s));
+    const { error } = await supabase
+      .from("systems_catalog")
+      .update({
+        setup_override: row.setup_override,
+        setup_cost_per_km: row.setup_cost_per_km,
+        setup_daily_rate: row.setup_daily_rate,
+        setup_default_days: row.setup_default_days,
+        setup_base_fee: row.setup_base_fee,
+      })
+      .eq("id", row.id);
+    setSystems((prev) => prev.map((s) => s.id === row.id
+      ? { ...s, saving: false, dirty: !!error }
+      : s));
+    if (error) { toast.error("Erro ao salvar sistema"); return; }
+    toast.success(`Preço de implantação de "${row.name}" salvo!`);
+  };
+
   const loadCompanyProfile = async () => {
     const { data } = await supabase
       .from("company_profile")
