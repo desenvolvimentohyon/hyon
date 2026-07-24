@@ -119,7 +119,7 @@ export default function TabPlanosModulos() {
     if (!inferredSystemId && p.items.length > 0) {
       for (const it of p.items) {
         const mod = moduleMap.get(it.module_id);
-        const ids = mod?.systemIds || (mod?.systemId ? [mod.systemId] : []);
+        const ids = mod?.sistemaIds || (mod?.sistemaId ? [mod.sistemaId] : []);
         if (ids && ids.length > 0) { inferredSystemId = ids[0]; break; }
       }
     }
