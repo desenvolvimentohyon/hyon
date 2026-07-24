@@ -49,6 +49,7 @@ export function TarefaReunioes({
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todas");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("todas");
+  const [sortOrder, setSortOrder] = useState<"proximas" | "recentes">("proximas");
 
   const load = async () => {
     setLoading(true);
@@ -76,7 +77,7 @@ export function TarefaReunioes({
 
   const filtered = useMemo(() => {
     const now = new Date();
-    return meetings.filter((m) => {
+    const list = meetings.filter((m) => {
       if (statusFilter !== "todas" && m.status !== statusFilter) return false;
       if (timeFilter !== "todas") {
         const start = new Date(m.starts_at);
@@ -87,7 +88,21 @@ export function TarefaReunioes({
       }
       return true;
     });
-  }, [meetings, statusFilter, timeFilter]);
+    if (sortOrder === "proximas") {
+      // Futuras primeiro (ascendente), passadas depois (mais recente primeiro)
+      const nowMs = now.getTime();
+      const future = list
+        .filter((m) => new Date(m.starts_at).getTime() >= nowMs)
+        .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+      const past = list
+        .filter((m) => new Date(m.starts_at).getTime() < nowMs)
+        .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
+      return [...future, ...past];
+    }
+    return [...list].sort(
+      (a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
+    );
+  }, [meetings, statusFilter, timeFilter, sortOrder]);
 
   const statusChips: { value: StatusFilter; label: string }[] = [
     { value: "todas", label: "Todas" },
@@ -142,6 +157,23 @@ export function TarefaReunioes({
                 {c.label}
               </button>
             ))}
+            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+            <button
+              type="button"
+              onClick={() => setSortOrder("proximas")}
+              className={chipCls(sortOrder === "proximas")}
+              title="Mais próximas primeiro"
+            >
+              ↑ Mais próximas
+            </button>
+            <button
+              type="button"
+              onClick={() => setSortOrder("recentes")}
+              className={chipCls(sortOrder === "recentes")}
+              title="Mais recentes primeiro"
+            >
+              ↓ Mais recentes
+            </button>
           </div>
         </div>
       )}
