@@ -456,7 +456,7 @@ export default function TabImplantacao() {
 
           <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Deslocamento ({calcKm} km × {fmt(costPerKm)}/km)</span>
+              <span className="text-muted-foreground">Deslocamento ({calcKm} km × {fmt(calcResult.kmRate)}/km)</span>
               <span className="font-medium">{fmt(calcResult.kmCost)}</span>
             </div>
             {selectedRegion && (
@@ -472,9 +472,15 @@ export default function TabImplantacao() {
               </>
             )}
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Diárias ({calcDays} × {fmt(dailyRate)})</span>
+              <span className="text-muted-foreground">Diárias ({calcDays} × {fmt(calcResult.dRate)})</span>
               <span className="font-medium">{fmt(calcResult.dailyCost)}</span>
             </div>
+            {overrideActive && calcResult.sysFee > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Taxa fixa do sistema</span>
+                <span className="font-medium">{fmt(calcResult.sysFee)}</span>
+              </div>
+            )}
             <Separator />
             <div className="flex justify-between text-base font-bold">
               <span>Valor da Implantação</span>
