@@ -57,12 +57,6 @@ export default function TabImplantacao() {
   const [calcRegionId, setCalcRegionId] = useState("");
   const [calcDays, setCalcDays] = useState(1);
 
-  useEffect(() => {
-    if (!orgId) return;
-    loadCompanyProfile();
-    loadRegions();
-  }, [orgId]);
-
   // Systems (per-system deployment pricing)
   const [systems, setSystems] = useState<SystemRow[]>([]);
   const [calcSystemId, setCalcSystemId] = useState<string>("none");
