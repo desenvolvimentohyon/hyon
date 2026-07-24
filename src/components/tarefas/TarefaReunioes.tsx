@@ -162,7 +162,7 @@ export function TarefaReunioes({
         </Card>
       ) : (
         <div className="space-y-2">
-          {meetings.map((m) => (
+          {filtered.map((m) => (
             <Card key={m.id} className="hover:border-primary/40 transition-colors">
               <CardContent className="p-3 flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0 space-y-1">
