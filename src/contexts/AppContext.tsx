@@ -29,7 +29,7 @@ interface AppContextType extends AppState {
   deleteTarefa: (id: string) => void;
   startTimer: (tarefaId: string) => void;
   stopTimer: (tarefaId: string) => void;
-  addCliente: (c: Omit<Cliente, "id" | "criadoEm">) => void;
+  addCliente: (c: Omit<Cliente, "id" | "criadoEm">) => Promise<Cliente | null>;
   updateCliente: (id: string, changes: Partial<Cliente>) => void;
   deleteCliente: (id: string, justificativa: string) => void;
   addTecnico: (t: Omit<Tecnico, "id">) => void;
@@ -291,13 +291,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [tarefas, fetchAll]);
 
   // ===== Clientes — Optimistic updates =====
-  const addCliente = useCallback(async (c: Omit<Cliente, "id" | "criadoEm">) => {
-    if (!orgId) return;
+  const addCliente = useCallback(async (c: Omit<Cliente, "id" | "criadoEm">): Promise<Cliente | null> => {
+    if (!orgId) return null;
     const { data, error } = await supabase.from("clients").insert(clienteToDb(c, orgId)).select().single();
-    if (error) { toast.error("Erro ao criar cliente: " + error.message); return; }
+    if (error) { toast.error("Erro ao criar cliente: " + error.message); return null; }
     if (data) {
-      setClientes(prev => [...prev, dbToCliente(data)]);
+      const created = dbToCliente(data);
+      setClientes(prev => [...prev, created]);
+      return created;
     }
+    return null;
   }, [orgId]);
 
   const updateCliente = useCallback(async (id: string, changes: Partial<Cliente>) => {

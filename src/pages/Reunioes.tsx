@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2 } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ interface Meeting {
   location: string | null;
   meeting_link: string | null;
   client_id: string | null;
+  task_id: string | null;
   status: MeetingStatus;
   internal_user_ids: string[];
   external_guests: ExternalGuest[];
@@ -71,6 +72,7 @@ function emptyForm() {
     location: "",
     meeting_link: "",
     client_id: "none" as string,
+    task_id: "none" as string,
     status: "agendada" as MeetingStatus,
     internal_user_ids: [] as string[],
     external_guests: [] as ExternalGuest[],
@@ -80,7 +82,7 @@ function emptyForm() {
 
 export default function Reunioes() {
   const { user } = useAuth();
-  const { clientes } = useApp();
+  const { clientes, tarefas, addCliente } = useApp();
   const { users } = useUsers();
 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -93,7 +95,32 @@ export default function Reunioes() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newGuest, setNewGuest] = useState({ name: "", email: "" });
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [newClient, setNewClient] = useState({ nome: "", telefone: "", email: "" });
+  const [savingClient, setSavingClient] = useState(false);
   const gCal = useGoogleCalendar();
+
+  const handleCreateClient = async () => {
+    if (!newClient.nome.trim()) return toast.error("Informe o nome do cliente");
+    setSavingClient(true);
+    try {
+      const created = await addCliente({
+        nome: newClient.nome.trim(),
+        telefone: newClient.telefone.trim(),
+        email: newClient.email.trim(),
+        documento: "",
+        observacoes: "",
+      } as any);
+      if (created?.id) {
+        setForm((f) => ({ ...f, client_id: created.id }));
+        toast.success("Cliente cadastrado e vinculado");
+        setNewClient({ nome: "", telefone: "", email: "" });
+        setNewClientOpen(false);
+      }
+    } finally {
+      setSavingClient(false);
+    }
+  };
 
   const handleSyncGoogle = async (meetingId: string) => {
     if (!gCal.connected) {
@@ -146,6 +173,7 @@ export default function Reunioes() {
       location: m.location || "",
       meeting_link: m.meeting_link || "",
       client_id: m.client_id || "none",
+      task_id: m.task_id || "none",
       status: m.status,
       internal_user_ids: m.internal_user_ids || [],
       external_guests: m.external_guests || [],
@@ -174,6 +202,7 @@ export default function Reunioes() {
       location: form.location.trim() || null,
       meeting_link: form.meeting_link.trim() || null,
       client_id: form.client_id === "none" ? null : form.client_id,
+      task_id: form.task_id === "none" ? null : form.task_id,
       status: form.status,
       internal_user_ids: form.internal_user_ids,
       external_guests: form.external_guests as unknown as never,
@@ -387,7 +416,12 @@ export default function Reunioes() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <Label>Cliente vinculado</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Cliente vinculado</Label>
+                  <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" onClick={() => setNewClientOpen(true)}>
+                    <Plus className="h-3 w-3" /> Novo
+                  </Button>
+                </div>
                 <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                   <SelectContent>
@@ -409,6 +443,27 @@ export default function Reunioes() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div>
+              <Label className="flex items-center gap-2 mb-1"><ListTodo className="h-4 w-4" /> Tarefa vinculada</Label>
+              <Select value={form.task_id} onValueChange={(v) => setForm({ ...form, task_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {tarefas
+                    .filter((t) => !form.client_id || form.client_id === "none" || t.clienteId === form.client_id)
+                    .slice(0, 200)
+                    .map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.titulo}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              {form.client_id !== "none" && (
+                <p className="text-[11px] text-muted-foreground mt-1">Mostrando apenas tarefas do cliente selecionado.</p>
+              )}
             </div>
 
             <div>
@@ -460,6 +515,35 @@ export default function Reunioes() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenForm(false)}>Cancelar</Button>
             <Button onClick={handleSave}>{editingId ? "Salvar alterações" : "Agendar reunião"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={newClientOpen} onOpenChange={setNewClientOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>Nome *</Label>
+              <Input value={newClient.nome} onChange={(e) => setNewClient({ ...newClient, nome: e.target.value })} placeholder="Nome do cliente" autoFocus />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>Telefone</Label>
+                <Input value={newClient.telefone} onChange={(e) => setNewClient({ ...newClient, telefone: e.target.value })} placeholder="(00) 00000-0000" />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input type="email" value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} placeholder="email@..." />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Você poderá completar os demais dados na aba Clientes.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewClientOpen(false)} disabled={savingClient}>Cancelar</Button>
+            <Button onClick={handleCreateClient} disabled={savingClient}>{savingClient ? "Salvando..." : "Cadastrar e vincular"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
