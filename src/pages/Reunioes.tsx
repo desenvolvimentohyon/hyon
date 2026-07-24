@@ -72,6 +72,7 @@ function emptyForm() {
     location: "",
     meeting_link: "",
     client_id: "none" as string,
+    task_id: "none" as string,
     status: "agendada" as MeetingStatus,
     internal_user_ids: [] as string[],
     external_guests: [] as ExternalGuest[],
