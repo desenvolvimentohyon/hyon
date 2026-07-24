@@ -41,6 +41,7 @@ export default function TarefaDetalhe() {
   const [observacoesText, setObservacoesText] = useState("");
   const [uploadingFoto, setUploadingFoto] = useState(false);
   const [fotoModal, setFotoModal] = useState<string | null>(null);
+  const [reunioesPendentes, setReunioesPendentes] = useState(0);
 
   useEffect(() => {
     if (!tarefa) return;
@@ -181,7 +182,14 @@ export default function TarefaDetalhe() {
           <TabsTrigger value="checklist" className="gap-1.5"><CheckSquare className="h-3.5 w-3.5" />Checklist</TabsTrigger>
           <TabsTrigger value="tempo" className="gap-1.5"><Clock className="h-3.5 w-3.5" />Tempo</TabsTrigger>
           <TabsTrigger value="comentarios" className="gap-1.5"><MessageSquare className="h-3.5 w-3.5" />Comentários</TabsTrigger>
-          <TabsTrigger value="reunioes" className="gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Reuniões</TabsTrigger>
+          <TabsTrigger value="reunioes" className="gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5" />Reuniões
+            {reunioesPendentes > 0 && (
+              <Badge variant="secondary" className="h-4 min-w-4 px-1 text-[10px] font-semibold bg-primary/15 text-primary border border-primary/30">
+                {reunioesPendentes}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="historico" className="gap-1.5"><History className="h-3.5 w-3.5" />Histórico</TabsTrigger>
         </TabsList>
 
@@ -374,7 +382,7 @@ export default function TarefaDetalhe() {
         </TabsContent>
 
         <TabsContent value="reunioes" className="mt-4">
-          <TarefaReunioes taskId={tarefa.id} />
+          <TarefaReunioes taskId={tarefa.id} onPendingChange={setReunioesPendentes} />
         </TabsContent>
 
         <TabsContent value="historico" className="mt-4">

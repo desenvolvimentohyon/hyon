@@ -33,7 +33,13 @@ const STATUS_LABEL: Record<TaskMeeting["status"], string> = {
   cancelada: "Cancelada",
 };
 
-export function TarefaReunioes({ taskId }: { taskId: string }) {
+export function TarefaReunioes({
+  taskId,
+  onPendingChange,
+}: {
+  taskId: string;
+  onPendingChange?: (count: number) => void;
+}) {
   const navigate = useNavigate();
   const [meetings, setMeetings] = useState<TaskMeeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,12 +52,17 @@ export function TarefaReunioes({ taskId }: { taskId: string }) {
       .eq("task_id", taskId)
       .order("starts_at", { ascending: false });
     if (error) toast.error("Erro ao carregar reuniões");
-    else setMeetings((data || []) as TaskMeeting[]);
+    else {
+      const list = (data || []) as TaskMeeting[];
+      setMeetings(list);
+      onPendingChange?.(list.filter((m) => m.status === "agendada").length);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId]);
 
   const handleNew = () => navigate(`/reunioes?new=1&task=${taskId}`);
