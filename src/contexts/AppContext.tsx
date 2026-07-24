@@ -29,7 +29,7 @@ interface AppContextType extends AppState {
   deleteTarefa: (id: string) => void;
   startTimer: (tarefaId: string) => void;
   stopTimer: (tarefaId: string) => void;
-  addCliente: (c: Omit<Cliente, "id" | "criadoEm">) => void;
+  addCliente: (c: Omit<Cliente, "id" | "criadoEm">) => Promise<Cliente | null>;
   updateCliente: (id: string, changes: Partial<Cliente>) => void;
   deleteCliente: (id: string, justificativa: string) => void;
   addTecnico: (t: Omit<Tecnico, "id">) => void;
