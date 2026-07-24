@@ -85,15 +85,34 @@ export default function PlanBuilder({ waNumber }: Props) {
     );
   }, [catalog, systemId, plan]);
 
+  const setupEstimate = useMemo(() => {
+    if (!system) return null;
+    const orgDefaults: OrgSetupDefaults = catalog?.setupDefaults ?? {
+      costPerKm: 0, dailyRate: 0, defaultDays: 0,
+    };
+    const sysPricing: SystemSetupPricing = {
+      systemId: system.id,
+      systemName: system.name,
+      override: system.setup_override,
+      costPerKm: system.setup_cost_per_km,
+      dailyRate: system.setup_daily_rate,
+      defaultDays: system.setup_default_days,
+      baseFee: system.setup_base_fee,
+    };
+    // Landing público: distância desconhecida → estimativa a partir de (dias × diária + taxa fixa do sistema).
+    const resolved = resolveSetupInput({ distanceKm: 0 }, sysPricing, orgDefaults);
+    return computeSetup(resolved);
+  }, [system, catalog]);
+
   const totals = useMemo(() => {
-    if (!plan) return { month: 0 };
+    if (!plan) return { month: 0, setup: 0 };
     let month = plan.min_total_value;
     extras.forEach((id) => {
       const m = catalog?.modules.find((x) => x.id === id);
       if (m) month += Number(m.sale_value);
     });
-    return { month };
-  }, [plan, extras, catalog]);
+    return { month, setup: setupEstimate?.total ?? 0 };
+  }, [plan, extras, catalog, setupEstimate]);
 
   const pickSystem = (id: string) => {
     setSystemId(id);
