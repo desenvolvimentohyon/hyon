@@ -22,6 +22,8 @@ export type Segment = {
 export type Modulo = {
   id: string; label: string; icon: typeof Store; desc: string;
   priceMonth: number; setup: number;
+  /** Segmentos onde este módulo faz sentido. Vazio/undefined = disponível para todos. */
+  compatible?: string[];
 };
 
 const SEGMENTS: Segment[] = [
@@ -36,14 +38,17 @@ const SEGMENTS: Segment[] = [
   { id: "roupas", label: "Loja de roupas", icon: Shirt, basePriceMonth: 139, baseSetup: 500, recommended: ["pdv","estoque","cadastros","nfe"] },
 ];
 
+const FOOD = ["padaria","lanchonete","cafeteria","pizzaria"];
+const RETAIL = ["mercado","acougue","construcao","bebidas","roupas"];
+
 const MODULOS: Modulo[] = [
   { id: "pdv", label: "PDV (Frente de Caixa)", icon: ShoppingCart, desc: "Venda rápida, sangria, TEF integrado.", priceMonth: 89, setup: 300 },
-  { id: "menu", label: "Menu Digital", icon: MenuIcon, desc: "Cardápio para totem/tablet no salão.", priceMonth: 79, setup: 200 },
-  { id: "cardapio", label: "Cardápio Digital (QR Code)", icon: BookOpen, desc: "Cliente escaneia e pede pela mesa.", priceMonth: 59, setup: 150 },
+  { id: "menu", label: "Menu Digital", icon: MenuIcon, desc: "Cardápio para totem/tablet no salão.", priceMonth: 79, setup: 200, compatible: FOOD },
+  { id: "cardapio", label: "Cardápio Digital (QR Code)", icon: BookOpen, desc: "Cliente escaneia e pede pela mesa.", priceMonth: 59, setup: 150, compatible: FOOD },
   { id: "estoque", label: "Estoque", icon: Boxes, desc: "Entrada, saída, inventário, mínimos.", priceMonth: 69, setup: 250 },
-  { id: "ficha", label: "Ficha Técnica", icon: ClipboardList, desc: "Composição e custo real por produto.", priceMonth: 49, setup: 150 },
+  { id: "ficha", label: "Ficha Técnica", icon: ClipboardList, desc: "Composição e custo real por produto.", priceMonth: 49, setup: 150, compatible: [...FOOD, "acougue"] },
   { id: "cadastros", label: "Clientes e Fornecedores", icon: Users, desc: "Base completa com histórico e limite.", priceMonth: 39, setup: 100 },
-  { id: "nfe", label: "Gestão de Notas Fiscais", icon: Receipt, desc: "Emissão de NFC-e/NF-e e escrituração.", priceMonth: 99, setup: 350 },
+  { id: "nfe", label: "Gestão de Notas Fiscais", icon: Receipt, desc: "Emissão de NFC-e/NF-e e escrituração.", priceMonth: 99, setup: 350, compatible: [...RETAIL, "padaria"] },
 ];
 
 const BRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
