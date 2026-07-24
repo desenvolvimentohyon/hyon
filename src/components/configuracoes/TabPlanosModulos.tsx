@@ -163,6 +163,9 @@ export default function TabPlanosModulos() {
         name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
         system_id: form.system_id,
+        bonus_count: form.bonus_count,
+        recommended: form.recommended,
+        cycle_discounts: form.cycle_discounts,
       } as any).eq("id", modal.editing);
       if (error) { toast.error("Erro ao salvar plano"); return; }
       await supabase.from("module_plan_items").delete().eq("plan_id", modal.editing);
@@ -179,6 +182,9 @@ export default function TabPlanosModulos() {
         org_id: orgId, name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
         system_id: form.system_id,
+        bonus_count: form.bonus_count,
+        recommended: form.recommended,
+        cycle_discounts: form.cycle_discounts,
       } as any).select("id").single();
       if (error || !data) { toast.error("Erro ao criar plano"); return; }
       if (form.items.length > 0) {
