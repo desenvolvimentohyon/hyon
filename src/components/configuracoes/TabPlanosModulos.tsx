@@ -114,13 +114,22 @@ export default function TabPlanosModulos() {
   };
 
   const openEdit = (p: Plan) => {
+    // Legacy plans may have system_id = null; infer from the first item's module system.
+    let inferredSystemId = p.system_id ?? null;
+    if (!inferredSystemId && p.items.length > 0) {
+      for (const it of p.items) {
+        const mod = moduleMap.get(it.module_id);
+        const ids = mod?.systemIds || (mod?.systemId ? [mod.systemId] : []);
+        if (ids && ids.length > 0) { inferredSystemId = ids[0]; break; }
+      }
+    }
     setForm({
       name: p.name,
       description: p.description || "",
       min_total_value: p.min_total_value,
       allow_bonus: p.allow_bonus,
       active: p.active,
-      system_id: p.system_id ?? null,
+      system_id: inferredSystemId,
       bonus_count: p.bonus_count,
       recommended: p.recommended,
       cycle_discounts: { ...p.cycle_discounts },
