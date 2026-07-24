@@ -416,7 +416,12 @@ export default function Reunioes() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <Label>Cliente vinculado</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Cliente vinculado</Label>
+                  <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" onClick={() => setNewClientOpen(true)}>
+                    <Plus className="h-3 w-3" /> Novo
+                  </Button>
+                </div>
                 <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                   <SelectContent>
@@ -438,6 +443,27 @@ export default function Reunioes() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div>
+              <Label className="flex items-center gap-2 mb-1"><ListTodo className="h-4 w-4" /> Tarefa vinculada</Label>
+              <Select value={form.task_id} onValueChange={(v) => setForm({ ...form, task_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {tarefas
+                    .filter((t) => !form.client_id || form.client_id === "none" || t.clienteId === form.client_id)
+                    .slice(0, 200)
+                    .map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.titulo}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              {form.client_id !== "none" && (
+                <p className="text-[11px] text-muted-foreground mt-1">Mostrando apenas tarefas do cliente selecionado.</p>
+              )}
             </div>
 
             <div>
