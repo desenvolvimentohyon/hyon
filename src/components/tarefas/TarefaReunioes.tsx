@@ -157,6 +157,23 @@ export function TarefaReunioes({
                 {c.label}
               </button>
             ))}
+            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+            <button
+              type="button"
+              onClick={() => setSortOrder("proximas")}
+              className={chipCls(sortOrder === "proximas")}
+              title="Mais próximas primeiro"
+            >
+              ↑ Mais próximas
+            </button>
+            <button
+              type="button"
+              onClick={() => setSortOrder("recentes")}
+              className={chipCls(sortOrder === "recentes")}
+              title="Mais recentes primeiro"
+            >
+              ↓ Mais recentes
+            </button>
           </div>
         </div>
       )}
