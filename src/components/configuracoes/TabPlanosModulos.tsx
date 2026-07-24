@@ -32,6 +32,7 @@ interface Plan {
   min_total_value: number;
   allow_bonus: boolean;
   active: boolean;
+  system_id: string | null;
   items: PlanItem[];
 }
 
@@ -51,8 +52,9 @@ export default function TabPlanosModulos() {
     min_total_value: number;
     allow_bonus: boolean;
     active: boolean;
+    system_id: string | null;
     items: PlanItem[];
-  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, items: [] });
+  }>({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
   const [addModuleId, setAddModuleId] = useState<string>("");
 
   const moduleMap = useMemo(() => new Map(modulos.map(m => [m.id, m])), [modulos]);
@@ -70,13 +72,14 @@ export default function TabPlanosModulos() {
       const { data } = await supabase.from("module_plan_items").select("*").in("plan_id", planIds);
       itemsData = data || [];
     }
-    setPlans((planData || []).map(p => ({
+    setPlans((planData || []).map((p: any) => ({
       id: p.id,
       name: p.name,
       description: p.description,
       min_total_value: Number(p.min_total_value) || 0,
       allow_bonus: p.allow_bonus,
       active: p.active,
+      system_id: p.system_id ?? null,
       items: itemsData.filter(i => i.plan_id === p.id).map(i => ({
         id: i.id, module_id: i.module_id,
         min_value: Number(i.min_value) || 0,
@@ -90,7 +93,7 @@ export default function TabPlanosModulos() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const openNew = () => {
-    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, items: [] });
+    setForm({ name: "", description: "", min_total_value: 0, allow_bonus: true, active: true, system_id: null, items: [] });
     setAddModuleId("");
     setModal({ editing: null });
   };
@@ -102,6 +105,7 @@ export default function TabPlanosModulos() {
       min_total_value: p.min_total_value,
       allow_bonus: p.allow_bonus,
       active: p.active,
+      system_id: p.system_id ?? null,
       items: p.items.map(i => ({ ...i })),
     });
     setAddModuleId("");
@@ -133,13 +137,15 @@ export default function TabPlanosModulos() {
   const save = async () => {
     if (!orgId) return;
     if (!form.name.trim()) { toast.error("Nome do plano é obrigatório"); return; }
+    if (!form.system_id) { toast.error("Selecione o sistema vinculado ao plano"); return; }
     if (invalidRanges.length > 0) { toast.error("Existem módulos com valor mínimo maior que o máximo"); return; }
 
     if (modal?.editing) {
       const { error } = await supabase.from("module_plans").update({
         name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
-      }).eq("id", modal.editing);
+        system_id: form.system_id,
+      } as any).eq("id", modal.editing);
       if (error) { toast.error("Erro ao salvar plano"); return; }
       await supabase.from("module_plan_items").delete().eq("plan_id", modal.editing);
       if (form.items.length > 0) {
@@ -154,7 +160,8 @@ export default function TabPlanosModulos() {
       const { data, error } = await supabase.from("module_plans").insert({
         org_id: orgId, name: form.name, description: form.description || null,
         min_total_value: form.min_total_value, allow_bonus: form.allow_bonus, active: form.active,
-      }).select("id").single();
+        system_id: form.system_id,
+      } as any).select("id").single();
       if (error || !data) { toast.error("Erro ao criar plano"); return; }
       if (form.items.length > 0) {
         const rows = form.items.map(i => ({
@@ -177,7 +184,15 @@ export default function TabPlanosModulos() {
     fetchAll();
   };
 
-  const availableModules = modulos.filter(m => m.ativo && !form.items.some(i => i.module_id === m.id));
+  // Módulos disponíveis: ativos, do sistema selecionado (ou globais), e não já adicionados
+  const availableModules = modulos.filter(m => {
+    if (!m.ativo) return false;
+    if (form.items.some(i => i.module_id === m.id)) return false;
+    if (!form.system_id) return false;
+    if (m.isGlobal) return true;
+    const ids: string[] = (m as any).sistemaIds || (m.sistemaId ? [m.sistemaId] : []);
+    return ids.includes(form.system_id);
+  });
 
   return (
     <div className="space-y-4">
@@ -207,9 +222,12 @@ export default function TabPlanosModulos() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 flex-wrap">
                         <Package className="h-4 w-4 text-primary" />
                         {p.name}
+                        {p.system_id && sistemaMap.get(p.system_id) && (
+                          <Badge variant="outline" className="text-[10px]">{sistemaMap.get(p.system_id)?.nome}</Badge>
+                        )}
                         {!p.active && <Badge variant="secondary" className="text-[10px]">Inativo</Badge>}
                         {p.allow_bonus && <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"><Gift className="h-2.5 w-2.5 mr-0.5" />Bonificação</Badge>}
                       </CardTitle>
@@ -262,6 +280,37 @@ export default function TabPlanosModulos() {
                 <Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex.: Plano Essencial" />
               </div>
               <div className="space-y-1.5 md:col-span-2">
+                <Label>Sistema vinculado *</Label>
+                <Select
+                  value={form.system_id ?? ""}
+                  onValueChange={(v) => {
+                    // Ao trocar de sistema, limpa módulos incompatíveis
+                    setForm(f => {
+                      const kept = f.items.filter(it => {
+                        const mod = moduleMap.get(it.module_id);
+                        if (!mod) return false;
+                        if (mod.isGlobal) return true;
+                        const ids: string[] = (mod as any).sistemaIds || (mod.sistemaId ? [mod.sistemaId] : []);
+                        return ids.includes(v);
+                      });
+                      if (kept.length !== f.items.length) {
+                        toast.info("Módulos incompatíveis com o novo sistema foram removidos");
+                      }
+                      return { ...f, system_id: v, items: kept };
+                    });
+                    setAddModuleId("");
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione o sistema" /></SelectTrigger>
+                  <SelectContent>
+                    {sistemas.filter(s => s.ativo !== false).map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">Apenas módulos deste sistema (e globais) ficarão disponíveis abaixo.</p>
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
                 <Label>Descrição</Label>
                 <Textarea rows={2} value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Para quem é este plano?" />
               </div>
@@ -292,17 +341,23 @@ export default function TabPlanosModulos() {
                 <Label className="text-sm font-semibold">Módulos incluídos ({form.items.length})</Label>
               </div>
               <div className="flex gap-2">
-                <Select value={addModuleId} onValueChange={setAddModuleId}>
-                  <SelectTrigger className="flex-1 h-9"><SelectValue placeholder="Selecione um módulo para adicionar" /></SelectTrigger>
+                <Select value={addModuleId} onValueChange={setAddModuleId} disabled={!form.system_id}>
+                  <SelectTrigger className="flex-1 h-9">
+                    <SelectValue placeholder={form.system_id ? "Selecione um módulo para adicionar" : "Selecione um sistema primeiro"} />
+                  </SelectTrigger>
                   <SelectContent>
-                    {availableModules.length === 0 && <SelectItem value="__none" disabled>Todos os módulos já adicionados</SelectItem>}
+                    {availableModules.length === 0 && (
+                      <SelectItem value="__none" disabled>
+                        {form.system_id ? "Nenhum módulo disponível para este sistema" : "Selecione um sistema primeiro"}
+                      </SelectItem>
+                    )}
                     {availableModules.map(m => {
-                      const sys = m.sistemaId ? sistemaMap.get(m.sistemaId)?.nome : (m.isGlobal ? "Global" : "—");
+                      const sys = m.isGlobal ? "Global" : (sistemaMap.get(form.system_id!)?.nome || "—");
                       return <SelectItem key={m.id} value={m.id}>{m.nome} <span className="text-muted-foreground text-xs">— {sys}</span></SelectItem>;
                     })}
                   </SelectContent>
                 </Select>
-                <Button type="button" size="sm" onClick={addItem} disabled={!addModuleId}><Plus className="h-4 w-4" /></Button>
+                <Button type="button" size="sm" onClick={addItem} disabled={!addModuleId || !form.system_id}><Plus className="h-4 w-4" /></Button>
               </div>
 
               {form.items.length > 0 && (

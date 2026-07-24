@@ -2154,6 +2154,7 @@ export type Database = {
           min_total_value: number
           name: string
           org_id: string
+          system_id: string | null
           updated_at: string
         }
         Insert: {
@@ -2165,6 +2166,7 @@ export type Database = {
           min_total_value?: number
           name: string
           org_id: string
+          system_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -2176,6 +2178,7 @@ export type Database = {
           min_total_value?: number
           name?: string
           org_id?: string
+          system_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2184,6 +2187,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_plans_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "systems_catalog"
             referencedColumns: ["id"]
           },
         ]
