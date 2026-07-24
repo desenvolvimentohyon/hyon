@@ -52,7 +52,7 @@ interface ReceitaState {
 }
 
 interface ReceitaContextType extends ReceitaState {
-  addClienteReceita: (c: Omit<ClienteReceita, "id">, moduleIds?: string[]) => void;
+  addClienteReceita: (c: Omit<ClienteReceita, "id">, moduleIds?: string[], planData?: { billing_plan: string; plan_start_date: string; plan_end_date: string; plan_paid_amount: number } | null) => void;
   updateClienteReceita: (id: string, changes: Partial<ClienteReceita>) => void;
   deleteClienteReceita: (id: string, justificativa?: string) => Promise<boolean>;
   addMensalidadeAjuste: (clienteId: string, valorNovo: number, motivo: string) => void;
@@ -96,8 +96,18 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const addClienteReceita = useCallback(async (c: Omit<ClienteReceita, "id">, moduleIds?: string[]) => {
+  const addClienteReceita = useCallback(async (
+    c: Omit<ClienteReceita, "id">,
+    moduleIds?: string[],
+    planData?: { billing_plan: string; plan_start_date: string; plan_end_date: string; plan_paid_amount: number } | null,
+  ) => {
     if (!orgId) return;
+    const metadata = planData ? {
+      billing_plan: planData.billing_plan,
+      plan_start_date: planData.plan_start_date,
+      plan_end_date: planData.plan_end_date,
+      plan_paid_amount: planData.plan_paid_amount,
+    } : {};
     const { data, error } = await supabase.from("clients").insert({
       org_id: orgId, name: c.nome, trade_name: c.nome, document: c.documento || null,
       phone: c.telefone || null, email: c.email || null, city: c.cidade || null,
@@ -108,6 +118,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
       cancellation_reason: c.motivoCancelamento || null, notes: c.observacoes || null,
       cost_active: c.custoAtivo, monthly_cost_value: c.valorCustoMensal,
       cost_system_name: c.sistemaCusto,
+      metadata,
     } as any).select("id").single();
     if (error) { toast.error("Erro ao criar cliente: " + error.message); return; }
     if (data && moduleIds && moduleIds.length > 0) {
@@ -117,6 +128,21 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
         module_id: moduleId,
       }));
       await supabase.from("client_modules").insert(moduleInserts);
+    }
+    // Register payment receipt for annual plan paid upfront
+    if (data && planData && planData.plan_paid_amount > 0) {
+      await supabase.from("payment_receipts").insert({
+        org_id: orgId,
+        client_id: data.id,
+        payment_type: "plano",
+        plan_type: "anual",
+        period_start: planData.plan_start_date,
+        period_end: planData.plan_end_date,
+        amount: planData.plan_paid_amount,
+        paid_at: planData.plan_start_date,
+        method: "outros",
+        notes: "Pagamento inicial do plano anual (cadastro)",
+      } as any);
     }
     fetchAll();
   }, [orgId, fetchAll]);

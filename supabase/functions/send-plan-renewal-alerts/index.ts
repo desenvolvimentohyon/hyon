@@ -233,7 +233,9 @@ Deno.serve(async (req) => {
     const results: any[] = [];
 
     for (const company of companies) {
-      const alertDays = company.renewal_alert_days || 7;
+      // Ensure push alerts fire at least 30 days before plan expiry
+      const configuredDays = company.renewal_alert_days || 0;
+      const alertDays = Math.max(configuredDays, 30);
       const futureDate = new Date(today);
       futureDate.setDate(futureDate.getDate() + alertDays);
       const futureDateStr = futureDate.toISOString().slice(0, 10);
