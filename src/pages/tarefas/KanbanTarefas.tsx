@@ -10,7 +10,7 @@ import { statusRowColor } from "./helpers";
 import { LiveTimer } from "./LiveTimer";
 import { TarefaReunioesPreview } from "@/components/tarefas/TarefaReunioesPreview";
 
-export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate }: any) {
+export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, prioridadeColor, getStatusLabel, getPrioridadeLabel, getCliente, getTecnico, updateTarefa, navigate, mostrarFinalizadas = true }: any) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
 
