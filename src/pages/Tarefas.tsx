@@ -34,6 +34,8 @@ export default function Tarefas() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroSistema, setFiltroSistema] = useState<string>("todos");
   const [showNova, setShowNova] = useState(false);
+  // Por padrão, tarefas finalizadas (concluídas/canceladas) ficam ocultas
+  const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("nova") === "1") {
