@@ -71,6 +71,25 @@ export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, priori
                             <Badge className={`text-[9px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge>
                             <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
                           </div>
+                          <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} draggable={false} onDragStart={e => { e.preventDefault(); e.stopPropagation(); }}>
+                            <Select
+                              value={t.status}
+                              onValueChange={(v) => {
+                                if (v === t.status) return;
+                                updateTarefa(t.id, { status: v as StatusTarefa }, `Status alterado para ${getStatusLabel(v as StatusTarefa)}`);
+                                toast({ title: `Status: ${getStatusLabel(v as StatusTarefa)}` });
+                              }}
+                            >
+                              <SelectTrigger className={`h-7 w-full border-0 text-[11px] font-medium ${statusColor(t.status)}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {STATUS_ORDER.map((s: StatusTarefa) => (
+                                  <SelectItem key={s} value={s} className="text-xs">{getStatusLabel(s)}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
                             <span>{getTecnico(t.responsavelId)?.nome?.split(" ")[0]}</span>
