@@ -9,18 +9,20 @@ interface MiniMeeting {
   id: string;
   title: string;
   starts_at: string;
-  status: "agendada" | "realizada" | "cancelada";
+  status: "agendada" | "realizada" | "remarcada" | "cancelada";
 }
 
 const STATUS_STYLE: Record<MiniMeeting["status"], string> = {
   agendada: "bg-primary/10 text-primary border-primary/30",
   realizada: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
+  remarcada: "bg-amber-500/10 text-amber-500 border-amber-500/30",
   cancelada: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
 const STATUS_LABEL: Record<MiniMeeting["status"], string> = {
   agendada: "Agendada",
-  realizada: "Realizada",
+  realizada: "Concluída",
+  remarcada: "Remarcada",
   cancelada: "Cancelada",
 };
 

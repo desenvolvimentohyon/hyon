@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type StatusFilter = "todas" | "agendada" | "realizada" | "cancelada";
+type StatusFilter = "todas" | "agendada" | "realizada" | "remarcada" | "cancelada";
 type TimeFilter = "todas" | "hoje" | "atrasadas" | "futuras";
 
 interface TaskMeeting {
@@ -18,7 +18,7 @@ interface TaskMeeting {
   title: string;
   starts_at: string;
   ends_at: string;
-  status: "agendada" | "realizada" | "cancelada";
+  status: "agendada" | "realizada" | "remarcada" | "cancelada";
   location: string | null;
   meeting_link: string | null;
   google_event_id: string | null;
@@ -28,12 +28,14 @@ interface TaskMeeting {
 const STATUS_STYLE: Record<TaskMeeting["status"], string> = {
   agendada: "bg-primary/10 text-primary border-primary/30",
   realizada: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
+  remarcada: "bg-amber-500/10 text-amber-500 border-amber-500/30",
   cancelada: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
 const STATUS_LABEL: Record<TaskMeeting["status"], string> = {
   agendada: "Agendada",
-  realizada: "Realizada",
+  realizada: "Concluída",
+  remarcada: "Remarcada",
   cancelada: "Cancelada",
 };
 

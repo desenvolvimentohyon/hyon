@@ -22,7 +22,7 @@ import { useUsers } from "@/contexts/UsersContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type MeetingStatus = "agendada" | "realizada" | "cancelada";
+type MeetingStatus = "agendada" | "realizada" | "remarcada" | "cancelada";
 
 interface ExternalGuest {
   name: string;
@@ -49,7 +49,8 @@ interface Meeting {
 
 const STATUS_STYLE: Record<MeetingStatus, { label: string; className: string }> = {
   agendada: { label: "Agendada", className: "bg-primary/10 text-primary border-primary/30" },
-  realizada: { label: "Realizada", className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30" },
+  realizada: { label: "Concluída", className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30" },
+  remarcada: { label: "Remarcada", className: "bg-amber-500/10 text-amber-500 border-amber-500/30" },
   cancelada: { label: "Cancelada", className: "bg-destructive/10 text-destructive border-destructive/30" },
 };
 
@@ -296,11 +297,11 @@ export default function Reunioes() {
   }, [meetings]);
 
   const upcoming = useMemo(
-    () => meetings.filter((m) => new Date(m.ends_at) >= new Date() && m.status === "agendada"),
+    () => meetings.filter((m) => new Date(m.ends_at) >= new Date() && (m.status === "agendada" || m.status === "remarcada")),
     [meetings],
   );
   const past = useMemo(
-    () => meetings.filter((m) => new Date(m.ends_at) < new Date() || m.status !== "agendada"),
+    () => meetings.filter((m) => new Date(m.ends_at) < new Date() || (m.status !== "agendada" && m.status !== "remarcada")),
     [meetings],
   );
 
@@ -465,7 +466,8 @@ export default function Reunioes() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="agendada">Agendada</SelectItem>
-                    <SelectItem value="realizada">Realizada</SelectItem>
+                    <SelectItem value="realizada">Concluída</SelectItem>
+                    <SelectItem value="remarcada">Remarcada</SelectItem>
                     <SelectItem value="cancelada">Cancelada</SelectItem>
                   </SelectContent>
                 </Select>
