@@ -2009,6 +2009,47 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          meeting_id: string
+          note: string | null
+          org_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          meeting_id: string
+          note?: string | null
+          org_id: string
+          to_status: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          meeting_id?: string
+          note?: string | null
+          org_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_history_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           client_id: string | null
