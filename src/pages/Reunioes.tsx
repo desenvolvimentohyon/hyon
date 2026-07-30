@@ -190,11 +190,13 @@ export default function Reunioes() {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm());
+    setOriginalStatus("agendada");
     setOpenForm(true);
   };
 
   const openEdit = (m: Meeting) => {
     setEditingId(m.id);
+    setOriginalStatus(m.status);
     setForm({
       title: m.title,
       description: m.description || "",
@@ -218,9 +220,22 @@ export default function Reunioes() {
     if (!form.starts_at || !form.ends_at) return toast.error("Informe início e fim");
     if (new Date(form.ends_at) <= new Date(form.starts_at)) return toast.error("O fim deve ser após o início");
 
+    // Confirmação explícita para status sensíveis (cancelada/remarcada)
+    const sensivel = form.status === "cancelada" || form.status === "remarcada";
+    if (sensivel && form.status !== originalStatus) {
+      setConfirmStatus(form.status);
+      return;
+    }
+
+    await persistMeeting();
+  };
+
+  const persistMeeting = async () => {
+    if (!user) return;
     // Get org_id from profile
     const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).maybeSingle();
     if (!profile?.org_id) return toast.error("Perfil não encontrado");
+
 
     const payload = {
       org_id: profile.org_id,
