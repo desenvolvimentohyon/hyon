@@ -606,6 +606,34 @@ export default function Reunioes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!confirmStatus} onOpenChange={(o) => !o && setConfirmStatus(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmStatus === "cancelada" ? "Cancelar esta reunião?" : "Marcar reunião como remarcada?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmStatus === "cancelada"
+                ? "A reunião sairá da lista de próximas e os lembretes deixarão de ser enviados. Deseja continuar?"
+                : "A reunião será sinalizada como remarcada e continuará entre as próximas. Confirme para prosseguir."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(confirmStatus === "cancelada" && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+              onClick={async () => {
+                setConfirmStatus(null);
+                await persistMeeting();
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
