@@ -100,6 +100,8 @@ export default function Reunioes() {
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [newClient, setNewClient] = useState({ nome: "", telefone: "", email: "" });
   const [savingClient, setSavingClient] = useState(false);
+  const [originalStatus, setOriginalStatus] = useState<MeetingStatus>("agendada");
+  const [confirmStatus, setConfirmStatus] = useState<MeetingStatus | null>(null);
   const gCal = useGoogleCalendar();
 
   const handleCreateClient = async () => {
