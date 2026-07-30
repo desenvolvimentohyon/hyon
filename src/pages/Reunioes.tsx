@@ -24,6 +24,16 @@ import { cn } from "@/lib/utils";
 
 type MeetingStatus = "agendada" | "realizada" | "remarcada" | "cancelada";
 
+interface StatusHistoryEntry {
+  id: string;
+  from_status: string | null;
+  to_status: string;
+  note: string | null;
+  changed_by: string | null;
+  created_at: string;
+}
+
+
 interface ExternalGuest {
   name: string;
   email?: string;
