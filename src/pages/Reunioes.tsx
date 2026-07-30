@@ -102,7 +102,25 @@ export default function Reunioes() {
   const [savingClient, setSavingClient] = useState(false);
   const [originalStatus, setOriginalStatus] = useState<MeetingStatus>("agendada");
   const [confirmStatus, setConfirmStatus] = useState<MeetingStatus | null>(null);
+  const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const gCal = useGoogleCalendar();
+
+  const loadHistory = async (meetingId: string) => {
+    setLoadingHistory(true);
+    const { data, error } = await supabase
+      .from("meeting_history")
+      .select("id, from_status, to_status, note, changed_by, created_at")
+      .eq("meeting_id", meetingId)
+      .order("created_at", { ascending: false });
+    if (error) {
+      setHistory([]);
+    } else {
+      setHistory((data || []) as StatusHistoryEntry[]);
+    }
+    setLoadingHistory(false);
+  };
+
 
   const handleCreateClient = async () => {
     if (!newClient.nome.trim()) return toast.error("Informe o nome do cliente");
