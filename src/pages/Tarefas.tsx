@@ -70,6 +70,17 @@ export default function Tarefas() {
     }).sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
   }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
 
+  // Opções do seletor de status em destaque (chips)
+  const STATUS_FILTERS = useMemo(
+    () => [
+      { value: "todos", label: "Todos" },
+      ...STATUS_ORDER.map(s => ({ value: s as string, label: getStatusLabel(s) })),
+      { value: "atrasadas", label: "Atrasadas" },
+    ],
+    [getStatusLabel]
+  );
+
+
   return (
     <div className="space-y-6">
       <PageHeader
