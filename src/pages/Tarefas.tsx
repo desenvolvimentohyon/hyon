@@ -84,7 +84,7 @@ export default function Tarefas() {
       if (diff !== 0) return diff;
       return new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime();
     });
-  }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
+  }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema, mostrarFinalizadas]);
 
   // Opções do seletor de status em destaque (chips)
   const STATUS_FILTERS = useMemo(
