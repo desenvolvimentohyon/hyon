@@ -20,6 +20,9 @@ import { LiveTimer } from "./tarefas/LiveTimer";
 import { KanbanTarefas } from "./tarefas/KanbanTarefas";
 import { NovaTarefaDialog } from "./tarefas/NovaTarefaDialog";
 
+/** Chave de preferência local para exibir tarefas finalizadas */
+const PREF_MOSTRAR_FINALIZADAS = "tarefas:mostrarFinalizadas";
+
 export default function Tarefas() {
   const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, addCliente, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
   const { sistemas } = useParametros();
@@ -36,8 +39,23 @@ export default function Tarefas() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroSistema, setFiltroSistema] = useState<string>("todos");
   const [showNova, setShowNova] = useState(false);
-  // Por padrão, tarefas finalizadas (concluídas/canceladas) ficam ocultas
-  const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
+  // Por padrão, tarefas finalizadas (concluídas/canceladas) ficam ocultas.
+  // A preferência é persistida em localStorage para sobreviver a recarregamentos.
+  const [mostrarFinalizadas, setMostrarFinalizadas] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(PREF_MOSTRAR_FINALIZADAS) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PREF_MOSTRAR_FINALIZADAS, String(mostrarFinalizadas));
+    } catch {
+      // Storage indisponível (modo privado/quota) — preferência apenas em memória
+    }
+  }, [mostrarFinalizadas]);
 
   useEffect(() => {
     if (searchParams.get("nova") === "1") {
