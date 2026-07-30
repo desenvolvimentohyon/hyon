@@ -60,6 +60,9 @@ export default function Tarefas() {
         const q = busca.toLowerCase();
         if (!t.titulo.toLowerCase().includes(q) && !t.descricao.toLowerCase().includes(q) && !t.tags.some(tag => tag.toLowerCase().includes(q))) return false;
       }
+      const finalizada = t.status === "concluida" || t.status === "cancelada";
+      // Oculta finalizadas salvo se o toggle estiver ativo ou o filtro apontar para elas
+      if (finalizada && !mostrarFinalizadas && filtroStatus !== t.status) return false;
       if (filtroStatus === "atrasadas") { if (!tarefaAtrasada(t)) return false; }
       else if (filtroStatus !== "todos" && t.status !== filtroStatus) return false;
       if (filtroPrioridade !== "todos" && t.prioridade !== filtroPrioridade) return false;
