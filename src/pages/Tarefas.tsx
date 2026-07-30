@@ -86,19 +86,41 @@ export default function Tarefas() {
       />
       <ModuleNavGrid moduleId="operacional" />
 
+      {/* Seletor de status em destaque */}
+      <div className="rounded-lg border bg-card p-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="px-1.5 text-xs font-medium text-muted-foreground">Status:</span>
+          {STATUS_FILTERS.map(opt => {
+            const ativo = filtroStatus === opt.value;
+            const count = opt.value === "todos"
+              ? tarefas.length
+              : opt.value === "atrasadas"
+                ? tarefas.filter(tarefaAtrasada).length
+                : tarefas.filter(t => t.status === opt.value).length;
+            return (
+              <Button
+                key={opt.value}
+                type="button"
+                size="sm"
+                variant={ativo ? "default" : "outline"}
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setFiltroStatus(opt.value)}
+              >
+                {opt.value === "atrasadas" && <AlertTriangle className="h-3.5 w-3.5" />}
+                {opt.label}
+                <span className={`rounded px-1 text-[10px] ${ativo ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"}`}>{count}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-9" />
         </div>
-        <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-          <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos Status</SelectItem>
-            <SelectItem value="atrasadas">Atrasadas</SelectItem>
-            {STATUS_ORDER.map(s => <SelectItem key={s} value={s}>{getStatusLabel(s)}</SelectItem>)}
-          </SelectContent>
-        </Select>
+
         <Select value={filtroTipo} onValueChange={setFiltroTipo}>
           <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
