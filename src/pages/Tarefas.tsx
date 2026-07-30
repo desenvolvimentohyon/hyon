@@ -20,6 +20,9 @@ import { LiveTimer } from "./tarefas/LiveTimer";
 import { KanbanTarefas } from "./tarefas/KanbanTarefas";
 import { NovaTarefaDialog } from "./tarefas/NovaTarefaDialog";
 
+/** Chave de preferência local para exibir tarefas finalizadas */
+const PREF_MOSTRAR_FINALIZADAS = "tarefas:mostrarFinalizadas";
+
 export default function Tarefas() {
   const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, addCliente, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
   const { sistemas } = useParametros();
