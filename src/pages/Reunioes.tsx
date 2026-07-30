@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
@@ -607,7 +607,7 @@ export default function Reunioes() {
             {editingId && (
               <div className="rounded-lg border p-3">
                 <Label className="flex items-center gap-2 mb-2">
-                  <History className="h-4 w-4" /> Histórico de status
+                  <HistoryIcon className="h-4 w-4" /> Histórico de status
                 </Label>
                 {loadingHistory ? (
                   <p className="text-xs text-muted-foreground">Carregando histórico...</p>
@@ -627,7 +627,7 @@ export default function Reunioes() {
                           </Badge>
                           <span className="text-muted-foreground">
                             · {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            {h.changed_by ? ` · ${users.find((u) => u.id === h.changed_by)?.full_name || "Usuário"}` : ""}
+                            {h.changed_by ? ` · ${users.find((u) => u.id === h.changed_by)?.nome || "Usuário"}` : ""}
                           </span>
                         </div>
                         {h.note && <p className="text-xs text-muted-foreground">{h.note}</p>}
