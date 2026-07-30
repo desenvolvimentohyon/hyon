@@ -219,6 +219,7 @@ export default function Reunioes() {
     setEditingId(null);
     setForm(emptyForm());
     setOriginalStatus("agendada");
+    setHistory([]);
     setOpenForm(true);
   };
 
@@ -239,6 +240,8 @@ export default function Reunioes() {
       external_guests: m.external_guests || [],
       notes: m.notes || "",
     });
+    setHistory([]);
+    loadHistory(m.id);
     setOpenForm(true);
   };
 
@@ -285,6 +288,21 @@ export default function Reunioes() {
     if (editingId) {
       const { error } = await supabase.from("meetings").update(payload).eq("id", editingId);
       if (error) return toast.error("Erro ao atualizar");
+
+      // Registra a mudança de status no histórico da reunião
+      if (form.status !== originalStatus) {
+        const { error: histError } = await supabase.from("meeting_history").insert({
+          org_id: profile.org_id,
+          meeting_id: editingId,
+          from_status: originalStatus,
+          to_status: form.status,
+          note: form.notes.trim() || null,
+          changed_by: user.id,
+        });
+        if (histError) toast.warning("Reunião salva, mas o histórico não pôde ser registrado");
+        setOriginalStatus(form.status);
+      }
+
       toast.success("Reunião atualizada");
     } else {
       const { error } = await supabase.from("meetings").insert(payload);
@@ -295,6 +313,7 @@ export default function Reunioes() {
     setOpenForm(false);
     loadMeetings();
   };
+
 
   const handleDelete = async () => {
     if (!deleteId) return;
