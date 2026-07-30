@@ -5,6 +5,8 @@ import { Tarefa, Prioridade, STATUS_ORDER, TipoOperacional, StatusTarefa } from 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle } from "lucide-react";
