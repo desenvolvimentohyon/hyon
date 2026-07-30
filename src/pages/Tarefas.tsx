@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, ClipboardList } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
