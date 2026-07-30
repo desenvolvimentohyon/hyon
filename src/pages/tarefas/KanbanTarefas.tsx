@@ -38,10 +38,12 @@ export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, priori
     <div className="flex gap-4 overflow-x-auto pb-4">
       {STATUS_ORDER.map(status => {
         const columnTasks = filteredTarefas.filter((t: Tarefa) => t.status === status);
+        const finalizada = status === "concluida" || status === "cancelada";
+        const ocultaFinalizada = finalizada && !mostrarFinalizadas && columnTasks.length === 0;
         return (
           <div
             key={status}
-            className={`flex-shrink-0 w-[280px] rounded-lg p-2 transition-colors ${dragOver === status ? "bg-accent/50 ring-2 ring-primary/30" : ""}`}
+            className={`flex-shrink-0 w-[280px] rounded-lg p-2 transition-colors ${dragOver === status ? "bg-accent/50 ring-2 ring-primary/30" : ""} ${ocultaFinalizada ? "opacity-60" : ""}`}
             onDragOver={e => { e.preventDefault(); setDragOver(status); }}
             onDragLeave={() => setDragOver(null)}
             onDrop={e => handleDrop(e, status)}
@@ -51,6 +53,12 @@ export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, priori
               <span className="text-xs text-muted-foreground">{columnTasks.length}</span>
             </div>
             <div className="space-y-2 min-h-[100px]">
+              {ocultaFinalizada && (
+                <p className="rounded-md border border-dashed p-3 text-center text-[11px] text-muted-foreground">
+                  Cards ocultos — ative "Mostrar concluídas e canceladas"
+                </p>
+              )}
+
               {columnTasks.map((t: Tarefa) => {
                 const tipoConfig = TIPO_OPERACIONAL_CONFIG[t.tipoOperacional] || { label: t.tipoOperacional, bgClass: "bg-muted text-muted-foreground" };
                 return (
