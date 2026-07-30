@@ -100,6 +100,8 @@ export default function Reunioes() {
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [newClient, setNewClient] = useState({ nome: "", telefone: "", email: "" });
   const [savingClient, setSavingClient] = useState(false);
+  const [originalStatus, setOriginalStatus] = useState<MeetingStatus>("agendada");
+  const [confirmStatus, setConfirmStatus] = useState<MeetingStatus | null>(null);
   const gCal = useGoogleCalendar();
 
   const handleCreateClient = async () => {
@@ -188,11 +190,13 @@ export default function Reunioes() {
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm());
+    setOriginalStatus("agendada");
     setOpenForm(true);
   };
 
   const openEdit = (m: Meeting) => {
     setEditingId(m.id);
+    setOriginalStatus(m.status);
     setForm({
       title: m.title,
       description: m.description || "",
@@ -216,9 +220,22 @@ export default function Reunioes() {
     if (!form.starts_at || !form.ends_at) return toast.error("Informe início e fim");
     if (new Date(form.ends_at) <= new Date(form.starts_at)) return toast.error("O fim deve ser após o início");
 
+    // Confirmação explícita para status sensíveis (cancelada/remarcada)
+    const sensivel = form.status === "cancelada" || form.status === "remarcada";
+    if (sensivel && form.status !== originalStatus) {
+      setConfirmStatus(form.status);
+      return;
+    }
+
+    await persistMeeting();
+  };
+
+  const persistMeeting = async () => {
+    if (!user) return;
     // Get org_id from profile
     const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).maybeSingle();
     if (!profile?.org_id) return toast.error("Perfil não encontrado");
+
 
     const payload = {
       org_id: profile.org_id,
@@ -589,6 +606,34 @@ export default function Reunioes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!confirmStatus} onOpenChange={(o) => !o && setConfirmStatus(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmStatus === "cancelada" ? "Cancelar esta reunião?" : "Marcar reunião como remarcada?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmStatus === "cancelada"
+                ? "A reunião sairá da lista de próximas e os lembretes deixarão de ser enviados. Deseja continuar?"
+                : "A reunião será sinalizada como remarcada e continuará entre as próximas. Confirme para prosseguir."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(confirmStatus === "cancelada" && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+              onClick={async () => {
+                setConfirmStatus(null);
+                await persistMeeting();
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
