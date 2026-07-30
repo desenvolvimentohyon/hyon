@@ -5,6 +5,8 @@ import { Tarefa, Prioridade, STATUS_ORDER, TipoOperacional, StatusTarefa } from 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle } from "lucide-react";
@@ -34,6 +36,8 @@ export default function Tarefas() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroSistema, setFiltroSistema] = useState<string>("todos");
   const [showNova, setShowNova] = useState(false);
+  // Por padrão, tarefas finalizadas (concluídas/canceladas) ficam ocultas
+  const [mostrarFinalizadas, setMostrarFinalizadas] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("nova") === "1") {
@@ -58,6 +62,9 @@ export default function Tarefas() {
         const q = busca.toLowerCase();
         if (!t.titulo.toLowerCase().includes(q) && !t.descricao.toLowerCase().includes(q) && !t.tags.some(tag => tag.toLowerCase().includes(q))) return false;
       }
+      const finalizada = t.status === "concluida" || t.status === "cancelada";
+      // Oculta finalizadas salvo se o toggle estiver ativo ou o filtro apontar para elas
+      if (finalizada && !mostrarFinalizadas && filtroStatus !== t.status) return false;
       if (filtroStatus === "atrasadas") { if (!tarefaAtrasada(t)) return false; }
       else if (filtroStatus !== "todos" && t.status !== filtroStatus) return false;
       if (filtroPrioridade !== "todos" && t.prioridade !== filtroPrioridade) return false;
@@ -79,7 +86,7 @@ export default function Tarefas() {
       if (diff !== 0) return diff;
       return new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime();
     });
-  }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
+  }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema, mostrarFinalizadas]);
 
   // Opções do seletor de status em destaque (chips)
   const STATUS_FILTERS = useMemo(
@@ -134,6 +141,16 @@ export default function Tarefas() {
               </Button>
             );
           })}
+          <div className="ml-auto flex items-center gap-2 px-1.5">
+            <Label htmlFor="mostrar-finalizadas" className="text-xs text-muted-foreground cursor-pointer">
+              Mostrar concluídas e canceladas
+            </Label>
+            <Switch
+              id="mostrar-finalizadas"
+              checked={mostrarFinalizadas}
+              onCheckedChange={setMostrarFinalizadas}
+            />
+          </div>
         </div>
       </div>
 
