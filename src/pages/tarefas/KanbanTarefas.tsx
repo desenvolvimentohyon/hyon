@@ -3,6 +3,7 @@ import { Tarefa, StatusTarefa, STATUS_ORDER } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
 import { statusRowColor } from "./helpers";
@@ -69,6 +70,25 @@ export function KanbanTarefas({ filteredTarefas, isAtrasada, statusColor, priori
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <Badge className={`text-[9px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge>
                             <Badge className={`text-[9px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge>
+                          </div>
+                          <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} draggable={false} onDragStart={e => { e.preventDefault(); e.stopPropagation(); }}>
+                            <Select
+                              value={t.status}
+                              onValueChange={(v) => {
+                                if (v === t.status) return;
+                                updateTarefa(t.id, { status: v as StatusTarefa }, `Status alterado para ${getStatusLabel(v as StatusTarefa)}`);
+                                toast({ title: `Status: ${getStatusLabel(v as StatusTarefa)}` });
+                              }}
+                            >
+                              <SelectTrigger className={`h-7 w-full border-0 text-[11px] font-medium ${statusColor(t.status)}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {STATUS_ORDER.map((s: StatusTarefa) => (
+                                  <SelectItem key={s} value={s} className="text-xs">{getStatusLabel(s)}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>{t.clienteId ? getCliente(t.clienteId)?.nome?.split(" ")[0] : (t.nomeClienteAvulso?.split(" ")[0] || "Avulsa")}</span>
