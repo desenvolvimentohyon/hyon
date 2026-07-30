@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,16 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type MeetingStatus = "agendada" | "realizada" | "remarcada" | "cancelada";
+
+interface StatusHistoryEntry {
+  id: string;
+  from_status: string | null;
+  to_status: string;
+  note: string | null;
+  changed_by: string | null;
+  created_at: string;
+}
+
 
 interface ExternalGuest {
   name: string;
@@ -102,7 +112,25 @@ export default function Reunioes() {
   const [savingClient, setSavingClient] = useState(false);
   const [originalStatus, setOriginalStatus] = useState<MeetingStatus>("agendada");
   const [confirmStatus, setConfirmStatus] = useState<MeetingStatus | null>(null);
+  const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const gCal = useGoogleCalendar();
+
+  const loadHistory = async (meetingId: string) => {
+    setLoadingHistory(true);
+    const { data, error } = await supabase
+      .from("meeting_history")
+      .select("id, from_status, to_status, note, changed_by, created_at")
+      .eq("meeting_id", meetingId)
+      .order("created_at", { ascending: false });
+    if (error) {
+      setHistory([]);
+    } else {
+      setHistory((data || []) as StatusHistoryEntry[]);
+    }
+    setLoadingHistory(false);
+  };
+
 
   const handleCreateClient = async () => {
     if (!newClient.nome.trim()) return toast.error("Informe o nome do cliente");
@@ -191,6 +219,7 @@ export default function Reunioes() {
     setEditingId(null);
     setForm(emptyForm());
     setOriginalStatus("agendada");
+    setHistory([]);
     setOpenForm(true);
   };
 
@@ -211,6 +240,8 @@ export default function Reunioes() {
       external_guests: m.external_guests || [],
       notes: m.notes || "",
     });
+    setHistory([]);
+    loadHistory(m.id);
     setOpenForm(true);
   };
 
@@ -257,6 +288,21 @@ export default function Reunioes() {
     if (editingId) {
       const { error } = await supabase.from("meetings").update(payload).eq("id", editingId);
       if (error) return toast.error("Erro ao atualizar");
+
+      // Registra a mudança de status no histórico da reunião
+      if (form.status !== originalStatus) {
+        const { error: histError } = await supabase.from("meeting_history").insert({
+          org_id: profile.org_id,
+          meeting_id: editingId,
+          from_status: originalStatus,
+          to_status: form.status,
+          note: form.notes.trim() || null,
+          changed_by: user.id,
+        });
+        if (histError) toast.warning("Reunião salva, mas o histórico não pôde ser registrado");
+        setOriginalStatus(form.status);
+      }
+
       toast.success("Reunião atualizada");
     } else {
       const { error } = await supabase.from("meetings").insert(payload);
@@ -267,6 +313,7 @@ export default function Reunioes() {
     setOpenForm(false);
     loadMeetings();
   };
+
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -556,7 +603,42 @@ export default function Reunioes() {
               <Label>Notas / Ata</Label>
               <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} placeholder="Pauta, decisões, próximos passos..." />
             </div>
+
+            {editingId && (
+              <div className="rounded-lg border p-3">
+                <Label className="flex items-center gap-2 mb-2">
+                  <HistoryIcon className="h-4 w-4" /> Histórico de status
+                </Label>
+                {loadingHistory ? (
+                  <p className="text-xs text-muted-foreground">Carregando histórico...</p>
+                ) : history.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Nenhuma alteração de status registrada até o momento.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {history.map((h) => (
+                      <li key={h.id} className="flex flex-col gap-1 border-l-2 border-border pl-3">
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                          <Badge variant="outline" className={cn("text-[10px]", h.from_status ? STATUS_STYLE[h.from_status as MeetingStatus]?.className : undefined)}>
+                            {h.from_status ? STATUS_STYLE[h.from_status as MeetingStatus]?.label ?? h.from_status : "—"}
+                          </Badge>
+                          <span className="text-muted-foreground">→</span>
+                          <Badge variant="outline" className={cn("text-[10px]", STATUS_STYLE[h.to_status as MeetingStatus]?.className)}>
+                            {STATUS_STYLE[h.to_status as MeetingStatus]?.label ?? h.to_status}
+                          </Badge>
+                          <span className="text-muted-foreground">
+                            · {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            {h.changed_by ? ` · ${users.find((u) => u.id === h.changed_by)?.nome || "Usuário"}` : ""}
+                          </span>
+                        </div>
+                        {h.note && <p className="text-xs text-muted-foreground">{h.note}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
+
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenForm(false)}>Cancelar</Button>
