@@ -200,7 +200,22 @@ export default function Tarefas() {
                     <TableCell><span className="font-medium text-sm">{t.titulo}</span></TableCell>
                     <TableCell><Badge className={`text-[10px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge></TableCell>
                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : (t.nomeClienteAvulso || "Avulsa")}</TableCell>
-                    <TableCell><Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge></TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <Select
+                        value={t.status}
+                        onValueChange={(v) => updateTarefa(t.id, { status: v as StatusTarefa }, `Status alterado para ${getStatusLabel(v as StatusTarefa)}`)}
+                      >
+                        <SelectTrigger className={`h-8 w-[150px] border-0 text-xs font-medium ${statusColor(t.status)}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_ORDER.map(s => (
+                            <SelectItem key={s} value={s} className="text-xs">{getStatusLabel(s)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+
                     <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
