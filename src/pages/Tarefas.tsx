@@ -276,6 +276,7 @@ export default function Tarefas() {
           getTecnico={getTecnico}
           updateTarefa={updateTarefa}
           navigate={navigate}
+          mostrarFinalizadas={mostrarFinalizadas}
         />
       )}
 
