@@ -67,7 +67,18 @@ export default function Tarefas() {
       if (filtroTipo !== "todos" && t.tipoOperacional !== filtroTipo) return false;
       if (filtroSistema !== "todos" && t.sistemaRelacionado !== filtroSistema) return false;
       return true;
-    }).sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
+    }).sort((a, b) => {
+      // Ordena por status (ordem do fluxo); concluídas/canceladas sempre no final
+      const rank = (t: Tarefa) => {
+        const idx = STATUS_ORDER.indexOf(t.status);
+        if (t.status === "concluida") return 100;
+        if (t.status === "cancelada") return 101;
+        return idx === -1 ? 99 : idx;
+      };
+      const diff = rank(a) - rank(b);
+      if (diff !== 0) return diff;
+      return new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime();
+    });
   }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
 
   // Opções do seletor de status em destaque (chips)
