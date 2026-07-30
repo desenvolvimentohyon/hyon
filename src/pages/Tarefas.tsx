@@ -139,6 +139,16 @@ export default function Tarefas() {
               </Button>
             );
           })}
+          <div className="ml-auto flex items-center gap-2 px-1.5">
+            <Label htmlFor="mostrar-finalizadas" className="text-xs text-muted-foreground cursor-pointer">
+              Mostrar concluídas e canceladas
+            </Label>
+            <Switch
+              id="mostrar-finalizadas"
+              checked={mostrarFinalizadas}
+              onCheckedChange={setMostrarFinalizadas}
+            />
+          </div>
         </div>
       </div>
 
