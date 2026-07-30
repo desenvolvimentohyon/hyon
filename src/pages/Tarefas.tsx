@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Tarefa, Prioridade, STATUS_ORDER, TipoOperacional } from "@/types";
+import { Tarefa, Prioridade, STATUS_ORDER, TipoOperacional, StatusTarefa } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
