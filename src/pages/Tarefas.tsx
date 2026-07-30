@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Tarefa, Prioridade, STATUS_ORDER, TipoOperacional } from "@/types";
+import { Tarefa, Prioridade, STATUS_ORDER, TipoOperacional, StatusTarefa } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, ClipboardList } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
@@ -70,6 +70,17 @@ export default function Tarefas() {
     }).sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
   }, [tarefas, busca, filtroStatus, filtroPrioridade, filtroTecnico, filtroCliente, filtroTipo, filtroSistema]);
 
+  // Opções do seletor de status em destaque (chips)
+  const STATUS_FILTERS = useMemo(
+    () => [
+      { value: "todos", label: "Todos" },
+      ...STATUS_ORDER.map(s => ({ value: s as string, label: getStatusLabel(s) })),
+      { value: "atrasadas", label: "Atrasadas" },
+    ],
+    [getStatusLabel]
+  );
+
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -86,19 +97,41 @@ export default function Tarefas() {
       />
       <ModuleNavGrid moduleId="operacional" />
 
+      {/* Seletor de status em destaque */}
+      <div className="rounded-lg border bg-card p-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="px-1.5 text-xs font-medium text-muted-foreground">Status:</span>
+          {STATUS_FILTERS.map(opt => {
+            const ativo = filtroStatus === opt.value;
+            const count = opt.value === "todos"
+              ? tarefas.length
+              : opt.value === "atrasadas"
+                ? tarefas.filter(tarefaAtrasada).length
+                : tarefas.filter(t => t.status === opt.value).length;
+            return (
+              <Button
+                key={opt.value}
+                type="button"
+                size="sm"
+                variant={ativo ? "default" : "outline"}
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setFiltroStatus(opt.value)}
+              >
+                {opt.value === "atrasadas" && <AlertTriangle className="h-3.5 w-3.5" />}
+                {opt.label}
+                <span className={`rounded px-1 text-[10px] ${ativo ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"}`}>{count}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-9" />
         </div>
-        <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-          <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos Status</SelectItem>
-            <SelectItem value="atrasadas">Atrasadas</SelectItem>
-            {STATUS_ORDER.map(s => <SelectItem key={s} value={s}>{getStatusLabel(s)}</SelectItem>)}
-          </SelectContent>
-        </Select>
+
         <Select value={filtroTipo} onValueChange={setFiltroTipo}>
           <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -167,7 +200,22 @@ export default function Tarefas() {
                     <TableCell><span className="font-medium text-sm">{t.titulo}</span></TableCell>
                     <TableCell><Badge className={`text-[10px] ${tipoConfig.bgClass}`}>{tipoConfig.label}</Badge></TableCell>
                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.clienteId ? getCliente(t.clienteId)?.nome : (t.nomeClienteAvulso || "Avulsa")}</TableCell>
-                    <TableCell><Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge></TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <Select
+                        value={t.status}
+                        onValueChange={(v) => updateTarefa(t.id, { status: v as StatusTarefa }, `Status alterado para ${getStatusLabel(v as StatusTarefa)}`)}
+                      >
+                        <SelectTrigger className={`h-8 w-[150px] border-0 text-xs font-medium ${statusColor(t.status)}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_ORDER.map(s => (
+                            <SelectItem key={s} value={s} className="text-xs">{getStatusLabel(s)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+
                     <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
