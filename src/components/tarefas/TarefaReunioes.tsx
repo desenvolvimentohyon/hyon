@@ -109,7 +109,8 @@ export function TarefaReunioes({
   const statusChips: { value: StatusFilter; label: string }[] = [
     { value: "todas", label: "Todas" },
     { value: "agendada", label: "Agendadas" },
-    { value: "realizada", label: "Realizadas" },
+    { value: "realizada", label: "Concluídas" },
+    { value: "remarcada", label: "Remarcadas" },
     { value: "cancelada", label: "Canceladas" },
   ];
   const timeChips: { value: TimeFilter; label: string }[] = [
