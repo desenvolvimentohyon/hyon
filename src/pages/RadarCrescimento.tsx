@@ -61,6 +61,8 @@ export default function RadarCrescimento() {
           </Card>
         ))}
       </div>
+
+      <GrowthGoals />
     </div>
   );
 }
