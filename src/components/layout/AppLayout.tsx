@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { memo } from "react";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 import { IAAssistant } from "@/features/ia/components/IAAssistant";
+import { CommandMenu } from "@/shared/components/navigation/CommandMenu";
 
 import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
