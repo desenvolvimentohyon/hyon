@@ -35,11 +35,11 @@ export function GrowthGoals() {
     let current = 0;
     if (goal.category === 'mrr') {
       current = clientesReceita
-        .filter(c => c.mensalidadeAtiva && (!goal.system_id || c.sistema === sistemas.find(s => s.id === goal.system_id)?.nome))
+        .filter(c => c.mensalidadeAtiva && (!goal.system_id || c.sistemaPrincipal === sistemas.find(s => s.id === goal.system_id)?.nome))
         .reduce((s, c) => s + c.valorMensalidade, 0);
     } else {
       current = clientesReceita
-        .filter(c => c.statusCliente === 'ativo' && (!goal.system_id || c.sistema === sistemas.find(s => s.id === goal.system_id)?.nome))
+        .filter(c => c.statusCliente === 'ativo' && (!goal.system_id || c.sistemaPrincipal === sistemas.find(s => s.id === goal.system_id)?.nome))
         .length;
     }
     
