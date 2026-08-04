@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.6.0",
+    date: "2026-08-04",
+    changes: [
+      { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
+      { type: "melhoria", text: "Atalho 'Metas e Crescimento' adicionado ao Dashboard principal." },
+      { type: "melhoria", text: "Acompanhamento de progresso de MRR e Clientes Ativos por sistema." },
+    ],
+  },
+  {
     version: "1.5.0",
     date: "2026-07-24",
     changes: [
