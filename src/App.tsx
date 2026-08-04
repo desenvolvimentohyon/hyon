@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, memo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PwaInstallBanner } from "@/components/PwaInstallBanner";
 import Auth from "./pages/Auth";
 
-// Lazy-loaded pages
+// Lazy-loaded pages with prefetch hints
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const RadarCrescimento = lazy(() => import("./pages/RadarCrescimento"));
 const Tarefas = lazy(() => import("./pages/Tarefas"));
@@ -69,20 +69,21 @@ function AceiteRedirect() {
   return <Navigate to={`/proposta/${numero}`} replace />;
 }
 
-function PageSkeleton() {
-  return (
-    <div className="flex h-full items-center justify-center p-8">
-      <div className="space-y-4 w-full max-w-md">
-        <Skeleton className="h-8 w-48 mx-auto" />
-        <Skeleton className="h-4 w-64 mx-auto" />
-        <div className="grid grid-cols-2 gap-4 mt-8">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-        </div>
-      </div>
+// Optimized PageSkeleton
+const PageSkeleton = memo(() => (
+  <div className="flex flex-col h-full p-6 animate-pulse space-y-6">
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-10 w-48 rounded-lg" />
+      <Skeleton className="h-10 w-32 rounded-lg" />
     </div>
-  );
-}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Skeleton className="h-32 rounded-xl" />
+      <Skeleton className="h-32 rounded-xl" />
+      <Skeleton className="h-32 rounded-xl" />
+    </div>
+    <Skeleton className="h-[400px] w-full rounded-xl" />
+  </div>
+));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +91,7 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
