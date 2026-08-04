@@ -16,6 +16,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Executar uma auditoria com Lighthouse e registrar um baseline de LCP, FID e CLS para comparar depois das otimizações." },
       { type: "melhoria", text: "Otimizar o carregamento de fontes críticas com preload e fallback para reduzir o tempo de renderização inicial." },
       { type: "melhoria", text: "Implementar as tags de preload para a fonte Space Grotesk no index.html para melhorar o LCP." },
+      { type: "melhoria", text: "Edite o arquivo index.html para incluir as tags de preload da fonte Space Grotesk e garantir melhor prioridade de carregamento." },
       { type: "novo", text: "Assistente de IA Hyon integrado para análise de métricas em tempo real." },
       { type: "novo", text: "Criar as RPCs de banco de dados (calculate_mrr, calculate_churn) para alimentar a IA com dados reais." },
       { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
