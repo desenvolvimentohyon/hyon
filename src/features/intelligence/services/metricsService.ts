@@ -9,8 +9,8 @@ export function useIntelligenceMetrics() {
   return useQuery({
     queryKey: ["intelligence_metrics"],
     queryFn: async () => {
-      // Simulação de métricas enquanto as RPCs não são criadas no banco
-      // Em produção, estas chamadas seriam rpc() reais
+      // Criar as RPCs de banco de dados (calculate_mrr, calculate_churn) para alimentar a IA com dados reais.
+      // Em produção, estas chamadas seriam rpc() reais.
       return {
         mrr: 125000,
         churn: 1.2,
