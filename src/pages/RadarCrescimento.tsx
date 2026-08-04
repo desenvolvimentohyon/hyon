@@ -4,10 +4,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Rocket, TrendingUp, TrendingDown, DollarSign, Users, Percent,
+  Rocket, TrendingUp, TrendingDown, DollarSign, Users, Percent, Target
 } from "lucide-react";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useApp } from "@/contexts/AppContext";
+import { GrowthGoals } from "@/components/inteligencia/GrowthGoals";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
