@@ -20,6 +20,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "novo", text: "Assistente de IA Hyon integrado para análise de métricas em tempo real." },
       { type: "novo", text: "Criar as RPCs de banco de dados (calculate_mrr, calculate_churn) para alimentar a IA com dados reais." },
       { type: "novo", text: "Quero que a IA do sistema consiga preencher contratos e enviar para os clientes." },
+      { type: "novo", text: "Implemente um editor de templates de contrato com campos variáveis para clientes, técnicos e tarefas." },
       { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
       { type: "melhoria", text: "Atalho 'Metas e Crescimento' adicionado ao Dashboard principal." },
       { type: "melhoria", text: "Acompanhamento de progresso de MRR e Clientes Ativos por sistema." },
