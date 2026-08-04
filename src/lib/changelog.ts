@@ -22,6 +22,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "novo", text: "Quero que a IA do sistema consiga preencher contratos e enviar para os clientes." },
       { type: "novo", text: "Implemente um editor de templates de contrato com campos variáveis para clientes, técnicos e tarefas." },
       { type: "melhoria", text: "Adicione uma pré-visualização do contrato preenchido pela IA antes de finalizar o envio para eu revisar o conteúdo." },
+      { type: "novo", text: "Crie uma fila de “envios simulados” com status, histórico e opção de reenviar para eu validar o fluxo sem backend." },
       { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
       { type: "melhoria", text: "Atalho 'Metas e Crescimento' adicionado ao Dashboard principal." },
       { type: "melhoria", text: "Acompanhamento de progresso de MRR e Clientes Ativos por sistema." },
