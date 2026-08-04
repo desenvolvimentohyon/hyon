@@ -155,6 +155,7 @@ export function AppSidebar() {
                                 : "border-transparent text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             )}
                             activeClassName=""
+                            onMouseEnter={() => prefetchPage(targetUrl)}
                           >
                             <mod.icon className={cn("h-[18px] w-[18px]", isParentActive ? palette.icon : "")} />
                           </NavLink>
