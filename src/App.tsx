@@ -1,4 +1,4 @@
-import { lazy, Suspense, memo } from "react";
+import { lazy, Suspense, memo, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -99,6 +99,18 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   const { user, loading } = useAuth();
+  
+  useEffect(() => {
+    if (user) {
+      // Prefetch de dados críticos ao entrar
+      queryClient.prefetchQuery({
+        queryKey: ["intelligence_metrics"],
+        queryFn: async () => { /* ... */ }
+      });
+    }
+  }, [user]);
+
+
 
   if (loading) return <PageSkeleton />;
 
