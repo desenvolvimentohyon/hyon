@@ -19,6 +19,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Edite o arquivo index.html para incluir as tags de preload da fonte Space Grotesk e garantir melhor prioridade de carregamento." },
       { type: "novo", text: "Assistente de IA Hyon integrado para análise de métricas em tempo real." },
       { type: "novo", text: "Criar as RPCs de banco de dados (calculate_mrr, calculate_churn) para alimentar a IA com dados reais." },
+      { type: "novo", text: "Quero que a IA do sistema consiga preencher contratos e enviar para os clientes." },
       { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
       { type: "melhoria", text: "Atalho 'Metas e Crescimento' adicionado ao Dashboard principal." },
       { type: "melhoria", text: "Acompanhamento de progresso de MRR e Clientes Ativos por sistema." },
