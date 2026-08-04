@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Target, TrendingUp, Plus, Calendar } from "lucide-react";
+import { Target, TrendingUp, Plus, Calendar, Pencil } from "lucide-react";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { useReceita } from "@/contexts/ReceitaContext";
 import {
@@ -207,7 +207,7 @@ export function GrowthGoals() {
                             target_date: goal.target_date
                           })}
                         >
-                          <TrendingUp className="h-3.5 w-3.5" />
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
