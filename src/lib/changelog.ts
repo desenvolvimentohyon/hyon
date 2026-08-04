@@ -18,6 +18,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Implementar o componente de CommandPalette real usando cmdk para navegação rápida por todo o sistema." },
       { type: "melhoria", text: "Mapear as rotas dinâmicas de clientes e tarefas específicas para que elas apareçam no CommandPalette ao buscar." },
       { type: "melhoria", text: "Validar a acessibilidade do CommandPalette com navegação 100% via teclado (Tab, Enter, Esc) e foco correto no modal." },
+      { type: "melhoria", text: "Conectar a busca do CommandPalette ao meu estado local e ao localStorage para listar clientes e tarefas dinamicamente." },
     ],
   },
   {
