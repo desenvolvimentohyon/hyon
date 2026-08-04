@@ -324,6 +324,7 @@ export function AppSidebar() {
                               <NavLink
                                 to={child.url}
                                 end={child.url === "/" || child.url === "/financeiro"}
+                                onMouseEnter={() => prefetchPage(child.url)}
                                 className={cn(
                                   "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 text-[12px] mx-1",
                                   active
