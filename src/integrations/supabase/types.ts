@@ -1958,6 +1958,47 @@ export type Database = {
         }
         Relationships: []
       }
+      growth_goals: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          org_id: string
+          system_id: string | null
+          target_date: string
+          target_value: number
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          org_id?: string
+          system_id?: string | null
+          target_date: string
+          target_value: number
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          org_id?: string
+          system_id?: string | null
+          target_date?: string
+          target_value?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_goals_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "systems_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       landing_plan_leads: {
         Row: {
           contact_company: string | null
