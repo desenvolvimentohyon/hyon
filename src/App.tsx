@@ -18,6 +18,7 @@ import Auth from "./pages/Auth";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const RadarCrescimento = lazy(() => import("./pages/RadarCrescimento"));
 const Tarefas = lazy(() => import("./pages/Tarefas"));
 const TarefaDetalhe = lazy(() => import("./pages/TarefaDetalhe"));
 const ClientesReceita = lazy(() => import("./pages/ClientesReceita"));
@@ -140,7 +141,7 @@ function AuthGate() {
                       <Route path="/suporte" element={<Suporte />} />
                       <Route path="/reunioes" element={<Reunioes />} />
                       <Route path="/executivo" element={<Executivo />} />
-                      <Route path="/radar-crescimento" element={<Navigate to="/executivo" replace />} />
+                      <Route path="/radar-de-crescimento" element={<RadarCrescimento />} />
                       <Route path="/propostas" element={<Propostas />} />
                       <Route path="/propostas/nova" element={<PropostaInteligente />} />
                       <Route path="/propostas/:id" element={<PropostaDetalhe />} />
