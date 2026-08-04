@@ -10,6 +10,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: "1.7.0",
     date: "2026-08-04",
     changes: [
+      { type: "melhoria", text: "Otimização profunda em toda a aplicação com foco em performance, fluidez e UX." },
       { type: "novo", text: "Assistente de IA Hyon integrado para análise de métricas em tempo real." },
       { type: "novo", text: "Criar as RPCs de banco de dados (calculate_mrr, calculate_churn) para alimentar a IA com dados reais." },
       { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
@@ -20,7 +21,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Validar a acessibilidade do CommandPalette com navegação 100% via teclado (Tab, Enter, Esc) e foco correto no modal." },
       { type: "melhoria", text: "Conectar a busca do CommandPalette ao meu estado local e ao localStorage para listar clientes e tarefas dinamicamente." },
       { type: "melhoria", text: "Implementar a sincronização em tempo real do CommandMenu com meus dados em localStorage para que criar, editar e excluir clientes e tarefas atualizem os resultados instantaneamente." },
-      { type: "melhoria", text: "Implementar a invalidação de queries do TanStack Query no CommandMenu para que a busca reflita imediatamente criações, edições e exclusões de clientes e tarefas no localStorage." },
+      { type: "melhoria", text: "Implementar la invalidação de queries do TanStack Query no CommandMenu para que a busca reflita imediatamente criações, edições e exclusões de clientes e tarefas no localStorage." },
       { type: "melhoria", text: "Validar a performance da busca dinâmica com grandes volumes de dados locais." },
     ],
   },
