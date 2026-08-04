@@ -1,4 +1,6 @@
+import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/core/logger/logger";
+
 
 /**
  * Utilitário de pesquisa global (Command Palette logic)
@@ -8,7 +10,7 @@ export const globalSearch = async (query: string) => {
   
   try {
     const { data, error } = await supabase
-      .from('global_search_view') // View sugerida para o banco
+      .from('clients') // Usando clients como fallback enquanto a view global não existe
       .select('*')
       .ilike('content', `%${query}%`)
       .limit(10);
