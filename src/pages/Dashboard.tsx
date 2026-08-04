@@ -857,6 +857,20 @@ export default function Dashboard() {
         )}
 
         {/* ══ LINHA 2 — Painel grande + laterais ═══════════════════ */}
+        <div className="grid gap-4 lg:grid-cols-4 mb-4">
+           <Card className="neon-border border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-all group" onClick={() => navigate("/radar-de-crescimento")}>
+             <CardContent className="p-4 flex items-center justify-between">
+               <div>
+                 <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Metas e Crescimento</p>
+                 <p className="text-xs text-muted-foreground leading-tight">Acompanhe objetivos e KPIs<br/>de forma inteligente.</p>
+               </div>
+               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                 <Target className="h-5 w-5 text-primary" />
+               </div>
+             </CardContent>
+           </Card>
+        </div>
+
         {dataLoading ? <ChartsSkeleton /> : (
         <div className="grid gap-4 lg:grid-cols-12">
           {/* Painel principal — Evolução */}
