@@ -13,6 +13,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Otimização profunda em toda a aplicação com foco em performance, fluidez e UX." },
       { type: "melhoria", text: "Implementar melhorias de performance técnica (Lazy Loading, Code Splitting)." },
       { type: "melhoria", text: "Validar as métricas de Core Web Vitals após as otimizações profundas." },
+      { type: "melhoria", text: "Executar uma auditoria com Lighthouse e registrar um baseline de LCP, FID e CLS para comparar depois das otimizações." },
       { type: "novo", text: "Assistente de IA Hyon integrado para análise de métricas em tempo real." },
       { type: "novo", text: "Criar as RPCs de banco de dados (calculate_mrr, calculate_churn) para alimentar a IA com dados reais." },
       { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
