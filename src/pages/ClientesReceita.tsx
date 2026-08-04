@@ -126,7 +126,7 @@ export default function Clientes() {
     if (selectedIds.size === 0) return;
     setBatchSaving(true);
     try {
-      const updates: Record<string, any> = {};
+      const updates: any = {};
       if (batchDueDay) updates.default_due_day = Number(batchDueDay);
       if (batchAdjustment) updates.adjustment_type = batchAdjustment;
       if (batchTaxRegime) updates.tax_regime = batchTaxRegime;
