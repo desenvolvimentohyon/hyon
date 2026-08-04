@@ -73,6 +73,7 @@ export const AppLayout = memo(() => {
             </AnimatePresence>
           </main>
           <IAAssistant />
+          <CommandMenu />
         </div>
 
       </div>
