@@ -82,9 +82,9 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
     isFetchingRef.current = true;
     if (!initialLoadedRef.current) setLoading(true);
     const [cRes, seRes, maRes] = await Promise.all([
-      supabase.from("clients").select("*"),
-      supabase.from("support_events").select("*"),
-      supabase.from("monthly_adjustments" as any).select("*"),
+      supabase.from("clients").select("*").order("created_at", { ascending: false }).limit(500),
+      supabase.from("support_events").select("*").order("created_at", { ascending: false }).limit(200),
+      supabase.from("monthly_adjustments" as any).select("*").order("created_at", { ascending: false }).limit(100),
     ]);
     if (cRes.data) setClientesReceita(cRes.data.map(dbToClienteReceita));
     if (seRes.data) setSuporteEventos(seRes.data.map(dbToSuporteEvento));

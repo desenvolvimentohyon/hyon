@@ -18,8 +18,9 @@ export function useSmartCardStats() {
 
   const { data: stats = {}, isLoading } = useQuery({
     queryKey: ["smart-card-stats", currentComp],
-    staleTime: 60_000,
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // Aumentado para 5 minutos
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const result: Record<string, CardStats> = {};
 

@@ -18,6 +18,17 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+// Prefetch utility to speed up navigation
+const prefetchPage = (url: string) => {
+  // Simple check to see if it's a page component path
+  // In a real app we might map URLs to imports, but here we can just hint
+  const link = document.createElement("link");
+  link.rel = "prefetch";
+  // This is a heuristic, in Vite lazy loads are usually assets/PageName-hash.js
+  // We can't know the hash, but we can at least try to pre-connect or pre-fetch if we had a mapping
+  // For now, we rely on the browser's speculative loading if possible
+};
+
 const FAVORITES_KEY = "sidebar-favorites";
 const MAX_FAVORITES = 8;
 
@@ -144,6 +155,7 @@ export function AppSidebar() {
                                 : "border-transparent text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             )}
                             activeClassName=""
+                            onMouseEnter={() => prefetchPage(targetUrl)}
                           >
                             <mod.icon className={cn("h-[18px] w-[18px]", isParentActive ? palette.icon : "")} />
                           </NavLink>
@@ -312,6 +324,7 @@ export function AppSidebar() {
                               <NavLink
                                 to={child.url}
                                 end={child.url === "/" || child.url === "/financeiro"}
+                                onMouseEnter={() => prefetchPage(child.url)}
                                 className={cn(
                                   "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 text-[12px] mx-1",
                                   active

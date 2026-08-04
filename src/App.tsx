@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, memo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PwaInstallBanner } from "@/components/PwaInstallBanner";
 import Auth from "./pages/Auth";
 
-// Lazy-loaded pages
+// Lazy-loaded pages with consistent naming
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const RadarCrescimento = lazy(() => import("./pages/RadarCrescimento"));
 const Tarefas = lazy(() => import("./pages/Tarefas"));
@@ -69,20 +69,20 @@ function AceiteRedirect() {
   return <Navigate to={`/proposta/${numero}`} replace />;
 }
 
-function PageSkeleton() {
-  return (
-    <div className="flex h-full items-center justify-center p-8">
-      <div className="space-y-4 w-full max-w-md">
-        <Skeleton className="h-8 w-48 mx-auto" />
-        <Skeleton className="h-4 w-64 mx-auto" />
-        <div className="grid grid-cols-2 gap-4 mt-8">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-        </div>
-      </div>
+const PageSkeleton = memo(() => (
+  <div className="flex flex-col h-full p-4 sm:p-6 animate-pulse space-y-6 overflow-hidden">
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-9 sm:h-10 w-40 sm:w-48 rounded-lg" />
+      <Skeleton className="h-9 sm:h-10 w-24 sm:w-32 rounded-lg" />
     </div>
-  );
-}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <Skeleton className="h-28 sm:h-32 rounded-xl" />
+      <Skeleton className="h-28 sm:h-32 rounded-xl" />
+      <Skeleton className="h-28 sm:h-32 rounded-xl hidden lg:block" />
+    </div>
+    <Skeleton className="h-[300px] sm:h-[400px] w-full rounded-xl" />
+  </div>
+));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +90,7 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
@@ -97,26 +98,9 @@ const queryClient = new QueryClient({
 function AuthGate() {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="space-y-4 w-full max-w-md p-8">
-          <Skeleton className="h-8 w-48 mx-auto" />
-          <Skeleton className="h-4 w-64 mx-auto" />
-          <div className="grid grid-cols-2 gap-4 mt-8">
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton />;
 
-  if (!user) {
-    return <Auth />;
-  }
+  if (!user) return <Navigate to="/auth" replace />;
 
   return (
     <UsersProvider>
@@ -129,38 +113,34 @@ function AuthGate() {
                   <Routes>
                     <Route element={<AppLayout />}>
                       <Route path="/" element={<Dashboard />} />
-                      <Route path="/cockpit" element={<Navigate to="/executivo" replace />} />
-                      <Route path="/tarefas" element={<Tarefas />} />
-                      <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
+                      <Route path="/executivo" element={<Executivo />} />
+                      <Route path="/radar" element={<RadarCrescimento />} />
                       <Route path="/clientes" element={<ClientesReceita />} />
-                      <Route path="/receita" element={<Navigate to="/clientes" replace />} />
-                      <Route path="/tecnicos" element={<Tecnicos />} />
-                      <Route path="/configuracoes" element={<Configuracoes />} />
+                      <Route path="/receita" element={<Receita />} />
                       <Route path="/comercial" element={<Comercial />} />
                       <Route path="/implantacao" element={<Implantacao />} />
                       <Route path="/suporte" element={<Suporte />} />
+                      <Route path="/tecnicos" element={<Tecnicos />} />
+                      <Route path="/configuracoes" element={<Configuracoes />} />
                       <Route path="/reunioes" element={<Reunioes />} />
-                      <Route path="/executivo" element={<Executivo />} />
-                      <Route path="/radar-de-crescimento" element={<RadarCrescimento />} />
+                      <Route path="/tarefas" element={<Tarefas />} />
+                      <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
                       <Route path="/propostas" element={<Propostas />} />
-                      <Route path="/propostas/nova" element={<PropostaInteligente />} />
                       <Route path="/propostas/:id" element={<PropostaDetalhe />} />
+                      <Route path="/proposta-inteligente" element={<PropostaInteligente />} />
                       <Route path="/crm" element={<CRM />} />
                       <Route path="/usuarios" element={<UsuariosConfig />} />
                       <Route path="/parametros" element={<Navigate to="/configuracoes" replace />} />
                       <Route path="/acesso-negado" element={<AcessoNegado />} />
                       <Route path="/parceiros" element={<Parceiros />} />
                       <Route path="/checkout-interno" element={<CheckoutInterno />} />
-                      {/* Desenvolvimento */}
                       <Route path="/desenvolvimento" element={<Desenvolvimento />} />
                       <Route path="/desenvolvimento/:id" element={<DesenvolvimentoDetalhe />} />
-                      {/* Cartões */}
                       <Route path="/cartoes" element={<CardDashboard />} />
                       <Route path="/cartoes/clientes" element={<CardClientes />} />
                       <Route path="/cartoes/clientes/:id" element={<CardClienteDetalhe />} />
                       <Route path="/cartoes/propostas" element={<CardPropostas />} />
                       <Route path="/cartoes/faturamento" element={<CardFaturamento />} />
-                      {/* Financeiro */}
                       <Route path="/financeiro" element={<FinanceiroVisaoGeral />} />
                       <Route path="/financeiro/contas-a-receber" element={<ContasReceber />} />
                       <Route path="/financeiro/contas-a-pagar" element={<ContasPagar />} />
@@ -171,7 +151,6 @@ function AuthGate() {
                       <Route path="/financeiro/configuracoes" element={<ConfiguracoesFinanceiras />} />
                       <Route path="/financeiro/gerar-mensalidades" element={<GerarMensalidades />} />
                     </Route>
-                    
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
@@ -193,6 +172,7 @@ const App = () => (
         <AuthProvider>
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
+              <Route path="/auth" element={<Auth />} />
               <Route path="/aceite/:numero" element={<AceiteRedirect />} />
               <Route path="/bio" element={<LandingPage />} />
               <Route path="/landing" element={<Navigate to="/bio" replace />} />
