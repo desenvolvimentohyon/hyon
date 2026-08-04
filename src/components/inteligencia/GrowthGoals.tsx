@@ -25,6 +25,15 @@ export function GrowthGoals() {
   const { sistemas } = useParametros();
   const { clientesReceita } = useReceita();
   
+  // Estado para gerenciar o formulário
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    system_id: "global",
+    category: "mrr",
+    target_value: "",
+    target_date: ""
+  });
+
   // Estado mockado enquanto a tabela growth_goals é criada
   const [goals, setGoals] = useState([
     { id: '1', system_id: sistemas[0]?.id || '1', target_value: 50000, category: 'mrr', target_date: '2026-12-31' },
@@ -45,6 +54,42 @@ export function GrowthGoals() {
     
     const pct = Math.min(Math.round((current / goal.target_value) * 100), 100);
     return { current, pct };
+  };
+
+  const handleSaveGoal = async () => {
+    if (!formData.target_value || !formData.target_date) {
+      toast.error("Por favor, preencha o valor alvo e a data limite.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Simulação de delay de rede
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const newGoal = {
+        id: Math.random().toString(36).substr(2, 9),
+        system_id: formData.system_id === "global" ? null : formData.system_id,
+        category: formData.category,
+        target_value: Number(formData.target_value),
+        target_date: formData.target_date
+      };
+
+      setGoals(prev => [newGoal, ...prev]);
+      toast.success("Meta configurada com sucesso!");
+      
+      // Reset form
+      setFormData({
+        system_id: "global",
+        category: "mrr",
+        target_value: "",
+        target_date: ""
+      });
+    } catch (error) {
+      toast.error("Erro ao salvar meta.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -69,7 +114,10 @@ export function GrowthGoals() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label>Sistema (opcional)</Label>
-                <Select>
+                <Select 
+                  value={formData.system_id} 
+                  onValueChange={(v) => setFormData(f => ({ ...f, system_id: v }))}
+                >
                   <SelectTrigger><SelectValue placeholder="Global" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="global">Global (Todos)</SelectItem>
@@ -79,7 +127,10 @@ export function GrowthGoals() {
               </div>
               <div className="grid gap-2">
                 <Label>Categoria</Label>
-                <Select defaultValue="mrr">
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(v) => setFormData(f => ({ ...f, category: v }))}
+                >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="mrr">MRR (Recorrência)</SelectItem>
@@ -89,13 +140,28 @@ export function GrowthGoals() {
               </div>
               <div className="grid gap-2">
                 <Label>Valor Alvo</Label>
-                <Input type="number" placeholder="Ex: 50000" />
+                <Input 
+                  type="number" 
+                  placeholder={formData.category === 'mrr' ? "Ex: 50000" : "Ex: 100"} 
+                  value={formData.target_value}
+                  onChange={(e) => setFormData(f => ({ ...f, target_value: e.target.value }))}
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Data Limite</Label>
-                <Input type="date" />
+                <Input 
+                  type="date" 
+                  value={formData.target_date}
+                  onChange={(e) => setFormData(f => ({ ...f, target_date: e.target.value }))}
+                />
               </div>
-              <Button onClick={() => toast.success("Meta configurada com sucesso!")} className="mt-2">Salvar Meta</Button>
+              <Button 
+                onClick={handleSaveGoal} 
+                className="mt-2" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Salvando..." : "Salvar Meta"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
