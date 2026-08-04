@@ -15,7 +15,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
       { type: "melhoria", text: "Atalho 'Metas e Crescimento' adicionado ao Dashboard principal." },
       { type: "melhoria", text: "Acompanhamento de progresso de MRR e Clientes Ativos por sistema." },
-      { type: "melhoria", text: "Implementar o CommandPalette real usando cmdk para navegação rápida do sistema com Ctrl+K." },
+      { type: "melhoria", text: "Implementar o componente de CommandPalette real usando cmdk para navegação rápida por todo o sistema." },
     ],
   },
   {
