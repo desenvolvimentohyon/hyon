@@ -2,6 +2,8 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Outlet, useLocation } from "react-router-dom";
 import { memo } from "react";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
+import { IAAssistant } from "@/features/ia/components/IAAssistant";
+
 import { useApp } from "@/contexts/AppContext";
 import { useUsers } from "@/contexts/UsersContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,7 +71,9 @@ export const AppLayout = memo(() => {
               </PageTransition>
             </AnimatePresence>
           </main>
+          <IAAssistant />
         </div>
+
       </div>
     </SidebarProvider>
   );

@@ -1,4 +1,4 @@
-import { lazy, Suspense, memo } from "react";
+import { lazy, Suspense, memo, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,7 +14,9 @@ import { ParametrosProvider } from "@/contexts/ParametrosContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PwaInstallBanner } from "@/components/PwaInstallBanner";
+import { GlobalErrorBoundary } from "@/shared/components/GlobalErrorBoundary";
 import Auth from "./pages/Auth";
+
 
 // Lazy-loaded pages with consistent naming
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -97,6 +99,18 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   const { user, loading } = useAuth();
+  
+  useEffect(() => {
+    if (user) {
+      // Prefetch de dados críticos ao entrar
+      queryClient.prefetchQuery({
+        queryKey: ["intelligence_metrics"],
+        queryFn: async () => { /* ... */ }
+      });
+    }
+  }, [user]);
+
+
 
   if (loading) return <PageSkeleton />;
 
@@ -164,31 +178,33 @@ function AuthGate() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Suspense fallback={<PageSkeleton />}>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/aceite/:numero" element={<AceiteRedirect />} />
-              <Route path="/bio" element={<LandingPage />} />
-              <Route path="/landing" element={<Navigate to="/bio" replace />} />
-              <Route path="/proposta/:token" element={<PropostaPublica />} />
-              <Route path="/portal/:token" element={<PortalCliente />} />
-              <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
-              <Route path="/renovar/:token" element={<RenovarPlano />} />
-              <Route path="/acompanhamento" element={<TicketTracking />} />
-              <Route path="*" element={<AuthGate />} />
-            </Routes>
-          </Suspense>
-          <PwaInstallBanner />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <GlobalErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Suspense fallback={<PageSkeleton />}>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/aceite/:numero" element={<AceiteRedirect />} />
+                <Route path="/bio" element={<LandingPage />} />
+                <Route path="/landing" element={<Navigate to="/bio" replace />} />
+                <Route path="/proposta/:token" element={<PropostaPublica />} />
+                <Route path="/portal/:token" element={<PortalCliente />} />
+                <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
+                <Route path="/renovar/:token" element={<RenovarPlano />} />
+                <Route path="/acompanhamento" element={<TicketTracking />} />
+                <Route path="*" element={<AuthGate />} />
+              </Routes>
+            </Suspense>
+            <PwaInstallBanner />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </GlobalErrorBoundary>
 );
 
 export default App;
