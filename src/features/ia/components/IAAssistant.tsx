@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Bot, Cpu, TrendingUp, AlertCircle, X, Terminal, MessageSquare, Send, Sparkles } from "lucide-react";
+import { Bot, X, MessageSquare, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { iaService } from "../services/iaService";
 import { logger } from "@/core/logger/logger";
@@ -26,9 +24,12 @@ export function IAAssistant() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -60,8 +61,8 @@ export function IAAssistant() {
 
   const suggestions = [
     "Qual o MRR atual?",
-    "Previsão de inadimplência para este mês?",
-    "Resumo de churn dos últimos 30 dias",
+    "Previsão de inadimplência?",
+    "Resumo de churn",
     "Quantas reuniões hoje?"
   ];
 
@@ -97,7 +98,7 @@ export function IAAssistant() {
               </CardHeader>
 
               <CardContent className="p-0 h-[450px] flex flex-col">
-                <ScrollArea className="flex-1 p-4" viewportRef={scrollRef}>
+                <ScrollArea className="flex-1 p-4" ref={scrollRef}>
                   <div className="space-y-4">
                     {messages.length === 0 && (
                       <div className="text-center py-8 space-y-4">
@@ -106,8 +107,7 @@ export function IAAssistant() {
                         </div>
                         <h3 className="text-sm font-medium">Olá! Eu sou a inteligência da Hyon.</h3>
                         <p className="text-xs text-muted-foreground px-4">
-                          Pergunte-me sobre vendas, inadimplência, MRR ou sua agenda. 
-                          Estou conectada em tempo real aos seus dados.
+                          Pergunte-me sobre vendas, inadimplência, MRR ou sua agenda.
                         </p>
                         <div className="flex flex-wrap gap-2 justify-center pt-2">
                           {suggestions.map(s => (
@@ -196,3 +196,4 @@ export function IAAssistant() {
     </div>
   );
 }
+
