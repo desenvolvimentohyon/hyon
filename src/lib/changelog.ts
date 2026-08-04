@@ -19,6 +19,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Mapear as rotas dinâmicas de clientes e tarefas específicas para que elas apareçam no CommandPalette ao buscar." },
       { type: "melhoria", text: "Validar a acessibilidade do CommandPalette com navegação 100% via teclado (Tab, Enter, Esc) e foco correto no modal." },
       { type: "melhoria", text: "Conectar a busca do CommandPalette ao meu estado local e ao localStorage para listar clientes e tarefas dinamicamente." },
+      { type: "melhoria", text: "Implementar a sincronização em tempo real do CommandMenu com meus dados em localStorage para que criar, editar e excluir clientes e tarefas atualizem os resultados instantaneamente." },
     ],
   },
   {
