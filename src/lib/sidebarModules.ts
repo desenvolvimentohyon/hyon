@@ -36,7 +36,8 @@ export const modules: ParentModule[] = [
     icon: BarChart3,
     directUrl: "/executivo",
     children: [
-      { title: "Painel Executivo", url: "/executivo", icon: BarChart3, description: "KPIs, radar de crescimento e métricas estratégicas" },
+      { title: "Painel Executivo", url: "/executivo", icon: BarChart3, description: "KPIs e visão estratégica" },
+      { title: "Metas e Crescimento", url: "/radar-de-crescimento", icon: Rocket, description: "Acompanhamento de metas inteligente" },
     ],
   },
   {
