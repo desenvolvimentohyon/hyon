@@ -20,6 +20,8 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Validar a acessibilidade do CommandPalette com navegação 100% via teclado (Tab, Enter, Esc) e foco correto no modal." },
       { type: "melhoria", text: "Conectar a busca do CommandPalette ao meu estado local e ao localStorage para listar clientes e tarefas dinamicamente." },
       { type: "melhoria", text: "Implementar a sincronização em tempo real do CommandMenu com meus dados em localStorage para que criar, editar e excluir clientes e tarefas atualizem os resultados instantaneamente." },
+      { type: "melhoria", text: "Implementar listeners de eventos customizados ou usar o TanStack Query para invalidar e recarregar os dados da busca global sempre que houver mutações de clientes ou tarefas." },
+      { type: "melhoria", text: "Validar a performance da busca dinâmica com grandes volumes de dados locais." },
     ],
   },
   {
