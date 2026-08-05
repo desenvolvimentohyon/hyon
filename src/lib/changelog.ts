@@ -10,6 +10,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: "1.7.2",
     date: "2026-08-05",
     changes: [
+      { type: "melhoria", text: "Resiliência de Rede: Implementado teste E2E para garantir que a interface do assistente não congele durante respostas lentas." },
       { type: "melhoria", text: "Retry Inteligente: Implementado algoritmo de backoff exponencial para reconexão automática do assistente de IA." },
       { type: "melhoria", text: "Cobertura E2E de Voz: Testes automatizados expandidos para validar o fluxo de reconhecimento de fala e resiliência da UI." },
       { type: "novo", text: "Comando de Voz integrado: Agora você pode interagir com a Hyon IA via reconhecimento de fala (pt-BR)." },
