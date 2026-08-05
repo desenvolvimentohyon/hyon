@@ -162,23 +162,34 @@ export function IAAssistant() {
                 </ScrollArea>
               </CardContent>
 
-              <CardFooter className="p-4 bg-muted/30 border-t border-border/50">
+              <CardFooter className="p-4 bg-muted/30 border-t border-border/50 backdrop-blur-sm">
                 <form 
                   onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                   className="flex items-center gap-2 w-full"
                 >
-                  <Input 
-                    placeholder="Pergunte qualquer coisa..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    className="flex-1 bg-background/50 border-border/40 focus-visible:ring-primary/20"
-                    disabled={isLoading}
-                  />
+                  <div className="relative flex-1 group">
+                    <Input 
+                      placeholder="Fale com a inteligência..."
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      className="bg-background/50 border-border/40 focus-visible:ring-primary/20 pr-8 transition-all group-hover:border-primary/30"
+                      disabled={isLoading}
+                    />
+                    {input && (
+                      <button 
+                        type="button"
+                        onClick={() => setInput("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
                   <Button 
                     type="submit" 
                     size="icon" 
                     disabled={isLoading || !input.trim()}
-                    className="shrink-0 shadow-glow-primary"
+                    className="shrink-0 shadow-glow-primary transition-transform active:scale-95"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
