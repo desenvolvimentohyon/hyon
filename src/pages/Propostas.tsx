@@ -54,7 +54,7 @@ export default function Propostas() {
   }, [propostas, busca, filtroStatusCRM, filtroVisualizacao, filtroAceite, filtroSistema]);
 
   const handleNova = () => {
-    navigate("/propostas/nova");
+    navigate("/proposta-inteligente");
   };
 
   const handleClone = (id: string) => {
