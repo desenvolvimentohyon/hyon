@@ -107,7 +107,9 @@ export function IAAssistant() {
     "Qual o MRR atual?",
     "Previsão de inadimplência?",
     "Resumo de churn",
-    "Quantas reuniões hoje?"
+    "Quantas reuniões hoje?",
+    "Simular proposta para cliente novo",
+    "Análise de saúde da base"
   ];
 
   return (

@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Sparkles } from "lucide-react";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useParametros } from "@/contexts/ParametrosContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -62,6 +64,38 @@ function PortalLinkButton({ clientId }: { clientId: string }) {
           <Copy className="h-3 w-3" />
         </Button>
       )}
+    </div>
+  );
+}
+
+function IAClientInsights() {
+  const { data: insight, isLoading } = useQuery({
+    queryKey: ["ia_client_insights"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("ia-assistant", {
+        body: { question: "Analise a base de clientes atual e sugira uma ação comercial para aumentar o MRR ou reduzir churn." },
+      });
+      if (error) throw error;
+      return data?.answer;
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
+  if (isLoading || !insight) return null;
+
+  return (
+    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3 items-start mb-6">
+      <div className="bg-primary/20 p-2 rounded-lg shrink-0">
+        <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold text-primary mb-1 uppercase tracking-wider flex items-center gap-2">
+          Sugestão da Hyon IA
+        </h4>
+        <p className="text-xs text-foreground/80 leading-relaxed italic">
+          "{insight}"
+        </p>
+      </div>
     </div>
   );
 }
@@ -375,6 +409,7 @@ export default function Clientes() {
         </TabsList>
 
         <TabsContent value="clientes" className="space-y-4 mt-0">
+      <IAClientInsights />
       <div className="flex flex-wrap gap-3 items-end">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

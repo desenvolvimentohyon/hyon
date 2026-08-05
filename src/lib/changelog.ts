@@ -10,6 +10,8 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: "1.7.2",
     date: "2026-08-05",
     changes: [
+      { type: "novo", text: "IA Onipresente: Integrada inteligência contextual em tempo real no Dashboard e na Gestão de Clientes para suporte à decisão." },
+      { type: "novo", text: "Dashboard Inteligente: Agora o dashboard exibe insights automáticos gerados pela Hyon IA baseados em dados reais de MRR e churn." },
       { type: "melhoria", text: "Resiliência de Rede: Implementado teste E2E para garantir que a interface do assistente não congele durante respostas lentas." },
       { type: "melhoria", text: "Retry Inteligente: Implementado algoritmo de backoff exponencial para reconexão automática do assistente de IA." },
       { type: "melhoria", text: "Cobertura E2E de Voz: Testes automatizados expandidos para validar o fluxo de reconhecimento de fala e resiliência da UI." },
