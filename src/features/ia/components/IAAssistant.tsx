@@ -102,20 +102,26 @@ export function IAAssistant() {
                   <div className="space-y-4">
                     {messages.length === 0 && (
                       <div className="text-center py-8 space-y-4">
-                        <div className="bg-primary/5 p-4 rounded-2xl inline-block">
+                        <div className="bg-primary/5 p-4 rounded-2xl inline-block relative">
                           <Sparkles className="h-8 w-8 text-primary mx-auto opacity-50" />
+                          <div className="absolute -top-1 -right-1">
+                            <span className="flex h-3 w-3">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                            </span>
+                          </div>
                         </div>
-                        <h3 className="text-sm font-medium">Olá! Eu sou a inteligência da Hyon.</h3>
-                        <p className="text-xs text-muted-foreground px-4">
-                          Pergunte-me sobre vendas, inadimplência, MRR ou sua agenda.
+                        <h3 className="text-sm font-semibold tracking-tight">Olá! Eu sou a Hyon IA.</h3>
+                        <p className="text-xs text-muted-foreground px-4 leading-relaxed">
+                          Posso analisar seu MRR, prever churn, detalhar inadimplência ou organizar sua agenda.
                         </p>
-                        <div className="flex flex-wrap gap-2 justify-center pt-2">
+                        <div className="flex flex-wrap gap-2 justify-center pt-4 px-2">
                           {suggestions.map(s => (
                             <Button 
                               key={s} 
                               variant="outline" 
                               size="sm" 
-                              className="text-[10px] h-7 rounded-full bg-primary/5 border-primary/10 hover:bg-primary/10"
+                              className="text-[10px] h-8 px-3 rounded-full bg-background/50 border-primary/20 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
                               onClick={() => setInput(s)}
                             >
                               {s}
