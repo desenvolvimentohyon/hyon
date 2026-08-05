@@ -5,14 +5,13 @@ const MAX_RETRIES = 3;
 const INITIAL_DELAY = 1000;
 
 export const iaService = {
-  async ask(question: string, retryCount = 0): Promise<any> {
+  async ask(question: string, retryCount = 0, onRetry?: (msg: string) => void): Promise<any> {
     try {
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
         body: { question },
       });
 
       if (error) {
-        // Trata erros de rede ou timeout que não retornam status code de sucesso
         throw error;
       }
 
@@ -22,10 +21,14 @@ export const iaService = {
       
       if (isNetworkError && retryCount < MAX_RETRIES) {
         const delay = INITIAL_DELAY * Math.pow(2, retryCount);
+        const retryMsg = `Tentando reconectar (${retryCount + 1}/${MAX_RETRIES})...`;
+        
         logger.warn(`IA Assistant retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms...`, err);
         
+        if (onRetry) onRetry(retryMsg);
+        
         await new Promise(resolve => setTimeout(resolve, delay));
-        return this.ask(question, retryCount + 1);
+        return this.ask(question, retryCount + 1, onRetry);
       }
 
       logger.error("IA Assistant final failure after retries", err);
