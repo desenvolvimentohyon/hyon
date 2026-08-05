@@ -7,9 +7,10 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.7.0",
-    date: "2026-08-04",
+    version: "1.7.1",
+    date: "2026-08-05",
     changes: [
+      { type: "correcao", text: "Implementado teste E2E de validação de fluxo para garantir que 'Nova Proposta' redireciona corretamente para /proposta-inteligente." },
       { type: "melhoria", text: "Otimização profunda em toda a aplicação com foco em performance, fluidez e UX." },
       { type: "melhoria", text: "Implementar melhorias de performance técnica (Lazy Loading, Code Splitting)." },
       { type: "melhoria", text: "Validar as métricas de Core Web Vitals após as otimizações profundas." },
