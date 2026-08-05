@@ -10,8 +10,8 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: "1.7.2",
     date: "2026-08-05",
     changes: [
+      { type: "melhoria", text: "Cobertura E2E de Voz: Testes automatizados expandidos para validar o fluxo de reconhecimento de fala e resiliência da UI." },
       { type: "melhoria", text: "Resiliência da IA: Implementada gestão de falhas de rede com mensagens amigáveis e feedback de erro claro." },
-      { type: "melhoria", text: "Infraestrutura de Testes: Adicionados testes E2E (Playwright) para validar a robustez do assistente Hyon." },
       { type: "novo", text: "Comando de Voz integrado: Agora você pode interagir com a Hyon IA via reconhecimento de fala (pt-BR)." },
       { type: "novo", text: "Motor Analítico IA: Implementadas RPCs de alto desempenho para cálculo de MRR, Churn Rate e resumos dinâmicos." },
       { type: "melhoria", text: "Auditoria completa da IA Hyon: Validado fluxo de chamadas via Edge Function e integridade dos prompts de métricas." },
