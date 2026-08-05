@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Bot, X, MessageSquare, Send, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Bot, X, MessageSquare, Send, Sparkles, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -20,6 +20,8 @@ export function IAAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +32,41 @@ export function IAAssistant() {
       }
     }
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = "pt-BR";
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        logger.error("Speech Recognition Error", event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const toggleListening = useCallback(() => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      setInput("");
+      setIsListening(true);
+      recognitionRef.current?.start();
+    }
+  }, [isListening]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -169,26 +206,45 @@ export function IAAssistant() {
                 >
                   <div className="relative flex-1 group">
                     <Input 
-                      placeholder="Fale com a inteligência..."
+                      placeholder={isListening ? "Ouvindo..." : "Fale com a inteligência..."}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      className="bg-background/50 border-border/40 focus-visible:ring-primary/20 pr-8 transition-all group-hover:border-primary/30"
+                      className={cn(
+                        "bg-background/50 border-border/40 focus-visible:ring-primary/20 pr-16 transition-all group-hover:border-primary/30",
+                        isListening && "border-primary/50 ring-1 ring-primary/20"
+                      )}
                       disabled={isLoading}
                     />
-                    {input && (
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                      {input && !isListening && (
+                        <button 
+                          type="button"
+                          onClick={() => setInput("")}
+                          className="text-muted-foreground hover:text-foreground p-1 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
                       <button 
                         type="button"
-                        onClick={() => setInput("")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+                        onClick={toggleListening}
+                        className={cn(
+                          "p-1.5 rounded-md transition-all",
+                          isListening 
+                            ? "text-primary bg-primary/10 animate-pulse" 
+                            : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                        )}
+                        disabled={isLoading}
+                        title={isListening ? "Parar de ouvir" : "Comando de voz"}
                       >
-                        <X className="h-3 w-3" />
+                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                       </button>
-                    )}
+                    </div>
                   </div>
                   <Button 
                     type="submit" 
                     size="icon" 
-                    disabled={isLoading || !input.trim()}
+                    disabled={isLoading || !input.trim() || isListening}
                     className="shrink-0 shadow-glow-primary transition-transform active:scale-95"
                   >
                     <Send className="h-4 w-4" />
