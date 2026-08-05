@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useParametros } from "@/contexts/ParametrosContext";
