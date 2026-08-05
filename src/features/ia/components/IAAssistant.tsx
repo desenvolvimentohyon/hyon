@@ -76,9 +76,14 @@ export function IAAssistant() {
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
+    setRetryStatus(null);
 
     try {
+      // O serviço iaService.ask agora implementa retry interno.
+      // Poderíamos opcionalmente passar um callback de progresso se o serviço suportasse,
+      // ou apenas confiar no indicador de loading global refinado.
       const response = await iaService.ask(input);
+      
       const assistantMsg: Message = { 
         role: "assistant", 
         content: response?.answer || "Desculpe, não consegui processar sua pergunta.", 
@@ -89,11 +94,12 @@ export function IAAssistant() {
       logger.error("IA Chat Error", err);
       setMessages(prev => [...prev, { 
         role: "assistant", 
-        content: "Ocorreu um erro técnico. Por favor, tente novamente em instantes.", 
+        content: "Não foi possível conectar ao serviço após várias tentativas. Verifique sua conexão.", 
         timestamp: new Date() 
       }]);
     } finally {
       setIsLoading(false);
+      setRetryStatus(null);
     }
   };
 
@@ -188,10 +194,17 @@ export function IAAssistant() {
                     {isLoading && (
                       <div className="flex items-start gap-2">
                         <div className="bg-muted rounded-2xl rounded-tl-none px-4 py-3 border border-border/50">
-                          <div className="flex gap-1.5">
-                            <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                            <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                            <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-1.5">
+                              <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                              <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                              <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
+                            </div>
+                            {retryStatus && (
+                              <span className="text-[10px] text-primary animate-pulse font-medium">
+                                {retryStatus}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
