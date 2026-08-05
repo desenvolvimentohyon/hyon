@@ -1,5 +1,5 @@
-import { useMemo, useState, lazy, Suspense } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, lazy, Suspense, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/contexts/AppContext";
 import { usePropostas } from "@/contexts/PropostasContext";
@@ -13,6 +13,7 @@ import {
   Headphones, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
   Shield, BarChart3, PieChart as PieChartIcon,
   ExternalLink, RefreshCw, Download, Clock, Zap, CalendarPlus, Target,
+  Sparkles
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
