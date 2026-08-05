@@ -257,26 +257,21 @@ export function Topbar() {
       )}
 
 
-      <div className="hidden sm:flex flex-1 min-w-0 max-w-md ml-auto">
+      <form onSubmit={handleSearch} className="hidden sm:flex flex-1 min-w-0 max-w-md ml-auto">
         <div className="relative w-full group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
           <Input
             placeholder="Buscar tarefas, clientes... (Ctrl+K)"
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            onFocus={(e) => {
-              // Simular atalho de busca global
-              const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
-              window.dispatchEvent(event);
-              e.target.blur(); // Perder foco para abrir o palette se estivesse implementado
-            }}
-            className="pl-9 pr-12 h-9 text-[13px] bg-muted/50 border border-transparent rounded-lg placeholder:text-muted-foreground/50 focus-visible:bg-background focus-visible:border-border focus-visible:ring-2 focus-visible:ring-primary/15 transition-all cursor-pointer"
+            className="pl-9 pr-12 h-9 text-[13px] bg-muted/50 border border-transparent rounded-lg placeholder:text-muted-foreground/50 focus-visible:bg-background focus-visible:border-border focus-visible:ring-2 focus-visible:ring-primary/15 transition-all"
           />
           <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
             <span className="text-xs">⌘</span>K
           </kbd>
         </div>
-      </div>
+      </form>
+
 
       <div className="flex-1 sm:hidden" />
 
