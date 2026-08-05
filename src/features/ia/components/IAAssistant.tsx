@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Bot, X, MessageSquare, Send, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Bot, X, MessageSquare, Send, Sparkles, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
