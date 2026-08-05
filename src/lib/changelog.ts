@@ -10,6 +10,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: "1.7.1",
     date: "2026-08-05",
     changes: [
+      { type: "melhoria", text: "Auditoria completa da IA Hyon: Validado fluxo de chamadas via Edge Function e integridade dos prompts de métricas." },
       { type: "correcao", text: "Monitoramento de logs de navegação ativo para prevenir erros 404 intermitentes causados por cache de roteamento." },
       { type: "correcao", text: "Implementado teste E2E de validação de fluxo para garantir que 'Nova Proposta' redireciona corretamente para /proposta-inteligente." },
       { type: "melhoria", text: "Otimização profunda em toda a aplicação com foco em performance, fluidez e UX." },
