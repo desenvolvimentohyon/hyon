@@ -82,7 +82,7 @@ export function IAAssistant() {
       // O serviço iaService.ask agora implementa retry interno.
       // Poderíamos opcionalmente passar um callback de progresso se o serviço suportasse,
       // ou apenas confiar no indicador de loading global refinado.
-      const response = await iaService.ask(input);
+      const response = await iaService.ask(input, 0, (msg) => setRetryStatus(msg));
       
       const assistantMsg: Message = { 
         role: "assistant", 
