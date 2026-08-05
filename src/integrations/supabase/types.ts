@@ -3720,8 +3720,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_churn_rate: { Args: { p_org_id: string }; Returns: number }
+      calculate_mrr: { Args: { p_org_id: string }; Returns: number }
       current_org_id: { Args: never; Returns: string }
       current_role: { Args: never; Returns: string }
+      get_ia_analytics_summary: { Args: { p_org_id: string }; Returns: Json }
       get_user_permissions: { Args: { _user_id: string }; Returns: string[] }
       has_permission: { Args: { _permission: string }; Returns: boolean }
     }
