@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.4",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Dashboard de Conversão Financeira: Análise de impacto monetário das falhas estratégicas segmentada por gravidade." },
+      { type: "novo", text: "Push Alertas Diferenciados: Notificações inteligentes agora possuem urgência visual e textual baseada na gravidade do risco (Alto/Médio/Baixo)." },
+      { type: "melhoria", text: "Relatórios PDF Expandidos: Exportação agora inclui identificação de clientes e detalhamento de perdas financeiras estimadas." },
+    ],
+  },
+  {
     version: "1.8.3",
     date: "2026-08-06",
     changes: [

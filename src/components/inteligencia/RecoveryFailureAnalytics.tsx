@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
+import { useReceita } from "@/contexts/ReceitaContext";
 import { 
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
-  BarChart, Bar, XAxis, YAxis
+  BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from "recharts";
-import { AlertTriangle, TrendingDown, Download, Filter } from "lucide-react";
+import { AlertTriangle, TrendingDown, Download, Filter, DollarSign, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ type Severity = 'baixo' | 'medio' | 'alto' | 'todos';
 
 export function RecoveryFailureAnalytics() {
   const { tecnicoAtualId } = useApp();
+  const { clientesReceita } = useReceita();
   const [filterSeverity, setFilterSeverity] = useState<Severity>('todos');
 
   const { data: analytics, isLoading } = useQuery({
@@ -24,7 +26,7 @@ export function RecoveryFailureAnalytics() {
     queryFn: async () => {
       let query = supabase
         .from("recovery_plans")
-        .select("failure_reason, risk_type, conversion_status, severity, source_insight, created_at")
+        .select("failure_reason, risk_type, conversion_status, severity, source_insight, created_at, client_id")
         .eq("conversion_status", "abortado");
       
       if (filterSeverity !== 'todos') {
@@ -47,17 +49,21 @@ export function RecoveryFailureAnalytics() {
     doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 22);
     doc.text(`Filtro Gravidade: ${filterSeverity.toUpperCase()}`, 14, 27);
 
-    const tableData = analytics.map(p => [
-      new Date(p.created_at).toLocaleDateString(),
-      p.risk_type === 'inadimplencia' ? 'Inadimplência' : 'Churn',
-      (p as any).severity?.toUpperCase() || 'MÉDIO',
-      p.failure_reason || 'N/A',
-      p.source_insight?.substring(0, 50) + '...'
-    ]);
+    const tableData = analytics.map(p => {
+      const client = clientesReceita.find(c => c.id === p.client_id);
+      return [
+        new Date(p.created_at).toLocaleDateString(),
+        client?.nome || 'Cliente não encontrado',
+        p.risk_type === 'inadimplencia' ? 'Inadimplência' : 'Churn',
+        (p as any).severity?.toUpperCase() || 'MÉDIO',
+        p.failure_reason || 'N/A',
+        p.source_insight?.substring(0, 40) + '...'
+      ];
+    });
 
     autoTable(doc, {
       startY: 35,
-      head: [['Data', 'Tipo', 'Gravidade', 'Motivo', 'Insight Origem']],
+      head: [['Data', 'Cliente', 'Tipo', 'Gravidade', 'Motivo', 'Insight Origem']],
       body: tableData,
       theme: 'grid',
       headStyles: { fillColor: [139, 92, 246] }
@@ -84,7 +90,27 @@ export function RecoveryFailureAnalytics() {
     return acc;
   }, []);
 
+  // Conversão Financeira por Gravidade
+  const financialLossBySeverity = analytics.reduce((acc: any[], plan) => {
+    const severity = (plan as any).severity || 'medio';
+    const client = clientesReceita.find(c => c.id === plan.client_id);
+    const value = client?.valorMensalidade || 0;
+    
+    const labelMap: Record<string, string> = { baixo: 'Baixo', medio: 'Médio', alto: 'Alto' };
+    const name = labelMap[severity] || 'Médio';
+    
+    const existing = acc.find(a => a.name === name);
+    if (existing) existing.value += value;
+    else acc.push({ name, value });
+    return acc;
+  }, []).sort((a, b) => {
+    const order = { 'Alto': 0, 'Médio': 1, 'Baixo': 2 };
+    return (order as any)[a.name] - (order as any)[b.name];
+  });
+
   const COLORS = ['#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE'];
+
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <div className="space-y-4 mt-4">
@@ -116,11 +142,12 @@ export function RecoveryFailureAnalytics() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Motivos de Falha */}
         <Card className="neon-border border-destructive/20 bg-destructive/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] font-semibold flex items-center gap-2 text-destructive uppercase tracking-wider">
-              <AlertTriangle className="h-3 w-3" /> Motivos de Falha (IA)
+              <AlertTriangle className="h-3 w-3" /> Motivos de Falha
               <Badge variant="outline" className="text-[8px] ml-auto">{analytics.length}</Badge>
             </CardTitle>
           </CardHeader>
@@ -149,16 +176,45 @@ export function RecoveryFailureAnalytics() {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center text-[10px] text-muted-foreground">
-                Sem dados para este filtro
+                Sem dados
               </div>
             )}
           </CardContent>
         </Card>
 
+        {/* Conversão Financeira (Impacto Real) */}
+        <Card className="neon-border border-primary/20 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[10px] font-semibold flex items-center gap-2 text-primary uppercase tracking-wider">
+              <DollarSign className="h-3 w-3" /> Perda por Gravidade
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-[150px]">
+            {financialLossBySeverity.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={financialLossBySeverity} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" width={40} style={{ fontSize: '8px' }} />
+                  <Tooltip 
+                    formatter={(value: number) => fmt(value)}
+                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', fontSize: '9px' }}
+                  />
+                  <Bar dataKey="value" fill="#3B82F6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-[10px] text-muted-foreground">
+                Sem impacto
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Impacto por Risco */}
         <Card className="neon-border border-purple/20 bg-purple/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] font-semibold flex items-center gap-2 text-purple uppercase tracking-wider">
-              <TrendingDown className="h-3 w-3" /> Impacto por Risco
+              <Activity className="h-3 w-3" /> Mix de Risco
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[150px]">
@@ -176,7 +232,7 @@ export function RecoveryFailureAnalytics() {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center text-[10px] text-muted-foreground">
-                Sem dados para este filtro
+                Sem dados
               </div>
             )}
           </CardContent>
