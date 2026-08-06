@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.6",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Comparativo MRR vs Perda: Radar de Crescimento agora quantifica o custo de oportunidade como porcentagem real do faturamento mensal." },
+      { type: "melhoria", text: "Precisão Financeira: Motor de análise de falhas agora utiliza o valor de mensalidade real vinculado ao cliente via client_id." },
+      { type: "melhoria", text: "Infraestrutura de Destinatários: Preparada interface para seleção granular de múltiplos usuários em alertas críticos." },
+    ],
+  },
+  {
     version: "1.8.5",
     date: "2026-08-06",
     changes: [

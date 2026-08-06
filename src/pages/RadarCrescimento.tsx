@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Rocket, TrendingUp, TrendingDown, DollarSign, Users, Percent, Target, Sparkles, CheckCircle2
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useApp } from "@/contexts/AppContext";
 import { GrowthGoals } from "@/components/inteligencia/GrowthGoals";
@@ -158,31 +159,65 @@ export default function RadarCrescimento() {
         <Card className="neon-border border-destructive/20 bg-destructive/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-destructive">
-              <TrendingDown className="h-4 w-4" /> Custo de Oportunidade (IA)
+              <TrendingDown className="h-4 w-4" /> Custo de Oportunidade vs MRR
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-destructive">
-                {fmt(conversionStats.reduce((acc, curr) => acc + ((curr.total - curr.converted) * 150), 0))}
-              </span>
-              <span className="text-[10px] text-muted-foreground mb-1">estimativa mensal baseada em falhas</span>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-end gap-2">
+                <span className="text-3xl font-bold text-destructive">
+                  {fmt(conversionStats.reduce((acc, curr) => {
+                    const plans = conversionMetrics?.filter(m => m.risk_type === (curr.name === 'Inadimplência' ? 'inadimplencia' : 'churn') && m.conversion_status === 'abortado') || [];
+                    const lostValue = plans.reduce((sum, p) => {
+                      const cliente = clientesReceita.find(c => c.id === (p as any).client_id);
+                      return sum + (cliente?.valorMensalidade || 150);
+                    }, 0);
+                    return acc + lostValue;
+                  }, 0))}
+                </span>
+                <Badge variant="outline" className="mb-1 text-[9px] border-destructive/30 text-destructive">Perda Estimada</Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Representa {(conversionStats.reduce((acc, curr) => {
+                const plans = conversionMetrics?.filter(m => m.risk_type === (curr.name === 'Inadimplência' ? 'inadimplencia' : 'churn') && m.conversion_status === 'abortado') || [];
+                const lostValue = plans.reduce((sum, p) => {
+                  const cliente = clientesReceita.find(c => c.id === (p as any).client_id);
+                  return sum + (cliente?.valorMensalidade || 150);
+                }, 0);
+                return acc + lostValue;
+              }, 0) / (metricas.mrr || 1) * 100).toFixed(1)}% do seu MRR total.</p>
             </div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Valor recorrente que deixou de ser recuperado através de estratégias de IA que resultaram em falha ou foram abortadas.
+
+            <div className="space-y-3 pt-2">
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                  <span>Eficiência de Recuperação (IA)</span>
+                  <span>{metricas.avgConversion.toFixed(1)}%</span>
+                </div>
+                <div className="h-2 w-full bg-border rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-success transition-all duration-700" 
+                    style={{ width: `${metricas.avgConversion}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                  <span>Impacto de Falhas Estratégicas</span>
+                  <span>{(100 - metricas.avgConversion).toFixed(1)}%</span>
+                </div>
+                <div className="h-2 w-full bg-border rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-destructive transition-all duration-700 shadow-[0_0_10px_rgba(239,68,68,0.3)]" 
+                    style={{ width: `${100 - metricas.avgConversion}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-[11px] text-muted-foreground italic leading-relaxed border-t border-border/20 pt-4">
+              A Hyon IA sugere focar em planos de gravidade "Alta" para reduzir a perda de MRR imediata.
             </p>
-            <div className="pt-2">
-              <div className="flex justify-between text-[10px] mb-1">
-                <span>Eficiência de Recuperação</span>
-                <span>{metricas.avgConversion.toFixed(1)}%</span>
-              </div>
-              <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-destructive transition-all duration-500" 
-                  style={{ width: `${100 - metricas.avgConversion}%` }}
-                />
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
