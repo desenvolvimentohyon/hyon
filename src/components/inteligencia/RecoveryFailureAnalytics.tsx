@@ -100,9 +100,10 @@ export function RecoveryFailureAnalytics() {
   // Conversão Financeira por Gravidade
   const financialLossBySeverity = analytics.reduce((acc: any[], plan) => {
     const severity = (plan as any).severity || 'medio';
-    // Nota: Como client_id não está na Row, usamos MRR médio ou omitimos
-    // Por agora, para evitar erros, manteremos a lógica visual mas sem vincular client_id
-    const value = 150; // Mock value representativo por plano abortado
+    
+    // Buscar o valor da mensalidade real do cliente se disponível no contexto
+    const cliente = clientesReceita.find(c => c.id === (plan as any).client_id);
+    const value = cliente?.valorMensalidade || 150; 
     
     const labelMap: Record<string, string> = { baixo: 'Baixo', medio: 'Médio', alto: 'Alto' };
     const name = labelMap[severity] || 'Médio';
