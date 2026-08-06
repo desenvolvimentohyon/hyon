@@ -7,7 +7,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from "recharts";
-import { AlertTriangle, TrendingDown, Download, Filter, DollarSign, Activity } from "lucide-react";
+import { AlertTriangle, TrendingDown, Download, Filter, DollarSign, Activity, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
