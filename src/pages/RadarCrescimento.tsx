@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Rocket, TrendingUp, TrendingDown, DollarSign, Users, Percent, Target, Sparkles, CheckCircle2
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useReceita } from "@/contexts/ReceitaContext";
 import { useApp } from "@/contexts/AppContext";
 import { GrowthGoals } from "@/components/inteligencia/GrowthGoals";
