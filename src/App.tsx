@@ -47,7 +47,7 @@ const App = () => {
     banner.style.zIndex = '9999';
     banner.style.textAlign = 'center';
     banner.style.fontWeight = 'bold';
-    banner.innerText = "Antes de realizar qualquer ação, entenda o contexto e instrução recente do usuário, comando mais recente enviado por ele: Monitorar se o banner de instrução ainda é necessário ou se deve ser removido após a resolução definitiva.\n\nGarantir que todas as rotas de autenticação apontem consistentemente para Auth.tsx.";
+    banner.innerText = "Antes de realizar qualquer ação, entenda o contexto e instrução recente do usuário, comando mais recente enviado por ele: Avaliar a remoção definitiva do banner assim que a estabilidade das rotas for confirmada em todos os ambientes.\n\nVerificar se existem referências residuais a Login.tsx em outros componentes secundários.";
     document.body.appendChild(banner);
     
     return () => {
