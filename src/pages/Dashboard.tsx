@@ -430,7 +430,16 @@ function IAInsightsCard() {
     }
   };
 
-  const showRecoveryPlan = async (insight: string) => {
+  const handleGeneratePlan = async (level: "critico" | "atencao", riskType: string) => {
+    const context = level === "critico" ? receitaMetricas.alertaCritico30 : receitaMetricas.alertaCritico7;
+    const insight = level === "critico" 
+      ? `Alto risco de churn identificado para ${context.length} clientes com +30 dias de atraso.`
+      : `Gargalo financeiro identificado para ${context.length} clientes entre 7 e 30 dias de atraso.`;
+    
+    await showRecoveryPlan(insight, riskType);
+  };
+
+  const showRecoveryPlan = async (insight: string, riskType: string = "inadimplencia") => {
     setActiveAnalysis({
       title: "Plano de Recuperação IA",
       content: "Analisando dados históricos e comportamento do cliente para gerar estratégia...",
@@ -440,8 +449,8 @@ function IAInsightsCard() {
     try {
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
         body: { 
-          question: `Com base no alerta: "${insight}", detalhe um plano de recuperação estratégica em 5 passos.`,
-          context: { module: "dashboard_recovery_plan", source_insight: insight }
+          question: `Com base no alerta: "${insight}", detalhe um plano de recuperação estratégica em 5 passos para o risco de "${riskType}".`,
+          context: { module: "dashboard_recovery_plan", source_insight: insight, risk_type: riskType }
         }
       });
       if (error) throw error;
@@ -450,7 +459,9 @@ function IAInsightsCard() {
       await supabase.from('recovery_plans').insert({
         source_insight: insight,
         plan_content: data.answer,
-        org_id: tecnicoAtualId
+        org_id: tecnicoAtualId,
+        risk_type: riskType,
+        conversion_status: 'pendente'
       });
 
       setActiveAnalysis({
@@ -544,42 +555,125 @@ function IAInsightsCard() {
 
 function RecoveryHistoryCard() {
   const { tecnicoAtualId } = useApp();
+  const [filterRiskType, setFilterRiskType] = useState<string>("all");
+  const [filterDate, setFilterDate] = useState<string>("7d");
+  const queryClient = useQueryClient();
+
   const { data: plans, isLoading } = useQuery({
-    queryKey: ["recovery_plans_history", tecnicoAtualId],
+    queryKey: ["recovery_plans_history", tecnicoAtualId, filterRiskType, filterDate],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("recovery_plans")
         .select("*")
-        .order("created_at", { ascending: false })
-        .limit(3);
+        .order("created_at", { ascending: false });
+
+      if (filterRiskType !== "all") {
+        query = query.eq("risk_type", filterRiskType);
+      }
+
+      if (filterDate !== "all") {
+        const date = new Date();
+        if (filterDate === "7d") date.setDate(date.getDate() - 7);
+        if (filterDate === "30d") date.setDate(date.getDate() - 30);
+        query = query.gte("created_at", date.toISOString());
+      }
+
+      const { data, error } = await query.limit(5);
       if (error) throw error;
       return data || [];
     },
   });
 
-  if (isLoading || !plans || plans.length === 0) return null;
+  const handleStatusChange = async (id: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from("recovery_plans")
+        .update({ 
+          conversion_status: status,
+          executed_at: status === 'concluido' ? new Date().toISOString() : null
+        })
+        .eq("id", id);
+      
+      if (error) throw error;
+      toast.success("Status atualizado!");
+      queryClient.invalidateQueries({ queryKey: ["recovery_plans_history"] });
+    } catch (err) {
+      toast.error("Erro ao atualizar status.");
+    }
+  };
+
+  if (!plans && !isLoading) return null;
 
   return (
     <Card className="neon-border border-purple/20 bg-purple/5 mb-6">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-semibold flex items-center gap-2 text-purple uppercase tracking-wider">
-          <Clock className="h-3 w-3" /> Histórico de Planos de Recuperação
-        </CardTitle>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <CardTitle className="text-xs font-semibold flex items-center gap-2 text-purple uppercase tracking-wider">
+            <Clock className="h-3 w-3" /> Histórico de Planos IA
+          </CardTitle>
+          <div className="flex gap-1">
+            <select 
+              className="bg-purple/10 border-none text-[10px] rounded px-1.5 h-6 text-purple outline-none cursor-pointer"
+              value={filterRiskType}
+              onChange={(e) => setFilterRiskType(e.target.value)}
+            >
+              <option value="all">Todos Riscos</option>
+              <option value="inadimplencia">Inadimplência</option>
+              <option value="churn">Churn</option>
+            </select>
+            <select 
+              className="bg-purple/10 border-none text-[10px] rounded px-1.5 h-6 text-purple outline-none cursor-pointer"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+            >
+              <option value="7d">7 dias</option>
+              <option value="30d">30 dias</option>
+              <option value="all">Tudo</option>
+            </select>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3 pb-5">
-        {plans.map((plan: any) => (
-          <div key={plan.id} className="p-2.5 rounded-lg border border-purple/10 bg-purple/5 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] text-purple/70 font-medium">Insight: {plan.source_insight.substring(0, 40)}...</span>
-              <span className="text-[9px] text-muted-foreground whitespace-nowrap">
-                {new Date(plan.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-              </span>
-            </div>
-            <p className="text-[10px] text-foreground/80 line-clamp-2 italic leading-relaxed">
-              "{plan.plan_content.substring(0, 150)}..."
-            </p>
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
           </div>
-        ))}
+        ) : plans?.length === 0 ? (
+          <p className="text-[10px] text-muted-foreground text-center py-4">Nenhum plano encontrado com estes filtros.</p>
+        ) : (
+          plans?.map((plan: any) => (
+            <div key={plan.id} className="p-2.5 rounded-lg border border-purple/10 bg-purple/5 space-y-2 group transition-all hover:bg-purple/10">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[8px] h-4 border-purple/30 text-purple uppercase">{plan.risk_type || 'Geral'}</Badge>
+                  <span className="text-[10px] text-purple/70 font-medium truncate max-w-[120px]">Insight: {plan.source_insight.substring(0, 30)}...</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select 
+                    className={`text-[9px] rounded px-1 h-5 outline-none cursor-pointer border-none font-bold ${
+                      plan.conversion_status === 'concluido' ? 'bg-success/20 text-success' : 
+                      plan.conversion_status === 'em_execucao' ? 'bg-info/20 text-info' : 'bg-muted text-muted-foreground'
+                    }`}
+                    value={plan.conversion_status || 'pendente'}
+                    onChange={(e) => handleStatusChange(plan.id, e.target.value)}
+                  >
+                    <option value="pendente">Pendente</option>
+                    <option value="em_execucao">Em Execução</option>
+                    <option value="concluido">Concluído</option>
+                    <option value="abortado">Abortado</option>
+                  </select>
+                  <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                    {new Date(plan.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[10px] text-foreground/80 line-clamp-1 italic leading-relaxed">
+                "{plan.plan_content}"
+              </p>
+            </div>
+          ))
+        )}
       </CardContent>
     </Card>
   );
@@ -1436,13 +1530,21 @@ export default function Dashboard() {
                     ))}
 
                     <div className="mt-3 p-2.5 rounded-lg bg-warning/10 border border-warning/20 relative overflow-hidden group">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <Sparkles className="h-3 w-3 text-warning animate-pulse" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-warning">Gargalo Identificado IA</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-3 w-3 text-warning animate-pulse" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-warning">Gargalo Identificado IA</span>
+                        </div>
+                        <Badge className="text-[8px] h-4 bg-warning/20 border-warning/30 text-warning">ATENÇÃO</Badge>
                       </div>
-                      <p className="text-[10px] text-foreground/80 leading-relaxed italic">
+                      <p className="text-[10px] text-foreground/80 leading-relaxed italic mb-2">
                         "Tendência de atraso em cascata detectada. Recomenda-se envio automático de lembrete via WhatsApp para os {receitaMetricas.alertaCritico7.length} clientes afetados."
                       </p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="h-6 text-[9px] border-warning/30 hover:bg-warning/10 text-warning w-full" onClick={() => handleGeneratePlan("atencao", "churn")}>
+                          Gerar Estratégia de Retenção
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
