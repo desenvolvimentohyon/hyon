@@ -3143,6 +3143,12 @@ export type Database = {
           client_name_snapshot: string | null
           commission_generated: boolean
           commission_implant_generated: boolean
+          contract_body: string | null
+          contract_generated_at: string | null
+          contract_signed_at: string | null
+          contract_signer_ip: string | null
+          contract_signer_name: string | null
+          contract_template_id: string | null
           created_at: string
           crm_status: string | null
           first_viewed_at: string | null
@@ -3188,6 +3194,12 @@ export type Database = {
           client_name_snapshot?: string | null
           commission_generated?: boolean
           commission_implant_generated?: boolean
+          contract_body?: string | null
+          contract_generated_at?: string | null
+          contract_signed_at?: string | null
+          contract_signer_ip?: string | null
+          contract_signer_name?: string | null
+          contract_template_id?: string | null
           created_at?: string
           crm_status?: string | null
           first_viewed_at?: string | null
@@ -3233,6 +3245,12 @@ export type Database = {
           client_name_snapshot?: string | null
           commission_generated?: boolean
           commission_implant_generated?: boolean
+          contract_body?: string | null
+          contract_generated_at?: string | null
+          contract_signed_at?: string | null
+          contract_signer_ip?: string | null
+          contract_signer_name?: string | null
+          contract_template_id?: string | null
           created_at?: string
           crm_status?: string | null
           first_viewed_at?: string | null
@@ -3274,6 +3292,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
             referencedColumns: ["id"]
           },
           {
