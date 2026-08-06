@@ -47,7 +47,7 @@ const App = () => {
     banner.style.zIndex = '9999';
     banner.style.textAlign = 'center';
     banner.style.fontWeight = 'bold';
-    banner.innerText = "Antes de realizar qualquer ação, entenda o contexto e instrução recente do usuário, comando mais recente enviado por ele: INTEGRE A IA NA GERAÇÃO DE PROPOSTAS PARA QUE O SISTEMA GERE O CONTRATO PARA O CLIENTE ASSINAR";
+    banner.innerText = "Antes de realizar qualquer ação, entenda o contexto e instrução recente do usuário, comando mais recente enviado por ele: Mapear os campos necessários para a geração automática de contratos via IA.\n\nConfigurar o prompt do assistente de IA para estruturar cláusulas contratuais baseadas nos módulos e planos selecionados.";
     document.body.appendChild(banner);
     
     return () => {
