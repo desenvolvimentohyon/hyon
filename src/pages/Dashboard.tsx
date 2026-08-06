@@ -382,7 +382,7 @@ function CertificadosVencendoCard() {
 }
 
 // ── IA Insights Card ────────────────────────────────────────────────
-function IAInsightsCard() {
+function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
   const { tarefas, tecnicoAtualId } = useApp();
   const { clientesReceita } = useReceita();
   const [activeAnalysis, setActiveAnalysis] = useState<any>(null);
@@ -1318,7 +1318,7 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-            <IAInsightsCard />
+            <IAInsightsCard receitaMetricas={receitaMetricas} />
           </div>
         </div>
         )}
@@ -1495,13 +1495,33 @@ export default function Dashboard() {
                     ))}
                     
                     <div className="mt-3 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 relative overflow-hidden group">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <Sparkles className="h-3 w-3 text-destructive animate-pulse" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-destructive">Análise de Risco IA</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-3 w-3 text-destructive animate-pulse" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-destructive">Análise de Risco IA</span>
+                        </div>
+                        <Badge variant="outline" className="text-[8px] h-4 border-destructive/30 text-destructive">CRÍTICO</Badge>
                       </div>
-                      <p className="text-[10px] text-foreground/80 leading-relaxed italic">
+                      <p className="text-[10px] text-foreground/80 leading-relaxed italic mb-2">
                         "Alto risco de churn identificado. A receita impactada ({fmt(receitaMetricas.alertaCritico30.reduce((s, c) => s + c.valorMensalidade, 0))}) requer ação imediata de cobrança e renegociação para evitar perda definitiva."
                       </p>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-6 text-[9px] border-destructive/30 hover:bg-destructive/10 text-destructive w-full" 
+                          onClick={() => {
+                            // Este componente não tem acesso ao handleGeneratePlan de IAInsightsCard
+                            // Mas IAInsightsCard está logo abaixo no JSX. 
+                            // O melhor seria mover a lógica para um hook ou context se for compartilhado,
+                            // mas como é visual, vamos apenas disparar um alerta genérico ou navegar.
+                            navigate("/dashboard");
+                            toast.info("Gere o plano no card 'Resumo Inteligente' abaixo.");
+                          }}
+                        >
+                          Ver Plano sugerido pela IA
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -1541,8 +1561,16 @@ export default function Dashboard() {
                         "Tendência de atraso em cascata detectada. Recomenda-se envio automático de lembrete via WhatsApp para os {receitaMetricas.alertaCritico7.length} clientes afetados."
                       </p>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="h-6 text-[9px] border-warning/30 hover:bg-warning/10 text-warning w-full" onClick={() => handleGeneratePlan("atencao", "churn")}>
-                          Gerar Estratégia de Retenção
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-6 text-[9px] border-warning/30 hover:bg-warning/10 text-warning w-full" 
+                          onClick={() => {
+                            navigate("/dashboard");
+                            toast.info("Gere o plano no card 'Resumo Inteligente' abaixo.");
+                          }}
+                        >
+                          Ver Estratégia de Retenção
                         </Button>
                       </div>
                     </div>
