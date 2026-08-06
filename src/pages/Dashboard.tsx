@@ -512,6 +512,8 @@ function IAInsightsCard() {
         </CardContent>
       </Card>
 
+      <RecoveryHistoryCard />
+
       <AlertDialog open={!!activeAnalysis} onOpenChange={() => setActiveAnalysis(null)}>
         <AlertDialogContent className="max-w-2xl glass-premium border-primary/20">
           <AlertDialogHeader>
@@ -537,6 +539,49 @@ function IAInsightsCard() {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+function RecoveryHistoryCard() {
+  const { tecnicoAtualId } = useApp();
+  const { data: plans, isLoading } = useQuery({
+    queryKey: ["recovery_plans_history", tecnicoAtualId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("recovery_plans")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  if (isLoading || !plans || plans.length === 0) return null;
+
+  return (
+    <Card className="neon-border border-purple/20 bg-purple/5 mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-semibold flex items-center gap-2 text-purple uppercase tracking-wider">
+          <Clock className="h-3 w-3" /> Histórico de Planos de Recuperação
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 pb-5">
+        {plans.map((plan: any) => (
+          <div key={plan.id} className="p-2.5 rounded-lg border border-purple/10 bg-purple/5 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] text-purple/70 font-medium">Insight: {plan.source_insight.substring(0, 40)}...</span>
+              <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                {new Date(plan.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+            <p className="text-[10px] text-foreground/80 line-clamp-2 italic leading-relaxed">
+              "{plan.plan_content.substring(0, 150)}..."
+            </p>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
