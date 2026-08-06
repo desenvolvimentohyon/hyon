@@ -768,7 +768,8 @@ function RecoveryHistoryCard() {
                           {plan.failure_reason || "Sem motivo registrado."}
                         </div>
                         <Button 
-                          size="xs" 
+                          size="sm" 
+
                           variant="ghost" 
                           className="h-5 w-5 p-0 text-purple/50 hover:text-purple"
                           onClick={() => setEditingFailureReason({ id: plan.id, reason: plan.failure_reason || "" })}
