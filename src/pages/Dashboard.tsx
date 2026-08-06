@@ -581,10 +581,12 @@ function RecoveryHistoryCard() {
   const { tecnicoAtualId } = useApp();
   const [filterRiskType, setFilterRiskType] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<string>("7d");
+  const [showOnlyExpired, setShowOnlyExpired] = useState(false);
+  const [editingFailureReason, setEditingFailureReason] = useState<{ id: string, reason: string } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: plans, isLoading } = useQuery({
-    queryKey: ["recovery_plans_history", tecnicoAtualId, filterRiskType, filterDate],
+    queryKey: ["recovery_plans_history", tecnicoAtualId, filterRiskType, filterDate, showOnlyExpired],
     queryFn: async () => {
       let query = supabase
         .from("recovery_plans")
@@ -595,6 +597,11 @@ function RecoveryHistoryCard() {
         query = query.eq("risk_type", filterRiskType);
       }
 
+      if (showOnlyExpired) {
+        query = query.lt("expires_at", new Date().toISOString())
+                     .neq("conversion_status", "concluido");
+      }
+
       if (filterDate !== "all") {
         const date = new Date();
         if (filterDate === "7d") date.setDate(date.getDate() - 7);
@@ -602,7 +609,7 @@ function RecoveryHistoryCard() {
         query = query.gte("created_at", date.toISOString());
       }
 
-      const { data, error } = await query.limit(5);
+      const { data, error } = await query.limit(10);
       if (error) throw error;
       return data || [];
     },
