@@ -611,7 +611,7 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-medium">{t.nome}</span>
-                      <span className="text-[10px] text-muted-foreground">{t.cargo || 'Gestor'}</span>
+                      <span className="text-[10px] text-muted-foreground">{t.email || 'Gestor'}</span>
                     </div>
                   </label>
                 ))}
