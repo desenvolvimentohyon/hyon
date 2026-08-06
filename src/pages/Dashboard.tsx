@@ -411,12 +411,12 @@ function IAInsightsCard() {
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
-  const sendPushAlert = async (title: string, body: string) => {
+  const sendPushAlert = async (title: string, body: string, targetUserIds?: string[]) => {
     try {
       const { error } = await supabase.functions.invoke("push-notifications", {
         body: {
           action: "send",
-          userIds: [tecnicoAtualId],
+          userIds: targetUserIds || [tecnicoAtualId],
           title,
           messageBody: body,
           url: "/dashboard"
@@ -445,6 +445,14 @@ function IAInsightsCard() {
         }
       });
       if (error) throw error;
+
+      // Persist the generated plan
+      await supabase.from('recovery_plans').insert({
+        source_insight: insight,
+        plan_content: data.answer,
+        org_id: tecnicoAtualId
+      });
+
       setActiveAnalysis({
         title: "Plano de Recuperação IA",
         content: data.answer,

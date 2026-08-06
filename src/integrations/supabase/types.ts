@@ -3272,6 +3272,33 @@ export type Database = {
         }
         Relationships: []
       }
+      recovery_plans: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          org_id: string | null
+          plan_content: string
+          source_insight: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          org_id?: string | null
+          plan_content: string
+          source_insight: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          org_id?: string | null
+          plan_content?: string
+          source_insight?: string
+        }
+        Relationships: []
+      }
       support_events: {
         Row: {
           client_id: string

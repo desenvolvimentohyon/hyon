@@ -7,9 +7,11 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.7.7",
+    version: "1.7.8",
     date: "2026-08-06",
     changes: [
+      { type: "novo", text: "Histórico de Planos de Recuperação: Planos estratégicos gerados pela IA agora são persistidos para acompanhamento de eficácia." },
+      { type: "melhoria", text: "Alertas Push Multiusuário: Suporte para envio de notificações para múltiplos destinatários simultaneamente." },
       { type: "novo", text: "Alertas Push Inteligentes: Adicionada a capacidade de disparar notificações instantâneas para gestores a partir de insights da IA." },
       { type: "novo", text: "Plano de Recuperação IA: Integrado gerador de estratégias em 5 passos para mitigação de riscos de inadimplência e churn." },
       { type: "melhoria", text: "Alertas Inteligentes de Risco: Implementados cards de alerta com análise preditiva de IA para inadimplência e churn no Dashboard." },
