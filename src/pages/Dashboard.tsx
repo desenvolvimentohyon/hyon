@@ -40,6 +40,8 @@ import { StatusTarefa } from "@/types";
 
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
+const RecoveryFailureAnalytics = lazy(() => import("@/components/inteligencia/RecoveryFailureAnalytics").then(m => ({ default: m.RecoveryFailureAnalytics })));
+
 
 // ── Section Skeleton Loaders ─────────────────────────────────────────
 function KpisSkeleton() {
@@ -1766,6 +1768,8 @@ export default function Dashboard() {
 
         <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
           <DashboardExecutiveWidgets />
+          <RecoveryFailureAnalytics />
+
         </Suspense>
       </div>
     </TooltipProvider>

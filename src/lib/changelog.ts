@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.2",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Dashboard Analítico de Falhas: Implementada visualização de motivos de insucesso nos planos de recuperação IA." },
+      { type: "novo", text: "Automação 'Falha por Omissão': Planos expirados agora são movidos automaticamente para status de falha com justificativa técnica." },
+      { type: "melhoria", text: "Refinamento de Contexto IA: O motor de insights agora considera o histórico de falhas para evitar repetição de estratégias ineficazes." },
+    ],
+  },
+  {
     version: "1.8.1",
     date: "2026-08-06",
     changes: [
@@ -15,6 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Visualização de Status: Planos expirados agora recebem destaque visual (borda e badge específicos) para facilitar a identificação de riscos não tratados." },
     ],
   },
+
   {
     version: "1.8.0",
     date: "2026-08-06",
