@@ -617,12 +617,14 @@ function RecoveryHistoryCard() {
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
+      const updateData: any = { 
+        conversion_status: status,
+        executed_at: status === 'concluido' ? new Date().toISOString() : null
+      };
+
       const { error } = await supabase
         .from("recovery_plans")
-        .update({ 
-          conversion_status: status,
-          executed_at: status === 'concluido' ? new Date().toISOString() : null
-        })
+        .update(updateData)
         .eq("id", id);
       
       if (error) throw error;
@@ -630,6 +632,23 @@ function RecoveryHistoryCard() {
       queryClient.invalidateQueries({ queryKey: ["recovery_plans_history"] });
     } catch (err) {
       toast.error("Erro ao atualizar status.");
+    }
+  };
+
+  const handleSaveFailureReason = async () => {
+    if (!editingFailureReason) return;
+    try {
+      const { error } = await supabase
+        .from("recovery_plans")
+        .update({ failure_reason: editingFailureReason.reason })
+        .eq("id", editingFailureReason.id);
+      
+      if (error) throw error;
+      toast.success("Motivo salvo!");
+      setEditingFailureReason(null);
+      queryClient.invalidateQueries({ queryKey: ["recovery_plans_history"] });
+    } catch (err) {
+      toast.error("Erro ao salvar motivo.");
     }
   };
 
