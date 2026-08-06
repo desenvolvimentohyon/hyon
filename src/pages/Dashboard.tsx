@@ -417,23 +417,32 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
   });
 
   const sendPushAlert = async (title: string, body: string, targetUserIds?: string[]) => {
+    // Agora usando o modal de multi-seleção
+    setShowMultiSelectAlert({ open: true, body: `${title}: ${body}` });
+  };
+
+  const confirmAlertDispatch = async () => {
     try {
       const { error } = await supabase.functions.invoke("push-notifications", {
         body: {
           action: "send",
-          userIds: targetUserIds || [tecnicoAtualId],
-          title,
-          messageBody: body,
+          userIds: selectedUserIds.length > 0 ? selectedUserIds : [tecnicoAtualId],
+          title: showMultiSelectAlert.body.split(':')[0],
+          messageBody: showMultiSelectAlert.body.split(':')[1]?.trim() || showMultiSelectAlert.body,
           url: "/dashboard"
         }
       });
       if (error) throw error;
-      toast.success("Alerta enviado com sucesso!");
+      toast.success("Alertas enviados com sucesso!");
     } catch (err) {
       console.error("Erro ao enviar push:", err);
-      toast.error("Erro ao disparar notificação.");
+      toast.error("Erro ao disparar notificações.");
+    } finally {
+      setShowMultiSelectAlert({ open: false, body: "" });
+      setSelectedUserIds([]);
     }
   };
+
 
   useEffect(() => {
     const checkExpiredPlans = async () => {
@@ -1906,3 +1915,6 @@ export default function Dashboard() {
     </TooltipProvider>
   );
 }
+
+
+
