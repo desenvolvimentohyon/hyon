@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { usePropostas } from "@/contexts/PropostasContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,14 +6,50 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { CheckCircle2, XCircle, FileText } from "lucide-react";
+import { CheckCircle2, XCircle, FileText, FileSignature } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/core/logger/logger";
 
 export default function AceiteProposta() {
   const { numero } = useParams<{ numero: string }>();
   const { propostas, loading, updateProposta } = usePropostas();
 
   const proposta = propostas.find(p => p.linkAceite === `/aceite/${numero}` || p.numeroProposta === numero);
+
+  const [contrato, setContrato] = useState<string>("");
+  const [assinadoEm, setAssinadoEm] = useState<string | null>(null);
+  const [contratoOpen, setContratoOpen] = useState(false);
+  const [aceitouTermos, setAceitouTermos] = useState(false);
+  const [nomeAssinante, setNomeAssinante] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    if (!proposta?.id) return;
+    let ativo = true;
+    supabase
+      .from("proposals")
+      .select("contract_body, contract_signed_at, contract_signer_name")
+      .eq("id", proposta.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!ativo) return;
+        if (error) {
+          logger.error("Falha ao carregar contrato da proposta", error);
+          return;
+        }
+        setContrato(((data as any)?.contract_body as string) ?? "");
+        setAssinadoEm(((data as any)?.contract_signed_at as string) ?? null);
+        if ((data as any)?.contract_signer_name) setNomeAssinante(String((data as any).contract_signer_name));
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [proposta?.id]);
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Skeleton className="h-[400px] w-[500px]" /></div>;
 
@@ -35,10 +72,39 @@ export default function AceiteProposta() {
     : `${proposta.parcelasImplantacao}x de R$ ${(proposta.valorImplantacao / (proposta.parcelasImplantacao || 1)).toFixed(2)}`;
 
   const jaRespondeu = proposta.statusAceite !== "pendente";
+  const temContrato = contrato.trim().length > 0;
+  const podeAceitar = !temContrato || (aceitouTermos && nomeAssinante.trim().length >= 3);
 
-  const handleAceitar = () => {
-    updateProposta(proposta.id, { statusAceite: "aceitou", statusCRM: "Aceita" }, "Cliente aceitou a proposta");
-    toast({ title: "Proposta aceita! Obrigado!" });
+  const handleAceitar = async () => {
+    if (!podeAceitar) {
+      toast({ title: "Confirme a leitura do contrato e informe seu nome completo.", variant: "destructive" });
+      return;
+    }
+    setEnviando(true);
+    try {
+      if (temContrato) {
+        const { error } = await supabase
+          .from("proposals")
+          .update({
+            contract_signed_at: new Date().toISOString(),
+            contract_signer_name: nomeAssinante.trim(),
+          } as never)
+          .eq("id", proposta.id);
+        if (error) throw error;
+        setAssinadoEm(new Date().toISOString());
+      }
+      updateProposta(
+        proposta.id,
+        { statusAceite: "aceitou", statusCRM: "Aceita" },
+        temContrato ? `Contrato assinado digitalmente por ${nomeAssinante.trim()}` : "Cliente aceitou a proposta",
+      );
+      toast({ title: temContrato ? "Contrato assinado! Obrigado!" : "Proposta aceita! Obrigado!" });
+    } catch (err) {
+      logger.error("Erro ao registrar assinatura do contrato", err);
+      toast({ title: "Não foi possível registrar o aceite. Tente novamente.", variant: "destructive" });
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const handleRecusar = () => {
@@ -85,6 +151,56 @@ export default function AceiteProposta() {
               Válida até {new Date(proposta.dataValidade).toLocaleDateString("pt-BR")}
             </div>
           )}
+
+          {temContrato && (
+            <>
+              <Separator />
+              <div className="rounded-lg border p-3 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-sm font-medium">
+                    <FileSignature className="h-4 w-4" />
+                    Contrato
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setContratoOpen(true)}>
+                    Ler contrato
+                  </Button>
+                </div>
+                <pre className="max-h-32 overflow-hidden whitespace-pre-wrap text-[11px] text-muted-foreground">
+                  {contrato.slice(0, 400)}…
+                </pre>
+
+                {!jaRespondeu && !assinadoEm && (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="aceite-termos"
+                        checked={aceitouTermos}
+                        onCheckedChange={(v) => setAceitouTermos(v === true)}
+                      />
+                      <Label htmlFor="aceite-termos" className="text-xs leading-snug">
+                        Li e concordo integralmente com os termos do contrato acima.
+                      </Label>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nome completo do responsável (assinatura digital)</Label>
+                      <Input
+                        value={nomeAssinante}
+                        onChange={(e) => setNomeAssinante(e.target.value)}
+                        placeholder="Ex.: Maria Souza"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {assinadoEm && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                    Assinado por {nomeAssinante} em {new Date(assinadoEm).toLocaleString("pt-BR")}.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+
           <Separator />
           {jaRespondeu ? (
             <div className="text-center py-4">
@@ -93,17 +209,31 @@ export default function AceiteProposta() {
               </Badge>
             </div>
           ) : (
-            <div className="flex gap-3">
-              <Button className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700" onClick={handleAceitar}>
-                <CheckCircle2 className="h-4 w-4" />Aceitar Proposta
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+                onClick={handleAceitar}
+                disabled={enviando || !podeAceitar}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {temContrato ? "Aceitar e assinar" : "Aceitar Proposta"}
               </Button>
-              <Button variant="outline" className="flex-1 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleRecusar}>
+              <Button variant="outline" className="flex-1 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleRecusar} disabled={enviando}>
                 <XCircle className="h-4 w-4" />Recusar
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={contratoOpen} onOpenChange={setContratoOpen}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Contrato — {proposta.numeroProposta}</DialogTitle>
+          </DialogHeader>
+          <pre className="whitespace-pre-wrap text-xs leading-relaxed">{contrato}</pre>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
