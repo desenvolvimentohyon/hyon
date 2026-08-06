@@ -15,11 +15,13 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 type Severity = 'baixo' | 'medio' | 'alto' | 'todos';
+type DateFilter = 'todos' | 'trimestral' | 'semestral';
 
 export function RecoveryFailureAnalytics() {
   const { tecnicoAtualId } = useApp();
   const { clientesReceita } = useReceita();
   const [filterSeverity, setFilterSeverity] = useState<Severity>('todos');
+  const [filterDate, setFilterDate] = useState<DateFilter>('todos');
 
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["recovery_failure_analytics", tecnicoAtualId, filterSeverity],
