@@ -3284,6 +3284,7 @@ export type Database = {
           org_id: string | null
           plan_content: string
           risk_type: string | null
+          severity: string | null
           source_insight: string
         }
         Insert: {
@@ -3297,6 +3298,7 @@ export type Database = {
           org_id?: string | null
           plan_content: string
           risk_type?: string | null
+          severity?: string | null
           source_insight: string
         }
         Update: {
@@ -3310,6 +3312,7 @@ export type Database = {
           org_id?: string | null
           plan_content?: string
           risk_type?: string | null
+          severity?: string | null
           source_insight?: string
         }
         Relationships: []

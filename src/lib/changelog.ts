@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.3",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Filtros de Gravidade: Adicionada segmentação por risco (Alto/Médio/Baixo) no histórico e análise de falhas." },
+      { type: "novo", text: "Relatórios Estratégicos PDF: Implementada exportação de logs de falha com metadados de gravidade e insights." },
+      { type: "melhoria", text: "Automação de QA: Criada suíte de testes E2E para validação de transições de status e integridade do isolamento multitenant." },
+    ],
+  },
+  {
     version: "1.8.2",
     date: "2026-08-06",
     changes: [
