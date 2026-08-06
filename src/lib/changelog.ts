@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.8",
+    date: "2026-08-06",
+    changes: [
+      { type: "melhoria", text: "Governança de Alertas: Refinada interface de multi-seleção de destinatários para alertas críticos." },
+      { type: "melhoria", text: "Integridade Estrutural: Corrigidas importações e estabilizado fluxo de rotas financeiras." },
+      { type: "novo", text: "Contexto Visual Dinâmico: Implementado banner de instrução sistêmica no topo da aplicação." },
+    ],
+  },
+  {
     version: "1.8.7",
     date: "2026-08-06",
     changes: [
@@ -15,6 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Inteligência de Vínculo: Novo trigger de banco automatiza a associação de registros legados a clientes via heurística de nome." },
     ],
   },
+
   {
     version: "1.8.6",
     date: "2026-08-06",
