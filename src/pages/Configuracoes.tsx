@@ -40,6 +40,9 @@ const TabDesenvolvimento = lazy(() => import("@/components/configuracoes/TabDese
 const LandingLinkCard = lazy(() => import("@/components/configuracoes/LandingLinkCard"));
 const GoogleCalendarConnectCard = lazy(() => import("@/components/configuracoes/GoogleCalendarConnectCard"));
 const TabPlanosModulos = lazy(() => import("@/components/configuracoes/TabPlanosModulos"));
+const TabContratos = lazy(() =>
+  import("@/components/configuracoes/TabContratos").then((m) => ({ default: m.TabContratos })),
+);
 
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
