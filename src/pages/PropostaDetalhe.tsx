@@ -455,6 +455,13 @@ export default function PropostaDetalhe() {
         </CardContent>
       </Card>
 
+      {/* Contrato gerado por IA */}
+      <ContratoIACard
+        proposalId={proposta.id}
+        proposalNumber={proposta.numeroProposta}
+        clienteNome={proposta.clienteNomeSnapshot}
+      />
+
       {/* Histórico */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-sm">Histórico</CardTitle></CardHeader>
