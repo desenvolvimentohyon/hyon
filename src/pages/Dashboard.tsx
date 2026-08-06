@@ -488,11 +488,16 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
       if (error) throw error;
 
       // Persist the generated plan
+      // Persist the generated plan with severity based on context
+      const severity = insight.toLowerCase().includes('+30') ? 'alto' : 
+                      insight.toLowerCase().includes('atraso') ? 'medio' : 'baixo';
+
       await supabase.from('recovery_plans').insert({
         source_insight: insight,
         plan_content: data.answer,
         org_id: tecnicoAtualId,
         risk_type: riskType,
+        severity: severity,
         conversion_status: 'pendente',
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days expiration
       });
