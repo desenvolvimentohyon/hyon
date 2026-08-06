@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { Bot, X, MessageSquare, Send, Sparkles, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ interface Message {
 
 export function IAAssistant() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -82,7 +84,10 @@ export function IAAssistant() {
       // O serviço iaService.ask agora implementa retry interno.
       // Poderíamos opcionalmente passar um callback de progresso se o serviço suportasse,
       // ou apenas confiar no indicador de loading global refinado.
-      const response = await iaService.ask(input, 0, (msg) => setRetryStatus(msg));
+      const response = await iaService.ask(input, 0, (msg) => setRetryStatus(msg), {
+        currentPath: location.pathname,
+        context: "Global Chat Assistant"
+      });
       
       const assistantMsg: Message = { 
         role: "assistant", 
