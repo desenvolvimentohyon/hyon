@@ -9,6 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import {
   AlertTriangle, Plus, Users, TrendingUp, TrendingDown,
   Headphones, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
   Shield, BarChart3, PieChart as PieChartIcon,
@@ -27,6 +37,7 @@ import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { StatusTarefa } from "@/types";
+
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
 
