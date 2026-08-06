@@ -40,6 +40,8 @@ import { StatusTarefa } from "@/types";
 
 
 const DashboardExecutiveWidgets = lazy(() => import("@/components/DashboardExecutiveWidgets"));
+const RecoveryFailureAnalytics = lazy(() => import("@/components/inteligencia/RecoveryFailureAnalytics").then(m => ({ default: m.RecoveryFailureAnalytics })));
+
 
 // ── Section Skeleton Loaders ─────────────────────────────────────────
 function KpisSkeleton() {
@@ -393,7 +395,7 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
       const mrrTotal = clientesReceita.reduce((acc, c) => acc + (c.valorMensalidade || 0), 0);
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
         body: { 
-          question: "Gere um resumo diário inteligente (3-4 pontos). Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso). Seja direto e profissional.",
+          question: "Gere um resumo diário inteligente (3-4 pontos). Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso e planos de recuperação expirados ou com falha). Considere os motivos de falha de planos anteriores para sugerir melhorias. Seja direto e profissional.",
           context: {
             module: "dashboard",
             summary: {
@@ -432,26 +434,33 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
 
   useEffect(() => {
     const checkExpiredPlans = async () => {
+      const date = new Date();
       const { data: expiredPlans } = await supabase
         .from('recovery_plans')
         .select('id, risk_type, expires_at')
-        .eq('conversion_status', 'pendente')
-        .lt('expires_at', new Date().toISOString());
+        .lt('expires_at', date.toISOString())
+        .eq('conversion_status', 'em_execucao');
 
       if (expiredPlans && expiredPlans.length > 0) {
-        expiredPlans.forEach(plan => {
-          sendPushAlert(
-            "Plano de Recuperação Expirado",
-            `O plano para risco de ${plan.risk_type === 'inadimplencia' ? 'Inadimplência' : 'Churn'} atingiu a data limite sem conclusão.`
-          );
-        });
-        
-        // Update status to expired or just notify? Let's keep them as pending but notify
+        // Move to abortado (Falha por Omissão)
+        await supabase
+          .from("recovery_plans")
+          .update({ 
+            conversion_status: 'abortado', 
+            failure_reason: 'Falha por Omissão: Plano expirou sem conclusão após monitoramento.' 
+          })
+          .in("id", expiredPlans.map(p => p.id));
+          
+        sendPushAlert(
+          "⚠️ Planos de Recuperação Expirados",
+          `${expiredPlans.length} plano(s) foram movidos para 'Falha por Omissão' devido à expiração.`
+        );
       }
     };
 
     checkExpiredPlans();
   }, [tecnicoAtualId]);
+
 
   const handleGeneratePlan = async (level: "critico" | "atencao", riskType: string) => {
     const context = level === "critico" ? receitaMetricas.alertaCritico30 : receitaMetricas.alertaCritico7;
@@ -1728,6 +1737,8 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
+
+
             {minhasTarefas.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center py-8">Nenhuma tarefa pendente 🎉</p>
             ) : (
@@ -1766,6 +1777,8 @@ export default function Dashboard() {
 
         <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
           <DashboardExecutiveWidgets />
+          <RecoveryFailureAnalytics />
+
         </Suspense>
       </div>
     </TooltipProvider>
