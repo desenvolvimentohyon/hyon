@@ -107,6 +107,7 @@ export default function Configuracoes() {
     { value: "planos", label: "Planos e Descontos", description: "Vigência e desconto", icon: Tag, colorClass: "text-amber-500", bgClass: "bg-amber-500/10", borderClass: "border-amber-500/30" },
     { value: "implantacao", label: "Implantação", description: "Custos de deploy", icon: Rocket, colorClass: "text-violet-500", bgClass: "bg-violet-500/10", borderClass: "border-violet-500/30" },
     { value: "propostas", label: "Propostas / CRM", description: "Pipeline e envio", icon: FileText, colorClass: "text-indigo-500", bgClass: "bg-indigo-500/10", borderClass: "border-indigo-500/30" },
+    { value: "contratos", label: "Contratos", description: "Templates para a IA", icon: FileSignature, colorClass: "text-cyan-500", bgClass: "bg-cyan-500/10", borderClass: "border-cyan-500/30" },
     { value: "metricas", label: "Métricas", description: "Dashboard e receita", icon: BarChart3, colorClass: "text-teal-500", bgClass: "bg-teal-500/10", borderClass: "border-teal-500/30" },
     { value: "labels", label: "Labels", description: "Nomenclaturas", icon: Palette, colorClass: "text-slate-500", bgClass: "bg-slate-500/10", borderClass: "border-slate-500/30" },
     { value: "alertas", label: "Alertas", description: "Notificações", icon: AlertTriangle, colorClass: "text-red-500", bgClass: "bg-red-500/10", borderClass: "border-red-500/30" },
