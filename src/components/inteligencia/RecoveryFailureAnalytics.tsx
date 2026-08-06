@@ -24,7 +24,7 @@ export function RecoveryFailureAnalytics() {
   const [filterDate, setFilterDate] = useState<DateFilter>('todos');
 
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ["recovery_failure_analytics", tecnicoAtualId, filterSeverity],
+    queryKey: ["recovery_failure_analytics", tecnicoAtualId, filterSeverity, filterDate],
     queryFn: async () => {
       let query = supabase
         .from("recovery_plans")
@@ -33,6 +33,13 @@ export function RecoveryFailureAnalytics() {
       
       if (filterSeverity !== 'todos') {
         query = query.eq('severity', filterSeverity);
+      }
+
+      if (filterDate !== 'todos') {
+        const months = filterDate === 'trimestral' ? 3 : 6;
+        const date = new Date();
+        date.setMonth(date.getMonth() - months);
+        query = query.gte('created_at', date.toISOString());
       }
       
       const { data: plans, error: plansError } = await query;
