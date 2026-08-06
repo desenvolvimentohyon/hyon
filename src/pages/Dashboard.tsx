@@ -704,37 +704,84 @@ function RecoveryHistoryCard() {
         ) : plans?.length === 0 ? (
           <p className="text-[10px] text-muted-foreground text-center py-4">Nenhum plano encontrado com estes filtros.</p>
         ) : (
-          plans?.map((plan: any) => (
-            <div key={plan.id} className="p-2.5 rounded-lg border border-purple/10 bg-purple/5 space-y-2 group transition-all hover:bg-purple/10">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[8px] h-4 border-purple/30 text-purple uppercase">{plan.risk_type || 'Geral'}</Badge>
-                  <span className="text-[10px] text-purple/70 font-medium truncate max-w-[120px]">Insight: {plan.source_insight.substring(0, 30)}...</span>
+          plans?.map((plan: any) => {
+            const isExpired = plan.expires_at && new Date(plan.expires_at) < new Date();
+            const hasFailure = plan.conversion_status === 'abortado';
+            
+            return (
+              <div key={plan.id} className={`p-2.5 rounded-lg border transition-all hover:bg-purple/10 space-y-2 group ${
+                isExpired && plan.conversion_status !== 'concluido' ? 'border-destructive/30 bg-destructive/5' : 'border-purple/10 bg-purple/5'
+              }`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`text-[8px] h-4 uppercase ${
+                      isExpired && plan.conversion_status !== 'concluido' ? 'border-destructive/30 text-destructive' : 'border-purple/30 text-purple'
+                    }`}>
+                      {plan.risk_type || 'Geral'} {isExpired && '• EXPIRADO'}
+                    </Badge>
+                    <span className="text-[10px] text-purple/70 font-medium truncate max-w-[120px]">Insight: {plan.source_insight.substring(0, 30)}...</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      className={`text-[9px] rounded px-1 h-5 outline-none cursor-pointer border-none font-bold ${
+                        plan.conversion_status === 'concluido' ? 'bg-success/20 text-success' : 
+                        plan.conversion_status === 'em_execucao' ? 'bg-info/20 text-info' : 
+                        plan.conversion_status === 'abortado' ? 'bg-destructive/20 text-destructive' : 'bg-muted text-muted-foreground'
+                      }`}
+                      value={plan.conversion_status || 'pendente'}
+                      onChange={(e) => handleStatusChange(plan.id, e.target.value)}
+                    >
+                      <option value="pendente">Pendente</option>
+                      <option value="em_execucao">Em Execução</option>
+                      <option value="concluido">Concluído</option>
+                      <option value="abortado">Abortado / Falha</option>
+                    </select>
+                    <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                      {new Date(plan.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <select 
-                    className={`text-[9px] rounded px-1 h-5 outline-none cursor-pointer border-none font-bold ${
-                      plan.conversion_status === 'concluido' ? 'bg-success/20 text-success' : 
-                      plan.conversion_status === 'em_execucao' ? 'bg-info/20 text-info' : 'bg-muted text-muted-foreground'
-                    }`}
-                    value={plan.conversion_status || 'pendente'}
-                    onChange={(e) => handleStatusChange(plan.id, e.target.value)}
-                  >
-                    <option value="pendente">Pendente</option>
-                    <option value="em_execucao">Em Execução</option>
-                    <option value="concluido">Concluído</option>
-                    <option value="abortado">Abortado</option>
-                  </select>
-                  <span className="text-[9px] text-muted-foreground whitespace-nowrap">
-                    {new Date(plan.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
-                  </span>
-                </div>
+                
+                <p className="text-[10px] text-foreground/80 line-clamp-2 italic leading-relaxed">
+                  "{plan.plan_content}"
+                </p>
+
+                {(hasFailure || plan.failure_reason) && (
+                  <div className="mt-2 pt-2 border-t border-purple/10">
+                    {editingFailureReason?.id === plan.id ? (
+                      <div className="flex flex-col gap-1.5">
+                        <textarea
+                          className="text-[9px] w-full bg-purple/5 border border-purple/20 rounded p-1.5 text-foreground outline-none resize-none h-12"
+                          placeholder="Descreva o motivo da falha para a IA..."
+                          value={editingFailureReason.reason}
+                          onChange={(e) => setEditingFailureReason({ ...editingFailureReason, reason: e.target.value })}
+                        />
+                        <div className="flex justify-end gap-1">
+                          <Button size="xs" variant="ghost" className="h-5 text-[8px]" onClick={() => setEditingFailureReason(null)}>Cancelar</Button>
+                          <Button size="xs" className="h-5 text-[8px] bg-purple text-white" onClick={handleSaveFailureReason}>Salvar Motivo</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-[9px] text-destructive/80 leading-tight">
+                          <span className="font-bold block text-[8px] uppercase mb-0.5">Motivo da Falha:</span>
+                          {plan.failure_reason || "Sem motivo registrado."}
+                        </div>
+                        <Button 
+                          size="xs" 
+                          variant="ghost" 
+                          className="h-5 w-5 p-0 text-purple/50 hover:text-purple"
+                          onClick={() => setEditingFailureReason({ id: plan.id, reason: plan.failure_reason || "" })}
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <p className="text-[10px] text-foreground/80 line-clamp-1 italic leading-relaxed">
-                "{plan.plan_content}"
-              </p>
-            </div>
-          ))
+            );
+          })
         )}
       </CardContent>
     </Card>
