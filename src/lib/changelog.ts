@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.9",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Contrato por IA: propostas agora geram o contrato automaticamente a partir do template e das diretrizes cadastradas." },
+      { type: "novo", text: "Configurações › Contratos: gestão completa de templates com variáveis dinâmicas e template padrão." },
+      { type: "novo", text: "Aceite com assinatura: o cliente lê o contrato e confirma a assinatura digital no link de aceite." },
+    ],
+  },
+  {
     version: "1.8.8",
     date: "2026-08-06",
     changes: [
