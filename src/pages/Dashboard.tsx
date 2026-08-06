@@ -23,7 +23,7 @@ import {
   Headphones, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
   Shield, BarChart3, PieChart as PieChartIcon,
   ExternalLink, RefreshCw, Download, Clock, Zap, CalendarPlus, Target,
-  Sparkles
+  Sparkles, MessageSquare
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
@@ -581,10 +581,12 @@ function RecoveryHistoryCard() {
   const { tecnicoAtualId } = useApp();
   const [filterRiskType, setFilterRiskType] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<string>("7d");
+  const [showOnlyExpired, setShowOnlyExpired] = useState(false);
+  const [editingFailureReason, setEditingFailureReason] = useState<{ id: string, reason: string } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: plans, isLoading } = useQuery({
-    queryKey: ["recovery_plans_history", tecnicoAtualId, filterRiskType, filterDate],
+    queryKey: ["recovery_plans_history", tecnicoAtualId, filterRiskType, filterDate, showOnlyExpired],
     queryFn: async () => {
       let query = supabase
         .from("recovery_plans")
@@ -595,6 +597,11 @@ function RecoveryHistoryCard() {
         query = query.eq("risk_type", filterRiskType);
       }
 
+      if (showOnlyExpired) {
+        query = query.lt("expires_at", new Date().toISOString())
+                     .neq("conversion_status", "concluido");
+      }
+
       if (filterDate !== "all") {
         const date = new Date();
         if (filterDate === "7d") date.setDate(date.getDate() - 7);
@@ -602,7 +609,7 @@ function RecoveryHistoryCard() {
         query = query.gte("created_at", date.toISOString());
       }
 
-      const { data, error } = await query.limit(5);
+      const { data, error } = await query.limit(10);
       if (error) throw error;
       return data || [];
     },
@@ -610,12 +617,14 @@ function RecoveryHistoryCard() {
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
+      const updateData: any = { 
+        conversion_status: status,
+        executed_at: status === 'concluido' ? new Date().toISOString() : null
+      };
+
       const { error } = await supabase
         .from("recovery_plans")
-        .update({ 
-          conversion_status: status,
-          executed_at: status === 'concluido' ? new Date().toISOString() : null
-        })
+        .update(updateData)
         .eq("id", id);
       
       if (error) throw error;
@@ -623,6 +632,23 @@ function RecoveryHistoryCard() {
       queryClient.invalidateQueries({ queryKey: ["recovery_plans_history"] });
     } catch (err) {
       toast.error("Erro ao atualizar status.");
+    }
+  };
+
+  const handleSaveFailureReason = async () => {
+    if (!editingFailureReason) return;
+    try {
+      const { error } = await supabase
+        .from("recovery_plans")
+        .update({ failure_reason: editingFailureReason.reason })
+        .eq("id", editingFailureReason.id);
+      
+      if (error) throw error;
+      toast.success("Motivo salvo!");
+      setEditingFailureReason(null);
+      queryClient.invalidateQueries({ queryKey: ["recovery_plans_history"] });
+    } catch (err) {
+      toast.error("Erro ao salvar motivo.");
     }
   };
 
@@ -635,7 +661,19 @@ function RecoveryHistoryCard() {
           <CardTitle className="text-xs font-semibold flex items-center gap-2 text-purple uppercase tracking-wider">
             <Clock className="h-3 w-3" /> Histórico de Planos IA
           </CardTitle>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 mr-2 px-1.5 py-0.5 rounded bg-purple/10 border border-purple/20">
+              <input 
+                type="checkbox" 
+                id="expired-only"
+                className="w-3 h-3 accent-purple cursor-pointer"
+                checked={showOnlyExpired}
+                onChange={(e) => setShowOnlyExpired(e.target.checked)}
+              />
+              <label htmlFor="expired-only" className="text-[9px] text-purple font-medium cursor-pointer whitespace-nowrap">
+                Expirados
+              </label>
+            </div>
             <select 
               className="bg-purple/10 border-none text-[10px] rounded px-1.5 h-6 text-purple outline-none cursor-pointer"
               value={filterRiskType}
@@ -666,37 +704,85 @@ function RecoveryHistoryCard() {
         ) : plans?.length === 0 ? (
           <p className="text-[10px] text-muted-foreground text-center py-4">Nenhum plano encontrado com estes filtros.</p>
         ) : (
-          plans?.map((plan: any) => (
-            <div key={plan.id} className="p-2.5 rounded-lg border border-purple/10 bg-purple/5 space-y-2 group transition-all hover:bg-purple/10">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[8px] h-4 border-purple/30 text-purple uppercase">{plan.risk_type || 'Geral'}</Badge>
-                  <span className="text-[10px] text-purple/70 font-medium truncate max-w-[120px]">Insight: {plan.source_insight.substring(0, 30)}...</span>
+          plans?.map((plan: any) => {
+            const isExpired = plan.expires_at && new Date(plan.expires_at) < new Date();
+            const hasFailure = plan.conversion_status === 'abortado';
+            
+            return (
+              <div key={plan.id} className={`p-2.5 rounded-lg border transition-all hover:bg-purple/10 space-y-2 group ${
+                isExpired && plan.conversion_status !== 'concluido' ? 'border-destructive/30 bg-destructive/5' : 'border-purple/10 bg-purple/5'
+              }`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`text-[8px] h-4 uppercase ${
+                      isExpired && plan.conversion_status !== 'concluido' ? 'border-destructive/30 text-destructive' : 'border-purple/30 text-purple'
+                    }`}>
+                      {plan.risk_type || 'Geral'} {isExpired && '• EXPIRADO'}
+                    </Badge>
+                    <span className="text-[10px] text-purple/70 font-medium truncate max-w-[120px]">Insight: {plan.source_insight.substring(0, 30)}...</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      className={`text-[9px] rounded px-1 h-5 outline-none cursor-pointer border-none font-bold ${
+                        plan.conversion_status === 'concluido' ? 'bg-success/20 text-success' : 
+                        plan.conversion_status === 'em_execucao' ? 'bg-info/20 text-info' : 
+                        plan.conversion_status === 'abortado' ? 'bg-destructive/20 text-destructive' : 'bg-muted text-muted-foreground'
+                      }`}
+                      value={plan.conversion_status || 'pendente'}
+                      onChange={(e) => handleStatusChange(plan.id, e.target.value)}
+                    >
+                      <option value="pendente">Pendente</option>
+                      <option value="em_execucao">Em Execução</option>
+                      <option value="concluido">Concluído</option>
+                      <option value="abortado">Abortado / Falha</option>
+                    </select>
+                    <span className="text-[9px] text-muted-foreground whitespace-nowrap">
+                      {new Date(plan.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <select 
-                    className={`text-[9px] rounded px-1 h-5 outline-none cursor-pointer border-none font-bold ${
-                      plan.conversion_status === 'concluido' ? 'bg-success/20 text-success' : 
-                      plan.conversion_status === 'em_execucao' ? 'bg-info/20 text-info' : 'bg-muted text-muted-foreground'
-                    }`}
-                    value={plan.conversion_status || 'pendente'}
-                    onChange={(e) => handleStatusChange(plan.id, e.target.value)}
-                  >
-                    <option value="pendente">Pendente</option>
-                    <option value="em_execucao">Em Execução</option>
-                    <option value="concluido">Concluído</option>
-                    <option value="abortado">Abortado</option>
-                  </select>
-                  <span className="text-[9px] text-muted-foreground whitespace-nowrap">
-                    {new Date(plan.created_at).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
-                  </span>
-                </div>
+                
+                <p className="text-[10px] text-foreground/80 line-clamp-2 italic leading-relaxed">
+                  "{plan.plan_content}"
+                </p>
+
+                {(hasFailure || plan.failure_reason) && (
+                  <div className="mt-2 pt-2 border-t border-purple/10">
+                    {editingFailureReason?.id === plan.id ? (
+                      <div className="flex flex-col gap-1.5">
+                        <textarea
+                          className="text-[9px] w-full bg-purple/5 border border-purple/20 rounded p-1.5 text-foreground outline-none resize-none h-12"
+                          placeholder="Descreva o motivo da falha para a IA..."
+                          value={editingFailureReason.reason}
+                          onChange={(e) => setEditingFailureReason({ ...editingFailureReason, reason: e.target.value })}
+                        />
+                        <div className="flex justify-end gap-1">
+                          <Button size="sm" variant="ghost" className="h-5 text-[8px] px-2" onClick={() => setEditingFailureReason(null)}>Cancelar</Button>
+                          <Button size="sm" className="h-5 text-[8px] px-2 bg-purple text-white" onClick={handleSaveFailureReason}>Salvar Motivo</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-[9px] text-destructive/80 leading-tight">
+                          <span className="font-bold block text-[8px] uppercase mb-0.5">Motivo da Falha:</span>
+                          {plan.failure_reason || "Sem motivo registrado."}
+                        </div>
+                        <Button 
+                          size="sm" 
+
+                          variant="ghost" 
+                          className="h-5 w-5 p-0 text-purple/50 hover:text-purple"
+                          onClick={() => setEditingFailureReason({ id: plan.id, reason: plan.failure_reason || "" })}
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <p className="text-[10px] text-foreground/80 line-clamp-1 italic leading-relaxed">
-                "{plan.plan_content}"
-              </p>
-            </div>
-          ))
+            );
+          })
         )}
       </CardContent>
     </Card>

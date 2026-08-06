@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.1",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Filtro de Expirados: Adicionada opção de filtrar apenas planos de recuperação com data limite ultrapassada no histórico do Dashboard." },
+      { type: "novo", text: "Análise de Falhas: Implementado campo de 'Motivo da Falha' para planos abortados, permitindo coletar dados para otimização do motor de IA." },
+      { type: "melhoria", text: "Visualização de Status: Planos expirados agora recebem destaque visual (borda e badge específicos) para facilitar a identificação de riscos não tratados." },
+    ],
+  },
+  {
     version: "1.8.0",
     date: "2026-08-06",
     changes: [
