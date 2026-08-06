@@ -1730,40 +1730,6 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            {(() => {
-              const checkExpiredPlans = async () => {
-                const date = new Date();
-                const { data: expiredPlans } = await supabase
-                  .from("recovery_plans")
-                  .select("id, risk_type")
-                  .lt("expires_at", date.toISOString())
-                  .eq("conversion_status", "em_execucao");
-
-                if (expiredPlans && expiredPlans.length > 0) {
-                  await supabase
-                    .from("recovery_plans")
-                    .update({ 
-                      conversion_status: 'abortado', 
-                      failure_reason: 'Falha por Omissão: Plano expirou sem conclusão após 48h de monitoramento.' 
-                    })
-                    .in("id", expiredPlans.map(p => p.id));
-                    
-                  const userIds = [tecnicoAtualId].filter(Boolean) as string[];
-                  if (userIds.length > 0) {
-                    await supabase.functions.invoke("push-notifications", {
-                      body: {
-                        action: "send",
-                        userIds,
-                        title: "⚠️ Planos de Recuperação Expirados",
-                        messageBody: `${expiredPlans.length} plano(s) foram movidos para 'Falha por Omissão' devido à expiração.`,
-                        url: "/"
-                      }
-                    });
-                  }
-                }
-              };
-              return null;
-            })()}
 
 
             {minhasTarefas.length === 0 ? (
