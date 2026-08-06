@@ -1731,12 +1731,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {(() => {
-              // IA Automation for Expired Plans
               const checkExpiredPlans = async () => {
                 const date = new Date();
                 const { data: expiredPlans } = await supabase
                   .from("recovery_plans")
-                  .select("id, client_id, risk_type")
+                  .select("id, risk_type")
                   .lt("expires_at", date.toISOString())
                   .eq("conversion_status", "em_execucao");
 
@@ -1763,12 +1762,9 @@ export default function Dashboard() {
                   }
                 }
               };
-              
-              // Run check once on dashboard load if not already checked in this session
-              // We use a simple effect-like call within the render for this purpose (managed by Query or manual check)
-              // But to follow the requested "create automation" instruction in a client-side only sandbox:
               return null;
             })()}
+
 
             {minhasTarefas.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center py-8">Nenhuma tarefa pendente 🎉</p>
