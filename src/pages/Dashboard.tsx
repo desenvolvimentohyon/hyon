@@ -1211,54 +1211,79 @@ export default function Dashboard() {
         </div>
         )}
 
-        {/* ══ ALERTAS ══════════════════════════════════════════════ */}
-        {receitaMetricas.alertaCritico30.length > 0 && (
-          <Card className="border-destructive/40 bg-destructive/5 neon-border" style={{ borderLeftColor: RECEITA_COLORS.custos }}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-destructive animate-pulse" />
-                URGENTE: {receitaMetricas.alertaCritico30.length} cliente{receitaMetricas.alertaCritico30.length > 1 ? "s" : ""} em atraso há mais de 30 dias
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1.5">
-                {receitaMetricas.alertaCritico30.map(c => (
-                  <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-destructive/20 hover:bg-destructive/5 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
-                    <span className="text-xs font-medium flex-1 truncate">{c.nome}</span>
-                    <Badge variant="outline" className="text-[9px]">{c.sistemaPrincipal}</Badge>
-                    <Badge variant="destructive" className="text-[9px]">{c.diasAtraso}d</Badge>
-                    <span className="text-[11px] font-medium">{fmt(c.valorMensalidade)}</span>
+        {/* ══ ALERTAS INTELIGENTES ═══════════════════════════════════════ */}
+        {(receitaMetricas.alertaCritico30.length > 0 || receitaMetricas.alertaCritico7.length > 0) && (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {receitaMetricas.alertaCritico30.length > 0 && (
+              <Card className="border-destructive/40 bg-destructive/5 neon-border h-full" style={{ borderLeftColor: RECEITA_COLORS.custos }}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-destructive animate-pulse" />
+                      Crítico: +30 dias
+                    </CardTitle>
+                    <Badge variant="destructive" className="text-[10px]">{receitaMetricas.alertaCritico30.length}</Badge>
                   </div>
-                ))}
-                <p className="text-[11px] text-destructive font-semibold pt-1">
-                  Receita em risco: {fmt(receitaMetricas.alertaCritico30.reduce((s, c) => s + c.valorMensalidade, 0))}/mês
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {receitaMetricas.alertaCritico30.slice(0, 3).map(c => (
+                      <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-destructive/20 hover:bg-destructive/5 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
+                        <span className="text-xs font-medium flex-1 truncate">{c.nome}</span>
+                        <Badge variant="destructive" className="text-[9px]">{c.diasAtraso}d</Badge>
+                        <span className="text-[11px] font-medium">{fmt(c.valorMensalidade)}</span>
+                      </div>
+                    ))}
+                    
+                    <div className="mt-3 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 relative overflow-hidden group">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Sparkles className="h-3 w-3 text-destructive animate-pulse" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-destructive">Análise de Risco IA</span>
+                      </div>
+                      <p className="text-[10px] text-foreground/80 leading-relaxed italic">
+                        "Alto risco de churn identificado. A receita impactada ({fmt(receitaMetricas.alertaCritico30.reduce((s, c) => s + c.valorMensalidade, 0))}) requer ação imediata de cobrança e renegociação para evitar perda definitiva."
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-        {receitaMetricas.alertaCritico7.length > 0 && (
-          <Card className="border-warning/40 bg-warning/5 neon-border" style={{ borderLeftColor: RECEITA_COLORS.churn }}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-warning" />
-                Atenção: {receitaMetricas.alertaCritico7.length} cliente{receitaMetricas.alertaCritico7.length > 1 ? "s" : ""} em atraso entre 7 e 30 dias
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1.5">
-                {receitaMetricas.alertaCritico7.map(c => (
-                  <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-warning/20 hover:bg-warning/5 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
-                    <span className="text-xs font-medium flex-1 truncate">{c.nome}</span>
-                    <Badge variant="outline" className="text-[9px]">{c.sistemaPrincipal}</Badge>
-                    <Badge className="text-[9px] bg-warning text-warning-foreground">{c.diasAtraso}d</Badge>
-                    <span className="text-[11px] font-medium">{fmt(c.valorMensalidade)}</span>
+            {receitaMetricas.alertaCritico7.length > 0 && (
+              <Card className="border-warning/40 bg-warning/5 neon-border h-full" style={{ borderLeftColor: RECEITA_COLORS.churn }}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-warning" />
+                      Atenção: 7-30 dias
+                    </CardTitle>
+                    <Badge className="text-[10px] bg-warning text-warning-foreground">{receitaMetricas.alertaCritico7.length}</Badge>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1.5">
+                    {receitaMetricas.alertaCritico7.slice(0, 3).map(c => (
+                      <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-warning/20 hover:bg-warning/5 cursor-pointer transition-colors" onClick={() => navigate("/clientes")}>
+                        <span className="text-xs font-medium flex-1 truncate">{c.nome}</span>
+                        <Badge className="text-[9px] bg-warning text-warning-foreground">{c.diasAtraso}d</Badge>
+                        <span className="text-[11px] font-medium">{fmt(c.valorMensalidade)}</span>
+                      </div>
+                    ))}
+
+                    <div className="mt-3 p-2.5 rounded-lg bg-warning/10 border border-warning/20 relative overflow-hidden group">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Sparkles className="h-3 w-3 text-warning animate-pulse" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-warning">Gargalo Identificado IA</span>
+                      </div>
+                      <p className="text-[10px] text-foreground/80 leading-relaxed italic">
+                        "Tendência de atraso em cascata detectada. Recomenda-se envio automático de lembrete via WhatsApp para os {receitaMetricas.alertaCritico7.length} clientes afetados."
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
 
         {/* ══ LINHA 5 — Propostas vencendo + Tarefas ═══════════════ */}
