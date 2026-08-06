@@ -661,7 +661,19 @@ function RecoveryHistoryCard() {
           <CardTitle className="text-xs font-semibold flex items-center gap-2 text-purple uppercase tracking-wider">
             <Clock className="h-3 w-3" /> Histórico de Planos IA
           </CardTitle>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 mr-2 px-1.5 py-0.5 rounded bg-purple/10 border border-purple/20">
+              <input 
+                type="checkbox" 
+                id="expired-only"
+                className="w-3 h-3 accent-purple cursor-pointer"
+                checked={showOnlyExpired}
+                onChange={(e) => setShowOnlyExpired(e.target.checked)}
+              />
+              <label htmlFor="expired-only" className="text-[9px] text-purple font-medium cursor-pointer whitespace-nowrap">
+                Expirados
+              </label>
+            </div>
             <select 
               className="bg-purple/10 border-none text-[10px] rounded px-1.5 h-6 text-purple outline-none cursor-pointer"
               value={filterRiskType}
