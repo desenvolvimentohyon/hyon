@@ -7,7 +7,17 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.7.9",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Filtros Avançados de Histórico: Adicionados filtros por data e tipo de risco no acompanhamento de planos de recuperação IA." },
+      { type: "novo", text: "Métricas de Conversão: Implementado sistema de tracking para eficácia de planos executados, com status de conversão e data de conclusão." },
+      { type: "melhoria", text: "Segmentação de Risco: IA agora categoriza riscos entre inadimplência, churn e gargalos operacionais para melhores planos estratégicos." },
+    ],
+  },
+  {
     version: "1.7.8",
+
     date: "2026-08-06",
     changes: [
       { type: "novo", text: "Painel de Histórico IA: Adicionado card no Dashboard para visualização e acompanhamento dos últimos Planos de Recuperação gerados." },
