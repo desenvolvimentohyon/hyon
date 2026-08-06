@@ -20,6 +20,7 @@ import { Save, Send, Download, Copy, ExternalLink, ArrowLeft, Plus, Trash2, Cloc
 import { Proposta, SistemaProposta, FluxoPagamento, StatusVisualizacao, StatusAceite, STATUS_VISUALIZACAO_LABELS, STATUS_ACEITE_LABELS } from "@/types/propostas";
 import { supabase } from "@/integrations/supabase/client";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { ContratoIACard } from "@/components/propostas/ContratoIACard";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
