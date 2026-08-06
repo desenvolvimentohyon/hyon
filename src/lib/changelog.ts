@@ -7,12 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.7.6",
+    version: "1.7.7",
     date: "2026-08-06",
     changes: [
-      { type: "novo", text: "Alertas Inteligentes de Risco: Implementados cards de alerta com análise preditiva de IA para inadimplência e churn no Dashboard." },
+      { type: "novo", text: "Alertas Push Inteligentes: Adicionada a capacidade de disparar notificações instantâneas para gestores a partir de insights da IA." },
+      { type: "novo", text: "Plano de Recuperação IA: Integrado gerador de estratégias em 5 passos para mitigação de riscos de inadimplência e churn." },
+      { type: "melhoria", text: "Alertas Inteligentes de Risco: Implementados cards de alerta com análise preditiva de IA para inadimplência e churn no Dashboard." },
       { type: "melhoria", text: "Justificativa Textual IA: Alertas agora incluem razões detalhadas e sugestões de ação baseadas nos dados financeiros reais." },
       { type: "novo", text: "Resumo Diário Inteligente: O Dashboard agora exibe um briefing matinal gerado pela Hyon IA sobre prioridades, MRR e riscos operacionais." },
+
 
       { type: "melhoria", text: "Integração Pervasiva de Contexto: O motor de IA do Dashboard agora consome dados agregados de tarefas e métricas financeiras em tempo real." },
       { type: "novo", text: "IA Onipresente: Integrada inteligência contextual em tempo real no Dashboard e na Gestão de Clientes para suporte à decisão." },
