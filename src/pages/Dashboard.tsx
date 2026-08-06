@@ -372,33 +372,48 @@ function CertificadosVencendoCard() {
 
 // ── IA Insights Card ────────────────────────────────────────────────
 function IAInsightsCard() {
+  const { tarefas } = useApp();
+  const { clientesReceita } = useReceita();
+
   const { data: insights, isLoading } = useQuery({
-    queryKey: ["ia_dashboard_insights"],
+    queryKey: ["ia_dashboard_insights", tarefas.length, clientesReceita.length],
     queryFn: async () => {
+      const mrrTotal = clientesReceita.reduce((acc, c) => acc + (c.valorMensalidade || 0), 0);
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
-        body: { question: "Gere 3 insights rápidos e acionáveis sobre o dashboard atual (MRR, churn e tarefas)." },
+        body: { 
+          question: "Gere um resumo diário inteligente (3-4 pontos). Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso). Seja direto e profissional.",
+          context: {
+            module: "dashboard",
+            summary: {
+              tarefas_pendentes: tarefas.filter(t => t.status !== 'concluida' && t.status !== 'cancelada').length,
+              mrr: mrrTotal,
+              total_clientes: clientesReceita.length,
+              clientes_ativos: clientesReceita.filter(c => c.statusCliente === 'ativo').length
+            }
+          }
+        },
       });
       if (error) throw error;
-      return data?.answer?.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 3) || [];
+      return data?.answer?.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 4) || [];
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
-  if (isLoading) return <Card className="neon-border"><CardContent className="p-4"><Skeleton className="h-20 w-full" /></CardContent></Card>;
+  if (isLoading) return <Card className="neon-border border-primary/20 bg-primary/5 mb-4"><CardContent className="p-4"><div className="space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-4 w-2/3" /></div></CardContent></Card>;
   if (!insights || insights.length === 0) return null;
 
   return (
-    <Card className="neon-border border-primary/20 bg-primary/5">
+    <Card className="neon-border border-primary/20 bg-primary/5 mb-4 shadow-glow-primary/5">
       <CardHeader className="pb-2">
         <CardTitle className="text-xs font-semibold flex items-center gap-2 text-primary uppercase tracking-wider">
-          <Sparkles className="h-3 w-3 animate-pulse" /> Insights da Hyon IA
+          <Sparkles className="h-3 w-3 animate-pulse" /> Resumo Inteligente · Hyon IA
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 pb-4">
+      <CardContent className="space-y-2.5 pb-5">
         {insights.map((insight: string, i: number) => (
-          <div key={i} className="flex gap-2 items-start group">
-            <div className="mt-1.5 w-1 h-1 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />
-            <p className="text-[11px] leading-relaxed text-foreground/80">{insight.replace(/^[0-9*.\-\s]+/, '')}</p>
+          <div key={i} className="flex gap-3 items-start group">
+            <div className="mt-1.5 w-1 h-1 rounded-full bg-primary group-hover:scale-150 transition-transform" />
+            <p className="text-[11px] leading-relaxed text-foreground/90 font-medium">{insight.replace(/^[0-9*.\-\s]+/, '')}</p>
           </div>
         ))}
       </CardContent>

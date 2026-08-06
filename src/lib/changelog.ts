@@ -7,11 +7,11 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.7.4",
+    version: "1.7.5",
     date: "2026-08-06",
     changes: [
-      { type: "novo", text: "Chat de IA Global: Assistente Hyon agora possui contexto de navegação e pode responder dúvidas específicas sobre cada tela do sistema." },
-      { type: "melhoria", text: "Inteligência Onipresente: O assistente de IA detecta automaticamente em qual módulo o usuário está para fornecer orientações contextuais." },
+      { type: "novo", text: "Resumo Diário Inteligente: O Dashboard agora exibe um briefing matinal gerado pela Hyon IA sobre prioridades, MRR e riscos operacionais." },
+      { type: "melhoria", text: "Integração Pervasiva de Contexto: O motor de IA do Dashboard agora consome dados agregados de tarefas e métricas financeiras em tempo real." },
       { type: "novo", text: "IA Onipresente: Integrada inteligência contextual em tempo real no Dashboard e na Gestão de Clientes para suporte à decisão." },
       { type: "novo", text: "Dashboard Inteligente: Agora o dashboard exibe insights automáticos gerados pela Hyon IA baseados em dados reais de MRR e churn." },
       { type: "melhoria", text: "Resiliência de Rede: Implementado teste E2E para garantir que a interface do assistente não congele durante respostas lentas." },
