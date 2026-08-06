@@ -388,6 +388,9 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
   const { tarefas, tecnicoAtualId } = useApp();
   const { clientesReceita } = useReceita();
   const [activeAnalysis, setActiveAnalysis] = useState<any>(null);
+  const [showMultiSelectAlert, setShowMultiSelectAlert] = useState<{ open: boolean; body: string }>({ open: false, body: "" });
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const { tecnicos } = useApp();
 
   const { data: insights, isLoading } = useQuery({
     queryKey: ["ia_dashboard_insights", tarefas.length, clientesReceita.length],
@@ -541,7 +544,10 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
                       variant="ghost" 
                       size="sm" 
                       className="h-6 text-[9px] gap-1 text-primary hover:text-primary hover:bg-primary/10"
-                      onClick={() => sendPushAlert("Alerta de Risco Hyon", cleanInsight)}
+                      onClick={() => {
+                        setSelectedUserIds([tecnicoAtualId]);
+                        setShowMultiSelectAlert({ open: true, body: cleanInsight });
+                      }}
                     >
                       <Send className="h-2.5 w-2.5" /> Disparar Alerta
                     </Button>
@@ -560,6 +566,77 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
           })}
         </CardContent>
       </Card>
+      
+      {/* Modal de Disparo de Alerta Multi-select */}
+      <AlertDialog open={showMultiSelectAlert.open} onOpenChange={(open) => !open && setShowMultiSelectAlert({ ...showMultiSelectAlert, open: false })}>
+        <AlertDialogContent className="max-w-md glass-premium border-primary/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-primary">
+              <Send className="h-4 w-4" /> Disparar Alerta Crítico
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground/90 text-xs">
+              Selecione os gestores que devem receber esta notificação push imediatamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="p-3 bg-primary/5 rounded-lg border border-primary/10 mb-4">
+              <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Conteúdo do Alerta:</p>
+              <p className="text-[11px] leading-relaxed italic">"{showMultiSelectAlert.body}"</p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wider">Destinatários</p>
+              <div className="grid grid-cols-1 gap-1.5 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                {tecnicos.map((t) => (
+                  <label 
+                    key={t.id} 
+                    className={`flex items-center gap-3 p-2.5 rounded-md border transition-all cursor-pointer ${
+                      selectedUserIds.includes(t.id) 
+                        ? 'bg-primary/10 border-primary/30' 
+                        : 'hover:bg-accent/50 border-border/50'
+                    }`}
+                  >
+                    <input 
+                      type="checkbox" 
+                      className="accent-primary h-3.5 w-3.5"
+                      checked={selectedUserIds.includes(t.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedUserIds([...selectedUserIds, t.id]);
+                        } else {
+                          setSelectedUserIds(selectedUserIds.filter(id => id !== t.id));
+                        }
+                      }}
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium">{t.nome}</span>
+                      <span className="text-[10px] text-muted-foreground">{t.cargo || 'Gestor'}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <AlertDialogFooter className="gap-2">
+            <Button variant="outline" size="sm" className="h-9" onClick={() => setShowMultiSelectAlert({ ...showMultiSelectAlert, open: false })}>
+              Cancelar
+            </Button>
+            <Button 
+              size="sm" 
+              className="h-9 gap-2" 
+              disabled={selectedUserIds.length === 0}
+              onClick={() => {
+                sendPushAlert("Alerta de Risco Hyon", showMultiSelectAlert.body, selectedUserIds);
+                setShowMultiSelectAlert({ ...showMultiSelectAlert, open: false });
+              }}
+            >
+              <Send className="h-3.5 w-3.5" /> Enviar para {selectedUserIds.length}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <RecoveryHistoryCard />
 

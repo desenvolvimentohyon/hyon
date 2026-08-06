@@ -20,8 +20,10 @@ type DateFilter = 'todos' | 'trimestral' | 'semestral';
 export function RecoveryFailureAnalytics() {
   const { tecnicoAtualId } = useApp();
   const { clientesReceita } = useReceita();
+  const { clientes } = useApp();
   const [filterSeverity, setFilterSeverity] = useState<Severity>('todos');
   const [filterDate, setFilterDate] = useState<DateFilter>('todos');
+  const [selectedSeverityClients, setSelectedSeverityClients] = useState<{ name: string; clients: any[] } | null>(null);
 
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["recovery_failure_analytics", tecnicoAtualId, filterSeverity, filterDate],
@@ -121,8 +123,57 @@ export function RecoveryFailureAnalytics() {
 
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  const handleBarClick = (data: any) => {
+    if (!analytics) return;
+    const severityMap: Record<string, string> = { 'Baixo': 'baixo', 'Médio': 'medio', 'Alto': 'alto' };
+    const sevValue = severityMap[data.name];
+    
+    const relevantPlans = analytics.filter(p => (p as any).severity === sevValue);
+    const clientList = relevantPlans.map(p => {
+      const cliente = clientesReceita.find(c => c.id === (p as any).client_id);
+      return {
+        id: (p as any).client_id,
+        name: cliente?.nome || "Cliente não identificado",
+        value: cliente?.valorMensalidade || 150,
+        reason: p.failure_reason
+      };
+    });
+
+    setSelectedSeverityClients({ name: data.name, clients: clientList });
+  };
+
   return (
     <div className="space-y-4 mt-4">
+      {selectedSeverityClients && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg glass-premium border-primary/20 shadow-2xl">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
+                <Activity className="h-4 w-4" /> Detalhes: Gravidade {selectedSeverityClients.name}
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedSeverityClients(null)} className="h-7 w-7 p-0 rounded-full">✕</Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                {selectedSeverityClients.clients.length > 0 ? selectedSeverityClients.clients.map((c, idx) => (
+                  <div key={idx} className="p-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-xs font-semibold truncate flex-1">{c.name}</span>
+                      <Badge variant="outline" className="text-[9px] text-destructive border-destructive/20">{fmt(c.value)}</Badge>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground italic leading-tight">{c.reason || "Sem motivo especificado"}</p>
+                  </div>
+                )) : (
+                  <p className="text-center py-8 text-xs text-muted-foreground italic">Nenhum cliente identificado para este critério.</p>
+                )}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button size="sm" variant="outline" className="h-8 text-[10px]" onClick={() => setSelectedSeverityClients(null)}>Fechar</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
@@ -227,7 +278,13 @@ export function RecoveryFailureAnalytics() {
                     formatter={(value: number) => fmt(value)}
                     contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', fontSize: '9px' }}
                   />
-                  <Bar dataKey="value" fill="#3B82F6" radius={[0, 4, 4, 0]} />
+                  <Bar 
+                    dataKey="value" 
+                    fill="#3B82F6" 
+                    radius={[0, 4, 4, 0]} 
+                    onClick={(data) => handleBarClick(data)}
+                    cursor="pointer"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
