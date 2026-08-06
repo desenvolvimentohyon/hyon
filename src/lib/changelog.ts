@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.0",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Taxa de Sucesso IA: Implementado gráfico de conversão dos planos de recuperação no Radar de Crescimento." },
+      { type: "novo", text: "Alertas de Expiração: Adicionadas notificações push para planos de recuperação que atingem a data limite sem conclusão." },
+      { type: "melhoria", text: "Inteligência de Recuperação: Dashboards agora exibem métricas reais de eficácia das estratégias sugeridas pela IA." },
+    ],
+  },
+  {
     version: "1.7.9",
     date: "2026-08-06",
     changes: [

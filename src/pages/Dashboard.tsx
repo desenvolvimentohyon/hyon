@@ -430,6 +430,29 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
     }
   };
 
+  useEffect(() => {
+    const checkExpiredPlans = async () => {
+      const { data: expiredPlans } = await supabase
+        .from('recovery_plans')
+        .select('id, risk_type, expires_at')
+        .eq('conversion_status', 'pendente')
+        .lt('expires_at', new Date().toISOString());
+
+      if (expiredPlans && expiredPlans.length > 0) {
+        expiredPlans.forEach(plan => {
+          sendPushAlert(
+            "Plano de Recuperação Expirado",
+            `O plano para risco de ${plan.risk_type === 'inadimplencia' ? 'Inadimplência' : 'Churn'} atingiu a data limite sem conclusão.`
+          );
+        });
+        
+        // Update status to expired or just notify? Let's keep them as pending but notify
+      }
+    };
+
+    checkExpiredPlans();
+  }, [tecnicoAtualId]);
+
   const handleGeneratePlan = async (level: "critico" | "atencao", riskType: string) => {
     const context = level === "critico" ? receitaMetricas.alertaCritico30 : receitaMetricas.alertaCritico7;
     const insight = level === "critico" 
@@ -461,7 +484,8 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
         plan_content: data.answer,
         org_id: tecnicoAtualId,
         risk_type: riskType,
-        conversion_status: 'pendente'
+        conversion_status: 'pendente',
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days expiration
       });
 
       setActiveAnalysis({
