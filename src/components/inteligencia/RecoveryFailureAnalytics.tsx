@@ -28,7 +28,7 @@ export function RecoveryFailureAnalytics() {
     queryFn: async () => {
       let query = supabase
         .from("recovery_plans")
-        .select("failure_reason, risk_type, conversion_status, severity, source_insight, created_at")
+        .select("failure_reason, risk_type, conversion_status, severity, source_insight, created_at, client_id")
         .eq("conversion_status", "abortado");
       
       if (filterSeverity !== 'todos') {
