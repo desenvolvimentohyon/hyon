@@ -1744,6 +1744,46 @@ export default function Dashboard() {
           <CardContent>
 
 
+
+            {(() => {
+              // IA Automation for Expired Plans
+              const checkExpiredPlans = async () => {
+                const date = new Date();
+                const { data: expiredPlans } = await supabase
+                  .from("recovery_plans")
+                  .select("id, severity")
+                  .lt("expires_at", date.toISOString())
+                  .eq("conversion_status", "em_execucao");
+
+                if (expiredPlans && expiredPlans.length > 0) {
+                  await supabase
+                    .from("recovery_plans")
+                    .update({ 
+                      conversion_status: 'abortado', 
+                      failure_reason: 'Falha por Omissão: Plano expirou sem conclusão após 48h de monitoramento.' 
+                    })
+                    .in("id", expiredPlans.map(p => p.id));
+                    
+                  const userIds = [tecnicoAtualId].filter(Boolean) as string[];
+                  if (userIds.length > 0) {
+                    const hasHighSeverity = (expiredPlans as any[]).some(p => p.severity === 'alto');
+
+                    await supabase.functions.invoke("push-notifications", {
+                      body: {
+                        action: "send",
+                        userIds,
+                        title: hasHighSeverity ? "🚨 Risco Crítico: Planos Expirados" : "⚠️ Planos de Recuperação Expirados",
+                        messageBody: `${expiredPlans.length} plano(s) foram movidos para 'Falha por Omissão' devido à expiração.${hasHighSeverity ? " Ação imediata requerida para riscos de gravidade ALTA." : ""}`,
+                        url: "/"
+                      }
+                    });
+                  }
+                }
+              };
+              
+              checkExpiredPlans();
+              return null;
+            })()}
             {minhasTarefas.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center py-8">Nenhuma tarefa pendente 🎉</p>
             ) : (
