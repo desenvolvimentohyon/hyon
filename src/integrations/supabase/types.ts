@@ -3274,27 +3274,36 @@ export type Database = {
       }
       recovery_plans: {
         Row: {
+          conversion_status: string | null
           created_at: string | null
           created_by: string | null
+          executed_at: string | null
           id: string
           org_id: string | null
           plan_content: string
+          risk_type: string | null
           source_insight: string
         }
         Insert: {
+          conversion_status?: string | null
           created_at?: string | null
           created_by?: string | null
+          executed_at?: string | null
           id?: string
           org_id?: string | null
           plan_content: string
+          risk_type?: string | null
           source_insight: string
         }
         Update: {
+          conversion_status?: string | null
           created_at?: string | null
           created_by?: string | null
+          executed_at?: string | null
           id?: string
           org_id?: string | null
           plan_content?: string
+          risk_type?: string | null
           source_insight?: string
         }
         Relationships: []
