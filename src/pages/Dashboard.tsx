@@ -23,7 +23,7 @@ import {
   Headphones, FileText, Send, ThumbsUp, Ban, DollarSign, Percent, Activity,
   Shield, BarChart3, PieChart as PieChartIcon,
   ExternalLink, RefreshCw, Download, Clock, Zap, CalendarPlus, Target,
-  Sparkles
+  Sparkles, MessageSquare
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RECEITA_COLORS, getSystemColor } from "@/types/receita";
