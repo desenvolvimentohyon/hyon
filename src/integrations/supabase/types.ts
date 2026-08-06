@@ -3278,6 +3278,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           executed_at: string | null
+          expires_at: string | null
           id: string
           org_id: string | null
           plan_content: string
@@ -3289,6 +3290,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           executed_at?: string | null
+          expires_at?: string | null
           id?: string
           org_id?: string | null
           plan_content: string
@@ -3300,6 +3302,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           executed_at?: string | null
+          expires_at?: string | null
           id?: string
           org_id?: string | null
           plan_content?: string
