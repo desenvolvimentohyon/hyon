@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.7",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Multi-select de Destinatários: Implementada interface visual para seleção múltipla de gestores no disparo de alertas críticos." },
+      { type: "novo", text: "Drill-down de Perdas: Adicionada capacidade de listar clientes específicos diretamente ao interagir com o gráfico de Perda por Gravidade." },
+      { type: "melhoria", text: "Inteligência de Vínculo: Novo trigger de banco automatiza a associação de registros legados a clientes via heurística de nome." },
+    ],
+  },
+  {
     version: "1.8.6",
     date: "2026-08-06",
     changes: [
