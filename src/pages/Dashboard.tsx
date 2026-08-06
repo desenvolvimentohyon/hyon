@@ -393,7 +393,7 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
       const mrrTotal = clientesReceita.reduce((acc, c) => acc + (c.valorMensalidade || 0), 0);
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
         body: { 
-          question: "Gere um resumo diário inteligente (3-4 pontos). Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso). Seja direto e profissional.",
+          question: "Gere um resumo diário inteligente (3-4 pontos). Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso e planos de recuperação expirados ou com falha). Considere os motivos de falha de planos anteriores para sugerir melhorias. Seja direto e profissional.",
           context: {
             module: "dashboard",
             summary: {
