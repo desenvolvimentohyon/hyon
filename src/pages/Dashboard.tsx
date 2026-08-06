@@ -372,23 +372,23 @@ function CertificadosVencendoCard() {
 
 // ── IA Insights Card ────────────────────────────────────────────────
 function IAInsightsCard() {
-  const { minhasTarefas } = useApp();
-  const { receitaMetricas } = useReceita();
+  const { tarefas } = useApp();
+  const { clientesReceita } = useReceita();
 
   const { data: insights, isLoading } = useQuery({
-    queryKey: ["ia_dashboard_insights", minhasTarefas.length, receitaMetricas.mrrTotal],
+    queryKey: ["ia_dashboard_insights", tarefas.length, clientesReceita.length],
     queryFn: async () => {
+      const mrrTotal = clientesReceita.reduce((acc, c) => acc + (c.valorMensalidade || 0), 0);
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
         body: { 
           question: "Gere um resumo diário inteligente (3-4 pontos). Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso). Seja direto e profissional.",
           context: {
             module: "dashboard",
             summary: {
-              tarefas_pendentes: minhasTarefas.length,
-              mrr: receitaMetricas.mrrTotal,
-              churn: receitaMetricas.churnRate,
-              atrasos_30d: receitaMetricas.alertaCritico30.length,
-              atrasos_7d: receitaMetricas.alertaCritico7.length
+              tarefas_pendentes: tarefas.filter(t => t.status !== 'concluida' && t.status !== 'cancelada').length,
+              mrr: mrrTotal,
+              total_clientes: clientesReceita.length,
+              clientes_ativos: clientesReceita.filter(c => c.statusCliente === 'ativo').length
             }
           }
         },
