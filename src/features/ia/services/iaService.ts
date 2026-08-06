@@ -5,10 +5,10 @@ const MAX_RETRIES = 3;
 const INITIAL_DELAY = 1000;
 
 export const iaService = {
-  async ask(question: string, retryCount = 0, onRetry?: (msg: string) => void): Promise<any> {
+  async ask(question: string, retryCount = 0, onRetry?: (msg: string) => void, context?: any): Promise<any> {
     try {
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
-        body: { question },
+        body: { question, context },
       });
 
       if (error) {
@@ -28,7 +28,7 @@ export const iaService = {
         if (onRetry) onRetry(retryMsg);
         
         await new Promise(resolve => setTimeout(resolve, delay));
-        return this.ask(question, retryCount + 1, onRetry);
+        return this.ask(question, retryCount + 1, onRetry, context);
       }
 
       logger.error("IA Assistant final failure after retries", err);

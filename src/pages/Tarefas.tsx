@@ -9,11 +9,15 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { useParametros } from "@/contexts/ParametrosContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { statusRowColor, prioridadeColor, statusColor, isAtrasada } from "./tarefas/helpers";
 import { LiveTimer } from "./tarefas/LiveTimer";
@@ -22,6 +26,56 @@ import { NovaTarefaDialog } from "./tarefas/NovaTarefaDialog";
 
 /** Chave de preferência local para exibir tarefas finalizadas */
 const PREF_MOSTRAR_FINALIZADAS = "tarefas:mostrarFinalizadas";
+
+function IAInsightsTarefas({ tarefas }: { tarefas: Tarefa[] }) {
+  const { data: insights, isLoading } = useQuery({
+    queryKey: ["ia_tarefas_insights", tarefas.length, tarefas.map(t => t.status).join(',')],
+    queryFn: async () => {
+      if (tarefas.length === 0) return [];
+      
+      const prompt = `Analise estas ${tarefas.length} tarefas e sugira os 3 próximos passos mais importantes para priorizar, baseando-se em prazos e status. Seja curto e direto.`;
+      
+      const { data, error } = await supabase.functions.invoke("ia-assistant", {
+        body: { 
+          question: prompt,
+          context: { 
+            module: "tarefas",
+            data: tarefas.slice(0, 10).map(t => ({
+              titulo: t.titulo,
+              status: t.status,
+              prioridade: t.prioridade,
+              prazo: t.prazoDataHora
+            }))
+          }
+        },
+      });
+      if (error) throw error;
+      return data?.answer?.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 3) || [];
+    },
+    staleTime: 1000 * 60 * 15, // 15 minutes
+  });
+
+  if (isLoading) return <Skeleton className="h-24 w-full rounded-lg" />;
+  if (!insights || insights.length === 0) return null;
+
+  return (
+    <Card className="neon-border border-primary/20 bg-primary/5 mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-semibold flex items-center gap-2 text-primary uppercase tracking-wider">
+          <Sparkles className="h-3 w-3 animate-pulse" /> Sugestões de Priorização (Hyon IA)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 pb-4">
+        {insights.map((insight: string, i: number) => (
+          <div key={i} className="flex gap-2 items-start group">
+            <div className="mt-1.5 w-1 h-1 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />
+            <p className="text-[11px] leading-relaxed text-foreground/80">{insight.replace(/^[0-9*.\-\s]+/, '')}</p>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Tarefas() {
   const { tarefas, clientes, tecnicos, addTarefa, updateTarefa, addCliente, getCliente, getTecnico, getStatusLabel, getPrioridadeLabel, tecnicoAtualId } = useApp();
@@ -219,6 +273,8 @@ export default function Tarefas() {
           </SelectContent>
         </Select>
       </div>
+
+      <IAInsightsTarefas tarefas={filteredTarefas} />
 
       <p className="text-sm text-muted-foreground">{filteredTarefas.length} tarefa(s) encontrada(s)</p>
 
