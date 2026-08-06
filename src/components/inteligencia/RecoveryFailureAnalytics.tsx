@@ -122,21 +122,40 @@ export function RecoveryFailureAnalytics() {
 
   return (
     <div className="space-y-4 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Filter className="h-3 w-3 text-muted-foreground" />
-          <div className="flex gap-1">
-            {(['todos', 'baixo', 'medio', 'alto'] as Severity[]).map((s) => (
-              <Button
-                key={s}
-                variant={filterSeverity === s ? "default" : "outline"}
-                size="sm"
-                className="h-6 text-[9px] px-2 capitalize"
-                onClick={() => setFilterSeverity(s)}
-              >
-                {s}
-              </Button>
-            ))}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-3 w-3 text-muted-foreground" />
+            <div className="flex gap-1">
+              {(['todos', 'baixo', 'medio', 'alto'] as Severity[]).map((s) => (
+                <Button
+                  key={s}
+                  variant={filterSeverity === s ? "default" : "outline"}
+                  size="sm"
+                  className="h-6 text-[9px] px-2 capitalize"
+                  onClick={() => setFilterSeverity(s)}
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 border-l border-border/50 pl-4">
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <div className="flex gap-1">
+              {(['todos', 'trimestral', 'semestral'] as DateFilter[]).map((f) => (
+                <Button
+                  key={f}
+                  variant={filterDate === f ? "default" : "outline"}
+                  size="sm"
+                  className="h-6 text-[9px] px-2 capitalize"
+                  onClick={() => setFilterDate(f)}
+                >
+                  {f}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
         <Button 
