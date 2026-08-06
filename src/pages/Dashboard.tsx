@@ -372,8 +372,9 @@ function CertificadosVencendoCard() {
 
 // ── IA Insights Card ────────────────────────────────────────────────
 function IAInsightsCard() {
-  const { tarefas } = useApp();
+  const { tarefas, tecnicoAtualId } = useApp();
   const { clientesReceita } = useReceita();
+  const [activeAnalysis, setActiveAnalysis] = useState<any>(null);
 
   const { data: insights, isLoading } = useQuery({
     queryKey: ["ia_dashboard_insights", tarefas.length, clientesReceita.length],
@@ -399,27 +400,127 @@ function IAInsightsCard() {
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
+  const sendPushAlert = async (title: string, body: string) => {
+    try {
+      const { error } = await supabase.functions.invoke("push-notifications", {
+        body: {
+          action: "send",
+          userIds: [tecnicoAtualId],
+          title,
+          messageBody: body,
+          url: "/dashboard"
+        }
+      });
+      if (error) throw error;
+      toast.success("Alerta enviado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao enviar push:", err);
+      toast.error("Erro ao disparar notificação.");
+    }
+  };
+
+  const showRecoveryPlan = async (insight: string) => {
+    setActiveAnalysis({
+      title: "Plano de Recuperação IA",
+      content: "Analisando dados históricos e comportamento do cliente para gerar estratégia...",
+      loading: true
+    });
+
+    try {
+      const { data, error } = await supabase.functions.invoke("ia-assistant", {
+        body: { 
+          question: `Com base no alerta: "${insight}", detalhe um plano de recuperação estratégica em 5 passos.`,
+          context: { module: "dashboard_recovery_plan", source_insight: insight }
+        }
+      });
+      if (error) throw error;
+      setActiveAnalysis({
+        title: "Plano de Recuperação IA",
+        content: data.answer,
+        loading: false
+      });
+    } catch (err) {
+      setActiveAnalysis(null);
+      toast.error("Erro ao gerar plano de recuperação.");
+    }
+  };
+
   if (isLoading) return <Card className="neon-border border-primary/20 bg-primary/5 mb-4"><CardContent className="p-4"><div className="space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-4 w-2/3" /></div></CardContent></Card>;
   if (!insights || insights.length === 0) return null;
 
   return (
-    <Card className="neon-border border-primary/20 bg-primary/5 mb-4 shadow-glow-primary/5">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-semibold flex items-center gap-2 text-primary uppercase tracking-wider">
-          <Sparkles className="h-3 w-3 animate-pulse" /> Resumo Inteligente · Hyon IA
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2.5 pb-5">
-        {insights.map((insight: string, i: number) => (
-          <div key={i} className="flex gap-3 items-start group">
-            <div className="mt-1.5 w-1 h-1 rounded-full bg-primary group-hover:scale-150 transition-transform" />
-            <p className="text-[11px] leading-relaxed text-foreground/90 font-medium">{insight.replace(/^[0-9*.\-\s]+/, '')}</p>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+    <>
+      <Card className="neon-border border-primary/20 bg-primary/5 mb-4 shadow-glow-primary/5">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs font-semibold flex items-center gap-2 text-primary uppercase tracking-wider">
+            <Sparkles className="h-3 w-3 animate-pulse" /> Resumo Inteligente · Hyon IA
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 pb-5">
+          {insights.map((insight: string, i: number) => {
+            const cleanInsight = insight.replace(/^[0-9*.\-\s]+/, '');
+            const isRisk = cleanInsight.toLowerCase().includes('risco') || cleanInsight.toLowerCase().includes('atraso') || cleanInsight.toLowerCase().includes('churn');
+            
+            return (
+              <div key={i} className="flex flex-col gap-2 p-2 rounded-lg hover:bg-primary/5 transition-colors border border-transparent hover:border-primary/10">
+                <div className="flex gap-3 items-start group">
+                  <div className="mt-1.5 w-1 h-1 rounded-full bg-primary group-hover:scale-150 transition-transform" />
+                  <p className="text-[11px] leading-relaxed text-foreground/90 font-medium flex-1">{cleanInsight}</p>
+                </div>
+                {isRisk && (
+                  <div className="flex gap-2 ml-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[9px] gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                      onClick={() => sendPushAlert("Alerta de Risco Hyon", cleanInsight)}
+                    >
+                      <Send className="h-2.5 w-2.5" /> Disparar Alerta
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[9px] gap-1 text-purple hover:text-purple hover:bg-purple/10"
+                      onClick={() => showRecoveryPlan(cleanInsight)}
+                    >
+                      <Zap className="h-2.5 w-2.5" /> Ver Plano
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={!!activeAnalysis} onOpenChange={() => setActiveAnalysis(null)}>
+        <AlertDialogContent className="max-w-2xl glass-premium border-primary/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-primary">
+              <Sparkles className="h-4 w-4" /> {activeAnalysis?.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground/90 text-sm whitespace-pre-line leading-relaxed overflow-y-auto max-h-[60vh] py-4">
+              {activeAnalysis?.loading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-[90%]" />
+                  <Skeleton className="h-4 w-[95%]" />
+                  <Skeleton className="h-4 w-[85%]" />
+                </div>
+              ) : activeAnalysis?.content}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-primary text-primary-foreground hover:bg-primary/90">
+              Entendido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
 
 // ── Renovações em Andamento Card ─────────────────────────────────────
 function RenovacoesCard() {
