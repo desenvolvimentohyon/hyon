@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.5",
+    date: "2026-08-06",
+    changes: [
+      { type: "novo", text: "Filtros Temporais IA: Implementada segmentação Trimestral e Semestral no dashboard de análise de falhas estratégicas." },
+      { type: "novo", text: "Custo de Oportunidade: Nova visualização no Radar de Crescimento quantificando o impacto financeiro de planos de recuperação não convertidos." },
+      { type: "melhoria", text: "Governança de Alertas: Adicionado suporte a múltiplos destinatários específicos por tipo de risco na infraestrutura de notificações push." },
+    ],
+  },
+  {
     version: "1.8.4",
     date: "2026-08-06",
     changes: [

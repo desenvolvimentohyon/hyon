@@ -154,6 +154,37 @@ export default function RadarCrescimento() {
         </Card>
 
         <GrowthGoals />
+
+        <Card className="neon-border border-destructive/20 bg-destructive/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-destructive">
+              <TrendingDown className="h-4 w-4" /> Custo de Oportunidade (IA)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-bold text-destructive">
+                {fmt(conversionStats.reduce((acc, curr) => acc + ((curr.total - curr.converted) * 150), 0))}
+              </span>
+              <span className="text-[10px] text-muted-foreground mb-1">estimativa mensal baseada em falhas</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Valor recorrente que deixou de ser recuperado através de estratégias de IA que resultaram em falha ou foram abortadas.
+            </p>
+            <div className="pt-2">
+              <div className="flex justify-between text-[10px] mb-1">
+                <span>Eficiência de Recuperação</span>
+                <span>{metricas.avgConversion.toFixed(1)}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-destructive transition-all duration-500" 
+                  style={{ width: `${100 - metricas.avgConversion}%` }}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

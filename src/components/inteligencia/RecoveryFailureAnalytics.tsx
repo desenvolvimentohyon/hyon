@@ -7,7 +7,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from "recharts";
-import { AlertTriangle, TrendingDown, Download, Filter, DollarSign, Activity } from "lucide-react";
+import { AlertTriangle, TrendingDown, Download, Filter, DollarSign, Activity, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +15,16 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 type Severity = 'baixo' | 'medio' | 'alto' | 'todos';
+type DateFilter = 'todos' | 'trimestral' | 'semestral';
 
 export function RecoveryFailureAnalytics() {
   const { tecnicoAtualId } = useApp();
   const { clientesReceita } = useReceita();
   const [filterSeverity, setFilterSeverity] = useState<Severity>('todos');
+  const [filterDate, setFilterDate] = useState<DateFilter>('todos');
 
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ["recovery_failure_analytics", tecnicoAtualId, filterSeverity],
+    queryKey: ["recovery_failure_analytics", tecnicoAtualId, filterSeverity, filterDate],
     queryFn: async () => {
       let query = supabase
         .from("recovery_plans")
@@ -31,6 +33,13 @@ export function RecoveryFailureAnalytics() {
       
       if (filterSeverity !== 'todos') {
         query = query.eq('severity', filterSeverity);
+      }
+
+      if (filterDate !== 'todos') {
+        const months = filterDate === 'trimestral' ? 3 : 6;
+        const date = new Date();
+        date.setMonth(date.getMonth() - months);
+        query = query.gte('created_at', date.toISOString());
       }
       
       const { data: plans, error: plansError } = await query;
@@ -113,21 +122,40 @@ export function RecoveryFailureAnalytics() {
 
   return (
     <div className="space-y-4 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Filter className="h-3 w-3 text-muted-foreground" />
-          <div className="flex gap-1">
-            {(['todos', 'baixo', 'medio', 'alto'] as Severity[]).map((s) => (
-              <Button
-                key={s}
-                variant={filterSeverity === s ? "default" : "outline"}
-                size="sm"
-                className="h-6 text-[9px] px-2 capitalize"
-                onClick={() => setFilterSeverity(s)}
-              >
-                {s}
-              </Button>
-            ))}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-3 w-3 text-muted-foreground" />
+            <div className="flex gap-1">
+              {(['todos', 'baixo', 'medio', 'alto'] as Severity[]).map((s) => (
+                <Button
+                  key={s}
+                  variant={filterSeverity === s ? "default" : "outline"}
+                  size="sm"
+                  className="h-6 text-[9px] px-2 capitalize"
+                  onClick={() => setFilterSeverity(s)}
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 border-l border-border/50 pl-4">
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <div className="flex gap-1">
+              {(['todos', 'trimestral', 'semestral'] as DateFilter[]).map((f) => (
+                <Button
+                  key={f}
+                  variant={filterDate === f ? "default" : "outline"}
+                  size="sm"
+                  className="h-6 text-[9px] px-2 capitalize"
+                  onClick={() => setFilterDate(f)}
+                >
+                  {f}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
         <Button 
