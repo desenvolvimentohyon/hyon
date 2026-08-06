@@ -1911,7 +1911,59 @@ export default function Dashboard() {
           <RecoveryFailureAnalytics />
 
         </Suspense>
+
+        <AlertDialog open={showMultiSelectAlert.open} onOpenChange={(open) => !open && setShowMultiSelectAlert({ open: false, body: "" })}>
+          <AlertDialogContent className="glass-premium border-primary/20 max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-sm font-bold flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" /> Selecionar Destinatários
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
+                Selecione os gestores que devem receber este alerta crítico via Push. Se nenhum for selecionado, o alerta será enviado para você.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {tecnicos.filter(t => t.status === 'ativo').map((tecnico) => (
+                <div 
+                  key={tecnico.id} 
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer ${
+                    selectedUserIds.includes(tecnico.id) 
+                      ? 'border-primary bg-primary/10' 
+                      : 'border-border/50 bg-muted/30 hover:bg-muted/50'
+                  }`}
+                  onClick={() => {
+                    setSelectedUserIds(prev => 
+                      prev.includes(tecnico.id) 
+                        ? prev.filter(id => id !== tecnico.id) 
+                        : [...prev, tecnico.id]
+                    );
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
+                      {tecnico.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium">{tecnico.nome}</p>
+                      <p className="text-[10px] text-muted-foreground">{tecnico.cargo || 'Técnico'}</p>
+                    </div>
+                  </div>
+                  {selectedUserIds.includes(tecnico.id) && <ThumbsUp className="h-3 w-3 text-primary" />}
+                </div>
+              ))}
+            </div>
+            <AlertDialogFooter className="gap-2">
+              <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => setShowMultiSelectAlert({ open: false, body: "" })}>Cancelar</Button>
+              <AlertDialogAction asChild>
+                <Button size="sm" className="text-xs h-8" onClick={confirmAlertDispatch}>
+                  Disparar Alerta ({selectedUserIds.length || 'Apenas eu'})
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );
 }
+
