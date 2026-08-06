@@ -434,26 +434,33 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
 
   useEffect(() => {
     const checkExpiredPlans = async () => {
+      const date = new Date();
       const { data: expiredPlans } = await supabase
         .from('recovery_plans')
         .select('id, risk_type, expires_at')
-        .eq('conversion_status', 'pendente')
-        .lt('expires_at', new Date().toISOString());
+        .lt('expires_at', date.toISOString())
+        .eq('conversion_status', 'em_execucao');
 
       if (expiredPlans && expiredPlans.length > 0) {
-        expiredPlans.forEach(plan => {
-          sendPushAlert(
-            "Plano de Recuperação Expirado",
-            `O plano para risco de ${plan.risk_type === 'inadimplencia' ? 'Inadimplência' : 'Churn'} atingiu a data limite sem conclusão.`
-          );
-        });
-        
-        // Update status to expired or just notify? Let's keep them as pending but notify
+        // Move to abortado (Falha por Omissão)
+        await supabase
+          .from("recovery_plans")
+          .update({ 
+            conversion_status: 'abortado', 
+            failure_reason: 'Falha por Omissão: Plano expirou sem conclusão após monitoramento.' 
+          })
+          .in("id", expiredPlans.map(p => p.id));
+          
+        sendPushAlert(
+          "⚠️ Planos de Recuperação Expirados",
+          `${expiredPlans.length} plano(s) foram movidos para 'Falha por Omissão' devido à expiração.`
+        );
       }
     };
 
     checkExpiredPlans();
   }, [tecnicoAtualId]);
+
 
   const handleGeneratePlan = async (level: "critico" | "atencao", riskType: string) => {
     const context = level === "critico" ? receitaMetricas.alertaCritico30 : receitaMetricas.alertaCritico7;
