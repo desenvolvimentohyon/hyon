@@ -757,8 +757,8 @@ function RecoveryHistoryCard() {
                           onChange={(e) => setEditingFailureReason({ ...editingFailureReason, reason: e.target.value })}
                         />
                         <div className="flex justify-end gap-1">
-                          <Button size="xs" variant="ghost" className="h-5 text-[8px]" onClick={() => setEditingFailureReason(null)}>Cancelar</Button>
-                          <Button size="xs" className="h-5 text-[8px] bg-purple text-white" onClick={handleSaveFailureReason}>Salvar Motivo</Button>
+                          <Button size="sm" variant="ghost" className="h-5 text-[8px] px-2" onClick={() => setEditingFailureReason(null)}>Cancelar</Button>
+                          <Button size="sm" className="h-5 text-[8px] px-2 bg-purple text-white" onClick={handleSaveFailureReason}>Salvar Motivo</Button>
                         </div>
                       </div>
                     ) : (
