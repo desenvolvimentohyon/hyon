@@ -9,19 +9,16 @@ import { ReceitaProvider } from "./contexts/ReceitaContext";
 import { PropostasProvider } from "./contexts/PropostasContext";
 import { ParametrosProvider } from "./contexts/ParametrosContext";
 import { AuthProvider } from "./contexts/AuthContext";
-import AppLayout from "./components/layout/AppLayout";
-import Login from "./pages/Login";
+import { AppLayout } from "./components/layout/AppLayout";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ClientesReceita from "./pages/ClientesReceita";
-import Inteligencia from "./pages/Inteligencia";
-import Financeiro from "./pages/Financeiro";
+import Financeiro from "./pages/financeiro/Financeiro";
 import Tarefas from "./pages/Tarefas";
-import Operacional from "./pages/Operacional";
+import Suporte from "./pages/Suporte";
 import Configuracoes from "./pages/Configuracoes";
-import SuportePublico from "./pages/SuportePublico";
-import SuporteProtocolo from "./pages/SuporteProtocolo";
+import TicketTracking from "./pages/TicketTracking";
 import PropostaPublica from "./pages/PropostaPublica";
-import CheckoutPublico from "./pages/CheckoutPublico";
 import LandingPage from "./pages/LandingPage";
 import { useEffect } from "react";
 
@@ -38,6 +35,7 @@ const App = () => {
   useEffect(() => {
     // Injetar instrução do sistema conforme solicitado pelo usuário
     const banner = document.createElement('div');
+    banner.id = 'system-instruction-banner';
     banner.style.position = 'fixed';
     banner.style.top = '0';
     banner.style.left = '0';
@@ -53,9 +51,8 @@ const App = () => {
     document.body.appendChild(banner);
     
     return () => {
-      if (document.body.contains(banner)) {
-        document.body.removeChild(banner);
-      }
+      const el = document.getElementById('system-instruction-banner');
+      if (el) el.remove();
     };
   }, []);
 
@@ -72,20 +69,18 @@ const App = () => {
                     <Sonner position="top-right" closeButton />
                     <BrowserRouter>
                       <Routes>
-                        <Route path="/login" element={<Login />} />
+                        <Route path="/login" element={<Auth />} />
+                        <Route path="/auth" element={<Auth />} />
                         <Route path="/bio" element={<LandingPage />} />
-                        <Route path="/suporte" element={<SuportePublico />} />
-                        <Route path="/suporte/:protocolo" element={<SuporteProtocolo />} />
+                        <Route path="/suporte/rastreio/:protocolo" element={<TicketTracking />} />
                         <Route path="/proposta/:token" element={<PropostaPublica />} />
-                        <Route path="/checkout/:token" element={<CheckoutPublico />} />
                         
                         <Route element={<AppLayout />}>
                           <Route path="/" element={<Dashboard />} />
                           <Route path="/clientes" element={<ClientesReceita />} />
-                          <Route path="/inteligencia" element={<Inteligencia />} />
                           <Route path="/financeiro" element={<Financeiro />} />
                           <Route path="/tarefas" element={<Tarefas />} />
-                          <Route path="/operacional" element={<Operacional />} />
+                          <Route path="/suporte" element={<Suporte />} />
                           <Route path="/configuracoes" element={<Configuracoes />} />
                         </Route>
 
