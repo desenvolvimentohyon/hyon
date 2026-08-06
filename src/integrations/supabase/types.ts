@@ -1428,6 +1428,68 @@ export type Database = {
           },
         ]
       }
+      contract_templates: {
+        Row: {
+          active: boolean
+          ai_instructions: string | null
+          body: string
+          category: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          org_id: string
+          updated_at: string
+          variables: Json
+          version: number
+        }
+        Insert: {
+          active?: boolean
+          ai_instructions?: string | null
+          body: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          org_id?: string
+          updated_at?: string
+          variables?: Json
+          version?: number
+        }
+        Update: {
+          active?: boolean
+          ai_instructions?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          org_id?: string
+          updated_at?: string
+          variables?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_statuses: {
         Row: {
           created_at: string
@@ -3281,7 +3343,7 @@ export type Database = {
           expires_at: string | null
           failure_reason: string | null
           id: string
-          org_id: string | null
+          org_id: string
           plan_content: string
           risk_type: string | null
           severity: string | null
@@ -3295,7 +3357,7 @@ export type Database = {
           expires_at?: string | null
           failure_reason?: string | null
           id?: string
-          org_id?: string | null
+          org_id?: string
           plan_content: string
           risk_type?: string | null
           severity?: string | null
@@ -3309,13 +3371,21 @@ export type Database = {
           expires_at?: string | null
           failure_reason?: string | null
           id?: string
-          org_id?: string | null
+          org_id?: string
           plan_content?: string
           risk_type?: string | null
           severity?: string | null
           source_insight?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recovery_plans_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_events: {
         Row: {
