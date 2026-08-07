@@ -113,6 +113,11 @@ export default function Reunioes() {
   const [savingClient, setSavingClient] = useState(false);
   const [originalStatus, setOriginalStatus] = useState<MeetingStatus>("agendada");
   const [confirmStatus, setConfirmStatus] = useState<MeetingStatus | null>(null);
+  const [isNewMeeting, setIsNewMeeting] = useState(false);
+  const [lastSavedId, setLastSavedId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareMeeting, setShareMeeting] = useState<Meeting | null>(null);
+
   const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const gCal = useGoogleCalendar();
