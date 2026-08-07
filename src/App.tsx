@@ -21,7 +21,6 @@ import Configuracoes from "./pages/Configuracoes";
 import TicketTracking from "./pages/TicketTracking";
 import PropostaPublica from "./pages/PropostaPublica";
 import LandingPage from "./pages/LandingPage";
-import { useEffect } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,68 +32,44 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  useEffect(() => {
-    // Injetar instrução do sistema conforme solicitado pelo usuário
-    const banner = document.createElement('div');
-    banner.id = 'system-instruction-banner';
-    banner.style.position = 'fixed';
-    banner.style.top = '0';
-    banner.style.left = '0';
-    banner.style.width = '100%';
-    banner.style.backgroundColor = '#8B5CF6';
-    banner.style.color = 'white';
-    banner.style.padding = '8px 16px';
-    banner.style.fontSize = '12px';
-    banner.style.zIndex = '9999';
-    banner.style.textAlign = 'center';
-    banner.style.fontWeight = 'bold';
-    banner.innerText = "Antes de realizar qualquer ação, entenda o contexto e instrução recente do usuário, comando mais recente enviado por ele: Listar as variáveis dinâmicas (nome do cliente, CNPJ, valores, módulos) que devem compor o contrato.\n\nIniciar a prototipagem do prompt de sistema para o assistente de IA focado na redação jurídica/comercial dos contratos.";
-    document.body.appendChild(banner);
-    
-    return () => {
-      const el = document.getElementById('system-instruction-banner');
-      if (el) el.remove();
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <UsersProvider>
-        <AppProvider>
-          <FinanceiroProvider>
-            <ReceitaProvider>
-              <PropostasProvider>
-                <ParametrosProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner position="top-right" closeButton />
-                    <BrowserRouter>
-                      <Routes>
-                        <Route path="/login" element={<Auth />} />
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="/bio" element={<LandingPage />} />
-                        <Route path="/suporte/rastreio/:protocolo" element={<TicketTracking />} />
-                        <Route path="/proposta/:token" element={<PropostaPublica />} />
-                        
-                        <Route element={<AppLayout />}>
-                          <Route path="/" element={<Dashboard />} />
-                          <Route path="/clientes" element={<ClientesReceita />} />
-                          <Route path="/financeiro" element={<FinanceiroVisaoGeral />} />
-                          <Route path="/tarefas" element={<Tarefas />} />
-                          <Route path="/suporte" element={<Suporte />} />
-                          <Route path="/configuracoes" element={<Configuracoes />} />
-                        </Route>
+          <AppProvider>
+            <FinanceiroProvider>
+              <ReceitaProvider>
+                <PropostasProvider>
+                  <ParametrosProvider>
+                    <TooltipProvider>
+                      <Toaster />
+                      <Sonner position="top-right" closeButton />
+                      <BrowserRouter>
+                        <Routes>
+                          <Route path="/login" element={<Auth />} />
+                          <Route path="/auth" element={<Auth />} />
+                          <Route path="/bio" element={<LandingPage />} />
+                          <Route path="/suporte/rastreio/:protocolo" element={<TicketTracking />} />
+                          <Route path="/proposta/:token" element={<PropostaPublica />} />
+                          
+                          <Route element={<AppLayout />}>
+                            <Route path="/" element={<Dashboard />} />
+                            <Route path="/clientes" element={<ClientesReceita />} />
+                            <Route path="/financeiro" element={<FinanceiroVisaoGeral />} />
+                            <Route path="/tarefas" element={<Tarefas />} />
+                            <Route path="/suporte" element={<Suporte />} />
+                            <Route path="/configuracoes" element={<Configuracoes />} />
+                          </Route>
 
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </ParametrosProvider>
-              </PropostasProvider>
-            </ReceitaProvider>
-          </FinanceiroProvider>
-        </AppProvider>
+                          <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                      </BrowserRouter>
+                    </TooltipProvider>
+                  </ParametrosProvider>
+                </PropostasProvider>
+              </ReceitaProvider>
+            </FinanceiroProvider>
+          </AppProvider>
         </UsersProvider>
       </AuthProvider>
     </QueryClientProvider>
