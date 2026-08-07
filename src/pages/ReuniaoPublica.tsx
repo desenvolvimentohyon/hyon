@@ -60,7 +60,7 @@ export default function ReuniaoPublica() {
       const { data, error } = await supabase
         .from("meetings")
         .select("*, profiles:created_by(nome, email)")
-        .filter("public_token" as any, "eq", token)
+        .eq("public_token", token)
         .maybeSingle();
 
       if (error || !data) {
