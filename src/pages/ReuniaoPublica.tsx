@@ -15,6 +15,43 @@ export default function ReuniaoPublica() {
   const { token } = useParams<{ token: string }>();
   const [meeting, setMeeting] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+
+  const handleConfirm = async () => {
+    if (!guestName.trim()) {
+      toast.error("Por favor, informe seu nome para confirmar.");
+      return;
+    }
+    setConfirming(true);
+    try {
+      const { data, error } = await supabase.rpc("confirm_meeting_attendance", {
+        p_token: token,
+        p_guest_name: guestName.trim()
+      });
+      
+      if (error) throw error;
+      
+      if (data) {
+        toast.success("Presença confirmada com sucesso!");
+        setConfirmed(true);
+        // Recarrega os dados da reunião para mostrar o status atualizado
+        const { data: updatedMeeting } = await supabase
+          .from("meetings")
+          .select("*, profiles:created_by(nome, email)")
+          .filter("public_token" as any, "eq", token)
+          .maybeSingle();
+        if (updatedMeeting) setMeeting(updatedMeeting);
+      } else {
+        toast.error("Nome não encontrado na lista de convidados.");
+      }
+    } catch (e) {
+      toast.error("Erro ao confirmar presença.");
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   useEffect(() => {
     async function load() {
