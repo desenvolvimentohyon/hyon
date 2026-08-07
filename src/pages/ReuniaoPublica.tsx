@@ -26,7 +26,7 @@ export default function ReuniaoPublica() {
     }
     setConfirming(true);
     try {
-      const { data, error } = await supabase.rpc("confirm_meeting_attendance", {
+      const { data, error } = await supabase.rpc("confirm_meeting_attendance" as any, {
         p_token: token,
         p_guest_name: guestName.trim()
       });
