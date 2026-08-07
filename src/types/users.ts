@@ -62,23 +62,6 @@ export const MODULOS_PERMISSOES: Record<string, { label: string; acoes: { id: st
       { id: "usuarios:desativar", label: "Desativar" },
     ],
   },
-  cartoes: {
-    label: "Cartões",
-    acoes: [
-      { id: "cartoes:visualizar", label: "Visualizar" },
-      { id: "cartoes:criar", label: "Criar" },
-      { id: "cartoes:editar", label: "Editar" },
-    ],
-  },
-  desenvolvimento: {
-    label: "Desenvolvimento",
-    acoes: [
-      { id: "desenvolvimento:visualizar", label: "Visualizar" },
-      { id: "desenvolvimento:criar", label: "Criar" },
-      { id: "desenvolvimento:editar", label: "Editar" },
-      { id: "desenvolvimento:excluir", label: "Excluir" },
-    ],
-  },
 };
 
 export const ALL_PERMISSIONS = Object.values(MODULOS_PERMISSOES).flatMap(m => m.acoes.map(a => a.id));
@@ -125,9 +108,4 @@ export const ROTA_PERMISSAO: Record<string, string> = {
   "/tecnicos": "configuracoes:visualizar",
   "/executivo": "financeiro:relatorios",
   "/configuracoes": "configuracoes:visualizar",
-  "/cartoes": "cartoes:visualizar",
-  "/cartoes/clientes": "cartoes:visualizar",
-  "/cartoes/propostas": "cartoes:visualizar",
-  "/cartoes/faturamento": "cartoes:visualizar",
-  "/desenvolvimento": "desenvolvimento:visualizar",
 };

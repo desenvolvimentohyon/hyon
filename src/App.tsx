@@ -31,8 +31,6 @@ import Tarefas from "./pages/Tarefas";
 import TarefaDetalhe from "./pages/TarefaDetalhe";
 import Implantacao from "./pages/Implantacao";
 import Tecnicos from "./pages/Tecnicos";
-import Desenvolvimento from "./pages/Desenvolvimento";
-import DesenvolvimentoDetalhe from "./pages/DesenvolvimentoDetalhe";
 import Configuracoes from "./pages/Configuracoes";
 import UsuariosConfig from "./pages/UsuariosConfig";
 
@@ -47,11 +45,6 @@ import Relatorios from "./pages/financeiro/Relatorios";
 import ConfiguracoesFinanceiras from "./pages/financeiro/ConfiguracoesFinanceiras";
 import GerarMensalidades from "./pages/financeiro/GerarMensalidades";
 
-// Cartões Pages
-import CardDashboard from "./pages/cartoes/CardDashboard";
-import CardClientes from "./pages/cartoes/CardClientes";
-import CardPropostas from "./pages/cartoes/CardPropostas";
-import CardFaturamento from "./pages/cartoes/CardFaturamento";
 
 // Public Pages
 import TicketTracking from "./pages/TicketTracking";
@@ -60,7 +53,7 @@ import LandingPage from "./pages/LandingPage";
 import PortalCliente from "./pages/PortalCliente";
 import RenovarPlano from "./pages/RenovarPlano";
 import AceiteProposta from "./pages/AceiteProposta";
-import CardPropostaPublica from "./pages/cartoes/CardPropostaPublica";
+
 import ReuniaoPublica from "./pages/ReuniaoPublica";
 
 const queryClient = new QueryClient({
@@ -96,7 +89,7 @@ const App = () => {
                           <Route path="/portal/:token" element={<PortalCliente />} />
                           <Route path="/renovar/:token" element={<RenovarPlano />} />
                           <Route path="/aceite/:numero" element={<AceiteProposta />} />
-                          <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
+                          
                           <Route path="/reuniao/:token" element={<ReuniaoPublica />} />
 
                           
