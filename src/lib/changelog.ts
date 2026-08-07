@@ -7,16 +7,16 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: "1.8.9",
-    date: "2026-08-06",
+    version: "1.9.0",
+    date: "2026-08-07",
     changes: [
-      { type: "novo", text: "Contrato por IA: propostas agora geram o contrato automaticamente a partir do template e das diretrizes cadastradas." },
-      { type: "novo", text: "Configurações › Contratos: gestão completa de templates com variáveis dinâmicas e template padrão." },
-      { type: "novo", text: "Aceite com assinatura: o cliente lê o contrato e confirma a assinatura digital no link de aceite." },
+      { type: "melhoria", text: "Simplificação de Escopo: Módulos de Cartões e Desenvolvimento removidos para focar nas funcionalidades core do ERP." },
+      { type: "melhoria", text: "Limpeza de Banco de Dados: Tabelas legadas e registros órfãos dos módulos desativados foram removidos permanentemente." },
+      { type: "correcao", text: "Estabilidade Estrutural: Removidos hooks, rotas e componentes órfãos para reduzir o débito técnico e melhorar a manutenção." },
     ],
   },
   {
-    version: "1.8.8",
+    version: "1.8.9",
     date: "2026-08-06",
     changes: [
       { type: "melhoria", text: "Governança de Alertas: Refinada interface de multi-seleção de destinatários para alertas críticos." },
