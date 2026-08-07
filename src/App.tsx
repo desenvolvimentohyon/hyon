@@ -61,6 +61,7 @@ import PortalCliente from "./pages/PortalCliente";
 import RenovarPlano from "./pages/RenovarPlano";
 import AceiteProposta from "./pages/AceiteProposta";
 import CardPropostaPublica from "./pages/cartoes/CardPropostaPublica";
+import ReuniaoPublica from "./pages/ReuniaoPublica";
 
 const queryClient = new QueryClient({
   defaultOptions: {
