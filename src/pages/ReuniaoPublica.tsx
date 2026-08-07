@@ -164,15 +164,20 @@ export default function ReuniaoPublica() {
 
             {!isPast && (
               <div className="flex flex-col gap-3 pt-2">
-                <Button className="w-full h-12 text-lg font-semibold gap-2 shadow-lg shadow-primary/20" asChild>
-                  <a 
-                    href={meeting.meeting_link || "#"} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    disabled={!meeting.meeting_link}
-                  >
-                    <Video className="h-5 w-5" /> Entrar Agora
-                  </a>
+                <Button className="w-full h-12 text-lg font-semibold gap-2 shadow-lg shadow-primary/20" asChild disabled={!meeting.meeting_link}>
+                  {meeting.meeting_link ? (
+                    <a 
+                      href={meeting.meeting_link} 
+                      target="_blank" 
+                      rel="noreferrer"
+                    >
+                      <Video className="h-5 w-5" /> Entrar Agora
+                    </a>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Video className="h-5 w-5" /> Link indisponível
+                    </span>
+                  )}
                 </Button>
                 <Button variant="outline" className="w-full gap-2" onClick={() => {
                   const url = window.location.href;
