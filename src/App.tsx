@@ -97,6 +97,8 @@ const App = () => {
                           <Route path="/renovar/:token" element={<RenovarPlano />} />
                           <Route path="/aceite/:numero" element={<AceiteProposta />} />
                           <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
+                          <Route path="/reuniao/:token" element={<ReuniaoPublica />} />
+
                           
                           {/* Protected Routes */}
                           <Route element={<AppLayout />}>
