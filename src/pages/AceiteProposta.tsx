@@ -32,13 +32,15 @@ export default function AceiteProposta() {
   useEffect(() => {
     if (!proposta?.id) return;
     let ativo = true;
-    setLoadingContrato(true);
-    supabase
-      .from("proposals")
-      .select("contract_body, contract_signed_at, contract_signer_name")
-      .eq("id", proposta.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    const fetchContrato = async () => {
+      setLoadingContrato(true);
+      try {
+        const { data, error } = await supabase
+          .from("proposals")
+          .select("contract_body, contract_signed_at, contract_signer_name")
+          .eq("id", proposta.id)
+          .maybeSingle();
+        
         if (!ativo) return;
         if (error) {
           logger.error("Falha ao carregar contrato da proposta", error);
@@ -48,11 +50,13 @@ export default function AceiteProposta() {
         setContrato(((data as any)?.contract_body as string) ?? "");
         setAssinadoEm(((data as any)?.contract_signed_at as string) ?? null);
         if ((data as any)?.contract_signer_name) setNomeAssinante(String((data as any).contract_signer_name));
-        setLoadingContrato(false);
-      })
-      .catch(() => {
+      } catch (err) {
+        logger.error("Erro no fetch do contrato", err);
+      } finally {
         if (ativo) setLoadingContrato(false);
-      });
+      }
+    };
+    fetchContrato();
     return () => {
       ativo = false;
     };
