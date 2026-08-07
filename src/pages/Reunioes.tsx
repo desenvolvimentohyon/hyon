@@ -311,8 +311,12 @@ export default function Reunioes() {
 
       toast.success("Reunião atualizada");
     } else {
-      const { error } = await supabase.from("meetings").insert(payload);
+      const { data, error } = await supabase.from("meetings").insert(payload).select().single();
       if (error) return toast.error("Erro ao criar reunião");
+      
+      setLastSavedId(data.id);
+      setShareMeeting(data as unknown as Meeting);
+      setShowShareModal(true);
       toast.success("Reunião agendada — lembretes push serão enviados");
     }
 
