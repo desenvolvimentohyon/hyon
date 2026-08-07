@@ -102,7 +102,7 @@ function ChartsSkeleton() {
 
 function OperationalSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }).map((_, i) => (
         <Card key={i} className="neon-border">
           <CardHeader className="pb-2"><Skeleton className="h-4 w-36" /></CardHeader>
@@ -119,7 +119,7 @@ function OperationalSkeleton() {
 
 function AnalyticsSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
       {[1, 2].map(i => (
         <Card key={i} className="neon-border">
           <CardHeader className="pb-2"><Skeleton className="h-4 w-40" /></CardHeader>

@@ -108,7 +108,7 @@ export default function Comercial() {
       <ModuleNavGrid moduleId="comercial" />
 
       {/* Kanban */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-6 -mx-1 px-1">
         {STATUS_COMERCIAL_ORDER.map(status => {
           const columnTasks = comerciais.filter(t => t.statusComercial === status);
           return (

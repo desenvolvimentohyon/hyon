@@ -88,7 +88,7 @@ export default function RadarCrescimento() {
       />
       <ModuleNavGrid moduleId="inteligencia" />
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {kpiCards.map(k => (
           <Card key={k.label} className="neon-border">
             <CardContent className="p-4">
@@ -102,7 +102,7 @@ export default function RadarCrescimento() {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Card className="neon-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-purple">

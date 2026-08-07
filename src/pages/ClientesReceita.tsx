@@ -457,9 +457,9 @@ export default function Clientes() {
           </div>
         </div>
       )}
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">Nenhum cliente encontrado</div>
+          <div className="col-span-full text-center py-12 text-muted-foreground">Nenhum cliente encontrado</div>
         ) : filtered.map(c => {
           const margem = c.valorMensalidade - c.valorCustoMensal;
           return (
