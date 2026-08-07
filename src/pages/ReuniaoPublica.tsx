@@ -193,8 +193,8 @@ export default function ReuniaoPublica() {
                   </Badge>
                 )}
                 {meeting.external_guests?.map((guest: any, i: number) => (
-                  <Badge key={i} variant="outline" className="px-3 py-1">
-                    {guest.name}
+                  <Badge key={i} variant={guest.confirmed ? "default" : "outline"} className="px-3 py-1 gap-1">
+                    {guest.name} {guest.confirmed && <CheckCircle2 className="h-3 w-3" />}
                   </Badge>
                 ))}
               </div>
