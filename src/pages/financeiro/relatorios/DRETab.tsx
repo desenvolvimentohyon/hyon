@@ -136,6 +136,4 @@ export function DRETab({ titulos, planoContas }: any) {
     </div>
   );
 }
-    </div>
-  );
-}
+
