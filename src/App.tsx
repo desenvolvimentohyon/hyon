@@ -61,6 +61,7 @@ import PortalCliente from "./pages/PortalCliente";
 import RenovarPlano from "./pages/RenovarPlano";
 import AceiteProposta from "./pages/AceiteProposta";
 import CardPropostaPublica from "./pages/cartoes/CardPropostaPublica";
+import ReuniaoPublica from "./pages/ReuniaoPublica";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +97,8 @@ const App = () => {
                           <Route path="/renovar/:token" element={<RenovarPlano />} />
                           <Route path="/aceite/:numero" element={<AceiteProposta />} />
                           <Route path="/cartoes/proposta/:token" element={<CardPropostaPublica />} />
+                          <Route path="/reuniao/:token" element={<ReuniaoPublica />} />
+
                           
                           {/* Protected Routes */}
                           <Route element={<AppLayout />}>
