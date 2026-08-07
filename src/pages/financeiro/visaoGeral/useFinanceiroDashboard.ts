@@ -17,18 +17,20 @@ export function useFinanceiroDashboard(
     const mesFim = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
     const hj = now.toISOString().split("T")[0];
 
+    // Contas a Receber (Aberto/Parcial/Vencido)
     const receber = titulos.filter(t => {
-      if (t.tipo !== "receber" || (t.status !== "aberto" && t.status !== "parcial")) return false;
-      if (t.vencimento >= mesInicio && t.vencimento <= mesFim) return true;
-      if (t.vencimento < mesInicio && t.vencimento < hj) return true;
-      return false;
+      if (t.tipo !== "receber") return false;
+      if (t.status === "pago" || t.status === "cancelado") return false;
+      return true;
     });
+
+    // Contas a Pagar (Aberto/Parcial/Vencido)
     const pagar = titulos.filter(t => {
-      if (t.tipo !== "pagar" || (t.status !== "aberto" && t.status !== "parcial")) return false;
-      if (t.vencimento >= mesInicio && t.vencimento <= mesFim) return true;
-      if (t.vencimento < mesInicio && t.vencimento < hj) return true;
-      return false;
+      if (t.tipo !== "pagar") return false;
+      if (t.status === "pago" || t.status === "cancelado") return false;
+      return true;
     });
+
     const vencidos = titulos.filter(t => t.tipo === "receber" && t.status === "vencido");
     const mrr = clientesReceita.filter(c => c.statusCliente === "ativo" && c.mensalidadeAtiva).reduce((s, c) => s + c.valorMensalidade, 0);
 
@@ -56,8 +58,9 @@ export function useFinanceiroDashboard(
 
   const fluxoCaixa = useMemo(() => {
     const months: Record<string, { mes: string; entradas: number; saidas: number }> = {};
+    const dIter = new Date();
     for (let i = 11; i >= 0; i--) {
-      const d = new Date(); d.setMonth(d.getMonth() - i);
+      const d = new Date(dIter.getFullYear(), dIter.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       const label = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
       months[key] = { mes: label, entradas: 0, saidas: 0 };
@@ -91,7 +94,7 @@ export function useFinanceiroDashboard(
 
   const receitaPorSistema = useMemo(() => {
     const sistemas: Record<string, number> = {};
-    clientesReceita.filter(c => c.mensalidadeAtiva).forEach(c => {
+    clientesReceita.filter(c => c.mensalidadeAtiva && c.statusCliente === "ativo").forEach(c => {
       sistemas[c.sistemaPrincipal] = (sistemas[c.sistemaPrincipal] || 0) + c.valorMensalidade;
     });
     return Object.entries(sistemas).map(([name, value]) => ({ name, value }));
@@ -99,15 +102,16 @@ export function useFinanceiroDashboard(
 
   const mrrEvolucao = useMemo(() => {
     const months: Record<string, number> = {};
+    const dIter = new Date();
     for (let i = 11; i >= 0; i--) {
-      const d = new Date(); d.setMonth(d.getMonth() - i);
+      const d = new Date(dIter.getFullYear(), dIter.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       months[key] = 0;
     }
     titulos.filter(t => t.tipo === "receber" && t.status === "pago" && t.origem === "mensalidade")
       .forEach(t => { if (t.competenciaMes && months[t.competenciaMes] !== undefined) months[t.competenciaMes] += t.valorOriginal; });
     return Object.entries(months).map(([key, value]) => {
-      const d = new Date(key + "-01");
+      const d = new Date(key + "-01T12:00:00");
       return { mes: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }), mrr: value };
     });
   }, [titulos]);
@@ -120,7 +124,11 @@ export function useFinanceiroDashboard(
 
   const lancamentosPorDia = useMemo(() => {
     const agrupado: Record<string, { date: string; receitas: number; despesas: number }> = {};
-    lancamentosRecentes.forEach(t => {
+    // Pegamos os últimos 30 dias de lançamentos emitidos
+    const trintaDiasAtras = new Date();
+    trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+    
+    titulos.filter(t => new Date(t.dataEmissao) >= trintaDiasAtras).forEach(t => {
       const d = t.dataEmissao.slice(0, 10);
       if (!agrupado[d]) agrupado[d] = { date: d, receitas: 0, despesas: 0 };
       if (t.tipo === "receber") agrupado[d].receitas += t.valorOriginal;
@@ -128,12 +136,11 @@ export function useFinanceiroDashboard(
     });
     return Object.values(agrupado)
       .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(-30)
       .map(item => ({
         ...item,
         label: new Date(item.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
       }));
-  }, [lancamentosRecentes]);
+  }, [titulos]);
 
   return { kpis, fluxoCaixa, dreResumo, receitaPorSistema, mrrEvolucao, lancamentosRecentes, lancamentosPorDia };
 }
