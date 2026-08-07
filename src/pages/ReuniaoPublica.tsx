@@ -201,6 +201,35 @@ export default function ReuniaoPublica() {
             </div>
 
             {!isPast && (
+              <div className="space-y-4 border-t pt-4">
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-primary" /> Confirmar sua presença
+                </p>
+                {!confirmed ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Seu nome completo" 
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className="bg-muted/30"
+                    />
+                    <Button 
+                      onClick={handleConfirm} 
+                      disabled={confirming}
+                      className="shrink-0"
+                    >
+                      {confirming ? "Confirmando..." : "Confirmar"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-emerald-500 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="text-sm font-medium">Sua presença foi confirmada!</span>
+                  </div>
+                )}
+              </div>
+            )}
+
               <div className="flex flex-col gap-3 pt-2">
                 <Button className="w-full h-12 text-lg font-semibold gap-2 shadow-lg shadow-primary/20" asChild disabled={!meeting.meeting_link}>
                   {meeting.meeting_link ? (
