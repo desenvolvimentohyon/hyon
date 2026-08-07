@@ -46,7 +46,7 @@ export function DRETab({ titulos, planoContas }: any) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="border-primary/10">
           <CardContent className="p-4">
             <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Receita Líquida (Mês)</p>
@@ -100,7 +100,7 @@ export function DRETab({ titulos, planoContas }: any) {
 
       <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="table-scroll">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
