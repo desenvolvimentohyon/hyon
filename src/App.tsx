@@ -9,6 +9,7 @@ import { ReceitaProvider } from "./contexts/ReceitaContext";
 import { PropostasProvider } from "./contexts/PropostasContext";
 import { ParametrosProvider } from "./contexts/ParametrosContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { UsersProvider } from "./contexts/UsersContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -59,6 +60,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <UsersProvider>
         <AppProvider>
           <FinanceiroProvider>
             <ReceitaProvider>
@@ -93,6 +95,7 @@ const App = () => {
             </ReceitaProvider>
           </FinanceiroProvider>
         </AppProvider>
+        </UsersProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
