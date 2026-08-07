@@ -229,8 +229,7 @@ export default function ReuniaoPublica() {
                 )}
               </div>
             )}
-
-              <div className="flex flex-col gap-3 pt-2">
+              <div className="flex flex-col gap-3 pt-6 border-t mt-4">
                 <Button className="w-full h-12 text-lg font-semibold gap-2 shadow-lg shadow-primary/20" asChild disabled={!meeting.meeting_link}>
                   {meeting.meeting_link ? (
                     <a 
@@ -255,6 +254,7 @@ export default function ReuniaoPublica() {
                 </Button>
               </div>
             )}
+
           </CardContent>
         </Card>
         
