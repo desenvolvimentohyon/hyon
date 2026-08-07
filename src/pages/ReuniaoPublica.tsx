@@ -255,8 +255,6 @@ export default function ReuniaoPublica() {
                 </Button>
               </div>
             )}
-
-
           </CardContent>
         </Card>
         
