@@ -1132,16 +1132,15 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Botão flutuante WhatsApp */}
+      {/* Botão flutuante Huggy Chat */}
       <a
-        href={waLink("Olá! Vim pelo botão flutuante do site.", "floating_button")}
+        href="https://www.huggy.chat/262da0d1-90c1-41fb-9e17-b5f2258bb2bc"
         target="_blank" rel="noreferrer"
-        onClick={() => handleWaClick("floating_button")}
         className="fixed bottom-5 right-5 z-50 group"
-        aria-label="Falar no WhatsApp"
+        aria-label="Abrir Chat"
       >
-        <span className="absolute inset-0 rounded-full bg-emerald-400/40 animate-ping" />
-        <span className="relative flex items-center gap-2 pl-4 pr-5 py-3 rounded-full bg-gradient-to-br from-[#25D366] to-[#128C7E] text-white shadow-[0_15px_50px_-10px_rgba(37,211,102,0.7)] hover:scale-105 transition-transform">
+        <span className="absolute inset-0 rounded-full bg-cyan-400/40 animate-ping" />
+        <span className="relative flex items-center gap-2 pl-4 pr-5 py-3 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#2563EB] text-white shadow-[0_15px_50px_-10px_rgba(6,182,212,0.7)] hover:scale-105 transition-transform">
           <MessageCircle className="w-5 h-5" />
           <span className="hidden sm:inline text-sm font-medium">Podemos ajudar?</span>
         </span>
