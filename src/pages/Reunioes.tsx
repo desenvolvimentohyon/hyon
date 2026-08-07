@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon, Share2, Copy } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,7 @@ interface Meeting {
   notes: string | null;
   google_event_id: string | null;
   created_by: string;
+  public_token?: string;
 }
 
 const STATUS_STYLE: Record<MeetingStatus, { label: string; className: string }> = {
@@ -782,6 +783,19 @@ function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, 
                   {m.description && <p className="text-xs text-muted-foreground line-clamp-2">{m.description}</p>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary"
+                    title="Compartilhar link da reunião"
+                    onClick={() => {
+                      const url = `${window.location.origin}/reuniao/${m.public_token}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("Link da reunião copiado!");
+                    }}
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
