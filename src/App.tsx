@@ -95,6 +95,7 @@ const App = () => {
             </ReceitaProvider>
           </FinanceiroProvider>
         </AppProvider>
+        </UsersProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
