@@ -2,18 +2,56 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, MapPin, Video, Users, CheckCircle2, ChevronRight, Share2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Video, Users, CheckCircle2, ChevronRight, Share2, UserCheck, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export default function ReuniaoPublica() {
   const { token } = useParams<{ token: string }>();
   const [meeting, setMeeting] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+
+  const handleConfirm = async () => {
+    if (!guestName.trim()) {
+      toast.error("Por favor, informe seu nome para confirmar.");
+      return;
+    }
+    setConfirming(true);
+    try {
+      const { data, error } = await supabase.rpc("confirm_meeting_attendance" as any, {
+        p_token: token,
+        p_guest_name: guestName.trim()
+      });
+      
+      if (error) throw error;
+      
+      if (data) {
+        toast.success("Presença confirmada com sucesso!");
+        setConfirmed(true);
+        // Recarrega os dados da reunião para mostrar o status atualizado
+        const { data: updatedMeeting } = await supabase
+          .from("meetings")
+          .select("*, profiles:created_by(nome, email)")
+          .filter("public_token" as any, "eq", token)
+          .maybeSingle();
+        if (updatedMeeting) setMeeting(updatedMeeting);
+      } else {
+        toast.error("Nome não encontrado na lista de convidados.");
+      }
+    } catch (e) {
+      toast.error("Erro ao confirmar presença.");
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   useEffect(() => {
     async function load() {
@@ -155,15 +193,44 @@ export default function ReuniaoPublica() {
                   </Badge>
                 )}
                 {meeting.external_guests?.map((guest: any, i: number) => (
-                  <Badge key={i} variant="outline" className="px-3 py-1">
-                    {guest.name}
+                  <Badge key={i} variant={guest.confirmed ? "default" : "outline"} className="px-3 py-1 gap-1">
+                    {guest.name} {guest.confirmed && <CheckCircle2 className="h-3 w-3" />}
                   </Badge>
                 ))}
               </div>
             </div>
 
             {!isPast && (
-              <div className="flex flex-col gap-3 pt-2">
+              <div className="space-y-4 border-t pt-4">
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-primary" /> Confirmar sua presença
+                </p>
+                {!confirmed ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Seu nome completo" 
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className="bg-muted/30"
+                    />
+                    <Button 
+                      onClick={handleConfirm} 
+                      disabled={confirming}
+                      className="shrink-0"
+                    >
+                      {confirming ? "Confirmando..." : "Confirmar"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-emerald-500 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="text-sm font-medium">Sua presença foi confirmada!</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {!isPast && (
+              <div className="flex flex-col gap-3 pt-6 border-t mt-4">
                 <Button className="w-full h-12 text-lg font-semibold gap-2 shadow-lg shadow-primary/20" asChild disabled={!meeting.meeting_link}>
                   {meeting.meeting_link ? (
                     <a 
@@ -188,6 +255,8 @@ export default function ReuniaoPublica() {
                 </Button>
               </div>
             )}
+
+
           </CardContent>
         </Card>
         

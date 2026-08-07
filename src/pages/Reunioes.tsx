@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon, Share2, Copy } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon, Share2, Copy, MessageSquare } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,11 @@ export default function Reunioes() {
   const [savingClient, setSavingClient] = useState(false);
   const [originalStatus, setOriginalStatus] = useState<MeetingStatus>("agendada");
   const [confirmStatus, setConfirmStatus] = useState<MeetingStatus | null>(null);
+  const [isNewMeeting, setIsNewMeeting] = useState(false);
+  const [lastSavedId, setLastSavedId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareMeeting, setShareMeeting] = useState<Meeting | null>(null);
+
   const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const gCal = useGoogleCalendar();
@@ -306,8 +311,12 @@ export default function Reunioes() {
 
       toast.success("Reunião atualizada");
     } else {
-      const { error } = await supabase.from("meetings").insert(payload);
+      const { data, error } = await supabase.from("meetings").insert(payload).select().single();
       if (error) return toast.error("Erro ao criar reunião");
+      
+      setLastSavedId(data.id);
+      setShareMeeting(data as unknown as Meeting);
+      setShowShareModal(true);
       toast.success("Reunião agendada — lembretes push serão enviados");
     }
 
@@ -717,9 +726,62 @@ export default function Reunioes() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reunião Agendada!</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col items-center justify-center text-center space-y-2">
+              <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-2">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Deseja enviar o link de acesso e confirmação agora?
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start gap-3 h-12"
+                onClick={() => {
+                  const url = `${window.location.origin}/reuniao/${shareMeeting?.public_token}`;
+                  const text = `Olá! Nossa reunião "${shareMeeting?.title}" foi agendada para ${format(new Date(shareMeeting?.starts_at || new Date()), "dd/MM 'às' HH:mm", { locale: ptBR })}. Você pode ver os detalhes e confirmar sua presença aqui: ${url}`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+                }}
+              >
+                <div className="h-8 w-8 rounded bg-emerald-500 flex items-center justify-center text-white">
+                  <MessageSquare className="h-4 w-4" />
+                </div>
+                Enviar via WhatsApp
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full justify-start gap-3 h-12"
+                onClick={() => {
+                  const url = `${window.location.origin}/reuniao/${shareMeeting?.public_token}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Link copiado!");
+                }}
+              >
+                <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-white">
+                  <Copy className="h-4 w-4" />
+                </div>
+                Copiar Link
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setShowShareModal(false)}>Concluído</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 interface MeetingListProps {
   title: string;
