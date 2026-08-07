@@ -182,7 +182,7 @@ export default function ReuniaoPublica() {
                   <Users className="h-4 w-4 text-primary" /> Participantes Confirmados
                 </p>
                 <Badge variant="outline" className="font-normal">
-                  {meeting.external_guests?.length + (meeting.internal_user_ids?.length || 0)} total
+                  {((meeting.external_guests || []).length) + (meeting.internal_user_ids?.length || 0)} total
                 </Badge>
               </div>
               
