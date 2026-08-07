@@ -2156,6 +2156,7 @@ export type Database = {
       meetings: {
         Row: {
           client_id: string | null
+          company_slug: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -2168,6 +2169,7 @@ export type Database = {
           meeting_link: string | null
           notes: string | null
           org_id: string
+          public_token: string | null
           reminded_15m: boolean
           reminded_1d: boolean
           reminded_1h: boolean
@@ -2179,6 +2181,7 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
+          company_slug?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -2191,6 +2194,7 @@ export type Database = {
           meeting_link?: string | null
           notes?: string | null
           org_id: string
+          public_token?: string | null
           reminded_15m?: boolean
           reminded_1d?: boolean
           reminded_1h?: boolean
@@ -2202,6 +2206,7 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
+          company_slug?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -2214,6 +2219,7 @@ export type Database = {
           meeting_link?: string | null
           notes?: string | null
           org_id?: string
+          public_token?: string | null
           reminded_15m?: boolean
           reminded_1d?: boolean
           reminded_1h?: boolean

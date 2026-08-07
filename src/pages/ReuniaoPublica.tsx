@@ -60,7 +60,7 @@ export default function ReuniaoPublica() {
       const { data, error } = await supabase
         .from("meetings")
         .select("*, profiles:created_by(nome, email)")
-        .filter("public_token" as any, "eq", token)
+        .eq("public_token", token)
         .maybeSingle();
 
       if (error || !data) {
@@ -182,7 +182,7 @@ export default function ReuniaoPublica() {
                   <Users className="h-4 w-4 text-primary" /> Participantes Confirmados
                 </p>
                 <Badge variant="outline" className="font-normal">
-                  {meeting.external_guests?.length + (meeting.internal_user_ids?.length || 0)} total
+                  {((meeting.external_guests || []).length) + (meeting.internal_user_ids?.length || 0)} total
                 </Badge>
               </div>
               
@@ -192,7 +192,7 @@ export default function ReuniaoPublica() {
                     Organizador: {meeting.profiles.nome}
                   </Badge>
                 )}
-                {meeting.external_guests?.map((guest: any, i: number) => (
+                {(meeting.external_guests || []).map((guest: any, i: number) => (
                   <Badge key={i} variant={guest.confirmed ? "default" : "outline"} className="px-3 py-1 gap-1">
                     {guest.name} {guest.confirmed && <CheckCircle2 className="h-3 w-3" />}
                   </Badge>
