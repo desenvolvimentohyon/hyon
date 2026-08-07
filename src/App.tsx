@@ -60,6 +60,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <UsersProvider>
         <AppProvider>
           <FinanceiroProvider>
             <ReceitaProvider>
