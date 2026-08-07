@@ -26,6 +26,7 @@ import CRM from "./pages/CRM";
 import Comercial from "./pages/Comercial";
 import Parceiros from "./pages/Parceiros";
 import Reunioes from "./pages/Reunioes";
+import Suporte from "./pages/Suporte";
 import Tarefas from "./pages/Tarefas";
 import TarefaDetalhe from "./pages/TarefaDetalhe";
 import Implantacao from "./pages/Implantacao";
