@@ -4,9 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart } from "recharts";
 import { Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { exportDREPDF } from "@/lib/pdfRelatorioFinanceiro";
 import { toast } from "sonner";
-import { fmt, C } from "./helpers";
+import { fmt, fmtPct, C } from "./helpers";
 
 export function DRETab({ titulos, planoContas }: any) {
   const dreData = useMemo(() => {
