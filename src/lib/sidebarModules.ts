@@ -93,27 +93,6 @@ export const modules: ParentModule[] = [
     ],
   },
   {
-    id: "cartoes",
-    title: "Cartões",
-    icon: CreditCard,
-    directUrl: "/cartoes",
-    children: [
-      { title: "Dashboard", url: "/cartoes", icon: BarChart3, description: "Visão geral de maquininhas" },
-      { title: "Clientes", url: "/cartoes/clientes", icon: Users, description: "Clientes de maquininha" },
-      { title: "Propostas", url: "/cartoes/propostas", icon: FileText, description: "Propostas de maquininha" },
-      { title: "Faturamento", url: "/cartoes/faturamento", icon: DollarSign, description: "Receita e comissões" },
-    ],
-  },
-  {
-    id: "desenvolvimento",
-    title: "Desenvolvimento",
-    icon: Code2,
-    directUrl: "/desenvolvimento",
-    children: [
-      { title: "Projetos", url: "/desenvolvimento", icon: Code2, description: "Projetos de criação de sistemas" },
-    ],
-  },
-  {
     id: "configuracoes",
     title: "Configurações",
     icon: Settings,
