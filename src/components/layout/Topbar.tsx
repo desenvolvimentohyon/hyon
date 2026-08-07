@@ -228,16 +228,16 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 sm:gap-3 bg-background/75 backdrop-blur-xl px-2 sm:px-4" style={{ borderBottom: "1px solid hsl(var(--border) / 0.6)" }}>
-      <SidebarTrigger className="shrink-0" />
+    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 sm:gap-3 bg-background/80 backdrop-blur-xl px-2 sm:px-4 border-b border-border/60">
+      <SidebarTrigger className="shrink-0 h-9 w-9 sm:h-10 sm:w-10" />
 
-      {/* Breadcrumb — desktop only */}
+      {/* Breadcrumb — hidden on small mobile */}
       {breadcrumb && (
-        <Breadcrumb className="hidden md:flex min-w-0 max-w-[40%]">
-          <BreadcrumbList className="gap-1.5 text-[12px]">
+        <Breadcrumb className="hidden sm:flex min-w-0 max-w-[30%] lg:max-w-[40%]">
+          <BreadcrumbList className="gap-1.5 text-[11px] lg:text-[12px]">
             <BreadcrumbItem className="text-muted-foreground/70">
               <BreadcrumbLink asChild>
-                <Link to={breadcrumb.parent.directUrl || breadcrumb.parent.children[0]?.url || "/"} className="hover:text-foreground transition-colors truncate max-w-[160px] inline-block">
+                <Link to={breadcrumb.parent.directUrl || breadcrumb.parent.children[0]?.url || "/"} className="hover:text-foreground transition-colors truncate max-w-[100px] lg:max-w-[160px] inline-block">
                   {breadcrumb.parent.title}
                 </Link>
               </BreadcrumbLink>
@@ -246,7 +246,7 @@ export function Topbar() {
               <>
                 <BreadcrumbSeparator className="text-muted-foreground/30" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[220px]">
+                  <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[120px] lg:max-w-[220px]">
                     {breadcrumb.child.title}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -257,14 +257,14 @@ export function Topbar() {
       )}
 
 
-      <form onSubmit={handleSearch} className="hidden sm:flex flex-1 min-w-0 max-w-md ml-auto">
+      <form onSubmit={handleSearch} className="hidden lg:flex flex-1 min-w-0 max-w-md ml-auto">
         <div className="relative w-full group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
           <Input
-            placeholder="Buscar tarefas, clientes... (Ctrl+K)"
+            placeholder="Buscar... (Ctrl+K)"
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="pl-9 pr-12 h-9 text-[13px] bg-muted/50 border border-transparent rounded-lg placeholder:text-muted-foreground/50 focus-visible:bg-background focus-visible:border-border focus-visible:ring-2 focus-visible:ring-primary/15 transition-all"
+            className="pl-9 pr-12 h-9 text-[13px] bg-muted/50 border-none rounded-lg placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all"
           />
           <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
             <span className="text-xs">⌘</span>K

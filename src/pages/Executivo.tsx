@@ -228,7 +228,7 @@ export default function Executivo() {
         <TabsContent value="resumo" className="space-y-4 mt-4">
           <Card className="bg-gradient-to-r from-card via-card/95 to-card border-border/30">
             <CardContent className="p-4">
-              <div className="flex flex-wrap gap-2 justify-center">
+              <div className="flex flex-wrap gap-2 justify-center sm:grid sm:grid-cols-3 md:flex md:justify-center">
                 <KpiPill label="MRR" value={`R$ ${(receitaRecorrente / 1000).toFixed(1)}k`} color="text-emerald-500" />
                 <KpiPill label="Clientes" value={clientesAtivos} color="text-primary" />
                 <KpiPill label="Inadimp." value={inadimplentes} color={inadimplentes > 0 ? "text-destructive" : "text-muted-foreground"} />
@@ -239,7 +239,7 @@ export default function Executivo() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <CockpitCard title="Financeiro" icon={DollarSign} color="bg-emerald-500/10 text-emerald-500">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">MRR</span><span className="font-semibold text-emerald-500">R$ {receitaRecorrente.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></div>

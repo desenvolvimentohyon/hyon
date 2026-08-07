@@ -77,7 +77,7 @@ export default function Financeiro() {
       />
       <ModuleNavGrid moduleId="financeiro" />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {kpiCards.map(k => (
           <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-1 hover:shadow-lg border-primary/10 hover:border-primary/30">
             <CardContent className="p-4">

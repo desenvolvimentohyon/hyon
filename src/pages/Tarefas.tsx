@@ -188,8 +188,8 @@ export default function Tarefas() {
       <ModuleNavGrid moduleId="operacional" />
 
       {/* Seletor de status em destaque */}
-      <div className="rounded-lg border bg-card p-2">
-        <div className="flex flex-wrap items-center gap-1.5">
+      <div className="rounded-xl border bg-card p-2 sm:p-3 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="px-1.5 text-xs font-medium text-muted-foreground">Status:</span>
           {STATUS_FILTERS.map(opt => {
             const ativo = filtroStatus === opt.value;
@@ -279,7 +279,7 @@ export default function Tarefas() {
       <p className="text-sm text-muted-foreground">{filteredTarefas.length} tarefa(s) encontrada(s)</p>
 
       {viewMode === "table" ? (
-        <div className="rounded-lg border overflow-hidden">
+        <div className="rounded-xl border overflow-hidden shadow-sm table-scroll">
           <Table>
             <TableHeader>
               <TableRow>

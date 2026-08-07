@@ -46,7 +46,7 @@ const RecoveryFailureAnalytics = lazy(() => import("@/components/inteligencia/Re
 // ── Section Skeleton Loaders ─────────────────────────────────────────
 function KpisSkeleton() {
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
       {Array.from({ length: 5 }).map((_, i) => (
         <Card key={i} className="neon-border">
           <CardContent className="p-4 space-y-3">
@@ -102,7 +102,7 @@ function ChartsSkeleton() {
 
 function OperationalSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }).map((_, i) => (
         <Card key={i} className="neon-border">
           <CardHeader className="pb-2"><Skeleton className="h-4 w-36" /></CardHeader>
@@ -119,7 +119,7 @@ function OperationalSkeleton() {
 
 function AnalyticsSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
       {[1, 2].map(i => (
         <Card key={i} className="neon-border">
           <CardHeader className="pb-2"><Skeleton className="h-4 w-40" /></CardHeader>
@@ -339,15 +339,15 @@ function CertificadosVencendoCard() {
   };
 
   return (
-    <Card className="neon-border border-warning/30">
-      <CardHeader className="pb-3">
+    <Card className="neon-border border-warning/30 overflow-hidden">
+      <CardHeader className="p-3 sm:p-4 pb-2 sm:pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Shield className="h-4 w-4 text-warning" />
-          Certificados Digitais Vencendo (30 dias)
-          <Badge variant="outline" className="text-[10px]">{expiring.length}</Badge>
+          <Shield className="h-4 w-4 text-warning shrink-0" />
+          <span className="truncate">Certificados Digitais Vencendo (30 dias)</span>
+          <Badge variant="outline" className="text-[10px] shrink-0">{expiring.length}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-4 pt-0 sm:pt-0">
         <div className="space-y-2">
           {expiring.map((c: any) => (
             <div

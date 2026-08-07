@@ -27,7 +27,7 @@ export function ModuleNavGrid({ moduleId }: ModuleNavGridProps) {
   const palette = MODULE_COLORS[moduleId] || MODULE_COLORS.dashboard;
 
   return (
-    <div className="flex items-center gap-1 border-b border-border/40 pb-3 mb-4 overflow-x-auto scrollbar-none">
+    <div className="flex items-center gap-1 border-b border-border/40 pb-3 mb-4 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
       {mod.children.map((child) => {
         const isActive = location.pathname === child.url;
         const Icon = child.icon;
