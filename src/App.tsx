@@ -9,6 +9,7 @@ import { ReceitaProvider } from "./contexts/ReceitaContext";
 import { PropostasProvider } from "./contexts/PropostasContext";
 import { ParametrosProvider } from "./contexts/ParametrosContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { UsersProvider } from "./contexts/UsersContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
