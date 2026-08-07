@@ -4,23 +4,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart } from "recharts";
 import { Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { exportDREPDF } from "@/lib/pdfRelatorioFinanceiro";
 import { toast } from "sonner";
-import { fmt, C } from "./helpers";
+import { fmt, fmtPct, C } from "./helpers";
 
 export function DRETab({ titulos, planoContas }: any) {
   const dreData = useMemo(() => {
-    const months: { mes: string; receitas: number; repasses: number; despesas: number; impostos: number; lucro: number }[] = [];
+    const months: { mes: string; receitas: number; repasses: number; despesas: number; impostos: number; lucro: number; margem: number }[] = [];
+    const now = new Date();
     for (let i = 11; i >= 0; i--) {
-      const d = new Date(); d.setMonth(d.getMonth() - i);
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       const label = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
       const mesTitulos = titulos.filter((t: any) => t.competenciaMes === key && t.status === "pago");
+      
       const receitas = mesTitulos.filter((t: any) => t.tipo === "receber").reduce((s: number, t: any) => s + t.valorOriginal, 0);
-      const repasses = mesTitulos.filter((t: any) => t.origem === "repasse").reduce((s: number, t: any) => s + t.valorOriginal, 0);
+      const repasses = mesTitulos.filter((t: any) => t.origem === "repasse" || t.origem === "comissao_parceiro").reduce((s: number, t: any) => s + t.valorOriginal, 0);
       const despesas = mesTitulos.filter((t: any) => t.origem === "despesa_operacional").reduce((s: number, t: any) => s + t.valorOriginal, 0);
       const impostos = mesTitulos.filter((t: any) => t.origem === "imposto").reduce((s: number, t: any) => s + t.valorOriginal, 0);
-      months.push({ mes: label, receitas, repasses, despesas, impostos, lucro: receitas - repasses - despesas - impostos });
+      
+      const lucro = receitas - repasses - despesas - impostos;
+      const margem = receitas > 0 ? (lucro / receitas) * 100 : 0;
+      
+      months.push({ mes: label, receitas, repasses, despesas, impostos, lucro, margem });
     }
     return months;
   }, [titulos]);
@@ -30,28 +37,62 @@ export function DRETab({ titulos, planoContas }: any) {
     toast.success("Relatório DRE exportado com sucesso!");
   };
 
+  const kpis = useMemo(() => {
+    const ultimo = dreData[dreData.length - 1];
+    const penultimo = dreData[dreData.length - 2];
+    const crescLucro = penultimo?.lucro !== 0 ? ((ultimo.lucro - penultimo.lucro) / Math.abs(penultimo.lucro)) * 100 : 0;
+    return { ultimo, crescLucro };
+  }, [dreData]);
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={handleExportDRE}>
-          <Download className="h-4 w-4 mr-1" /> Exportar DRE (PDF)
-        </Button>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-primary/10">
+          <CardContent className="p-4">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Receita Líquida (Mês)</p>
+            <p className="text-xl font-bold text-info">{fmt(kpis.ultimo.receitas)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-primary/10">
+          <CardContent className="p-4">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Total Despesas (Mês)</p>
+            <p className="text-xl font-bold text-destructive">{fmt(kpis.ultimo.despesas + kpis.ultimo.repasses + kpis.ultimo.impostos)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-primary/10">
+          <CardContent className="p-4">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Lucro Líquido (Mês)</p>
+            <p className="text-xl font-bold text-success">{fmt(kpis.ultimo.lucro)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-primary/10">
+          <CardContent className="p-4">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Margem Líquida</p>
+            <p className="text-xl font-bold text-primary">{fmtPct(kpis.ultimo.margem)}</p>
+          </CardContent>
+        </Card>
       </div>
+
       <Card>
-        <CardHeader><CardTitle className="text-sm">DRE - Demonstrativo de Resultado (12 meses)</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Histórico de Performance (12 meses)</CardTitle>
+          <Button variant="outline" size="sm" onClick={handleExportDRE} className="h-8 gap-1">
+            <Download className="h-3.5 w-3.5" /> PDF
+          </Button>
+        </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <ComposedChart data={dreData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="mes" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-              <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-              <Tooltip formatter={(v: number) => fmt(v)} />
-              <Legend />
-              <Bar dataKey="receitas" name="Receitas" fill={C.receita} />
-              <Bar dataKey="repasses" name="Repasses" fill={C.despesa} />
-              <Bar dataKey="despesas" name="Despesas" fill={C.atraso} />
-              <Bar dataKey="impostos" name="Impostos" fill={C.imposto} />
-              <Line type="monotone" dataKey="lucro" name="Lucro" stroke={C.lucro} strokeWidth={2} />
+          <ResponsiveContainer width="100%" height={320}>
+            <ComposedChart data={dreData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} />
+              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ backgroundColor: "hsl(var(--background))", borderColor: "hsl(var(--border))", fontSize: '12px' }} />
+              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+              <Bar dataKey="receitas" name="Receitas" fill={C.receita} radius={[2, 2, 0, 0]} />
+              <Bar dataKey="repasses" name="Repasses" fill={C.despesa} radius={[2, 2, 0, 0]} />
+              <Bar dataKey="despesas" name="Op. Expen." fill={C.atraso} radius={[2, 2, 0, 0]} />
+              <Bar dataKey="impostos" name="Impostos" fill={C.imposto} radius={[2, 2, 0, 0]} />
+              <Line type="monotone" dataKey="lucro" name="Lucro Líquido" stroke={C.lucro} strokeWidth={3} dot={{ r: 4, fill: C.lucro }} activeDot={{ r: 6 }} />
             </ComposedChart>
           </ResponsiveContainer>
         </CardContent>
@@ -59,32 +100,41 @@ export function DRETab({ titulos, planoContas }: any) {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mês</TableHead>
-                <TableHead className="text-right">Receitas</TableHead>
-                <TableHead className="text-right">(-) Repasses</TableHead>
-                <TableHead className="text-right">(-) Despesas</TableHead>
-                <TableHead className="text-right">(-) Impostos</TableHead>
-                <TableHead className="text-right font-bold">Lucro Líquido</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dreData.map(d => (
-                <TableRow key={d.mes}>
-                  <TableCell className="font-medium">{d.mes}</TableCell>
-                  <TableCell className="text-right text-info">{fmt(d.receitas)}</TableCell>
-                  <TableCell className="text-right text-destructive">{fmt(d.repasses)}</TableCell>
-                  <TableCell className="text-right text-warning">{fmt(d.despesas)}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">{fmt(d.impostos)}</TableCell>
-                  <TableCell className={`text-right font-bold ${d.lucro >= 0 ? "text-success" : "text-destructive"}`}>{fmt(d.lucro)}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="w-[100px]">Mês</TableHead>
+                  <TableHead className="text-right">Receitas</TableHead>
+                  <TableHead className="text-right">Custo/Repasse</TableHead>
+                  <TableHead className="text-right">Despesas</TableHead>
+                  <TableHead className="text-right">Impostos</TableHead>
+                  <TableHead className="text-right font-bold">Lucro</TableHead>
+                  <TableHead className="text-center">Margem</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {[...dreData].reverse().map(d => (
+                  <TableRow key={d.mes} className="hover:bg-accent/30 transition-colors">
+                    <TableCell className="font-semibold text-xs uppercase">{d.mes}</TableCell>
+                    <TableCell className="text-right text-sm text-info font-medium">{fmt(d.receitas)}</TableCell>
+                    <TableCell className="text-right text-sm text-destructive/80">{fmt(d.repasses)}</TableCell>
+                    <TableCell className="text-right text-sm text-warning/80">{fmt(d.despesas)}</TableCell>
+                    <TableCell className="text-right text-sm text-muted-foreground">{fmt(d.impostos)}</TableCell>
+                    <TableCell className={`text-right text-sm font-bold ${d.lucro >= 0 ? "text-success" : "text-destructive"}`}>{fmt(d.lucro)}</TableCell>
+                    <TableCell className="text-center">
+                       <Badge variant={d.margem > 30 ? "success" : d.margem > 10 ? "secondary" : "destructive"} className="text-[10px] font-bold">
+                         {fmtPct(d.margem)}
+                       </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+

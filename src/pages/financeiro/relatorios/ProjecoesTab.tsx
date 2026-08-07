@@ -12,9 +12,9 @@ import { fmt, C } from "./helpers";
 
 export function ProjecoesTab({ clientesReceita }: any) {
   const [cenarios, setCenarios] = useState([
-    { id: "conservador", nome: "Conservador", crescimento: 1.5, churn: 3, novosClientes: 1, ticketNovos: 0, cor: C.imposto, dash: "5 5", ativo: true },
-    { id: "base", nome: "Base", crescimento: 3, churn: 2, novosClientes: 2, ticketNovos: 0, cor: C.receita, dash: "", ativo: true },
-    { id: "agressivo", nome: "Agressivo", crescimento: 5, churn: 1, novosClientes: 4, ticketNovos: 0, cor: C.lucro, dash: "5 5", ativo: true },
+    { id: "conservador", nome: "Conservador", crescimento: 1.5, churn: 3.5, novosClientes: 1, ticketNovos: 0, cor: C.imposto, dash: "5 5", ativo: true },
+    { id: "base", nome: "Base (Meta)", crescimento: 3, churn: 2, novosClientes: 2, ticketNovos: 0, cor: C.receita, dash: "", ativo: true },
+    { id: "agressivo", nome: "Agressivo", crescimento: 5.5, churn: 1, novosClientes: 4, ticketNovos: 0, cor: C.lucro, dash: "5 5", ativo: true },
   ]);
   const [horizonte, setHorizonte] = useState(12);
   const [mostrarLucro, setMostrarLucro] = useState(true);
@@ -91,8 +91,8 @@ export function ProjecoesTab({ clientesReceita }: any) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {cenariosComTicket.map(c => (
-          <Card key={c.id} className={`transition-opacity ${c.ativo ? "" : "opacity-50"}`} style={{ borderColor: c.ativo ? c.cor : undefined, borderWidth: c.ativo ? 2 : 1 }}>
-            <CardHeader className="pb-3">
+          <Card key={c.id} className={`transition-all duration-300 ${c.ativo ? "shadow-md scale-[1.02]" : "opacity-40"}`} style={{ borderColor: c.ativo ? c.cor : undefined, borderWidth: c.ativo ? 2 : 1 }}>
+            <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm" style={{ color: c.cor }}>{c.nome}</CardTitle>
                 <Switch checked={c.ativo} onCheckedChange={v => updateCenario(c.id, "ativo", v)} />

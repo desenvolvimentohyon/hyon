@@ -79,15 +79,18 @@ export default function Financeiro() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
         {kpiCards.map(k => (
-          <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-0.5">
+          <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-1 hover:shadow-lg border-primary/10 hover:border-primary/30">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <k.icon className={`h-4 w-4 ${k.color}`} />
-                <span className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{k.label}</span>
+              <div className="flex items-center justify-between mb-2">
+                <k.icon className={`h-4 w-4 ${k.color} opacity-80 group-hover:opacity-100 transition-opacity`} />
+                {k.label.includes("Mês") && <Badge variant="secondary" className="text-[9px] uppercase">Agosto</Badge>}
               </div>
-              <p className="text-xl font-bold text-foreground">{k.value}</p>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold block mb-1">{k.label}</span>
+              <p className="text-2xl font-bold text-foreground tracking-tight">{k.value}</p>
               {"secondaryValue" in k && k.secondaryValue && (
-                <p className="text-xs text-muted-foreground mt-0.5">{k.secondaryValue}</p>
+                <p className="text-xs font-medium text-primary/70 mt-1 flex items-center gap-1">
+                   {k.secondaryValue}
+                </p>
               )}
             </CardContent>
           </Card>

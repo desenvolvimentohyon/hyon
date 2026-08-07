@@ -8,34 +8,41 @@ import { toast } from "sonner";
 import { fmt, fmtPct, C } from "./helpers";
 
 export function MRRTab({ clientesReceita, titulos }: any) {
-  const ativos = clientesReceita.filter((c: any) => c.mensalidadeAtiva);
-  const mrr = ativos.reduce((s: number, c: any) => s + c.valorMensalidade, 0);
-  const arr = mrr * 12;
-  const ticket = ativos.length > 0 ? mrr / ativos.length : 0;
-  const cancelados = clientesReceita.filter((c: any) => c.statusCliente === "cancelado").length;
-  const churn = clientesReceita.length > 0 ? (cancelados / clientesReceita.length) * 100 : 0;
-  const ltv = churn > 0 ? ticket / (churn / 100) : ticket * 100;
+  const mrrData = useMemo(() => {
+    const ativos = clientesReceita.filter((c: any) => c.mensalidadeAtiva && c.statusCliente === "ativo");
+    const mrr = ativos.reduce((s: number, c: any) => s + c.valorMensalidade, 0);
+    const arr = mrr * 12;
+    const ticket = ativos.length > 0 ? mrr / ativos.length : 0;
+    
+    // Churn Rate (considerando cancelados nos últimos 12 meses)
+    const umAnoAtras = new Date();
+    umAnoAtras.setFullYear(umAnoAtras.getFullYear() - 1);
+    const canceladosRecentes = clientesReceita.filter((c: any) => 
+      c.statusCliente === "cancelado" && c.dataCancelamento && new Date(c.dataCancelamento) >= umAnoAtras
+    ).length;
+    
+    const churn = ativos.length > 0 ? (canceladosRecentes / (ativos.length + canceladosRecentes)) * 100 : 0;
+    const ltv = churn > 0 ? ticket / (churn / 100) : ticket * 120; // 10 anos default se churn for 0
 
-  const mrrPorSistema = useMemo(() => {
+    const ativosAtraso = clientesReceita.filter((c: any) => c.statusCliente === "atraso" && c.mensalidadeAtiva);
+    const mrrAtraso = ativosAtraso.reduce((s: number, c: any) => s + c.valorMensalidade, 0);
+    
     const sys: Record<string, number> = {};
     ativos.forEach((c: any) => { sys[c.sistemaPrincipal] = (sys[c.sistemaPrincipal] || 0) + c.valorMensalidade; });
-    return Object.entries(sys).map(([name, value]) => ({ name, value }));
-  }, [ativos]);
+    const porSistema = Object.entries(sys).map(([name, value]) => ({ name, value }));
+
+    return { mrr, arr, ticket, churn, ltv, porSistema, ativosCount: ativos.length, ativosAtrasoCount: ativosAtraso.length, mrrAtraso };
+  }, [clientesReceita]);
 
   const pieCols = [C.receita, C.conciliacao, C.atraso, C.lucro, C.despesa];
 
-  const ativosEmDia = clientesReceita.filter((c: any) => c.statusCliente === "ativo" && c.mensalidadeAtiva);
-  const ativosAtraso = clientesReceita.filter((c: any) => c.statusCliente === "atraso" && c.mensalidadeAtiva);
-  const mrrEmDia = ativosEmDia.reduce((s: number, c: any) => s + c.valorMensalidade, 0);
-  const mrrAtraso = ativosAtraso.reduce((s: number, c: any) => s + c.valorMensalidade, 0);
-
   const handleExportMRR = () => {
     exportMRRPDF({
-      mrr, arr, ticket, churn, ltv,
-      porSistema: mrrPorSistema,
-      ativosEmDia: ativosEmDia.length,
-      ativosAtraso: ativosAtraso.length,
-      mrrEmDia, mrrAtraso,
+      mrr: mrrData.mrr, arr: mrrData.arr, ticket: mrrData.ticket, churn: mrrData.churn, ltv: mrrData.ltv,
+      porSistema: mrrData.porSistema,
+      ativosEmDia: mrrData.ativosCount,
+      ativosAtraso: mrrData.ativosAtrasoCount,
+      mrrEmDia: mrrData.mrr, mrrAtraso: mrrData.mrrAtraso,
     });
     toast.success("Relatório MRR exportado com sucesso!");
   };
@@ -49,46 +56,61 @@ export function MRRTab({ clientesReceita, titulos }: any) {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label: "MRR", value: fmt(mrr) },
-          { label: "ARR", value: fmt(arr) },
-          { label: "Ticket Médio", value: fmt(ticket) },
-          { label: "Churn Rate", value: fmtPct(churn) },
-          { label: "LTV", value: fmt(ltv) },
+          { label: "MRR Total", value: fmt(mrrData.mrr) },
+          { label: "ARR (Anual)", value: fmt(mrrData.arr) },
+          { label: "Ticket Médio", value: fmt(mrrData.ticket) },
+          { label: "Churn Rate", value: fmtPct(mrrData.churn) },
+          { label: "LTV Projetado", value: fmt(mrrData.ltv) },
         ].map(k => (
-          <Card key={k.label}><CardContent className="p-4"><p className="text-xs text-muted-foreground">{k.label}</p><p className="text-lg font-bold text-foreground">{k.value}</p></CardContent></Card>
+          <Card key={k.label} className="border-primary/10">
+            <CardContent className="p-4">
+              <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">{k.label}</p>
+              <p className="text-xl font-bold text-foreground">{k.value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle className="text-sm">MRR por Sistema</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">Participação no MRR por Sistema</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
-                <Pie data={mrrPorSistema} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                  {mrrPorSistema.map((_, i) => <Cell key={i} fill={pieCols[i % pieCols.length]} />)}
+                <Pie 
+                  data={mrrData.porSistema} 
+                  dataKey="value" 
+                  nameKey="name" 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius={60}
+                  outerRadius={100} 
+                  paddingAngle={5}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {mrrData.porSistema.map((_, i) => <Cell key={i} fill={pieCols[i % pieCols.length]} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm">MRR por Status</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">Status da Base MRR</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={[
-                { status: "Em dia", valor: mrrEmDia },
-                { status: "Atraso", valor: mrrAtraso },
+                { status: "Em dia", valor: mrrData.mrr, fill: C.lucro },
+                { status: "Em atraso", valor: mrrData.mrrAtraso, fill: C.atraso },
               ]}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                 <XAxis dataKey="status" className="fill-muted-foreground" />
                 <YAxis className="fill-muted-foreground" />
                 <Tooltip formatter={(v: number) => fmt(v)} />
                 <Bar dataKey="valor" radius={[4, 4, 0, 0]}>
-                  <Cell fill={C.lucro} />
-                  <Cell fill={C.atraso} />
+                   <Cell fill={C.lucro} />
+                   <Cell fill={C.atraso} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
