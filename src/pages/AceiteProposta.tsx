@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { CheckCircle2, XCircle, FileText, FileSignature } from "lucide-react";
+import { CheckCircle2, XCircle, FileText, FileSignature, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/core/logger/logger";
 
@@ -21,7 +21,8 @@ export default function AceiteProposta() {
 
   const proposta = propostas.find(p => p.linkAceite === `/aceite/${numero}` || p.numeroProposta === numero);
 
-  const [contrato, setContrato] = useState<string>("");
+  const [contrato, setContrato] = useState<string | null>(null);
+  const [loadingContrato, setLoadingContrato] = useState(false);
   const [assinadoEm, setAssinadoEm] = useState<string | null>(null);
   const [contratoOpen, setContratoOpen] = useState(false);
   const [aceitouTermos, setAceitouTermos] = useState(false);
@@ -31,21 +32,31 @@ export default function AceiteProposta() {
   useEffect(() => {
     if (!proposta?.id) return;
     let ativo = true;
-    supabase
-      .from("proposals")
-      .select("contract_body, contract_signed_at, contract_signer_name")
-      .eq("id", proposta.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    const fetchContrato = async () => {
+      setLoadingContrato(true);
+      try {
+        const { data, error } = await supabase
+          .from("proposals")
+          .select("contract_body, contract_signed_at, contract_signer_name")
+          .eq("id", proposta.id)
+          .maybeSingle();
+        
         if (!ativo) return;
         if (error) {
           logger.error("Falha ao carregar contrato da proposta", error);
+          setLoadingContrato(false);
           return;
         }
         setContrato(((data as any)?.contract_body as string) ?? "");
         setAssinadoEm(((data as any)?.contract_signed_at as string) ?? null);
         if ((data as any)?.contract_signer_name) setNomeAssinante(String((data as any).contract_signer_name));
-      });
+      } catch (err) {
+        logger.error("Erro no fetch do contrato", err);
+      } finally {
+        if (ativo) setLoadingContrato(false);
+      }
+    };
+    fetchContrato();
     return () => {
       ativo = false;
     };
@@ -72,8 +83,8 @@ export default function AceiteProposta() {
     : `${proposta.parcelasImplantacao}x de R$ ${(proposta.valorImplantacao / (proposta.parcelasImplantacao || 1)).toFixed(2)}`;
 
   const jaRespondeu = proposta.statusAceite !== "pendente";
-  const temContrato = contrato.trim().length > 0;
-  const podeAceitar = !temContrato || (aceitouTermos && nomeAssinante.trim().length >= 3);
+  const temContrato = contrato !== null && contrato.trim().length > 0;
+  const podeAceitar = contrato !== null && (!temContrato || (aceitouTermos && nomeAssinante.trim().length >= 3));
 
   const handleAceitar = async () => {
     if (!podeAceitar) {
@@ -213,12 +224,16 @@ export default function AceiteProposta() {
               <Button
                 className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700"
                 onClick={handleAceitar}
-                disabled={enviando || !podeAceitar}
+                disabled={enviando || !podeAceitar || loadingContrato}
               >
-                <CheckCircle2 className="h-4 w-4" />
+                {loadingContrato ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
                 {temContrato ? "Aceitar e assinar" : "Aceitar Proposta"}
               </Button>
-              <Button variant="outline" className="flex-1 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleRecusar} disabled={enviando}>
+              <Button variant="outline" className="flex-1 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleRecusar} disabled={enviando || loadingContrato}>
                 <XCircle className="h-4 w-4" />Recusar
               </Button>
             </div>
