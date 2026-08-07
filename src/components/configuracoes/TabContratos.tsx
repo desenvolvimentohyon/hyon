@@ -31,8 +31,6 @@ import {
 const CATEGORIAS: { value: ContractTemplateCategory; label: string }[] = [
   { value: "saas", label: "SaaS / Mensalidade" },
   { value: "implantacao", label: "Implantação" },
-  { value: "desenvolvimento", label: "Desenvolvimento" },
-  { value: "cartoes", label: "Cartões" },
   { value: "outro", label: "Outro" },
 ];
 
