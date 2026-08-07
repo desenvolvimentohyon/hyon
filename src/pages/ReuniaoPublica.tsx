@@ -229,6 +229,7 @@ export default function ReuniaoPublica() {
                 )}
               </div>
             )}
+            {!isPast && (
               <div className="flex flex-col gap-3 pt-6 border-t mt-4">
                 <Button className="w-full h-12 text-lg font-semibold gap-2 shadow-lg shadow-primary/20" asChild disabled={!meeting.meeting_link}>
                   {meeting.meeting_link ? (
@@ -254,6 +255,7 @@ export default function ReuniaoPublica() {
                 </Button>
               </div>
             )}
+
 
           </CardContent>
         </Card>
