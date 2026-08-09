@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.9.1",
+    date: "2026-08-09",
+    changes: [
+      { type: "melhoria", text: "Auditoria de Segurança: Iniciada validação dos novos parâmetros de RLS para garantir isolamento total após simplificação de módulos." },
+      { type: "melhoria", text: "Revisão RBAC: Removidas referências a cargos e permissões de módulos descontinuados (Cartões/Desenvolvimento)." },
+    ],
+  },
+  {
     version: "1.9.0",
     date: "2026-08-07",
     changes: [
