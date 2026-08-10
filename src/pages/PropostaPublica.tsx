@@ -198,7 +198,7 @@ export default function PropostaPublica() {
     trackEvent("pdf_downloaded_at");
     if (!proposal) return;
     const logoUrl = company?.logo_path
-      ? supabase.storage.from("company-logos").getPublicUrl(company.logo_path).data.publicUrl
+      ? (company.logo_path.startsWith("http") ? company.logo_path : supabase.storage.from("company-logos").getPublicUrl(company.logo_path).data.publicUrl)
       : null;
     const companyPdf: PdfCompanyData = {
       tradeName: company?.trade_name || null,
@@ -398,31 +398,34 @@ export default function PropostaPublica() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
+      <header
+        className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800"
+        style={{ borderTop: `4px solid ${primaryColor}` }}
+      >
         <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
             {company?.logo_path ? (
               <img
-                src={`${supabaseUrl}/storage/v1/object/public/company-logos/${company.logo_path}`}
+                src={company.logo_path.startsWith("http") ? company.logo_path : `${supabaseUrl}/storage/v1/object/public/company-logos/${company.logo_path}`}
                 alt={companyName}
-                className="w-9 h-9 rounded-xl object-contain shrink-0"
+                className="w-10 h-10 rounded-xl object-contain shrink-0"
               />
             ) : (
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0"
                 style={{ backgroundColor: primaryColor }}
               >
                 {companyName.charAt(0)}
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-sm font-semibold truncate">{companyName}</p>
-              <p className="text-[11px] text-muted-foreground truncate">
+              <p className="text-sm font-bold truncate tracking-tight">{companyName}</p>
+              <p className="text-[11px] text-muted-foreground truncate font-medium">
                 Proposta {proposal.proposal_number}
               </p>
             </div>
           </div>
-          <Badge className={`${acceptBadge.className} text-xs shrink-0`}>
+          <Badge className={`${acceptBadge.className} text-xs shrink-0 font-semibold px-2.5 py-0.5 rounded-full`}>
             {acceptBadge.label}
           </Badge>
         </div>
