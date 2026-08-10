@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.1",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Remoção de Resíduos de Módulos: Eliminadas referências visuais e lógicas remanescentes dos módulos de Cartões e Desenvolvimento no menu lateral e barras de navegação." },
+      { type: "correcao", text: "Integridade do Menu Lateral: Corrigida a persistência de ícones de módulos desativados na AppSidebar e ModuleNavBar." },
+    ],
+  },
+  {
     version: "2.1.0",
     date: "2026-08-10",
     changes: [
