@@ -7,15 +7,21 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.2.2",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Endurecimento de Segurança: Implementados gatilhos de proteção de integridade org_id em tabelas de clientes, tarefas e credenciais." },
+      { type: "melhoria", text: "Reforço de RLS: Atualizadas políticas da tabela access_credentials para suportar permissões granulares de visualização e edição." },
+      { type: "melhoria", text: "Privacidade de Webhooks: Restrito acesso total a logs de webhook do ASAAS apenas para administradores autorizados." },
+      { type: "melhoria", text: "Isolamento de Infraestrutura: Configurados GRANTs explícitos para service_role em tabelas de metadados e RBAC." }
+    ]
+  },
+  {
     version: "2.2.0",
     date: "2026-08-10",
     changes: [
       { type: "melhoria", text: "Reforço de Segurança: Implementado endurecimento de funções SECURITY DEFINER com search_path explícito e restrição de execução por role." },
-      { type: "melhoria", text: "Isolamento Multi-tenant: Refatorada a função has_permission para garantir isolamento total e prevenção de escalonamento de privilégios." },
-      { type: "correcao", text: "Políticas RLS: Corrigidas e reforçadas políticas em tabelas críticas como landing_plan_leads e configurações internas." },
-      { type: "novo", text: "Proteção de Integridade: Adicionados gatilhos de banco para impedir a alteração não autorizada de org_id em registros financeiros." }
-    ]
-  },
+...
   {
     version: "2.1.9",
     date: "2026-08-10",
