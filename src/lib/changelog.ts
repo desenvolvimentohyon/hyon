@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.3",
+    date: "2026-08-10",
+    changes: [
+      { type: "novo", text: "Visualização de Saldo Devedor: Adicionada a exibição do saldo remanescente diretamente na listagem para títulos com baixa parcial." },
+      { type: "melhoria", text: "Transparência Financeira: O valor total do título agora é calculado considerando descontos, juros e multas para uma visão precisa do saldo." },
+    ],
+  },
+  {
     version: "2.1.2",
     date: "2026-08-10",
     changes: [

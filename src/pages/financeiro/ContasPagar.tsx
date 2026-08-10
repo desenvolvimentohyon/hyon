@@ -163,49 +163,66 @@ export default function ContasPagar() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pagar.slice(0, 50).map(t => (
-                <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
-                  <TableCell className="font-medium text-sm">
-                    {t.descricao}
-                    {/\(recorrente \d+\/\d+\)/.test(t.descricao) ? (
-                      <Badge variant="secondary" className="ml-2 text-[10px]"><Repeat className="h-3 w-3 inline mr-0.5" />Recorrente</Badge>
-                    ) : /\(\d+\/\d+\)/.test(t.descricao) && (
-                      <Badge variant="secondary" className="ml-2 text-[10px]">Parcelado</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">{t.fornecedorNome || "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">{t.origem}</Badge>
-                    {String(t.origem) === "comissao_parceiro" && (
-                      <Badge variant="secondary" className="text-[10px] ml-1">
-                        {t.commissionType === "recorrente" ? "Recorrente" : "Implantação"}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">{t.competenciaMes}</TableCell>
-                  <TableCell className="text-sm">{new Date(t.vencimento).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell className="text-sm font-semibold">{fmt(t.valorOriginal)}</TableCell>
-                  <TableCell>{statusBadge(t.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {(t.status === "aberto" || t.status === "parcial") && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setModalBaixa(t); setValorBaixa(""); }}>
-                          <CheckCircle className="h-4 w-4 text-success" />
-                        </Button>
+              {pagar.slice(0, 50).map(t => {
+                const valorFinal = t.valorOriginal - (t.desconto || 0) + (t.juros || 0) + (t.multa || 0);
+                const valorPago = movimentos
+                  .filter(m => m.tituloVinculadoId === t.id && m.conciliado)
+                  .reduce((sum, m) => sum + Math.abs(m.valor), 0);
+                const saldoDevedor = valorFinal - valorPago;
+
+                return (
+                  <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
+                    <TableCell className="font-medium text-sm">
+                      {t.descricao}
+                      {/\(recorrente \d+\/\d+\)/.test(t.descricao) ? (
+                        <Badge variant="secondary" className="ml-2 text-[10px]"><Repeat className="h-3 w-3 inline mr-0.5" />Recorrente</Badge>
+                      ) : /\(\d+\/\d+\)/.test(t.descricao) && (
+                        <Badge variant="secondary" className="ml-2 text-[10px]">Parcelado</Badge>
                       )}
-                      <RowActions
-                        actions={[
-                          { label: "Editar", icon: Pencil, onClick: () => setModalEditar(t) },
-                          ...(t.descricao.includes("(recorrente") && t.status === "aberto"
-                            ? [{ label: "Cancelar futuros", icon: XCircle, onClick: () => setCancelarFuturosId(t.id), variant: "destructive" as const, separator: true }]
-                            : []),
-                          { label: "Excluir", icon: Trash2, onClick: () => setExcluirId(t.id), variant: "destructive" as const, separator: !t.descricao.includes("(recorrente") },
-                        ]}
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell className="text-sm">{t.fornecedorNome || "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">{t.origem}</Badge>
+                      {String(t.origem) === "comissao_parceiro" && (
+                        <Badge variant="secondary" className="text-[10px] ml-1">
+                          {t.commissionType === "recorrente" ? "Recorrente" : "Implantação"}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">{t.competenciaMes}</TableCell>
+                    <TableCell className="text-sm">{new Date(t.vencimento).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell className="text-sm">
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{fmt(valorFinal)}</span>
+                        {t.status === "parcial" && saldoDevedor > 0 && (
+                          <span className="text-[10px] text-warning font-medium">
+                            Saldo: {fmt(saldoDevedor)}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{statusBadge(t.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {(t.status === "aberto" || t.status === "parcial") && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setModalBaixa(t); setValorBaixa(""); }}>
+                            <CheckCircle className="h-4 w-4 text-success" />
+                          </Button>
+                        )}
+                        <RowActions
+                          actions={[
+                            { label: "Editar", icon: Pencil, onClick: () => setModalEditar(t) },
+                            ...(t.descricao.includes("(recorrente") && t.status === "aberto"
+                              ? [{ label: "Cancelar futuros", icon: XCircle, onClick: () => setCancelarFuturosId(t.id), variant: "destructive" as const, separator: true }]
+                              : []),
+                            { label: "Excluir", icon: Trash2, onClick: () => setExcluirId(t.id), variant: "destructive" as const, separator: !t.descricao.includes("(recorrente") },
+                          ]}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
