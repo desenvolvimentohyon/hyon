@@ -6,6 +6,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
 import { toast } from "@/hooks/use-toast";
+import { AlertTriangle, Sparkles, ClipboardList } from "lucide-react";
 import { statusRowColor } from "./helpers";
 import { LiveTimer } from "./LiveTimer";
 import { TarefaReunioesPreview } from "@/components/tarefas/TarefaReunioesPreview";
