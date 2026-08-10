@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw, ArrowUpRight, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { TituloFinanceiro } from "@/types/financeiro";
 import { fmt, statusBadge } from "./contasReceber/helpers";
