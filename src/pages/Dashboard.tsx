@@ -1329,11 +1329,11 @@ export default function Dashboard() {
 
         {/* ══ LINHA 1 — KPIs executivos (5 cards) ══════════════════ */}
         {dataLoading ? <KpisSkeleton /> : (
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
           {receitaKpis.map(k => (
             <Card
               key={k.label}
-              className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated border border-border/60 bg-card"
+              className="group relative overflow-hidden glass-premium border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-glow-primary/5 kpi-card"
               onClick={() => navigate("/clientes?tab=receita")}
             >
               <CardContent className="p-4 lg:p-5">
