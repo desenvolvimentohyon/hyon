@@ -60,9 +60,10 @@ export const AppLayout = memo(() => {
           <Topbar />
           <PushNotificationBanner />
           <main 
-            className="flex-1 p-2.5 sm:p-4 md:p-6 overflow-auto overflow-x-hidden gradient-bg min-w-0 scroll-smooth pb-20 sm:pb-6"
+            className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-auto overflow-x-hidden gradient-bg min-w-0 scroll-smooth pb-24 sm:pb-8"
             style={{ 
               contain: 'content', 
+
               willChange: 'transform, opacity' 
             }}
           >

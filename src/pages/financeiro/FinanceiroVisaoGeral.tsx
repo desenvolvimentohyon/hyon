@@ -80,9 +80,10 @@ export default function Financeiro() {
       />
       <ModuleNavGrid moduleId="financeiro" />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {kpiCards.map(k => (
-          <Card key={k.label} className="kpi-card group border-none">
+          <Card key={k.label} className="kpi-card group border-none min-w-0 flex flex-col justify-between">
+
             <div className="flex items-center justify-between mb-4">
               <div className={cn("p-2.5 rounded-xl bg-muted/40 transition-colors group-hover:bg-background", k.color.replace('text-', 'bg-').replace('-info', '-info/10').replace('-destructive', '-destructive/10').replace('-success', '-success/10').replace('-warning', '-warning/10'))}>
                 <k.icon className={cn("h-5 w-5", k.color)} />

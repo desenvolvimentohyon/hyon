@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.0",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Responsividade 360°: Implementado sistema mobile-first em toda a aplicação com suporte a touch e escalas fluidas." },
+      { type: "melhoria", text: "Escala Tipográfica Fluida: Uso de clamp() para garantir legibilidade perfeita de h1 a body em qualquer dispositivo." },
+      { type: "melhoria", text: "Otimização de Layouts: Grids adaptativos e containers flexíveis para eliminar overflow horizontal." },
+    ],
+  },
+  {
     version: "2.0.3",
     date: "2026-08-10",
     changes: [
@@ -15,6 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "correcao", text: "Integridade de Dados: Adicionados gatilhos de banco para validar consistência em operações de atualização." },
     ],
   },
+
   {
     version: "2.0.2",
     date: "2026-08-10",

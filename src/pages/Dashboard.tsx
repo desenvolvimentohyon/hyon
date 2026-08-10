@@ -340,14 +340,15 @@ function CertificadosVencendoCard() {
 
   return (
     <Card className="neon-border border-warning/30 overflow-hidden">
-      <CardHeader className="p-3 sm:p-4 pb-2 sm:pb-3">
+      <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Shield className="h-4 w-4 text-warning shrink-0" />
-          <span className="truncate">Certificados Digitais Vencendo (30 dias)</span>
-          <Badge variant="outline" className="text-[10px] shrink-0">{expiring.length}</Badge>
+          <span className="truncate">Certificados Digitais Vencendo</span>
+          <Badge variant="outline" className="text-[10px] shrink-0 ml-auto">{expiring.length}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-3 sm:p-4 pt-0 sm:pt-0">
+      <CardContent className="p-3 sm:p-4 pt-1 sm:pt-2">
+
         <div className="space-y-2">
           {expiring.map((c: any) => (
             <div
