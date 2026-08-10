@@ -2,7 +2,6 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { MovimentoBancario, FORMA_PAGAMENTO_LABELS, TituloFinanceiro } from "@/types/financeiro";
-import { fmt } from "@/pages/financeiro/contasPagar/helpers";
 
 interface ReciboIndividualProps {
   movimento: MovimentoBancario;
@@ -26,10 +25,10 @@ export function ReciboIndividual({ movimento, titulo, clienteNome, fornecedorNom
     const recebedor = isReceita ? "Hyon ERP" : (fornecedorNome || "Fornecedor");
     const tipoDoc = isReceita ? "RECIBO DE RECEBIMENTO" : "COMPROVANTE DE PAGAMENTO";
 
-    printWindow.document.write(\`
+    printWindow.document.write(`
       <html>
         <head>
-          <title>Recibo - \${movimento.id.slice(0, 8)}</title>
+          <title>Recibo - ${movimento.id.slice(0, 8)}</title>
           <style>
             body { font-family: 'Inter', sans-serif; padding: 40px; color: #1a1a1a; background: #fff; }
             .recibo { border: 1px solid #e5e7eb; padding: 40px; max-width: 800px; margin: 0 auto; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
@@ -54,32 +53,32 @@ export function ReciboIndividual({ movimento, titulo, clienteNome, fornecedorNom
           <div class="recibo">
             <div class="header">
               <div>
-                <div class="title">\${tipoDoc}</div>
-                <div class="number">CONTROLE: \${movimento.id.split("-")[0].toUpperCase()}</div>
+                <div class="title">${tipoDoc}</div>
+                <div class="number">CONTROLE: ${movimento.id.split("-")[0].toUpperCase()}</div>
               </div>
-              <div class="valor-box">\${valorExtenso}</div>
+              <div class="valor-box">${valorExtenso}</div>
             </div>
             
             <div class="body">
-              Confirmamos que foi \${isReceita ? 'recebido de' : 'pago para'} <strong>\${isReceita ? pagador : recebedor}</strong> 
-              a quantia líquida de <strong>\${valorExtenso}</strong>, 
-              referente a <strong>\${movimento.descricao || 'Liquidação de título financeiro'}</strong>.
+              Confirmamos que foi ${isReceita ? 'recebido de' : 'pago para'} <strong>${isReceita ? pagador : recebedor}</strong> 
+              a quantia líquida de <strong>${valorExtenso}</strong>, 
+              referente a <strong>${movimento.descricao || 'Liquidação de título financeiro'}</strong>.
               
               <div class="grid">
                 <div>
                   <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Data do Movimento</div>
-                  <div style="font-weight: 500;">\${dataFormatada}</div>
+                  <div style="font-weight: 500;">${dataFormatada}</div>
                 </div>
                 <div>
                   <div style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Forma de Liquidação</div>
-                  <div style="font-weight: 500;">\${titulo?.formaPagamento ? FORMA_PAGAMENTO_LABELS[titulo.formaPagamento] : 'Não informada'}</div>
+                  <div style="font-weight: 500;">${titulo?.formaPagamento ? FORMA_PAGAMENTO_LABELS[titulo.formaPagamento] : 'Não informada'}</div>
                 </div>
               </div>
             </div>
 
             <div class="footer">
               <div style="font-size: 13px; color: #4b5563;">
-                Emitido em \${new Date().toLocaleDateString('pt-BR')} às \${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                Emitido em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </div>
               <div class="signature-area">
                 <div class="signature-line"></div>
@@ -97,7 +96,7 @@ export function ReciboIndividual({ movimento, titulo, clienteNome, fornecedorNom
           </script>
         </body>
       </html>
-    \`);
+    `);
     printWindow.document.close();
   };
 
