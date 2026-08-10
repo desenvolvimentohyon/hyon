@@ -9,6 +9,19 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: "2.1.9",
     date: "2026-08-10",
+    version: "2.1.9",
+    type: "feature",
+    title: "Experiência de Navegação e UX",
+    description: "Implementada página 404 personalizada Premium, restauradas rotas críticas e otimizado sistema de redirecionamento global.",
+    changes: [
+      "Substituído redirecionamento silencioso por página 404 contextualizada",
+      "Restaurada integridade das rotas públicas (Portal/Aceite)",
+      "Otimização de performance nos filtros da Central de Tarefas",
+      "Padronização visual Graphite Premium na página de erro"
+    ]
+  },
+  {
+    date: "2026-08-10",
     changes: [
       { type: "correcao", text: "Integridade de Rotas: Restauradas todas as rotas de sub-módulos e links públicos (Portal do Cliente, Aceite, Renovar, etc.) que estavam inacessíveis." },
       { type: "melhoria", text: "Central de Tarefas 2.1: Restaurados filtros avançados (Tipo, Sistema, Técnico, Cliente) e chips de status com contadores dinâmicos." },
