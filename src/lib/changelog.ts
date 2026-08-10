@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.3",
+    date: "2026-08-10",
+    changes: [
+      { type: "correcao", text: "Reforço de Segurança: Implementada proteção contra escalonamento de privilégios em perfis de usuários." },
+      { type: "correcao", text: "RLS Estrito: Refinamento das políticas de acesso para reuniões públicas e isolamento multi-tenant." },
+      { type: "correcao", text: "Integridade de Dados: Adicionados gatilhos de banco para validar consistência em operações de atualização." },
+    ],
+  },
+  {
     version: "2.0.2",
     date: "2026-08-10",
     changes: [
@@ -66,7 +75,6 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Inteligência de Vínculo: Novo trigger de banco automatiza a associação de registros legados a clientes via heurística de nome." },
     ],
   },
-
   {
     version: "1.8.6",
     date: "2026-08-06",
@@ -121,7 +129,6 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Visualização de Status: Planos expirados agora recebem destaque visual (borda e badge específicos) para facilitar a identificação de riscos não tratados." },
     ],
   },
-
   {
     version: "1.8.0",
     date: "2026-08-06",
@@ -142,7 +149,6 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: "1.7.8",
-
     date: "2026-08-06",
     changes: [
       { type: "novo", text: "Painel de Histórico IA: Adicionado card no Dashboard para visualização e acompanhamento dos últimos Planos de Recuperação gerados." },
@@ -153,41 +159,6 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "melhoria", text: "Alertas Inteligentes de Risco: Implementados cards de alerta com análise preditiva de IA para inadimplência e churn no Dashboard." },
       { type: "melhoria", text: "Justificativa Textual IA: Alertas agora incluem razões detalhadas e sugestões de ação baseadas nos dados financeiros reais." },
       { type: "novo", text: "Resumo Diário Inteligente: O Dashboard agora exibe um briefing matinal gerado pela Hyon IA sobre prioridades, MRR e riscos operacionais." },
-
-
-      { type: "melhoria", text: "Integração Pervasiva de Contexto: O motor de IA do Dashboard agora consome dados agregados de tarefas e métricas financeiras em tempo real." },
-      { type: "novo", text: "IA Onipresente: Integrada inteligência contextual em tempo real no Dashboard e na Gestão de Clientes para suporte à decisão." },
-      { type: "novo", text: "Dashboard Inteligente: Agora o dashboard exibe insights automáticos gerados pela Hyon IA baseados em dados reais de MRR e churn." },
-      { type: "melhoria", text: "Resiliência de Rede: Implementado teste E2E para garantir que a interface do assistente não congele durante respostas lentas." },
-      { type: "melhoria", text: "Retry Inteligente: Implementado algoritmo de backoff exponencial para reconexão automática do assistente de IA." },
-      { type: "melhoria", text: "Cobertura E2E de Voz: Testes automatizados expandidos para validar o fluxo de reconhecimento de fala e resiliência da UI." },
-      { type: "novo", text: "Comando de Voz integrado: Agora você pode interagir com a Hyon IA via reconhecimento de fala (pt-BR)." },
-      { type: "novo", text: "Motor Analítico IA: Implementadas RPCs de alto desempenho para cálculo de MRR, Churn Rate e resumos dinâmicos." },
-      { type: "melhoria", text: "Auditoria completa da IA Hyon: Validado fluxo de chamadas via Edge Function e integridade dos prompts de métricas." },
-      { type: "correcao", text: "Monitoramento de logs de navegação ativo para prevenir erros 404 intermitentes causados por cache de roteamento." },
-      { type: "melhoria", text: "Otimização profunda em toda a aplicação com foco em performance, fluidez e UX." },
-      { type: "melhoria", text: "Implementar melhorias de performance técnica (Lazy Loading, Code Splitting)." },
-      { type: "melhoria", text: "Validar as métricas de Core Web Vitals após as otimizações profundas." },
-      { type: "melhoria", text: "Executar uma auditoria com Lighthouse e registrar um baseline de LCP, FID e CLS para comparar depois das otimizações." },
-      { type: "melhoria", text: "Otimizar o carregamento de fontes críticas com preload e fallback para reduzir o tempo de renderização inicial." },
-      { type: "melhoria", text: "Implementar as tags de preload para a fonte Space Grotesk no index.html para melhorar o LCP." },
-      { type: "melhoria", text: "Edite o arquivo index.html para incluir as tags de preload da fonte Space Grotesk e garantir melhor prioridade de carregamento." },
-      { type: "novo", text: "Assistente de IA Hyon integrado para análise de métricas em tempo real." },
-      { type: "novo", text: "Criar as RPCs de banco de dados (calculate_mrr, calculate_churn) para alimentar a IA com dados reais." },
-      { type: "novo", text: "Quero que a IA do sistema consiga preencher contratos e enviar para os clientes." },
-      { type: "novo", text: "Implemente um editor de templates de contrato com campos variáveis para clientes, técnicos e tarefas." },
-      { type: "melhoria", text: "Adicione uma pré-visualização do contrato preenchido pela IA antes de finalizar o envio para eu revisar o conteúdo." },
-      { type: "novo", text: "Crie uma fila de “envios simulados” com status, histórico e opção de reenviar para eu validar o fluxo sem backend." },
-      { type: "novo", text: "Aba de Metas inteligente integrada ao Radar de Crescimento." },
-      { type: "melhoria", text: "Atalho 'Metas e Crescimento' adicionado ao Dashboard principal." },
-      { type: "melhoria", text: "Acompanhamento de progresso de MRR e Clientes Ativos por sistema." },
-      { type: "melhoria", text: "Implementar o componente de CommandPalette real usando cmdk para navegação rápida por todo o sistema." },
-      { type: "melhoria", text: "Mapear as rotas dinâmicas de clientes e tarefas específicas para que elas apareçam no CommandPalette ao buscar." },
-      { type: "melhoria", text: "Validar a acessibilidade do CommandPalette com navegação 100% via teclado (Tab, Enter, Esc) e foco correto no modal." },
-      { type: "melhoria", text: "Conectar a busca do CommandPalette ao meu estado local e ao localStorage para listar clientes e tarefas dinamicamente." },
-      { type: "melhoria", text: "Implementar a sincronização em tempo real do CommandMenu com meus dados em localStorage para que criar, editar e excluir clientes e tarefas atualizem os resultados instantaneamente." },
-      { type: "melhoria", text: "Implementar la invalidação de queries do TanStack Query no CommandMenu para que a busca reflita imediatamente criações, edições e exclusões de clientes e tarefas no localStorage." },
-      { type: "melhoria", text: "Validar a performance da busca dinâmica com grandes volumes de dados locais." },
     ],
   },
   {
