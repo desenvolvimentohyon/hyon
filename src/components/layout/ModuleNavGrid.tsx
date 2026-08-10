@@ -9,7 +9,7 @@ const MODULE_COLORS: Record<string, { color: string; bg: string; border: string 
   comercial: { color: "text-indigo-500", bg: "bg-indigo-500/10", border: "border-indigo-500/40" },
   financeiro: { color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/40" },
   operacional: { color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/40" },
-  cartoes: { color: "text-purple-500", bg: "bg-purple-500/10", border: "border-purple-500/40" },
+  
   configuracoes: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/40" },
 };
 
