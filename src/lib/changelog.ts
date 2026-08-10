@@ -21,8 +21,11 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: "2026-08-10",
     changes: [
       { type: "melhoria", text: "Reforço de Segurança: Implementado endurecimento de funções SECURITY DEFINER com search_path explícito e restrição de execução por role." },
-...
-  {
+      { type: "melhoria", text: "Isolamento Multi-tenant: Refatorada a função has_permission para garantir isolamento total e prevenção de escalonamento de privilégios." },
+      { type: "correcao", text: "Políticas RLS: Corrigidas e reforçadas políticas em tabelas críticas como landing_plan_leads e configurações internas." },
+      { type: "novo", text: "Proteção de Integridade: Adicionados gatilhos de banco para impedir a alteração não autorizada de org_id em registros financeiros." }
+    ]
+  },
     version: "2.1.9",
     date: "2026-08-10",
     changes: [
