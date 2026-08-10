@@ -363,7 +363,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newConfig = { ...configuracoes, ...c };
     setConfiguracoes(newConfig);
     if (user?.id && orgId) {
-      await supabase.from("user_settings" as any).upsert({
+      await supabase.from("user_settings").upsert({
         user_id: user.id, org_id: orgId,
         settings: { configuracoes: newConfig },
       }, { onConflict: "user_id" });

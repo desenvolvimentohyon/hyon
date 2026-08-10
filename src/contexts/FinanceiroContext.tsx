@@ -34,7 +34,7 @@ interface FinanceiroContextType extends FinanceiroState {
   addTitulo: (t: Omit<TituloFinanceiro, "id" | "criadoEm" | "atualizadoEm">) => Promise<boolean>;
   updateTitulo: (id: string, changes: Partial<TituloFinanceiro>) => void;
   deleteTitulo: (id: string) => void;
-  baixarTitulo: (id: string, contaBancariaId: string, valorPago?: number) => void;
+  baixarTitulo: (id: string, contaBancariaId: string, valorPago?: number) => Promise<void>;
   addMovimento: (m: Omit<MovimentoBancario, "id" | "criadoEm">) => void;
   updateMovimento: (id: string, changes: Partial<MovimentoBancario>) => void;
   conciliarMovimento: (movimentoId: string, tituloId: string) => void;
@@ -70,7 +70,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     try {
       const [cbRes, pcRes, tRes, mRes] = await Promise.all([
         supabase.from("company_bank_accounts").select("*").eq("org_id", orgId),
-        supabase.from("plan_accounts" as any).select("*").eq("org_id", orgId),
+        supabase.from("plan_accounts").select("*").eq("org_id", orgId),
         supabase.from("financial_titles").select("*").eq("org_id", orgId),
         supabase.from("bank_transactions").select("*").eq("org_id", orgId),
       ]);
@@ -136,7 +136,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
   // ===== Plano de Contas =====
   const addPlanoContas = useCallback(async (p: Omit<PlanoContas, "id">) => {
     if (!orgId) return;
-    const { error } = await supabase.from("plan_accounts" as any).insert({
+    const { error } = await supabase.from("plan_accounts").insert({
       org_id: orgId, code: p.codigo, name: p.nome, type: p.tipo,
       parent_id: p.paiId, active: p.ativo,
     });
@@ -151,7 +151,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (changes.tipo !== undefined) upd.type = changes.tipo;
     if (changes.paiId !== undefined) upd.parent_id = changes.paiId;
     if (changes.ativo !== undefined) upd.active = changes.ativo;
-    const { error } = await supabase.from("plan_accounts" as any).update(upd).eq("id", id);
+    const { error } = await supabase.from("plan_accounts").update(upd).eq("id", id);
     if (error) { toast.error("Erro ao atualizar plano de contas"); return; }
     fetchAll();
   }, [fetchAll]);
@@ -161,7 +161,7 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     const hasLancamentos = titulos.some(t => t.categoriaPlanoContasId === id);
     if (hasChildren || hasLancamentos) return false;
     (async () => {
-      const { error } = await supabase.from("plan_accounts" as any).delete().eq("id", id);
+      const { error } = await supabase.from("plan_accounts").delete().eq("id", id);
       if (error) { toast.error("Erro ao excluir plano de contas"); return; }
       fetchAll();
     })();
@@ -236,8 +236,8 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     const titulo = titulos.find(t => t.id === id);
     if (!titulo) return;
     const totalTitulo = titulo.valorOriginal - (titulo.desconto || 0) + (titulo.juros || 0) + (titulo.multa || 0);
-    const valorFinal = valorPago || totalTitulo;
-    const isParcial = valorPago && valorPago < totalTitulo;
+    const valorFinal = valorPago !== undefined ? valorPago : totalTitulo;
+    const isParcial = valorPago !== undefined && valorPago < totalTitulo;
 
     const previousStatus = titulo.status;
     const { error: updErr } = await supabase.from("financial_titles").update({
