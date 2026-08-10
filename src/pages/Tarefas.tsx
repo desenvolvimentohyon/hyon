@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle, Sparkles, Filter, CalendarDays, Keyboard } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle, Sparkles, Filter, CalendarDays, Keyboard, Monitor } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
@@ -232,38 +232,77 @@ export default function Tarefas() {
         }
       />
 
-      <div className="flex flex-wrap gap-2 items-center bg-card p-3 rounded-xl border shadow-sm">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            ref={searchInputRef}
-            placeholder="Buscar por título ou tag... (F)" 
-            value={busca} 
-            onChange={e => setBusca(e.target.value)} 
-            className="pl-9 h-9" 
-          />
+      <div className="flex flex-col gap-3 bg-card p-4 rounded-xl border shadow-sm">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              ref={searchInputRef}
+              placeholder="Buscar por título ou tag... (F)" 
+              value={busca} 
+              onChange={e => setBusca(e.target.value)} 
+              className="pl-9 h-9" 
+            />
+          </div>
+
+          <div className="flex gap-2 flex-wrap items-center ml-auto">
+            <div className="flex items-center gap-2 px-3 h-9 border rounded-md bg-background/50">
+              <Label htmlFor="mostrar-finalizadas" className="text-xs text-muted-foreground cursor-pointer">Finalizadas</Label>
+              <Switch id="mostrar-finalizadas" checked={mostrarFinalizadas} onCheckedChange={setMostrarFinalizadas} className="scale-75" />
+            </div>
+
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                {STATUS_FILTERS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            
+            <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>
+              <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Prioridade</SelectItem>
+                {(["urgente", "alta", "media", "baixa"] as Prioridade[]).map(p => <SelectItem key={p} value={p}>{getPrioridadeLabel(p)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="flex gap-2 flex-wrap ml-auto">
-          <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-            <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+        <div className="flex flex-wrap gap-2 items-center border-t border-border/40 pt-3">
+          <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+            <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
             <SelectContent>
-              {STATUS_FILTERS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+              <SelectItem value="todos">Todos Tipos</SelectItem>
+              {(Object.keys(TIPO_OPERACIONAL_CONFIG) as TipoOperacional[]).map(t => (
+                <SelectItem key={t} value={t}>{TIPO_OPERACIONAL_CONFIG[t].label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          
-          <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>
-            <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+
+          <Select value={filtroSistema} onValueChange={setFiltroSistema}>
+            <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue placeholder="Sistema" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Prioridade</SelectItem>
-              {(["urgente", "alta", "media", "baixa"] as Prioridade[]).map(p => <SelectItem key={p} value={p}>{getPrioridadeLabel(p)}</SelectItem>)}
+              <SelectItem value="todos">Todos Sistemas</SelectItem>
+              {sistemasAtivos.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
             </SelectContent>
           </Select>
-          
-          <div className="flex items-center gap-2 px-3 border rounded-md">
-            <Label htmlFor="mostrar-finalizadas" className="text-xs text-muted-foreground cursor-pointer">Finalizadas</Label>
-            <Switch id="mostrar-finalizadas" checked={mostrarFinalizadas} onCheckedChange={setMostrarFinalizadas} className="scale-75" />
-          </div>
+
+          <Select value={filtroTecnico} onValueChange={setFiltroTecnico}>
+            <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue placeholder="Responsável" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos Responsáveis</SelectItem>
+              {tecnicos.filter(t => t.ativo).map(t => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={filtroCliente} onValueChange={setFiltroCliente}>
+            <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos Clientes</SelectItem>
+              <SelectItem value="avulsas">Apenas Avulsas</SelectItem>
+              {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -274,24 +313,71 @@ export default function Tarefas() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Título</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Cliente</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade</TableHead>
                   <TableHead>Responsável</TableHead>
+                  <TableHead>Tempo</TableHead>
                   <TableHead>Prazo</TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTarefas.map(t => (
-                  <TableRow key={t.id} className="cursor-pointer hover:bg-accent/40" onClick={() => navigate(`/tarefas/${t.id}`)}>
-                    <TableCell className="font-medium">{t.titulo}</TableCell>
+                  <TableRow key={t.id} className={`cursor-pointer hover:bg-accent/40 ${atrasada ? 'bg-destructive/5' : ''}`} onClick={() => navigate(`/tarefas/${t.id}`)}>
                     <TableCell>
-                      <Badge className={statusColor(t.status)}>{getStatusLabel(t.status)}</Badge>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">{t.titulo}</span>
+                        {atrasada && (
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-destructive animate-pulse">
+                            <AlertTriangle className="h-3 w-3" /> ATRASADA
+                          </div>
+                        )}
+                        {t.sistemaRelacionado && (
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <Monitor className="h-3 w-3" /> {t.sistemaRelacionado}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell><Badge className={prioridadeColor(t.prioridade)}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
-                    <TableCell>{getTecnico(t.responsavelId)?.nome || "—"}</TableCell>
-                    <TableCell>{t.prazoDataHora ? new Date(t.prazoDataHora).toLocaleDateString() : "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`text-[10px] ${TIPO_OPERACIONAL_CONFIG[t.tipoOperacional]?.bgClass || ''}`}>
+                        {TIPO_OPERACIONAL_CONFIG[t.tipoOperacional]?.label || t.tipoOperacional}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[150px] truncate text-xs">
+                      {t.clienteId ? getCliente(t.clienteId)?.nome : <span className="text-muted-foreground italic">Avulsa</span>}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`text-[10px] ${statusColor(t.status)}`}>{getStatusLabel(t.status)}</Badge>
+                    </TableCell>
+                    <TableCell><Badge className={`text-[10px] ${prioridadeColor(t.prioridade)}`}>{getPrioridadeLabel(t.prioridade)}</Badge></TableCell>
+                    <TableCell className="text-xs">{getTecnico(t.responsavelId)?.nome || "—"}</TableCell>
+                    <TableCell>
+                      <LiveTimer tempoTotalSegundos={t.tempoTotalSegundos} timerRodando={t.timerRodando} timerInicioTimestamp={t.timerInicioTimestamp} />
+                    </TableCell>
+                    <TableCell className="text-xs">{t.prazoDataHora ? new Date(t.prazoDataHora).toLocaleDateString() : "—"}</TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <Select 
+                        value={t.status} 
+                        onValueChange={(newStatus) => updateTarefa(t.id, { status: newStatus as StatusTarefa }, `Alterado para ${getStatusLabel(newStatus as StatusTarefa)}`)}
+                      >
+                        <SelectTrigger className="h-7 text-[10px] w-[110px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {STATUS_ORDER.map(s => <SelectItem key={s} value={s} className="text-xs">{getStatusLabel(s)}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                   </TableRow>
                 ))}
+                {filteredTarefas.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
+                      Nenhuma tarefa encontrada com os filtros atuais.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
