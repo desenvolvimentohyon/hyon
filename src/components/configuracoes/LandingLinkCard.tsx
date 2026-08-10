@@ -117,8 +117,8 @@ export default function LandingLinkCard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Instagram className="h-4 w-4 text-pink-500" />
-            Como usar no Instagram
+            <Link2 className="h-4 w-4 text-pink-500" />
+            Como usar nas Redes Sociais
           </CardTitle>
         </CardHeader>
         <CardContent>
