@@ -228,8 +228,8 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 sm:gap-3 bg-background/80 backdrop-blur-xl px-2 sm:px-4 border-b border-border/60">
-      <SidebarTrigger className="shrink-0 h-9 w-9 sm:h-10 sm:w-10" />
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-2 sm:gap-4 bg-background/95 backdrop-blur-md px-4 sm:px-6 border-b border-border/40">
+      <SidebarTrigger className="shrink-0 h-10 w-10 hover:bg-accent/50 transition-colors rounded-xl" />
 
       {/* Breadcrumb — hidden on small mobile */}
       {breadcrumb && (

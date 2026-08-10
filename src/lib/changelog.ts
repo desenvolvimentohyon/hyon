@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.4.0",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Design System: Transição para UI Moderna Minimalista (Clean) com foco em respiro e tipografia Space Grotesk." },
+      { type: "melhoria", text: "UX de Navegação: Expansão de espaçamentos no layout principal e refinamento da Topbar para 16px de altura." },
+      { type: "melhoria", text: "Componentização: Padronização de botões, inputs e cards com raios de borda aumentados (12px-14px) e sombras suaves." },
+      { type: "melhoria", text: "Acessibilidade: Refinamento de contrastes e focos interativos no tema claro e escuro." }
+    ]
+  },
+  {
     version: "2.3.0",
     date: "2026-08-10",
     changes: [
