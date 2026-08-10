@@ -22,7 +22,7 @@ import { EditarTituloModal } from "./contasReceber/EditarTituloModal";
 export { NovoTituloModal };
 
 export default function ContasReceber() {
-  const { titulos, contasBancarias, addTitulo, updateTitulo, baixarTitulo, loading } = useFinanceiro();
+  const { titulos, movimentos, contasBancarias, addTitulo, updateTitulo, baixarTitulo, loading } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCliente, setFiltroCliente] = useState<string>("");
@@ -182,13 +182,28 @@ export default function ContasReceber() {
             <TableBody>
               {receber.slice(0, 50).map(t => {
                 const cli = clientesReceita.find(c => c.id === t.clienteId);
+                const valorFinal = t.valorOriginal - (t.desconto || 0) + (t.juros || 0) + (t.multa || 0);
+                const valorPago = movimentos
+                  .filter(m => m.tituloVinculadoId === t.id && m.conciliado)
+                  .reduce((sum, m) => sum + Math.abs(m.valor), 0);
+                const saldoDevedor = valorFinal - valorPago;
+
                 return (
                   <TableRow key={t.id} className="group hover:bg-accent/40 transition-colors duration-150">
                     <TableCell className="font-medium text-sm">{t.descricao}</TableCell>
                     <TableCell className="text-sm">{cli?.nome || "—"}</TableCell>
                     <TableCell className="text-sm">{t.competenciaMes}</TableCell>
                     <TableCell className="text-sm">{new Date(t.vencimento).toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell className="text-sm font-semibold">{fmt(t.valorOriginal)}</TableCell>
+                    <TableCell className="text-sm">
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{fmt(valorFinal)}</span>
+                        {t.status === "parcial" && saldoDevedor > 0 && (
+                          <span className="text-[10px] text-warning font-medium">
+                            Saldo: {fmt(saldoDevedor)}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{statusBadge(t.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
