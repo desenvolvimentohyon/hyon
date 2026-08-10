@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import type { TituloFinanceiro } from "@/types/financeiro";
 import { fmt } from "./helpers";
+import { ReciboIndividual } from "@/components/financeiro/ReciboIndividual";
+import { Calendar, CreditCard, DollarSign } from "lucide-react";
 
 export function EditarDespesaModal({ titulo, onClose, onSave }: { titulo: TituloFinanceiro; onClose: () => void; onSave: (changes: Partial<TituloFinanceiro>) => void }) {
   const { planoContas, movimentos } = useFinanceiro();
@@ -71,12 +73,23 @@ export function EditarDespesaModal({ titulo, onClose, onSave }: { titulo: Titulo
                 <p className="text-xs text-muted-foreground text-center pt-8">Nenhum pagamento registrado.</p>
               ) : (
                 historico.map(m => (
-                  <div key={m.id} className="flex justify-between items-center text-xs p-2 bg-background border rounded shadow-sm">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-destructive">{fmt(Math.abs(m.valor))}</span>
-                      <span className="text-[10px] text-muted-foreground">{new Date(m.data).toLocaleDateString("pt-BR")}</span>
+                  <div key={m.id} className="flex justify-between items-center text-xs p-2.5 bg-background border rounded-lg shadow-sm hover:border-primary/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+                        <DollarSign className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-destructive text-[13px]">{fmt(Math.abs(m.valor))}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(m.data).toLocaleDateString("pt-BR")}</span>
+                          <span className="flex items-center gap-1"><CreditCard className="h-3 w-3" /> {titulo.formaPagamento ? titulo.formaPagamento.toUpperCase() : "PIX"}</span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-[10px] bg-accent px-1.5 py-0.5 rounded">Baixado</span>
+                    <div className="flex items-center gap-1">
+                      <ReciboIndividual movimento={m} titulo={titulo} fornecedorNome={titulo.fornecedorNome || ""} />
+                      <span className="text-[9px] font-bold bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Baixado</span>
+                    </div>
                   </div>
                 ))
               )}

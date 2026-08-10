@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.5",
+    date: "2026-08-10",
+    changes: [
+      { type: "novo", text: "Emissão de Recibos Individuais: Implementada a geração de recibos/comprovantes profissionais para cada baixa parcial no histórico do título." },
+      { type: "melhoria", text: "Histórico Detalhado: O histórico de movimentos agora exibe número, data, valor e forma de recebimento de forma mais didática." },
+    ],
+  },
+  {
     version: "2.1.4",
     date: "2026-08-10",
     changes: [
