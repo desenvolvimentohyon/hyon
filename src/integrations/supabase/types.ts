@@ -3872,7 +3872,12 @@ export type Database = {
       current_role: { Args: never; Returns: string }
       get_ia_analytics_summary: { Args: { p_org_id: string }; Returns: Json }
       get_user_permissions: { Args: { _user_id: string }; Returns: string[] }
-      has_permission: { Args: { _permission: string }; Returns: boolean }
+      has_permission:
+        | { Args: { _permission: string }; Returns: boolean }
+        | {
+            Args: { _permission_name: string; _user_id: string }
+            Returns: boolean
+          }
     }
     Enums: {
       card_client_status:
