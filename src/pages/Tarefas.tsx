@@ -360,13 +360,13 @@ export default function Tarefas() {
                               <AlertTriangle className="h-3 w-3" /> ATRASADA
                             </div>
                           )}
-                        {t.sistemaRelacionado && (
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                            <Monitor className="h-3 w-3" /> {t.sistemaRelacionado}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
+                          {t.sistemaRelacionado && (
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              <Monitor className="h-3 w-3" /> {t.sistemaRelacionado}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[10px] ${TIPO_OPERACIONAL_CONFIG[t.tipoOperacional]?.bgClass || ''}`}>
                         {TIPO_OPERACIONAL_CONFIG[t.tipoOperacional]?.label || t.tipoOperacional}
