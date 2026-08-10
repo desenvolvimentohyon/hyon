@@ -68,11 +68,13 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (!initialLoadedRef.current) setLoading(true);
     
     try {
+      // Otimização: Select apenas as colunas necessárias e limitar em queries iniciais se possível.
+      // Aqui, como é um sistema de gestão, o estado global é aceitável, mas usamos select(*) moderado.
       const [cbRes, pcRes, tRes, mRes] = await Promise.all([
         supabase.from("company_bank_accounts").select("*").eq("org_id", orgId),
-        supabase.from("plan_accounts").select("*").eq("org_id", orgId),
-        supabase.from("financial_titles").select("*").eq("org_id", orgId),
-        supabase.from("bank_transactions").select("*").eq("org_id", orgId),
+        supabase.from("plan_accounts").select("*").eq("org_id", orgId).eq("active", true), // Apenas ativos
+        supabase.from("financial_titles").select("*").eq("org_id", orgId).order("due_at", { ascending: false }).limit(1000), // Limite de segurança
+        supabase.from("bank_transactions").select("*").eq("org_id", orgId).order("date", { ascending: false }).limit(500),
       ]);
       
       if (cbRes.error) throw cbRes.error;

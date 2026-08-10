@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.5.0",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Performance: Implementado Code Splitting e Lazy Loading em 100% das rotas do sistema." },
+      { type: "melhoria", text: "Build: Otimizado Vite com manualChunks para reduzir bundle size e acelerar cache de vendors." },
+      { type: "melhoria", text: "Cache: Configurado TanStack Query com staleTime global e otimizada estratégia de runtime caching do PWA." },
+      { type: "melhoria", text: "Backend: Otimizadas queries globais do FinanceiroContext com limites de segurança e ordenação indexada." }
+    ]
+  },
+  {
     version: "2.4.0",
     date: "2026-08-10",
     changes: [
