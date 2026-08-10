@@ -26,6 +26,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "novo", text: "Proteção de Integridade: Adicionados gatilhos de banco para impedir a alteração não autorizada de org_id em registros financeiros." }
     ]
   },
+  {
     version: "2.1.9",
     date: "2026-08-10",
     changes: [
