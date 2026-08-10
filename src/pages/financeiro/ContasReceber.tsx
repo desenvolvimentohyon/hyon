@@ -22,7 +22,7 @@ import { EditarTituloModal } from "./contasReceber/EditarTituloModal";
 export { NovoTituloModal };
 
 export default function ContasReceber() {
-  const { titulos, contasBancarias, addTitulo, updateTitulo, baixarTitulo, loading } = useFinanceiro();
+  const { titulos, movimentos, contasBancarias, addTitulo, updateTitulo, baixarTitulo, loading } = useFinanceiro();
   const { clientesReceita } = useReceita();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCliente, setFiltroCliente] = useState<string>("");

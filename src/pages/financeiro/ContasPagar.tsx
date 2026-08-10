@@ -22,7 +22,7 @@ import { EditarDespesaModal } from "./contasPagar/EditarDespesaModal";
 import { NovaDespesaForm } from "./contasPagar/NovaDespesaForm";
 
 export default function ContasPagar() {
-  const { titulos, contasBancarias, baixarTitulo, updateTitulo, deleteTitulo, loading } = useFinanceiro();
+  const { titulos, movimentos, contasBancarias, baixarTitulo, updateTitulo, deleteTitulo, loading } = useFinanceiro();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroFornecedor, setFiltroFornecedor] = useState("");
   const [filtroOrigem, setFiltroOrigem] = useState<string>("todos");
