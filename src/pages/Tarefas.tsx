@@ -387,12 +387,14 @@ export default function Tarefas() {
                         value={t.status} 
                         onValueChange={(newStatus) => updateTarefa(t.id, { status: newStatus as StatusTarefa }, `Alterado para ${getStatusLabel(newStatus as StatusTarefa)}`)}
                       >
-                        <SelectTrigger className="h-7 text-[10px] w-[110px]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-[10px] w-[130px] bg-background/50 border-border/40 hover:border-border/80 transition-colors shadow-none">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           {STATUS_ORDER.map(s => <SelectItem key={s} value={s} className="text-xs">{getStatusLabel(s)}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                      </TableCell>
+                    </TableCell>
                     </TableRow>
                   );
                 })}
