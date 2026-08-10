@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.4",
+    date: "2026-08-10",
+    changes: [
+      { type: "novo", text: "Histórico de Pagamentos: Implementada a visualização detalhada de lançamentos vinculados (movimentos) dentro dos modais de edição de títulos." },
+      { type: "melhoria", text: "Visibilidade de Saldo Devedor: Adicionado cálculo dinâmico de saldo restante em Contas a Receber e Pagar para títulos com status 'parcial'." },
+    ],
+  },
+  {
     version: "2.1.3",
     date: "2026-08-10",
     changes: [
