@@ -9,6 +9,23 @@ export default defineConfig(({ mode }) => ({
   define: {
     __BUILD_TIMESTAMP__: JSON.stringify(new Date().toISOString()),
   },
+  build: {
+    target: "esnext",
+    minify: "esbuild",
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-ui": ["@radix-ui/react-slot", "lucide-react", "framer-motion", "clsx", "tailwind-merge"],
+          "vendor-db": ["@supabase/supabase-js", "@tanstack/react-query"],
+          "vendor-utils": ["date-fns", "zod", "react-hook-form"],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 800,
+    reportCompressedSize: false,
+  },
   server: {
     host: "::",
     port: 8080,
@@ -18,8 +35,6 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      // Prompt mode prevents deployed updates from taking control and reloading
-      // active sessions before the user explicitly confirms the update banner.
       registerType: "prompt",
       includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
@@ -36,44 +51,44 @@ export default defineConfig(({ mode }) => ({
           { src: "pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
         ],
       },
-    workbox: {
-      skipWaiting: true,
-      clientsClaim: true,
-      cleanupOutdatedCaches: true,
-      navigateFallback: 'index.html',
-      navigateFallbackDenylist: [/^\/proposta/, /^\/portal/, /^\/aceite/, /^\/~oauth/],
-      globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-      importScripts: ["sw-push.js"],
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/,
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'api-cache',
-            expiration: { maxEntries: 100, maxAgeSeconds: 60 }, // Cache curto para dados dinâmicos
-            networkTimeoutSeconds: 5,
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/proposta/, /^\/portal/, /^\/aceite/, /^\/~oauth/],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        importScripts: ["sw-push.js"],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 5 }, // 5 min cache
+              networkTimeoutSeconds: 5,
+            },
           },
-        },
-        {
-          urlPattern: ({ request }) => request.mode === 'navigate',
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'pages-cache',
-            expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 },
-            networkTimeoutSeconds: 3,
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages-cache',
+              expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 },
+              networkTimeoutSeconds: 3,
+            },
           },
-        },
-        {
-          urlPattern: ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
-          handler: 'StaleWhileRevalidate',
-          options: {
-            cacheName: 'assets-cache',
-            expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 },
+          {
+            urlPattern: ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
           },
-        },
-      ],
-    },
+        ],
+      },
     }),
   ].filter(Boolean),
   resolve: {
