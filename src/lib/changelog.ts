@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.2.4",
+    date: "2026-08-10",
+    changes: [
+      { type: "correcao", text: "Identidade Visual em Propostas: Corrigida a renderização da logo e cores da empresa na página pública de aceite." },
+      { type: "melhoria", text: "Integridade de Dados: Corrigido o fluxo de persistência de informações adicionais e módulos na geração de propostas inteligentes." },
+      { type: "melhoria", text: "UX de Proposta: Otimizado o header público com suporte a branding dinâmico e carregamento seguro de assets." }
+    ]
+  },
+  {
     version: "2.2.3",
     date: "2026-08-10",
     changes: [

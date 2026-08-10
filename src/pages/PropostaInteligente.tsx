@@ -275,7 +275,9 @@ export default function PropostaInteligente() {
         statusAceite: "pendente",
         pdfGeradoEm: null,
         observacoesInternas: observacoes,
-        informacoesAdicionais: crmConfig.informacoesAdicionaisPadrao,
+        informacoesAdicionais: resumoData.modulosSelecionados.length > 0 
+          ? `Módulos inclusos: ${resumoData.modulosSelecionados.map(m => m.nome).join(", ")}\n\n${crmConfig.informacoesAdicionaisPadrao || ""}`
+          : crmConfig.informacoesAdicionaisPadrao || "",
         itens,
         partnerId: parceiroId || null,
         partnerCommissionPercent: parceiro?.commission_implant_percent || null,
