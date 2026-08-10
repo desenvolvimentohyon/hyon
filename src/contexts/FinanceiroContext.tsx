@@ -235,8 +235,9 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
     if (!orgId) return;
     const titulo = titulos.find(t => t.id === id);
     if (!titulo) return;
-    const valorFinal = valorPago || (titulo.valorOriginal - titulo.desconto + titulo.juros + titulo.multa);
-    const isParcial = valorPago && valorPago < (titulo.valorOriginal - titulo.desconto + titulo.juros + titulo.multa);
+    const totalTitulo = titulo.valorOriginal - (titulo.desconto || 0) + (titulo.juros || 0) + (titulo.multa || 0);
+    const valorFinal = valorPago || totalTitulo;
+    const isParcial = valorPago && valorPago < totalTitulo;
 
     const previousStatus = titulo.status;
     const { error: updErr } = await supabase.from("financial_titles").update({
