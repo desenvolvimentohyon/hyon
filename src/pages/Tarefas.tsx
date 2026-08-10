@@ -232,6 +232,30 @@ export default function Tarefas() {
         }
       />
 
+      <IAInsightsTarefas tarefas={filteredTarefas} />
+
+      <div className="flex flex-wrap gap-2 mb-2">
+        {STATUS_FILTERS.map(f => {
+          const count = f.value === "todos" ? tarefas.length :
+                        f.value === "atrasadas" ? tarefas.filter(t => isAtrasada(t, now)).length :
+                        tarefas.filter(t => t.status === f.value).length;
+          
+          return (
+            <Badge
+              key={f.value}
+              variant={filtroStatus === f.value ? "default" : "outline"}
+              className="cursor-pointer gap-1.5 py-1 px-2.5 transition-all hover:scale-105 active:scale-95"
+              onClick={() => setFiltroStatus(f.value)}
+            >
+              {f.label}
+              <span className={`ml-1 rounded-full px-1 text-[9px] ${filtroStatus === f.value ? 'bg-primary-foreground text-primary' : 'bg-muted text-muted-foreground'}`}>
+                {count}
+              </span>
+            </Badge>
+          );
+        })}
+      </div>
+
       <div className="flex flex-col gap-3 bg-card p-4 rounded-xl border shadow-sm">
         <div className="flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -324,16 +348,18 @@ export default function Tarefas() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTarefas.map(t => (
-                  <TableRow key={t.id} className={`cursor-pointer hover:bg-accent/40 ${atrasada ? 'bg-destructive/5' : ''}`} onClick={() => navigate(`/tarefas/${t.id}`)}>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium">{t.titulo}</span>
-                        {atrasada && (
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-destructive animate-pulse">
-                            <AlertTriangle className="h-3 w-3" /> ATRASADA
-                          </div>
-                        )}
+                {filteredTarefas.map(t => {
+                  const isAtr = isAtrasada(t, now);
+                  return (
+                    <TableRow key={t.id} className={`cursor-pointer hover:bg-accent/40 ${isAtr ? 'bg-destructive/5' : ''}`} onClick={() => navigate(`/tarefas/${t.id}`)}>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium">{t.titulo}</span>
+                          {isAtr && (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-destructive animate-pulse">
+                              <AlertTriangle className="h-3 w-3" /> ATRASADA
+                            </div>
+                          )}
                         {t.sistemaRelacionado && (
                           <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                             <Monitor className="h-3 w-3" /> {t.sistemaRelacionado}
@@ -368,9 +394,10 @@ export default function Tarefas() {
                           {STATUS_ORDER.map(s => <SelectItem key={s} value={s} className="text-xs">{getStatusLabel(s)}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {filteredTarefas.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
