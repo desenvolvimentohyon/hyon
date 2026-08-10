@@ -289,44 +289,42 @@ export default function Tarefas() {
                 {(["urgente", "alta", "media", "baixa"] as Prioridade[]).map(p => <SelectItem key={p} value={p}>{getPrioridadeLabel(p)}</SelectItem>)}
               </SelectContent>
             </Select>
+
+            <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+              <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos Tipos</SelectItem>
+                {(Object.keys(TIPO_OPERACIONAL_CONFIG) as TipoOperacional[]).map(t => (
+                  <SelectItem key={t} value={t}>{TIPO_OPERACIONAL_CONFIG[t].label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filtroSistema} onValueChange={setFiltroSistema}>
+              <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="Sistema" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos Sistemas</SelectItem>
+                {sistemasAtivos.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            <Select value={filtroTecnico} onValueChange={setFiltroTecnico}>
+              <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Responsável" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos Responsáveis</SelectItem>
+                {tecnicos.filter(t => t.ativo).map(t => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            <Select value={filtroCliente} onValueChange={setFiltroCliente}>
+              <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Cliente" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos Clientes</SelectItem>
+                <SelectItem value="avulsas">Apenas Avulsas</SelectItem>
+                {clientes.map(c => <SelectItem key={c.id} value={c.id} className="text-xs">{c.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 items-center border-t border-border/40 pt-3">
-          <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-            <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos Tipos</SelectItem>
-              {(Object.keys(TIPO_OPERACIONAL_CONFIG) as TipoOperacional[]).map(t => (
-                <SelectItem key={t} value={t}>{TIPO_OPERACIONAL_CONFIG[t].label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={filtroSistema} onValueChange={setFiltroSistema}>
-            <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue placeholder="Sistema" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos Sistemas</SelectItem>
-              {sistemasAtivos.map(s => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
-          <Select value={filtroTecnico} onValueChange={setFiltroTecnico}>
-            <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue placeholder="Responsável" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos Responsáveis</SelectItem>
-              {tecnicos.filter(t => t.ativo).map(t => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
-          <Select value={filtroCliente} onValueChange={setFiltroCliente}>
-            <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder="Cliente" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos Clientes</SelectItem>
-              <SelectItem value="avulsas">Apenas Avulsas</SelectItem>
-              {clientes.map(c => <SelectItem key={c.id} value={c.id} className="text-xs">{c.nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
