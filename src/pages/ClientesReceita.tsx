@@ -391,11 +391,12 @@ export default function Clientes() {
         iconClassName="text-primary"
         title="Clientes e Receita"
         actions={
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant={batchMode ? "default" : "outline"} className="gap-1.5" onClick={() => { setBatchMode(!batchMode); setSelectedIds(new Set()); }}>
-              <ListChecks className="h-4 w-4" />{batchMode ? "Cancelar Seleção" : "Alteração em Lote"}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant={batchMode ? "default" : "outline"} className="gap-1.5 flex-1 sm:flex-none" onClick={() => { setBatchMode(!batchMode); setSelectedIds(new Set()); }}>
+              <ListChecks className="h-4 w-4" />{batchMode ? "Cancelar" : "Lote"}
             </Button>
-            <Button size="sm" variant="outline" className="gap-1.5"><Download className="h-4 w-4" />Exportar ({filtered.length})</Button>
+            <Button size="sm" variant="outline" className="gap-1.5 flex-1 sm:flex-none"><Download className="h-4 w-4" />Exportar</Button>
+
             <Button size="sm" onClick={() => setShowNovo(true)} className="gap-1.5"><Plus className="h-4 w-4" />Novo Cliente</Button>
           </div>
         }

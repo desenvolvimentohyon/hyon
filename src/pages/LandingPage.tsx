@@ -201,7 +201,7 @@ const DEPOIMENTOS = [
 const TIMELINE = [
   { n: "01", title: "Contato",           desc: "Entendemos seu negócio e objetivos." },
   { n: "02", title: "Demonstração",      desc: "Mostramos o sistema aplicado ao seu contexto." },
-  { n: "03", title: "Implantação",       desc: "Migração, configuração e parametrização." },
+  { n: "03", title: "Implantação",       desc: "Configuração e parametrização." },
   { n: "04", title: "Treinamento",       desc: "Capacitamos sua equipe para usar tudo." },
   { n: "05", title: "Suporte Contínuo",  desc: "Estamos com você todos os dias." },
 ];
