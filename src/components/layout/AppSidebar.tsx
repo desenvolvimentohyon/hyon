@@ -39,8 +39,6 @@ const MODULE_SIDEBAR_COLORS: Record<string, { active: string; icon: string; bg: 
   comercial: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-indigo-400", bg: "bg-sidebar-accent/40" },
   financeiro: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-green-400", bg: "bg-sidebar-accent/40" },
   operacional: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-orange-400", bg: "bg-sidebar-accent/40" },
-  cartoes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-purple-400", bg: "bg-sidebar-accent/40" },
-  desenvolvimento: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-cyan-400", bg: "bg-sidebar-accent/40" },
   configuracoes: { active: "bg-sidebar-accent/70 text-sidebar-foreground", icon: "text-slate-400", bg: "bg-sidebar-accent/40" },
 };
 
