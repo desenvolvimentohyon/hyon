@@ -89,9 +89,7 @@ const App = () => {
                           <Route path="/portal/:token" element={<PortalCliente />} />
                           <Route path="/renovar/:token" element={<RenovarPlano />} />
                           <Route path="/aceite/:numero" element={<AceiteProposta />} />
-                          
                           <Route path="/reuniao/:token" element={<ReuniaoPublica />} />
-
                           
                           {/* Protected Routes */}
                           <Route element={<AppLayout />}>
@@ -131,7 +129,6 @@ const App = () => {
                             <Route path="/tarefas/:id" element={<TarefaDetalhe />} />
                             <Route path="/implantacao" element={<Implantacao />} />
                             <Route path="/tecnicos" element={<Tecnicos />} />
-                            
                             
                             {/* Configurações */}
                             <Route path="/configuracoes" element={<Configuracoes />} />

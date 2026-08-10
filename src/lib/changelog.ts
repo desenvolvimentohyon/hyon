@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.2",
+    date: "2026-08-10",
+    changes: [
+      { type: "correcao", text: "Integridade de Rotas: Restauradas todas as rotas de sub-módulos e links públicos que estavam inacessíveis." },
+      { type: "correcao", text: "KPIs Dinâmicos: O badge de mês nos cards financeiros agora reflete automaticamente o mês atual via sistema." },
+    ],
+  },
+  {
     version: "2.0.1",
     date: "2026-08-10",
     changes: [
