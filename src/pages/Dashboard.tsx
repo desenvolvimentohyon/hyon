@@ -399,7 +399,7 @@ function IAInsightsCard({ receitaMetricas }: { receitaMetricas: any }) {
       const mrrTotal = clientesReceita.reduce((acc, c) => acc + (c.valorMensalidade || 0), 0);
       const { data, error } = await supabase.functions.invoke("ia-assistant", {
         body: { 
-          question: "Gere um resumo diário inteligente (3-4 pontos). Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso e planos de recuperação expirados ou com falha). Considere os motivos de falha de planos anteriores para sugerir melhorias. Seja direto e profissional.",
+          question: "Gere um resumo diário inteligente (3-4 pontos) em português. Foco em: 1. Prioridades imediatas (tarefas), 2. Progresso financeiro (MRR/Metas), 3. Bloqueios ou riscos (clientes em atraso e planos de recuperação expirados ou com falha). Considere os motivos de falha de planos anteriores para sugerir melhorias. Seja direto, técnico e profissional.",
           context: {
             module: "dashboard",
             summary: {
@@ -1336,23 +1336,23 @@ export default function Dashboard() {
               className="group relative overflow-hidden glass-premium border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-glow-primary/5 kpi-card"
               onClick={() => navigate("/clientes?tab=receita")}
             >
-              <CardContent className="p-4 lg:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10.5px] font-semibold text-muted-foreground/80 uppercase tracking-[0.08em]">
+              <CardContent className="p-4 lg:p-5 flex flex-col justify-between min-h-[130px]">
+                <div className="flex items-center justify-between mb-auto">
+                  <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
                     <AcronymLabel label={k.label.split(" ")[0]} />
                   </span>
                   <div
-                    className="h-7 w-7 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
-                    style={{ backgroundColor: `${k.color}18` }}
+                    className="h-8 w-8 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
+                    style={{ backgroundColor: `${k.color}15` }}
                   >
-                    <k.icon className="h-3.5 w-3.5" style={{ color: k.color }} />
+                    <k.icon className="h-4 w-4" style={{ color: k.color }} />
                   </div>
                 </div>
-                <div className="flex items-end justify-between gap-2">
-                  <p className="text-[22px] lg:text-[26px] font-bold tabular-nums tracking-[-0.02em] leading-none text-foreground">
+                <div className="mt-4 flex items-end justify-between gap-2">
+                  <p className="text-xl lg:text-2xl font-black tabular-nums tracking-tighter leading-none text-foreground">
                     {k.value}
                   </p>
-                  <Sparkline data={k.spark} color={k.color} height={28} />
+                  <Sparkline data={k.spark} color={k.color} height={24} />
                 </div>
                 {k.variation !== null && k.variation !== undefined && (
                   <div className="mt-2 flex items-center gap-1">
