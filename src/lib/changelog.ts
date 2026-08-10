@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.2.3",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Audit de Segurança Avançado: Implementados gatilhos de integridade multi-tenant em tabelas críticas (clientes, tarefas, credenciais)." },
+      { type: "melhoria", text: "Hardening de RLS: Reforçadas políticas de acesso granular em tabelas de configuração e infraestrutura." },
+      { type: "melhoria", text: "Privacidade e Governança: Restrito acesso a metadados de webhook e auditoria apenas para roles administrativos autenticados." }
+    ]
+  },
+  {
     version: "2.2.2",
     date: "2026-08-10",
     changes: [
