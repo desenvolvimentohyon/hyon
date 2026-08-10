@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, ExternalLink, Instagram, Link2, Check } from "lucide-react";
+import { Copy, ExternalLink, Link2, Check } from "lucide-react";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "hyon:landing-custom-url";
@@ -117,14 +117,14 @@ export default function LandingLinkCard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Instagram className="h-4 w-4 text-pink-500" />
-            Como usar no Instagram
+            <Link2 className="h-4 w-4 text-pink-500" />
+            Como usar nas Redes Sociais
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ol className="list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
             <li>Copie o link ativo acima.</li>
-            <li>Abra o Instagram → seu perfil → <strong>Editar perfil</strong>.</li>
+            <li>Abra sua rede social → seu perfil → <strong>Editar perfil</strong>.</li>
             <li>Cole em <strong>Site</strong> (campo de bio) e salve.</li>
             <li>Pronto — visitantes verão a landing page em qualquer dispositivo.</li>
           </ol>

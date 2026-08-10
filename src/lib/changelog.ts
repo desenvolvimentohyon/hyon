@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.7",
+    date: "2026-08-10",
+    changes: [
+      { type: "novo", text: "Atalhos de Teclado: Implementados comandos rápidos para produtividade ('N' para nova tarefa, 'F' para busca/filtros)." },
+      { type: "novo", text: "Linha do Tempo (Gantt): Adicionada nova visualização de cronograma para gestão visual de prazos e projetos complexos." },
+      { type: "melhoria", text: "UX de Navegação: Adicionados tooltips informativos e suporte a alternância de visões via teclado (T, K, G)." },
+    ],
+  },
+  {
     version: "2.1.6",
     date: "2026-08-10",
     changes: [

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tarefa, Prioridade, STATUS_ORDER, TipoOperacional, StatusTarefa } from "@/types";
@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle, Sparkles, Filter } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, ClipboardList, AlertTriangle, Sparkles, Filter, CalendarDays, Keyboard } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { TIPO_OPERACIONAL_CONFIG } from "@/lib/constants";
@@ -23,6 +23,9 @@ import { statusRowColor, prioridadeColor, statusColor, isAtrasada } from "./tare
 import { LiveTimer } from "./tarefas/LiveTimer";
 import { KanbanTarefas } from "./tarefas/KanbanTarefas";
 import { NovaTarefaDialog } from "./tarefas/NovaTarefaDialog";
+import { GanttView } from "./tarefas/GanttView";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Chave de preferência local para exibir tarefas finalizadas */
 const PREF_MOSTRAR_FINALIZADAS = "tarefas:mostrarFinalizadas";
@@ -84,7 +87,7 @@ export default function Tarefas() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
+  const [viewMode, setViewMode] = useState<"table" | "kanban" | "gantt">("table");
   const [busca, setBusca] = useState(searchParams.get("busca") || "");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroPrioridade, setFiltroPrioridade] = useState<string>("todos");
@@ -110,6 +113,18 @@ export default function Tarefas() {
       // Storage indisponível (modo privado/quota) — preferência apenas em memória
     }
   }, [mostrarFinalizadas]);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useKeyboardShortcuts({
+    "N": () => setShowNova(true),
+    "F": () => {
+      searchInputRef.current?.focus();
+    },
+    "T": () => setViewMode("table"),
+    "K": () => setViewMode("kanban"),
+    "G": () => setViewMode("gantt"),
+  });
 
   useEffect(() => {
     if (searchParams.get("nova") === "1") {
@@ -179,9 +194,40 @@ export default function Tarefas() {
         title="Central de Tarefas 2.0"
         actions={
           <div className="flex items-center gap-2">
-            <Button variant={viewMode === "table" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}><List className="h-4 w-4" /></Button>
-            <Button variant={viewMode === "kanban" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("kanban")}><LayoutGrid className="h-4 w-4" /></Button>
-            <Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5"><Plus className="h-4 w-4" />Nova</Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={viewMode === "table" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}><List className="h-4 w-4" /></Button>
+                </TooltipTrigger>
+                <TooltipContent>Tabela (T)</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={viewMode === "kanban" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("kanban")}><LayoutGrid className="h-4 w-4" /></Button>
+                </TooltipTrigger>
+                <TooltipContent>Kanban (K)</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant={viewMode === "gantt" ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setViewMode("gantt")}><CalendarDays className="h-4 w-4" /></Button>
+                </TooltipTrigger>
+                <TooltipContent>Timeline (G)</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" onClick={() => setShowNova(true)} className="gap-1.5 ml-2"><Plus className="h-4 w-4" />Nova</Button>
+                </TooltipTrigger>
+                <TooltipContent>Nova Tarefa (N)</TooltipContent>
+              </Tooltip>
+              
+              <div className="hidden md:flex items-center gap-1 ml-2 px-2 py-1 bg-muted rounded text-[10px] text-muted-foreground uppercase font-medium border border-border/50">
+                <Keyboard className="h-3 w-3" />
+                <span>Atalhos Ativos</span>
+              </div>
+            </TooltipProvider>
           </div>
         }
       />
@@ -189,7 +235,13 @@ export default function Tarefas() {
       <div className="flex flex-wrap gap-2 items-center bg-card p-3 rounded-xl border shadow-sm">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por título ou tag..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-9 h-9" />
+          <Input 
+            ref={searchInputRef}
+            placeholder="Buscar por título ou tag... (F)" 
+            value={busca} 
+            onChange={e => setBusca(e.target.value)} 
+            className="pl-9 h-9" 
+          />
         </div>
 
         <div className="flex gap-2 flex-wrap ml-auto">
@@ -243,7 +295,7 @@ export default function Tarefas() {
               </TableBody>
             </Table>
           </div>
-        ) : (
+        ) : viewMode === "kanban" ? (
           <KanbanTarefas
             filteredTarefas={filteredTarefas}
             isAtrasada={tarefaAtrasada}
@@ -257,6 +309,8 @@ export default function Tarefas() {
             navigate={navigate}
             mostrarFinalizadas={mostrarFinalizadas}
           />
+        ) : (
+          <GanttView tasks={filteredTarefas} />
         )}
       </div>
 
