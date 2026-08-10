@@ -108,9 +108,10 @@
     --spacing: 0.25rem;
 
     /* Glow tokens */
-    --glow-primary: 0 0 0 0 transparent;
-    --glow-cyan: 0 0 0 0 transparent;
-    --glass-border: 0 0% 100% / 0.04;
+    --glow-primary: 0 0 20px -5px hsl(var(--primary) / 0.4);
+    --glow-success: 0 0 20px -5px hsl(var(--success) / 0.4);
+    --glow-destructive: 0 0 20px -5px hsl(var(--destructive) / 0.4);
+    --glass-border: 0 0% 100% / 0.08;
   }
 
   .dark {
@@ -181,9 +182,10 @@
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.3), 0 8px 10px -1px hsl(0 0% 0% / 0.2);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.5);
 
-    --glow-primary: 0 0 0 0 transparent;
-    --glow-cyan: 0 0 0 0 transparent;
-    --glass-border: 0 0% 100% / 0.04;
+    --glow-primary: 0 0 25px -5px hsl(var(--primary) / 0.5);
+    --glow-success: 0 0 25px -5px hsl(var(--success) / 0.5);
+    --glow-destructive: 0 0 25px -5px hsl(var(--destructive) / 0.5);
+    --glass-border: 0 0% 100% / 0.12;
   }
 }
 
@@ -366,14 +368,15 @@
 
 
   .kpi-card {
-    @apply bg-card border rounded-xl p-5 transition-all duration-200;
-    border-color: hsl(var(--border));
+    @apply bg-card border rounded-2xl p-6 transition-all duration-300;
+    border-color: hsl(var(--border) / 0.6);
     box-shadow: var(--shadow-card);
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.95) 100%);
   }
   .kpi-card:hover {
-    border-color: hsl(var(--foreground) / 0.14);
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: var(--shadow-elevated), var(--glow-primary);
+    transform: translateY(-4px);
   }
 
   .neon-border {

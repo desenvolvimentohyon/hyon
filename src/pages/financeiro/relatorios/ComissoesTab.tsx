@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Wallet, Users, Clock, CheckCircle2 } from "lucide-react";
 import { fmt } from "./helpers";
+import { cn } from "@/lib/utils";
 
 export function ComissoesTab({ titulos }: any) {
   const comissoes = useMemo(() => {
@@ -23,41 +24,21 @@ export function ComissoesTab({ titulos }: any) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-primary/10">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Wallet className="h-5 w-5 text-primary" />
+        {[
+          { label: "Total Pago", value: fmt(kpis.totalPagas), icon: Wallet, color: "text-success", bg: "bg-success/5" },
+          { label: "Aguardando Pagamento", value: fmt(kpis.totalAberto), icon: Clock, color: "text-warning", bg: "bg-warning/5" },
+          { label: "Qtd. Pendentes", value: `${kpis.countAberto} lançamentos`, icon: Users, color: "text-info", bg: "bg-info/5" },
+        ].map(k => (
+          <Card key={k.label} className={cn("p-5 border-none shadow-sm hover:shadow-md transition-all flex items-center gap-4", k.bg)}>
+            <div className={cn("p-3 rounded-xl", k.color.replace('text-', 'bg-').replace('-success', '-success/10').replace('-warning', '-warning/10').replace('-info', '-info/10'))}>
+              <k.icon className={cn("h-6 w-6", k.color)} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase font-semibold">Total Pago</p>
-              <p className="text-xl font-bold text-foreground">{fmt(kpis.totalPagas)}</p>
+              <p className="text-[11px] text-muted-foreground uppercase font-bold mb-1 tracking-wider">{k.label}</p>
+              <p className="text-2xl font-bold tracking-tight text-foreground">{k.value}</p>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-warning/20 bg-warning/5">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-warning/10">
-              <Clock className="h-5 w-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-semibold">Aguardando Pagamento</p>
-              <p className="text-xl font-bold text-foreground">{fmt(kpis.totalAberto)}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-info/10">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-2 rounded-lg bg-info/10">
-              <Users className="h-5 w-5 text-info" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-semibold">Qtd. Pendentes</p>
-              <p className="text-xl font-bold text-foreground">{kpis.countAberto} lançamentos</p>
-            </div>
-          </CardContent>
-        </Card>
+          </Card>
+        ))}
       </div>
 
       <Card>

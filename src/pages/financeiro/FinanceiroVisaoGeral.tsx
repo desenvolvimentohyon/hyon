@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart } from "recharts";
 
+import { cn } from "@/lib/utils";
 import { fmt, fmtPct, statusColor } from "./visaoGeral/helpers";
 import { useFinanceiroDashboard } from "./visaoGeral/useFinanceiroDashboard";
 import { DetalheLancamentoDialog } from "./visaoGeral/DetalheLancamentoDialog";
@@ -79,20 +80,26 @@ export default function Financeiro() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {kpiCards.map(k => (
-          <Card key={k.label} className="group transition-all duration-200 hover:-translate-y-1 hover:shadow-lg border-primary/10 hover:border-primary/30">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <k.icon className={`h-4 w-4 ${k.color} opacity-80 group-hover:opacity-100 transition-opacity`} />
-                {k.label.includes("Mês") && <Badge variant="secondary" className="text-[9px] uppercase">Agosto</Badge>}
+          <Card key={k.label} className="kpi-card group border-none">
+            <div className="flex items-center justify-between mb-4">
+              <div className={cn("p-2.5 rounded-xl bg-muted/40 transition-colors group-hover:bg-background", k.color.replace('text-', 'bg-').replace('-info', '-info/10').replace('-destructive', '-destructive/10').replace('-success', '-success/10').replace('-warning', '-warning/10'))}>
+                <k.icon className={cn("h-5 w-5", k.color)} />
               </div>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold block mb-1">{k.label}</span>
-              <p className="text-2xl font-bold text-foreground tracking-tight">{k.value}</p>
-              {"secondaryValue" in k && k.secondaryValue && (
-                <p className="text-xs font-medium text-primary/70 mt-1 flex items-center gap-1">
-                   {k.secondaryValue}
-                </p>
+              {k.label.includes("Mês") && (
+                <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] px-2 py-0.5">
+                  Agosto
+                </Badge>
               )}
-            </CardContent>
+            </div>
+            <span className="text-xs text-muted-foreground font-medium block mb-1.5">{k.label}</span>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold tracking-tight text-foreground">{k.value}</p>
+              {"secondaryValue" in k && k.secondaryValue && (
+                <span className="text-[11px] font-semibold text-primary/60 bg-primary/5 px-1.5 py-0.5 rounded-md">
+                  {k.secondaryValue}
+                </span>
+              )}
+            </div>
           </Card>
         ))}
       </div>
