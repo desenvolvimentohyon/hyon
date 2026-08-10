@@ -9,25 +9,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: "2.1.9",
     date: "2026-08-10",
-    version: "2.1.9",
-    type: "feature",
-    title: "Experiência de Navegação e UX",
-    description: "Implementada página 404 personalizada Premium, restauradas rotas críticas e otimizado sistema de redirecionamento global.",
     changes: [
-      "Substituído redirecionamento silencioso por página 404 contextualizada",
-      "Restaurada integridade das rotas públicas (Portal/Aceite)",
-      "Otimização de performance nos filtros da Central de Tarefas",
-      "Padronização visual Graphite Premium na página de erro"
+      { type: "novo", text: "Página 404 Personalizada: Implementada interface 'Graphite Premium' para rotas inexistentes, evitando o redirecionamento silencioso." },
+      { type: "correcao", text: "Integridade de Rotas Públicas: Validada a renderização e o acesso ao Portal do Cliente e Aceite de Proposta." },
+      { type: "melhoria", text: "Otimização de Performance: Refinada a lógica de filtros complexos na Central de Tarefas para bases de dados volumosas." },
+      { type: "melhoria", text: "UX de Navegação: Ajustado o sistema de roteamento global para oferecer feedback contextualizado em falhas de URL." }
     ]
-  },
-  {
-    date: "2026-08-10",
-    changes: [
-      { type: "correcao", text: "Integridade de Rotas: Restauradas todas as rotas de sub-módulos e links públicos (Portal do Cliente, Aceite, Renovar, etc.) que estavam inacessíveis." },
-      { type: "melhoria", text: "Central de Tarefas 2.1: Restaurados filtros avançados (Tipo, Sistema, Técnico, Cliente) e chips de status com contadores dinâmicos." },
-      { type: "melhoria", text: "UX de Tarefas: Reintroduzida a visualização de tempo cronometrado (LiveTimer) e alteração de status inline diretamente na listagem." },
-      { type: "melhoria", text: "Visualização Técnica: Adicionados badges de sistema e indicadores de atraso visual na tabela de tarefas." },
-    ],
   },
   {
     version: "2.1.8",
@@ -115,7 +102,6 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: "correcao", text: "Integridade de Dados: Adicionados gatilhos de banco para validar consistência em operações de atualização." },
     ],
   },
-
   {
     version: "2.0.2",
     date: "2026-08-10",
