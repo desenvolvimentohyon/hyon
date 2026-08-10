@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.8",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Visualização Financeira Premium: Redesign dos cards de KPI com glassmorphism, sombras suaves e tipografia otimizada para legibilidade." },
+      { type: "melhoria", text: "UX Financeira: Implementação de Tooltips em ações de tabela e melhoria na exibição de saldo devedor em Contas a Receber." },
+      { type: "correcao", text: "Estabilidade de Build: Corrigidos erros de referências a ícones inexistentes do Lucide React em diversas páginas." },
+      { type: "melhoria", text: "Inteligência de Dados: Refinamento no prompt da Hyon IA para resumos diários mais técnicos e precisos." },
+    ],
+  },
+  {
     version: "2.1.7",
     date: "2026-08-10",
     changes: [

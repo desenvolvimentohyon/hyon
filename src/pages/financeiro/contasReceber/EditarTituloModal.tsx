@@ -84,7 +84,7 @@ export function EditarTituloModal({ titulo, onClose }: { titulo: TituloFinanceir
                         <span className="font-bold text-success text-[13px]">{fmt(Math.abs(m.valor))}</span>
                         <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                           <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(m.data).toLocaleDateString("pt-BR")}</span>
-                          <span className="flex items-center gap-1"><CreditCard className="h-3 w-3" /> {titulo.formaPagamento ? titulo.formaPagamento.toUpperCase() : "PIX"}</span>
+                          <span className="flex items-center gap-1"><CreditCard className="h-3 w-3" /> {(m as any).payment_method || titulo.formaPagamento || "PIX"}</span>
                         </div>
                       </div>
                     </div>

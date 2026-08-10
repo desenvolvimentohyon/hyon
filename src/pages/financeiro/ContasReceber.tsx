@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Plus, CheckCircle, AlertTriangle, Clock, Copy, Edit, RotateCcw, ArrowUpRight, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { TituloFinanceiro } from "@/types/financeiro";
 import { fmt, statusBadge } from "./contasReceber/helpers";
@@ -168,15 +169,15 @@ export default function ContasReceber() {
       <Card>
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Competência</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="py-4 font-bold text-xs uppercase tracking-wider text-muted-foreground/80">Descrição</TableHead>
+                <TableHead className="py-4 font-bold text-xs uppercase tracking-wider text-muted-foreground/80">Cliente</TableHead>
+                <TableHead className="py-4 font-bold text-xs uppercase tracking-wider text-muted-foreground/80">Competência</TableHead>
+                <TableHead className="py-4 font-bold text-xs uppercase tracking-wider text-muted-foreground/80">Vencimento</TableHead>
+                <TableHead className="py-4 font-bold text-xs uppercase tracking-wider text-muted-foreground/80">Valor Total</TableHead>
+                <TableHead className="py-4 font-bold text-xs uppercase tracking-wider text-muted-foreground/80">Status</TableHead>
+                <TableHead className="py-4 font-bold text-xs uppercase tracking-wider text-muted-foreground/80 text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -206,24 +207,52 @@ export default function ContasReceber() {
                     </TableCell>
                     <TableCell>{statusBadge(t.status)}</TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         {t.status !== "cancelado" && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingTitulo(t)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => setEditingTitulo(t)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Editar Lançamento</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         {(t.status === "aberto" || t.status === "vencido" || t.status === "parcial") && (
                           <>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setModalBaixa(t); setValorBaixa(""); }}>
-                              <CheckCircle className="h-4 w-4 text-success" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCobranca(t)}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-success/10 hover:text-success transition-colors" onClick={() => { setModalBaixa(t); setValorBaixa(""); }}>
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Baixar / Recebimento Parcial</TooltipContent>
+                              </Tooltip>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => handleCobranca(t)}>
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Copiar Mensagem de Cobrança</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
                             {t.status === "vencido" && (
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRenegociar(t)}>
-                                <RotateCcw className="h-4 w-4 text-warning" />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-warning/10 hover:text-warning transition-colors" onClick={() => handleRenegociar(t)}>
+                                      <RotateCcw className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Renegociar Vencimento (+15 dias)</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
                           </>
                         )}

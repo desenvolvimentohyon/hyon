@@ -80,28 +80,33 @@ export default function Financeiro() {
       />
       <ModuleNavGrid moduleId="financeiro" />
 
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 lg:gap-5">
         {kpiCards.map(k => (
-          <Card key={k.label} className="kpi-card group border-none min-w-0 flex flex-col justify-between">
-
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-2.5 rounded-xl bg-muted/40 transition-colors group-hover:bg-background", k.color.replace('text-', 'bg-').replace('-info', '-info/10').replace('-destructive', '-destructive/10').replace('-success', '-success/10').replace('-warning', '-warning/10'))}>
+          <Card key={k.label} className="group relative overflow-hidden glass-premium border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-glow-primary/5 min-h-[140px] flex flex-col justify-between p-5">
+            <div className="flex items-center justify-between mb-auto">
+              <div className={cn(
+                "p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110",
+                k.color.replace('text-', 'bg-').replace('-info', '-info/10').replace('-destructive', '-destructive/10').replace('-success', '-success/10').replace('-warning', '-warning/10')
+              )}>
                 <k.icon className={cn("h-5 w-5", k.color)} />
               </div>
               {k.label.includes("Mês") && (
-                <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] px-2 py-0.5 capitalize">
+                <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] px-2 py-0.5 capitalize font-medium">
                   {format(new Date(), 'MMMM', { locale: ptBR })}
                 </Badge>
               )}
             </div>
-            <span className="text-xs text-muted-foreground font-medium block mb-1.5">{k.label}</span>
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold tracking-tight text-foreground">{k.value}</p>
-              {"secondaryValue" in k && k.secondaryValue && (
-                <span className="text-[11px] font-semibold text-primary/60 bg-primary/5 px-1.5 py-0.5 rounded-md">
-                  {k.secondaryValue}
-                </span>
-              )}
+            
+            <div className="mt-4">
+              <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider block mb-1 opacity-80">{k.label}</span>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <p className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{k.value}</p>
+                {"secondaryValue" in k && k.secondaryValue && (
+                  <span className="text-[10px] font-bold text-primary/80 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                    {k.secondaryValue}
+                  </span>
+                )}
+              </div>
             </div>
           </Card>
         ))}
