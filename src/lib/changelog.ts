@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.6",
+    date: "2026-08-10",
+    changes: [
+      { type: "novo", text: "Central de Tarefas 2.0: Remodelagem completa da interface com foco em produtividade, performance e UX mobile-first." },
+      { type: "melhoria", text: "Kanban de Alta Densidade: Novo layout de colunas com cards compactos, indicadores de atraso e suporte a drag-and-drop otimizado." },
+      { type: "melhoria", text: "Barra de Ferramentas Unificada: Filtros inteligentes e busca rápida integrados em uma única linha para maior aproveitamento de tela." },
+    ],
+  },
+  {
     version: "2.1.5",
     date: "2026-08-10",
     changes: [
