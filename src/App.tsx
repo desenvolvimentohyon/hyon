@@ -33,6 +33,7 @@ import Implantacao from "./pages/Implantacao";
 import Tecnicos from "./pages/Tecnicos";
 import Configuracoes from "./pages/Configuracoes";
 import UsuariosConfig from "./pages/UsuariosConfig";
+import NotFound from "./pages/NotFound";
 
 // Financeiro Pages
 import FinanceiroVisaoGeral from "./pages/financeiro/FinanceiroVisaoGeral";
@@ -135,7 +136,7 @@ const App = () => {
                             <Route path="/usuarios" element={<UsuariosConfig />} />
                           </Route>
 
-                          <Route path="*" element={<Navigate to="/" replace />} />
+                          <Route path="*" element={<NotFound />} />
                         </Routes>
                       </BrowserRouter>
                     </TooltipProvider>
