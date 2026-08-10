@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCNPJ } from "@/lib/cnpjUtils";
 import {
   ShieldCheck, TrendingUp, Users, Building2, Headphones,
-  Mail, MapPin, MessageCircle, Instagram, Linkedin, Facebook,
+  Mail, MapPin, MessageCircle,
   ArrowRight, ArrowUp, Check, Star, Sparkles, Zap, Cloud, Lock,
   BarChart3, Boxes, FileText, Receipt, Wallet, Store, UtensilsCrossed,
   Wrench, Package, LayoutDashboard, Factory, UserPlus, ClipboardList,
