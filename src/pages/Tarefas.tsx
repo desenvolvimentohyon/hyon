@@ -64,11 +64,11 @@ function IAInsightsTarefas({ tarefas }: { tarefas: Tarefa[] }) {
   return (
     <Card className="neon-border border-primary/20 bg-primary/5 mb-6">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-semibold flex items-center gap-2 text-primary uppercase tracking-wider">
-          <Sparkles className="h-3 w-3 animate-pulse" /> Sugestões de Priorização (Hyon IA)
+        <CardTitle className="text-[10px] font-bold flex items-center gap-2 text-primary uppercase tracking-wider">
+          <Sparkles className="h-3 w-3 animate-pulse" /> Sugestões de Priorização (IA)
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 pb-4">
+      <CardContent className="space-y-1.5 pb-4">
         {insights.map((insight: string, i: number) => (
           <div key={i} className="flex gap-2 items-start group">
             <div className="mt-1.5 w-1 h-1 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />
@@ -178,7 +178,7 @@ export default function Tarefas() {
   // Opções do seletor de status em destaque (chips)
   const STATUS_FILTERS = useMemo(
     () => [
-      { value: "todos", label: "Todos" },
+      { value: "todos", label: "Todas" },
       ...STATUS_ORDER.map(s => ({ value: s as string, label: getStatusLabel(s) })),
       { value: "atrasadas", label: "Atrasadas" },
     ],
@@ -324,7 +324,7 @@ export default function Tarefas() {
             <SelectContent>
               <SelectItem value="todos">Todos Clientes</SelectItem>
               <SelectItem value="avulsas">Apenas Avulsas</SelectItem>
-              {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+              {clientes.map(c => <SelectItem key={c.id} value={c.id} className="text-xs">{c.nome}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
