@@ -124,7 +124,7 @@ export default function LandingLinkCard() {
         <CardContent>
           <ol className="list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
             <li>Copie o link ativo acima.</li>
-            <li>Abra o Instagram → seu perfil → <strong>Editar perfil</strong>.</li>
+            <li>Abra sua rede social → seu perfil → <strong>Editar perfil</strong>.</li>
             <li>Cole em <strong>Site</strong> (campo de bio) e salve.</li>
             <li>Pronto — visitantes verão a landing page em qualquer dispositivo.</li>
           </ol>

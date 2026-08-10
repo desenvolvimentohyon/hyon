@@ -10,8 +10,8 @@ import {
   BarChart3, Boxes, FileText, Receipt, Wallet, Store, UtensilsCrossed,
   Wrench, Package, LayoutDashboard, Factory, UserPlus, ClipboardList,
   ScrollText, CircleDollarSign, Warehouse, LineChart, Award, Rocket,
-  RefreshCw, Plug, Cpu, GraduationCap, Truck, FileSignature, Menu, X,
-  ChevronDown, PhoneCall,
+   RefreshCw, Plug, Cpu, GraduationCap, Truck, FileSignature, Menu, X,
+   ChevronDown, PhoneCall, Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -1111,9 +1111,9 @@ export default function LandingPage() {
           <div>
             <h4 className="text-sm font-semibold mb-3">Redes sociais</h4>
             <div className="flex gap-3">
-              <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Instagram className="w-4 h-4" /></a>
-              <a href="#" aria-label="LinkedIn" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Linkedin className="w-4 h-4" /></a>
-              <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Facebook className="w-4 h-4" /></a>
+              <a href="#" aria-label="Social" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><MessageCircle className="w-4 h-4" /></a>
+              <a href="#" aria-label="Social" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Users className="w-4 h-4" /></a>
+              <a href="#" aria-label="Social" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 grid place-items-center hover:bg-white/10 hover:border-cyan-400/30 transition-all"><Link2 className="w-4 h-4" /></a>
               <a href={waLink("Olá! Vim pelas redes sociais.", "footer_social")}
                  target="_blank" rel="noreferrer" aria-label="WhatsApp"
                  onClick={() => handleWaClick("footer_social")}
