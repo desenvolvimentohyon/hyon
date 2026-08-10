@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.1",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Responsividade: Otimizados os novos cards de KPI para visualização perfeita em dispositivos com telas reduzidas." },
+      { type: "melhoria", text: "Fidelidade de Impressão: Revisada a exportação de PDF para garantir que o layout 'Premium' seja preservado em relatórios físicos." },
+    ],
+  },
+  {
     version: "2.0.0",
     date: "2026-08-10",
     changes: [
