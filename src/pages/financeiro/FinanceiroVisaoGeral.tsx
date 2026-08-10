@@ -12,6 +12,8 @@ import { STATUS_TITULO_LABELS, ORIGEM_TITULO_LABELS, FINANCEIRO_COLORS, type Tit
 import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart } from "recharts";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 import { cn } from "@/lib/utils";
 import { fmt, fmtPct, statusColor } from "./visaoGeral/helpers";
@@ -86,8 +88,8 @@ export default function Financeiro() {
                 <k.icon className={cn("h-5 w-5", k.color)} />
               </div>
               {k.label.includes("Mês") && (
-                <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] px-2 py-0.5">
-                  Agosto
+                <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] px-2 py-0.5 capitalize">
+                  {format(new Date(), 'MMMM', { locale: ptBR })}
                 </Badge>
               )}
             </div>
