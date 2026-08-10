@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.2",
+    date: "2026-08-10",
+    changes: [
+      { type: "novo", text: "Baixa Parcial Financeira: Habilitada a opção de recebimento ou baixa parcial em Contas a Receber e Contas a Pagar." },
+      { type: "melhoria", text: "Gestão de Saldo: O sistema agora calcula automaticamente o saldo remanescente e atualiza o status para 'parcial' quando o valor pago é inferior ao total." },
+    ],
+  },
+  {
     version: "2.1.1",
     date: "2026-08-10",
     changes: [
