@@ -84,7 +84,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
     const [cRes, seRes, maRes] = await Promise.all([
       supabase.from("clients").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("support_events").select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("monthly_adjustments" as any).select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("monthly_adjustments").select("*").order("created_at", { ascending: false }).limit(100),
     ]);
     if (cRes.data) setClientesReceita(cRes.data.map(dbToClienteReceita));
     if (seRes.data) setSuporteEventos(seRes.data.map(dbToSuporteEvento));
@@ -186,7 +186,7 @@ export function ReceitaProvider({ children }: { children: React.ReactNode }) {
     if (!orgId) return;
     const cliente = clientesReceita.find(c => c.id === clienteId);
     if (!cliente) return;
-    await supabase.from("monthly_adjustments" as any).insert({
+    await supabase.from("monthly_adjustments").insert({
       org_id: orgId, client_id: clienteId,
       previous_value: cliente.valorMensalidade, new_value: valorNovo, reason: motivo,
     });

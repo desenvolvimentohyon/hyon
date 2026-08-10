@@ -7,6 +7,17 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.3.0",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "Auditoria Técnica Global: Realizada varredura completa do sistema para correção de falhas de lógica, tipos e UX." },
+      { type: "correcao", text: "Estabilidade Financeira: Corrigida falha no fechamento de modais de baixa parcial e tratamento de valores nulos em novos títulos." },
+      { type: "melhoria", text: "UX de Tarefas: Refinada a interface de alteração de status inline na listagem para maior precisão e feedback visual." },
+      { type: "melhoria", text: "Resiliência de Dados: Endurecidos mappers de contexto e tratamento de erros no carregamento de perfis multi-tenant." },
+      { type: "correcao", text: "Integridade de Schema: Removidos Type Casts desnecessários em queries Supabase após validação de tipos." }
+    ]
+  },
+  {
     version: "2.2.6",
     date: "2026-08-10",
     changes: [

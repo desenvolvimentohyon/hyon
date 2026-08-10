@@ -29,12 +29,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-    setProfile(data as Profile | null);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      setProfile(data as Profile | null);
+    } catch (err: any) {
+      console.error("Error fetching profile:", err);
+      // In production, we might want to notify the user if profile loading fails consistently
+    }
   }, []);
 
   useEffect(() => {
