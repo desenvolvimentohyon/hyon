@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Wallet, Users, Clock, CheckCircle2 } from "lucide-react";
 import { fmt } from "./helpers";
+import { cn } from "@/lib/utils";
 
 export function ComissoesTab({ titulos }: any) {
   const comissoes = useMemo(() => {

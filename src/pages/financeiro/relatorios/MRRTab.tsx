@@ -6,6 +6,7 @@ import { Download } from "lucide-react";
 import { exportMRRPDF } from "@/lib/pdfRelatorioFinanceiro";
 import { toast } from "sonner";
 import { fmt, fmtPct, C } from "./helpers";
+import { cn } from "@/lib/utils";
 
 export function MRRTab({ clientesReceita, titulos }: any) {
   const mrrData = useMemo(() => {

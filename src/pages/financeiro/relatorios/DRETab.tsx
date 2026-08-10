@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { exportDREPDF } from "@/lib/pdfRelatorioFinanceiro";
 import { toast } from "sonner";
 import { fmt, fmtPct, C } from "./helpers";
+import { cn } from "@/lib/utils";
 
 export function DRETab({ titulos, planoContas }: any) {
   const dreData = useMemo(() => {

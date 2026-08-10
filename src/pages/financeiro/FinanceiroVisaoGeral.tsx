@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ModuleNavGrid } from "@/components/layout/ModuleNavGrid";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart } from "recharts";
 
+import { cn } from "@/lib/utils";
 import { fmt, fmtPct, statusColor } from "./visaoGeral/helpers";
 import { useFinanceiroDashboard } from "./visaoGeral/useFinanceiroDashboard";
 import { DetalheLancamentoDialog } from "./visaoGeral/DetalheLancamentoDialog";
