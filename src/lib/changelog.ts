@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.2.5",
+    date: "2026-08-10",
+    changes: [
+      { type: "correcao", text: "Estabilização PWA: Corrigida a compatibilidade da aba de tarefas em dispositivos móveis e ambientes PWA, otimizando o cache de navegação." },
+      { type: "melhoria", text: "UX Mobile: Refinada a persistência de estados e filtros na Central de Tarefas para evitar perdas de dados em transições de rede." },
+      { type: "correcao", text: "Service Worker: Ajustada a política de cache NetworkFirst para garantir que dados operacionais críticos sejam sempre buscados do backend." }
+    ]
+  },
+  {
     version: "2.2.4",
     date: "2026-08-10",
     changes: [

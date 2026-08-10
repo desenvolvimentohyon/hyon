@@ -37,30 +37,39 @@ export default defineConfig(({ mode }) => ({
         ],
       },
     workbox: {
-      skipWaiting: false,
-      clientsClaim: false,
+      skipWaiting: true,
+      clientsClaim: true,
       cleanupOutdatedCaches: true,
+      navigateFallback: 'index.html',
       navigateFallbackDenylist: [/^\/proposta/, /^\/portal/, /^\/aceite/, /^\/~oauth/],
-      globPatterns: ["index.html"],
-      maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+      globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       importScripts: ["sw-push.js"],
       runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/,
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'api-cache',
+            expiration: { maxEntries: 100, maxAgeSeconds: 60 }, // Cache curto para dados dinâmicos
+            networkTimeoutSeconds: 5,
+          },
+        },
         {
           urlPattern: ({ request }) => request.mode === 'navigate',
           handler: 'NetworkFirst',
           options: {
             cacheName: 'pages-cache',
-            expiration: { maxEntries: 30, maxAgeSeconds: 5 * 60 },
+            expiration: { maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 },
             networkTimeoutSeconds: 3,
           },
         },
         {
           urlPattern: ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
-          handler: 'NetworkFirst',
+          handler: 'StaleWhileRevalidate',
           options: {
             cacheName: 'assets-cache',
-            expiration: { maxEntries: 60, maxAgeSeconds: 5 * 60 },
-            networkTimeoutSeconds: 3,
+            expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 },
           },
         },
       ],
