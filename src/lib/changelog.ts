@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.1.9",
+    date: "2026-08-10",
+    changes: [
+      { type: "correcao", text: "Integridade de Rotas: Restauradas todas as rotas de sub-módulos e links públicos (Portal do Cliente, Aceite, Renovar, etc.) que estavam inacessíveis." },
+      { type: "melhoria", text: "Central de Tarefas 2.1: Restaurados filtros avançados (Tipo, Sistema, Técnico, Cliente) e chips de status com contadores dinâmicos." },
+      { type: "melhoria", text: "UX de Tarefas: Reintroduzida a visualização de tempo cronometrado (LiveTimer) e alteração de status inline diretamente na listagem." },
+      { type: "melhoria", text: "Visualização Técnica: Adicionados badges de sistema e indicadores de atraso visual na tabela de tarefas." },
+    ],
+  },
+  {
     version: "2.1.8",
     date: "2026-08-10",
     changes: [
