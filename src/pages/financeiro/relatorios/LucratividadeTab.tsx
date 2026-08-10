@@ -43,31 +43,18 @@ export function LucratividadeTab({ clientesReceita }: any) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-         <Card className="bg-primary/5 border-primary/10">
-          <CardContent className="p-4">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Receita Total Bruta</p>
-            <p className="text-xl font-bold">{fmt(kpis.totalReceita)}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-destructive/5 border-destructive/10">
-          <CardContent className="p-4">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Custo Direto Total</p>
-            <p className="text-xl font-bold text-destructive">{fmt(kpis.totalCusto)}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-success/5 border-success/10">
-          <CardContent className="p-4">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Margem de Contribuição</p>
-            <p className="text-xl font-bold text-success">{fmt(kpis.totalMargem)}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-info/5 border-info/10">
-          <CardContent className="p-4">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Margem Média %</p>
-            <p className="text-xl font-bold text-info">{fmtPct(kpis.avgMargemPct)}</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Receita Total Bruta", value: fmt(kpis.totalReceita), color: "text-foreground", bg: "bg-primary/5" },
+          { label: "Custo Direto Total", value: fmt(kpis.totalCusto), color: "text-destructive", bg: "bg-destructive/5" },
+          { label: "Margem de Contribuição", value: fmt(kpis.totalMargem), color: "text-success", bg: "bg-success/5" },
+          { label: "Margem Média %", value: fmtPct(kpis.avgMargemPct), color: "text-info", bg: "bg-info/5" },
+        ].map(k => (
+          <Card key={k.label} className={cn("p-5 border-none shadow-sm hover:shadow-md transition-all", k.bg)}>
+            <p className="text-[11px] text-muted-foreground uppercase font-bold mb-1.5 tracking-wider">{k.label}</p>
+            <p className={cn("text-2xl font-bold tracking-tight", k.color)}>{k.value}</p>
+          </Card>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -54,19 +54,17 @@ export function MRRTab({ clientesReceita, titulos }: any) {
           <Download className="h-4 w-4 mr-1" /> Exportar MRR (PDF)
         </Button>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
-          { label: "MRR Total", value: fmt(mrrData.mrr) },
-          { label: "ARR (Anual)", value: fmt(mrrData.arr) },
-          { label: "Ticket Médio", value: fmt(mrrData.ticket) },
-          { label: "Churn Rate", value: fmtPct(mrrData.churn) },
-          { label: "LTV Projetado", value: fmt(mrrData.ltv) },
+          { label: "MRR Total", value: fmt(mrrData.mrr), color: "text-info" },
+          { label: "ARR (Anual)", value: fmt(mrrData.arr), color: "text-primary" },
+          { label: "Ticket Médio", value: fmt(mrrData.ticket), color: "text-foreground" },
+          { label: "Churn Rate", value: fmtPct(mrrData.churn), color: "text-destructive" },
+          { label: "LTV Projetado", value: fmt(mrrData.ltv), color: "text-success" },
         ].map(k => (
-          <Card key={k.label} className="border-primary/10">
-            <CardContent className="p-4">
-              <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">{k.label}</p>
-              <p className="text-xl font-bold text-foreground">{k.value}</p>
-            </CardContent>
+          <Card key={k.label} className="p-5 border-none shadow-sm hover:shadow-md transition-all">
+            <p className="text-[11px] text-muted-foreground uppercase font-bold mb-1.5 tracking-wider">{k.label}</p>
+            <p className={cn("text-2xl font-bold tracking-tight", k.color)}>{k.value}</p>
           </Card>
         ))}
       </div>

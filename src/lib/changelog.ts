@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.0.0",
+    date: "2026-08-10",
+    changes: [
+      { type: "novo", text: "Remodelagem Financeira Pro: Redesign completo da interface financeira com foco em cards de alta performance e visual minimalista premium." },
+      { type: "melhoria", text: "Motor de KPIs: Otimização nos cálculos de MRR, Inadimplência e Fluxo de Caixa para precisão em tempo real." },
+      { type: "melhoria", text: "Experiência Visual: Introdução de tokens de glow semântico e elevação de componentes para melhor hierarquia de dados." },
+    ],
+  },
+  {
     version: "1.9.1",
     date: "2026-08-09",
     changes: [
