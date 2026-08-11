@@ -24,6 +24,7 @@ export function IAAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [retryStatus, setRetryStatus] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [iaStatus, setIaStatus] = useState<"connected" | "disconnected">("connected");
   const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
