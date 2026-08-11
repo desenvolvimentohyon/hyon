@@ -50,6 +50,7 @@ interface Meeting {
   client_id: string | null;
   task_id: string | null;
   status: MeetingStatus;
+  cancel_reason?: string | null;
   internal_user_ids: string[];
   external_guests: ExternalGuest[];
   notes: string | null;
