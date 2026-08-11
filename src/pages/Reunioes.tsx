@@ -119,6 +119,7 @@ export default function Reunioes() {
   const [shareMeeting, setShareMeeting] = useState<Meeting | null>(null);
   const [cancelMeeting, setCancelMeeting] = useState<Meeting | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [cancelFilter, setCancelFilter] = useState("");
 
   const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -304,9 +305,23 @@ export default function Reunioes() {
     try {
       const { error } = await supabase.from("meetings").update({ 
         status: "cancelada",
+        cancel_reason: cancelReason,
         notes: cancelReason ? `${cancelMeeting.notes || ""}\nMotivo cancelamento: ${cancelReason}`.trim() : cancelMeeting.notes
       }).eq("id", cancelMeeting.id);
       if (error) throw error;
+
+      // Notify internal users via Push
+      if (cancelMeeting.internal_user_ids?.length > 0) {
+        supabase.functions.invoke("push-notifications", {
+          body: {
+            action: "send",
+            userIds: cancelMeeting.internal_user_ids,
+            title: "🚫 Reunião Cancelada",
+            messageBody: `A reunião "${cancelMeeting.title}" foi cancelada.${cancelReason ? ` Motivo: ${cancelReason}` : ""}`,
+            url: `/operacional/reunioes?open=${cancelMeeting.id}`
+          }
+        });
+      }
 
       const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).maybeSingle();
       
@@ -364,6 +379,7 @@ export default function Reunioes() {
       client_id: form.client_id === "none" ? null : form.client_id,
       task_id: form.task_id === "none" ? null : form.task_id,
       status: form.status,
+      cancel_reason: form.status === "cancelada" ? (form.notes?.match(/Motivo cancelamento: (.*)$/s)?.[1] || null) : null,
       internal_user_ids: form.internal_user_ids,
       external_guests: form.external_guests as unknown as never,
       notes: form.notes.trim() || null,
@@ -558,9 +574,26 @@ export default function Reunioes() {
         </TabsContent>
 
         <TabsContent value="remarcar" className="space-y-4">
+          <div className="flex items-center gap-2 max-w-sm mb-4">
+            <Label htmlFor="cancel-filter" className="sr-only">Filtrar por motivo</Label>
+            <div className="relative flex-1">
+              <Plus className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground rotate-45" />
+              <Input 
+                id="cancel-filter"
+                placeholder="Filtrar por motivo de cancelamento..." 
+                className="pl-9"
+                value={cancelFilter}
+                onChange={(e) => setCancelFilter(e.target.value)}
+              />
+            </div>
+          </div>
           <MeetingList
             title="Reuniões para Remarcar"
-            items={meetings.filter(m => m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date()))}
+            items={meetings.filter(m => {
+              const matchesStatus = m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date());
+              const matchesSearch = !cancelFilter || (m.notes?.toLowerCase().includes(cancelFilter.toLowerCase()) || m.title.toLowerCase().includes(cancelFilter.toLowerCase()));
+              return matchesStatus && matchesSearch;
+            })}
             onEdit={openEdit}
             onReschedule={openReschedule}
             onComplete={handleComplete}
