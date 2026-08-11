@@ -251,11 +251,34 @@ export default function Reunioes() {
     setOpenForm(true);
   };
 
+  const openReschedule = (m: Meeting) => {
+    setEditingId(m.id);
+    setOriginalStatus(m.status);
+    setForm({
+      title: `[Remarcada] ${m.title}`,
+      description: m.description || "",
+      starts_at: "", // Clear dates
+      ends_at: "",   // Clear dates
+      location: m.location || "",
+      meeting_link: m.meeting_link || "",
+      client_id: m.client_id || "none",
+      task_id: m.task_id || "none",
+      status: "remarcada",
+      internal_user_ids: m.internal_user_ids || [],
+      external_guests: m.external_guests || [],
+      notes: m.notes || "",
+    });
+    setHistory([]);
+    loadHistory(m.id);
+    setOpenForm(true);
+  };
+
   const handleSave = async () => {
     if (!user) return;
     if (!form.title.trim()) return toast.error("Informe um título");
     if (!form.starts_at || !form.ends_at) return toast.error("Informe início e fim");
     if (new Date(form.ends_at) <= new Date(form.starts_at)) return toast.error("O fim deve ser após o início");
+
 
     // Confirmação explícita para status sensíveis (cancelada/remarcada)
     const sensivel = form.status === "cancelada" || form.status === "remarcada";
