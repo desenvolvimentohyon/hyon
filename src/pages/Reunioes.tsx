@@ -477,6 +477,27 @@ export default function Reunioes() {
           <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
           <MeetingList title="Histórico" items={past} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
         </TabsContent>
+
+        <TabsContent value="remarcar" className="space-y-4">
+          <MeetingList
+            title="Reuniões para Remarcar"
+            items={meetings.filter(m => m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date()))}
+            onEdit={openEdit}
+            onDelete={(id) => setDeleteId(id)}
+            onSync={handleSyncGoogle}
+            googleConnected={gCal.connected}
+            syncingId={syncingId}
+            loading={loading}
+            clientes={clientes}
+            users={users}
+          />
+          <div className="p-4 border rounded-lg bg-amber-500/5 border-amber-500/20">
+            <p className="text-sm text-amber-700 flex items-center gap-2">
+              <CalendarClock className="h-4 w-4" />
+              Aqui você visualiza reuniões que foram marcadas como "Remarcada" ou que já passaram do horário e precisam de atenção para um novo agendamento.
+            </p>
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* Form dialog */}
