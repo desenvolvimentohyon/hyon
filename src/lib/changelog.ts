@@ -18,6 +18,13 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: "2.5.1",
+    date: "2026-08-10",
+    changes: [
+      { type: "melhoria", text: "UX Tipográfica: Corrigido o espaçamento entre letras (letter-spacing) para evitar o efeito de letras 'corridas' em telas PWA e mobile." },
+      { type: "melhoria", text: "Legibilidade: Ajustada a escala de tracking e kern global, removendo o aperto excessivo em títulos h1/h2 e corpo de texto." },
+      { type: "melhoria", text: "Suporte PWA: Otimizado o motor de renderização de texto para garantir clareza visual em ícones e componentes de alta densidade." }
+    ]
+  },
   {
     version: "2.5.0",
     date: "2026-08-10",
