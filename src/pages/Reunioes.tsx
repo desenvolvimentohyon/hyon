@@ -846,7 +846,7 @@ interface MeetingListProps {
 }
 
 
-function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
+function MeetingList({ title, items, onEdit, onDelete, onSync, onReschedule, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
