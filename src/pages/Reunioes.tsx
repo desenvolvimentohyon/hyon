@@ -837,12 +837,14 @@ interface MeetingListProps {
   onEdit: (m: Meeting) => void;
   onDelete: (id: string) => void;
   onSync: (id: string) => void;
+  onReschedule?: (m: Meeting) => void;
   googleConnected: boolean;
   syncingId: string | null;
   loading: boolean;
   clientes: Array<{ id: string; nome: string }>;
   users: Array<{ id: string; nome?: string; email?: string }>;
 }
+
 
 function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
   return (
