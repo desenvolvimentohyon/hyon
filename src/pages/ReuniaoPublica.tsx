@@ -39,7 +39,7 @@ export default function ReuniaoPublica() {
         // Recarrega os dados da reunião para mostrar o status atualizado
         const { data: updatedMeeting } = await supabase
           .from("meetings")
-          .select("*, profiles:created_by(nome, email)")
+          .select("*")
           .filter("public_token" as any, "eq", token)
           .maybeSingle();
         if (updatedMeeting) setMeeting(updatedMeeting);
@@ -59,7 +59,7 @@ export default function ReuniaoPublica() {
       
       const { data, error } = await supabase
         .from("meetings")
-        .select("*, profiles:created_by(nome, email)")
+        .select("*")
         .eq("public_token", token)
         .maybeSingle();
 
