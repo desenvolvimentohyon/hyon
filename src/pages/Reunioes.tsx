@@ -251,11 +251,34 @@ export default function Reunioes() {
     setOpenForm(true);
   };
 
+  const openReschedule = (m: Meeting) => {
+    setEditingId(m.id);
+    setOriginalStatus(m.status);
+    setForm({
+      title: `[Remarcada] ${m.title}`,
+      description: m.description || "",
+      starts_at: "", // Clear dates
+      ends_at: "",   // Clear dates
+      location: m.location || "",
+      meeting_link: m.meeting_link || "",
+      client_id: m.client_id || "none",
+      task_id: m.task_id || "none",
+      status: "remarcada",
+      internal_user_ids: m.internal_user_ids || [],
+      external_guests: m.external_guests || [],
+      notes: m.notes || "",
+    });
+    setHistory([]);
+    loadHistory(m.id);
+    setOpenForm(true);
+  };
+
   const handleSave = async () => {
     if (!user) return;
     if (!form.title.trim()) return toast.error("Informe um título");
     if (!form.starts_at || !form.ends_at) return toast.error("Informe início e fim");
     if (new Date(form.ends_at) <= new Date(form.starts_at)) return toast.error("O fim deve ser após o início");
+
 
     // Confirmação explícita para status sensíveis (cancelada/remarcada)
     const sensivel = form.status === "cancelada" || form.status === "remarcada";
@@ -474,8 +497,9 @@ export default function Reunioes() {
         </TabsContent>
 
         <TabsContent value="list" className="space-y-4">
-          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
-          <MeetingList title="Histórico" items={past} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
+          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onReschedule={openReschedule} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
+          <MeetingList title="Histórico" items={past} onEdit={openEdit} onReschedule={openReschedule} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
+
         </TabsContent>
 
         <TabsContent value="remarcar" className="space-y-4">
@@ -483,6 +507,7 @@ export default function Reunioes() {
             title="Reuniões para Remarcar"
             items={meetings.filter(m => m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date()))}
             onEdit={openEdit}
+            onReschedule={openReschedule}
             onDelete={(id) => setDeleteId(id)}
             onSync={handleSyncGoogle}
             googleConnected={gCal.connected}
@@ -491,12 +516,17 @@ export default function Reunioes() {
             clientes={clientes}
             users={users}
           />
-          <div className="p-4 border rounded-lg bg-amber-500/5 border-amber-500/20">
-            <p className="text-sm text-amber-700 flex items-center gap-2">
+          <div className="p-4 border rounded-lg bg-amber-500/5 border-amber-500/20 space-y-2">
+            <p className="text-sm text-amber-700 flex items-center gap-2 font-medium">
               <CalendarClock className="h-4 w-4" />
-              Aqui você visualiza reuniões que foram marcadas como "Remarcada" ou que já passaram do horário e precisam de atenção para um novo agendamento.
+              Notificação de Atraso Detectada
+            </p>
+            <p className="text-xs text-amber-600/90 leading-relaxed">
+              Algumas reuniões agendadas já passaram do horário previsto sem terem sido marcadas como concluídas. 
+              Use o botão <CalendarClock className="h-3 w-3 inline" /> <strong>"1-Clique para Remarcar"</strong> para limpar as datas e abrir o formulário rapidamente.
             </p>
           </div>
+
         </TabsContent>
       </Tabs>
 
@@ -814,6 +844,7 @@ interface MeetingListProps {
   onEdit: (m: Meeting) => void;
   onDelete: (id: string) => void;
   onSync: (id: string) => void;
+  onReschedule?: (m: Meeting) => void;
   googleConnected: boolean;
   syncingId: string | null;
   loading: boolean;
@@ -821,7 +852,8 @@ interface MeetingListProps {
   users: Array<{ id: string; nome?: string; email?: string }>;
 }
 
-function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
+
+function MeetingList({ title, items, onEdit, onDelete, onSync, onReschedule, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -931,7 +963,19 @@ function MeetingList({ title, items, onEdit, onDelete, onSync, googleConnected, 
                       <RefreshCw className={cn("h-3.5 w-3.5", syncingId === m.id && "animate-spin")} />
                     </Button>
                   )}
+                  {onReschedule && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-amber-500"
+                      title="1-Clique para Remarcar"
+                      onClick={() => onReschedule(m)}
+                    >
+                      <CalendarClock className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(m)}>
+
                     <Edit3 className="h-3.5 w-3.5" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(m.id)}>
