@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon, Share2, Copy, MessageSquare } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon, Share2, Copy, MessageSquare, CalendarClock } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
@@ -100,7 +100,7 @@ export default function Reunioes() {
 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
+  const [viewMode, setViewMode] = useState<"list" | "calendar" | "remarcar">("calendar");
   const [monthCursor, setMonthCursor] = useState(new Date());
   const [openForm, setOpenForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -398,13 +398,16 @@ export default function Reunioes() {
         </div>
       </div>
 
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "calendar")}>
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
         <TabsList>
           <TabsTrigger value="calendar" className="gap-2">
             <CalendarDays className="h-4 w-4" /> Calendário
           </TabsTrigger>
           <TabsTrigger value="list" className="gap-2">
             <List className="h-4 w-4" /> Lista
+          </TabsTrigger>
+          <TabsTrigger value="remarcar" className="gap-2">
+            <CalendarClock className="h-4 w-4" /> Remarcar Reunião
           </TabsTrigger>
         </TabsList>
 
@@ -473,6 +476,27 @@ export default function Reunioes() {
         <TabsContent value="list" className="space-y-4">
           <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
           <MeetingList title="Histórico" items={past} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
+        </TabsContent>
+
+        <TabsContent value="remarcar" className="space-y-4">
+          <MeetingList
+            title="Reuniões para Remarcar"
+            items={meetings.filter(m => m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date()))}
+            onEdit={openEdit}
+            onDelete={(id) => setDeleteId(id)}
+            onSync={handleSyncGoogle}
+            googleConnected={gCal.connected}
+            syncingId={syncingId}
+            loading={loading}
+            clientes={clientes}
+            users={users}
+          />
+          <div className="p-4 border rounded-lg bg-amber-500/5 border-amber-500/20">
+            <p className="text-sm text-amber-700 flex items-center gap-2">
+              <CalendarClock className="h-4 w-4" />
+              Aqui você visualiza reuniões que foram marcadas como "Remarcada" ou que já passaram do horário e precisam de atenção para um novo agendamento.
+            </p>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -778,6 +802,7 @@ export default function Reunioes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
