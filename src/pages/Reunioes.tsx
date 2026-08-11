@@ -506,6 +506,7 @@ export default function Reunioes() {
             title="Reuniões para Remarcar"
             items={meetings.filter(m => m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date()))}
             onEdit={openEdit}
+            onReschedule={openReschedule}
             onDelete={(id) => setDeleteId(id)}
             onSync={handleSyncGoogle}
             googleConnected={gCal.connected}
@@ -514,12 +515,17 @@ export default function Reunioes() {
             clientes={clientes}
             users={users}
           />
-          <div className="p-4 border rounded-lg bg-amber-500/5 border-amber-500/20">
-            <p className="text-sm text-amber-700 flex items-center gap-2">
+          <div className="p-4 border rounded-lg bg-amber-500/5 border-amber-500/20 space-y-2">
+            <p className="text-sm text-amber-700 flex items-center gap-2 font-medium">
               <CalendarClock className="h-4 w-4" />
-              Aqui você visualiza reuniões que foram marcadas como "Remarcada" ou que já passaram do horário e precisam de atenção para um novo agendamento.
+              Notificação de Atraso Detectada
+            </p>
+            <p className="text-xs text-amber-600/90 leading-relaxed">
+              Algumas reuniões agendadas já passaram do horário previsto sem terem sido marcadas como concluídas. 
+              Use o botão <CalendarClock className="h-3 w-3 inline" /> <strong>"1-Clique para Remarcar"</strong> para limpar as datas e abrir o formulário rapidamente.
             </p>
           </div>
+
         </TabsContent>
       </Tabs>
 
