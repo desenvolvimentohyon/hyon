@@ -382,7 +382,7 @@ export default function Reunioes() {
       status: form.status,
       cancel_reason: form.status === "cancelada" ? (form.notes?.match(/Motivo cancelamento: (.*)$/s)?.[1] || null) : null,
       internal_user_ids: form.internal_user_ids,
-      external_guests: form.external_guests as unknown as never,
+      external_guests: form.external_guests as any,
       notes: form.notes.trim() || null,
     };
 
