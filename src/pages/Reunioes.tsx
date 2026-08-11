@@ -956,7 +956,19 @@ function MeetingList({ title, items, onEdit, onDelete, onSync, onReschedule, goo
                       <RefreshCw className={cn("h-3.5 w-3.5", syncingId === m.id && "animate-spin")} />
                     </Button>
                   )}
+                  {onReschedule && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-amber-500"
+                      title="1-Clique para Remarcar"
+                      onClick={() => onReschedule(m)}
+                    >
+                      <CalendarClock className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(m)}>
+
                     <Edit3 className="h-3.5 w-3.5" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(m.id)}>
