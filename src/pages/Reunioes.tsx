@@ -1089,7 +1089,7 @@ function MeetingList({ title, items, onEdit, onDelete, onSync, onReschedule, onC
                       <CalendarClock className="h-3.5 w-3.5" />
                     </Button>
                   )}
-                  {m.status !== "realizada" && m.status !== "cancelada" && onComplete && (
+                  {(m.status === "agendada" || m.status === "remarcada") && onComplete && (
                     <Button
                       variant="ghost"
                       size="icon"
