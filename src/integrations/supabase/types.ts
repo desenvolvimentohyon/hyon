@@ -2155,6 +2155,7 @@ export type Database = {
       }
       meetings: {
         Row: {
+          cancel_reason: string | null
           client_id: string | null
           company_slug: string | null
           created_at: string
@@ -2180,6 +2181,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancel_reason?: string | null
           client_id?: string | null
           company_slug?: string | null
           created_at?: string
@@ -2205,6 +2207,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancel_reason?: string | null
           client_id?: string | null
           company_slug?: string | null
           created_at?: string
