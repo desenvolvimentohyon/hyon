@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.6.5",
+    date: "2026-08-11",
+    changes: [
+      { type: "melhoria", text: "Endurecimento de Segurança: Revogados GRANTS de acesso público (anon) em tabelas sensíveis, forçando uso estrito de RLS e autenticação." },
+      { type: "melhoria", text: "Privilégios de Execução: Restrita a execução de funções SECURITY DEFINER analíticas e administrativas apenas para usuários autenticados e service_role." },
+      { type: "melhoria", text: "Hardening de RLS: Reforçadas as políticas de acesso e proteção de integridade org_id em tabelas de configuração e infraestrutura." },
+      { type: "correcao", text: "Segurança de Funções: Garantido search_path explícito em todas as funções SECURITY DEFINER para mitigar riscos de Search Path Hijacking." }
+    ]
+  },
+  {
     version: "2.5.1",
     date: "2026-08-10",
     changes: [
