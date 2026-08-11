@@ -140,8 +140,11 @@ export function IAAssistant() {
                     <div>
                       <CardTitle className="text-sm font-semibold">Hyon IA</CardTitle>
                       <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Online e processando dados
+                        <span className={cn(
+                          "inline-block w-1.5 h-1.5 rounded-full animate-pulse",
+                          iaStatus === "connected" ? "bg-emerald-500" : "bg-destructive"
+                        )} />
+                        {iaStatus === "connected" ? "IA Conectada" : "IA Indisponível"}
                       </p>
                     </div>
                   </div>
