@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon, Share2, Copy, MessageSquare, CalendarClock } from "lucide-react";
+import { CalendarPlus, Video, MapPin, Link as LinkIcon, Users, Trash2, Edit3, ChevronLeft, ChevronRight, CalendarDays, List, Bell, ExternalLink, Download, RefreshCw, CheckCircle2, Plus, ListTodo, History as HistoryIcon, Share2, Copy, MessageSquare, CalendarClock, XCircle } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "@/lib/icsExport";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Button } from "@/components/ui/button";
@@ -117,6 +117,8 @@ export default function Reunioes() {
   const [lastSavedId, setLastSavedId] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareMeeting, setShareMeeting] = useState<Meeting | null>(null);
+  const [cancelMeeting, setCancelMeeting] = useState<Meeting | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
 
   const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -271,6 +273,59 @@ export default function Reunioes() {
     setHistory([]);
     loadHistory(m.id);
     setOpenForm(true);
+  };
+
+  const handleComplete = async (m: Meeting) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from("meetings").update({ status: "realizada" }).eq("id", m.id);
+      if (error) throw error;
+
+      const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).maybeSingle();
+      
+      await supabase.from("meeting_history").insert({
+        org_id: profile?.org_id,
+        meeting_id: m.id,
+        from_status: m.status,
+        to_status: "realizada",
+        note: "Concluída via atalho rápido",
+        changed_by: user.id,
+      });
+
+      toast.success("Reunião marcada como concluída");
+      loadMeetings();
+    } catch (error) {
+      toast.error("Erro ao concluir reunião");
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!user || !cancelMeeting) return;
+    try {
+      const { error } = await supabase.from("meetings").update({ 
+        status: "cancelada",
+        notes: cancelReason ? `${cancelMeeting.notes || ""}\nMotivo cancelamento: ${cancelReason}`.trim() : cancelMeeting.notes
+      }).eq("id", cancelMeeting.id);
+      if (error) throw error;
+
+      const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).maybeSingle();
+      
+      await supabase.from("meeting_history").insert({
+        org_id: profile?.org_id,
+        meeting_id: cancelMeeting.id,
+        from_status: cancelMeeting.status,
+        to_status: "cancelada",
+        note: cancelReason || "Cancelada via atalho rápido",
+        changed_by: user.id,
+      });
+
+      toast.success("Reunião cancelada");
+      setCancelMeeting(null);
+      setCancelReason("");
+      loadMeetings();
+    } catch (error) {
+      toast.error("Erro ao cancelar reunião");
+    }
   };
 
   const handleSave = async () => {
@@ -497,8 +552,8 @@ export default function Reunioes() {
         </TabsContent>
 
         <TabsContent value="list" className="space-y-4">
-          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onReschedule={openReschedule} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
-          <MeetingList title="Histórico" items={past} onEdit={openEdit} onReschedule={openReschedule} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
+          <MeetingList title="Próximas reuniões" items={upcoming} onEdit={openEdit} onReschedule={openReschedule} onComplete={handleComplete} onCancelClick={setCancelMeeting} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={loading} clientes={clientes} users={users} />
+          <MeetingList title="Histórico" items={past} onEdit={openEdit} onReschedule={openReschedule} onComplete={handleComplete} onCancelClick={setCancelMeeting} onDelete={(id) => setDeleteId(id)} onSync={handleSyncGoogle} googleConnected={gCal.connected} syncingId={syncingId} loading={false} clientes={clientes} users={users} />
 
         </TabsContent>
 
@@ -508,6 +563,8 @@ export default function Reunioes() {
             items={meetings.filter(m => m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date()))}
             onEdit={openEdit}
             onReschedule={openReschedule}
+            onComplete={handleComplete}
+            onCancelClick={setCancelMeeting}
             onDelete={(id) => setDeleteId(id)}
             onSync={handleSyncGoogle}
             googleConnected={gCal.connected}
@@ -833,6 +890,28 @@ export default function Reunioes() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!cancelMeeting} onOpenChange={(o) => !o && setCancelMeeting(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancelar Reunião</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Motivo do cancelamento (opcional)</Label>
+              <Textarea 
+                value={cancelReason} 
+                onChange={(e) => setCancelReason(e.target.value)} 
+                placeholder="Descreva o motivo do cancelamento..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelMeeting(null)}>Voltar</Button>
+            <Button variant="destructive" onClick={handleCancel}>Confirmar Cancelamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -845,6 +924,8 @@ interface MeetingListProps {
   onDelete: (id: string) => void;
   onSync: (id: string) => void;
   onReschedule?: (m: Meeting) => void;
+  onComplete?: (m: Meeting) => void;
+  onCancelClick?: (m: Meeting) => void;
   googleConnected: boolean;
   syncingId: string | null;
   loading: boolean;
@@ -853,7 +934,7 @@ interface MeetingListProps {
 }
 
 
-function MeetingList({ title, items, onEdit, onDelete, onSync, onReschedule, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
+function MeetingList({ title, items, onEdit, onDelete, onSync, onReschedule, onComplete, onCancelClick, googleConnected, syncingId, loading, clientes, users }: MeetingListProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -972,6 +1053,28 @@ function MeetingList({ title, items, onEdit, onDelete, onSync, onReschedule, goo
                       onClick={() => onReschedule(m)}
                     >
                       <CalendarClock className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {m.status === "agendada" && onComplete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-emerald-500"
+                      title="Concluir Reunião"
+                      onClick={() => onComplete(m)}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  {m.status === "agendada" && onCancelClick && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      title="Cancelar Reunião"
+                      onClick={() => onCancelClick(m)}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
                     </Button>
                   )}
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(m)}>
