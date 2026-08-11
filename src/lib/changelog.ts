@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 // Ordem: mais recente primeiro. Ao subir uma nova versão, adicione no topo.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "2.7.0",
+    date: "2026-08-11",
+    changes: [
+      { type: "novo", text: "Infraestrutura Hyon IA: Implantada a Edge Function global 'ia-assistant' integrada ao Lovable AI Gateway." },
+      { type: "melhoria", text: "Inteligência Contextual: O chat lateral agora processa o contexto de navegação em tempo real (Financeiro, CRM, Operacional) para respostas precisas." },
+      { type: "melhoria", text: "Resiliência de Backend: Adicionada validação de LOVABLE_API_KEY no ambiente de execução para evitar falhas intermitentes." },
+    ]
+  },
+  {
     version: "2.6.5",
     date: "2026-08-11",
     changes: [
