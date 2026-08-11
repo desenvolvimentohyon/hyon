@@ -398,13 +398,16 @@ export default function Reunioes() {
         </div>
       </div>
 
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "calendar")}>
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
         <TabsList>
           <TabsTrigger value="calendar" className="gap-2">
             <CalendarDays className="h-4 w-4" /> Calendário
           </TabsTrigger>
           <TabsTrigger value="list" className="gap-2">
             <List className="h-4 w-4" /> Lista
+          </TabsTrigger>
+          <TabsTrigger value="remarcar" className="gap-2">
+            <CalendarClock className="h-4 w-4" /> Remarcar Reunião
           </TabsTrigger>
         </TabsList>
 
