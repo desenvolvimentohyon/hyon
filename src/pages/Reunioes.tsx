@@ -781,6 +781,27 @@ export default function Reunioes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <TabsContent value="remarcar">
+        <MeetingList
+          title="Reuniões para Remarcar"
+          items={meetings.filter(m => m.status === "remarcada" || (m.status === "agendada" && new Date(m.starts_at) < new Date()))}
+          onEdit={openEdit}
+          onDelete={(id) => setDeleteId(id)}
+          onSync={handleSyncGoogle}
+          googleConnected={gCal.connected}
+          syncingId={syncingId}
+          loading={loading}
+          clientes={clientes}
+          users={users}
+        />
+        <div className="mt-4 p-4 border rounded-lg bg-amber-500/5 border-amber-500/20">
+          <p className="text-sm text-amber-700 flex items-center gap-2">
+            <CalendarClock className="h-4 w-4" />
+            Aqui você visualiza reuniões que foram marcadas como "Remarcada" ou que já passaram do horário e precisam de atenção.
+          </p>
+        </div>
+      </TabsContent>
     </div>
   );
 }
