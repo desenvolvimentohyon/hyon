@@ -382,13 +382,7 @@ export function Topbar() {
       <div className="bg-primary/5 border-b border-primary/10 px-4 py-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-[11px] font-medium text-primary/80 animate-in fade-in slide-in-from-top-2 duration-500 text-center">
         <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <span>Hyon IA v2.7.0 ativado</span>
-        </div>
-        <Separator orientation="vertical" className="h-3 bg-primary/20 hidden sm:block" />
-        <div className="flex flex-col sm:flex-row items-center gap-1.5">
-          <span>Navegar até Financeiro &gt; Contas a Receber e perguntar ao chat lateral: "Qual o total vencido este mês?" para validar a leitura de contexto.</span>
-          <span className="text-muted-foreground/60 hidden sm:inline">•</span>
-          <span className="text-muted-foreground/60">Confirmar se o banner informativo desaparece ou se adapta corretamente em telas mobile.</span>
+          <span>Hyon IA v2.7.0 - Exibir um indicador claro do status da IA (conectado/indisponível) no topo e atualizar em tempo real quando a resposta do chat falhar.</span>
         </div>
       </div>
     </>

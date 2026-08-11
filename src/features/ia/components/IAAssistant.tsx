@@ -24,6 +24,7 @@ export function IAAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [retryStatus, setRetryStatus] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [iaStatus, setIaStatus] = useState<"connected" | "disconnected">("connected");
   const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -95,8 +96,10 @@ export function IAAssistant() {
         timestamp: new Date() 
       };
       setMessages(prev => [...prev, assistantMsg]);
+      setIaStatus("connected");
     } catch (err) {
       logger.error("IA Chat Error", err);
+      setIaStatus("disconnected");
       setMessages(prev => [...prev, { 
         role: "assistant", 
         content: "Não foi possível conectar ao serviço após várias tentativas. Verifique sua conexão.", 
@@ -137,8 +140,11 @@ export function IAAssistant() {
                     <div>
                       <CardTitle className="text-sm font-semibold">Hyon IA</CardTitle>
                       <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Online e processando dados
+                        <span className={cn(
+                          "inline-block w-1.5 h-1.5 rounded-full animate-pulse",
+                          iaStatus === "connected" ? "bg-emerald-500" : "bg-destructive"
+                        )} />
+                        {iaStatus === "connected" ? "IA Conectada" : "IA Indisponível"}
                       </p>
                     </div>
                   </div>
