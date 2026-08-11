@@ -228,155 +228,167 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-2 sm:gap-4 bg-background/95 backdrop-blur-md px-4 sm:px-6 border-b border-border/40">
-      <SidebarTrigger className="shrink-0 h-10 w-10 hover:bg-accent/50 transition-colors rounded-xl" />
+    <>
+      <header className="sticky top-0 z-20 flex h-16 items-center gap-2 sm:gap-4 bg-background/95 backdrop-blur-md px-4 sm:px-6 border-b border-border/40">
+        <SidebarTrigger className="shrink-0 h-10 w-10 hover:bg-accent/50 transition-colors rounded-xl" />
 
-      {/* Breadcrumb — hidden on small mobile */}
-      {breadcrumb && (
-        <Breadcrumb className="hidden sm:flex min-w-0 max-w-[30%] lg:max-w-[40%]">
-          <BreadcrumbList className="gap-1.5 text-[11px] lg:text-[12px]">
-            <BreadcrumbItem className="text-muted-foreground/70">
-              <BreadcrumbLink asChild>
-                <Link to={breadcrumb.parent.directUrl || breadcrumb.parent.children[0]?.url || "/"} className="hover:text-foreground transition-colors truncate max-w-[100px] lg:max-w-[160px] inline-block">
-                  {breadcrumb.parent.title}
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            {breadcrumb.parent.children.length > 1 && (
-              <>
-                <BreadcrumbSeparator className="text-muted-foreground/30" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[120px] lg:max-w-[220px]">
-                    {breadcrumb.child.title}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </>
-            )}
-          </BreadcrumbList>
-        </Breadcrumb>
-      )}
-
-
-      <form onSubmit={handleSearch} className="hidden lg:flex flex-1 min-w-0 max-w-md ml-auto">
-        <div className="relative w-full group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
-          <Input
-            placeholder="Buscar... (Ctrl+K)"
-            value={busca}
-            onChange={e => setBusca(e.target.value)}
-            className="pl-9 pr-12 h-9 text-[13px] bg-muted/50 border-none rounded-lg placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all"
-          />
-          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-            <span className="text-xs">⌘</span>K
-          </kbd>
-        </div>
-      </form>
-
-
-      <div className="flex-1 sm:hidden" />
-
-
-      <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
-        {/* Online/Offline indicator */}
-        {!isOnline && (
-          <div className="flex items-center gap-1.5 text-destructive mr-1">
-            <WifiOff className="h-3.5 w-3.5" />
-            <span className="text-[10px] font-medium hidden sm:inline">Offline</span>
-          </div>
+        {/* Breadcrumb — hidden on small mobile */}
+        {breadcrumb && (
+          <Breadcrumb className="hidden sm:flex min-w-0 max-w-[30%] lg:max-w-[40%]">
+            <BreadcrumbList className="gap-1.5 text-[11px] lg:text-[12px]">
+              <BreadcrumbItem className="text-muted-foreground/70">
+                <BreadcrumbLink asChild>
+                  <Link to={breadcrumb.parent.directUrl || breadcrumb.parent.children[0]?.url || "/"} className="hover:text-foreground transition-colors truncate max-w-[100px] lg:max-w-[160px] inline-block">
+                    {breadcrumb.parent.title}
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {breadcrumb.parent.children.length > 1 && (
+                <>
+                  <BreadcrumbSeparator className="text-muted-foreground/30" />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="text-foreground/85 font-medium truncate max-w-[120px] lg:max-w-[220px]">
+                      {breadcrumb.child.title}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+            </BreadcrumbList>
+          </Breadcrumb>
         )}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          title={theme === "dark" ? "Modo claro" : "Modo escuro"}
-        >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
 
-        <VersionHistoryButton />
+        <form onSubmit={handleSearch} className="hidden lg:flex flex-1 min-w-0 max-w-md ml-auto">
+          <div className="relative w-full group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
+            <Input
+              placeholder="Buscar... (Ctrl+K)"
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+              className="pl-9 pr-12 h-9 text-[13px] bg-muted/50 border-none rounded-lg placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/20 transition-all"
+            />
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </div>
+        </form>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          onClick={() => window.open("/landing", "_blank")}
-          title="Landing Page"
-        >
-          <Globe className="h-4 w-4" />
-        </Button>
 
-        {/* Notification Center */}
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`relative h-9 w-9 rounded-lg ${temCritico ? "text-destructive hover:text-destructive" : totalNotificacoes > 0 ? "text-warning hover:text-warning" : ""}`}
-            >
-              <Bell className="h-4 w-4" />
-              {totalNotificacoes > 0 && (
-                <Badge className={`absolute -top-1 -right-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] rounded-full ${temCritico ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}`}>
-                  {totalNotificacoes}
-                </Badge>
-              )}
-              {temCritico && (
-                <span className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full bg-destructive animate-ping opacity-30" />
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[calc(100vw-1rem)] sm:w-96 p-0 rounded-xl shadow-elevated" align="end" sideOffset={8}>
-            <div className="px-4 py-3 border-b">
-              <h4 className="font-semibold text-sm">Notificações</h4>
-              <p className="text-xs text-muted-foreground">
-                {totalNotificacoes === 0 ? "Nenhum alerta no momento" : `${totalNotificacoes} alerta(s) ativo(s)`}
-              </p>
+        <div className="flex-1 sm:hidden" />
+
+
+        <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
+          {/* Online/Offline indicator */}
+          {!isOnline && (
+            <div className="flex items-center gap-1.5 text-destructive mr-1">
+              <WifiOff className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium hidden sm:inline">Offline</span>
             </div>
-            <ScrollArea className="max-h-80">
-              {notificacoes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                  <Bell className="h-8 w-8 mb-2 opacity-20" />
-                  <p className="text-sm">Tudo em ordem! ✓</p>
-                </div>
-              ) : (
-                <div className="divide-y">
-                  {notificacoes.map(n => (
-                    <button
-                      key={n.id}
-                      onClick={() => handleNotificacaoClick(n)}
-                      className="w-full flex items-start gap-3 px-4 py-3 hover:bg-accent/50 transition-colors text-left"
-                    >
-                      <div className="mt-0.5">{getIcone(n.icone)}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-sm font-medium truncate">{n.titulo}</span>
-                          <Badge variant="outline" className={`text-[9px] px-1.5 py-0 shrink-0 rounded-full ${getTipoBadge(n.tipo)}`}>
-                            {n.tipo === "critico" ? "CRÍTICO" : n.tipo === "alerta" ? "ALERTA" : "INFO"}
-                          </Badge>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-lg"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+
+          <VersionHistoryButton />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-lg"
+            onClick={() => window.open("/landing", "_blank")}
+            title="Landing Page"
+          >
+            <Globe className="h-4 w-4" />
+          </Button>
+
+          {/* Notification Center */}
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`relative h-9 w-9 rounded-lg ${temCritico ? "text-destructive hover:text-destructive" : totalNotificacoes > 0 ? "text-warning hover:text-warning" : ""}`}
+              >
+                <Bell className="h-4 w-4" />
+                {totalNotificacoes > 0 && (
+                  <Badge className={`absolute -top-1 -right-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] rounded-full ${temCritico ? "bg-destructive text-destructive-foreground" : "bg-warning text-warning-foreground"}`}>
+                    {totalNotificacoes}
+                  </Badge>
+                )}
+                {temCritico && (
+                  <span className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full bg-destructive animate-ping opacity-30" />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[calc(100vw-1rem)] sm:w-96 p-0 rounded-xl shadow-elevated" align="end" sideOffset={8}>
+              <div className="px-4 py-3 border-b">
+                <h4 className="font-semibold text-sm">Notificações</h4>
+                <p className="text-xs text-muted-foreground">
+                  {totalNotificacoes === 0 ? "Nenhum alerta no momento" : `${totalNotificacoes} alerta(s) ativo(s)`}
+                </p>
+              </div>
+              <ScrollArea className="max-h-80">
+                {notificacoes.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                    <Bell className="h-8 w-8 mb-2 opacity-20" />
+                    <p className="text-sm">Tudo em ordem! ✓</p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {notificacoes.map(n => (
+                      <button
+                        key={n.id}
+                        onClick={() => handleNotificacaoClick(n)}
+                        className="w-full flex items-start gap-3 px-4 py-3 hover:bg-accent/50 transition-colors text-left"
+                      >
+                        <div className="mt-0.5">{getIcone(n.icone)}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-sm font-medium truncate">{n.titulo}</span>
+                            <Badge variant="outline" className={`text-[9px] px-1.5 py-0 shrink-0 rounded-full ${getTipoBadge(n.tipo)}`}>
+                              {n.tipo === "critico" ? "CRÍTICO" : n.tipo === "alerta" ? "ALERTA" : "INFO"}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">{n.descricao}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{n.descricao}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-0.5" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </PopoverContent>
-        </Popover>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-0.5" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
 
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive"
-          onClick={() => signOut()}
-          title="Sair"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive"
+            onClick={() => signOut()}
+            title="Sair"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+      </header>
+      <div className="bg-primary/5 border-b border-primary/10 px-4 py-2 flex items-center justify-center gap-4 text-[11px] font-medium text-primary/80 animate-in fade-in slide-in-from-top-2 duration-500">
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          <span>Hyon IA v2.7.0 ativado</span>
+        </div>
+        <Separator orientation="vertical" className="h-3 bg-primary/20" />
+        <div className="flex items-center gap-1.5">
+          <span>Módulos integrados: Financeiro, CRM, Operacional</span>
+        </div>
       </div>
-    </header>
+    </>
   );
 }
