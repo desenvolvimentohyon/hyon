@@ -96,8 +96,10 @@ export function IAAssistant() {
         timestamp: new Date() 
       };
       setMessages(prev => [...prev, assistantMsg]);
+      setIaStatus("connected");
     } catch (err) {
       logger.error("IA Chat Error", err);
+      setIaStatus("disconnected");
       setMessages(prev => [...prev, { 
         role: "assistant", 
         content: "Não foi possível conectar ao serviço após várias tentativas. Verifique sua conexão.", 
