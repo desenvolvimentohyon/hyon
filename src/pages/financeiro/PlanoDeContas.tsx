@@ -46,6 +46,15 @@ function TreeNode({ item, onEdit, onDelete, onAddChild, level = 0 }: {
         <div className="opacity-0 group-hover:opacity-100 flex gap-1">
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onAddChild(item)} title="Nova subconta"><Plus className="h-3 w-3 text-primary" /></Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onEdit(item)}><Edit className="h-3 w-3" /></Button>
+          {!item.ativo ? (
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updatePlanoContas(item.id, { ativo: true })} title="Reativar">
+              <Plus className="h-3 w-3 text-success" />
+            </Button>
+          ) : (
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updatePlanoContas(item.id, { ativo: false })} title="Desativar">
+              <Trash2 className="h-3 w-3 text-warning" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDelete(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
         </div>
       </div>
@@ -62,7 +71,8 @@ export default function PlanoDeContas() {
   const [editing, setEditing] = useState<PlanoContas | null>(null);
   const [form, setForm] = useState({ codigo: "", nome: "", tipo: "receita" as TipoPlanoContas, paiId: "none" });
 
-  const raizes = getFilhosPlanoContas(null);
+  const [showInactive, setShowInactive] = useState(false);
+  const raizes = getFilhosPlanoContas(null).filter(r => showInactive || r.ativo);
 
   const handleAddChild = (parent: PlanoContas) => {
     const filhos = getFilhosPlanoContas(parent.id);
@@ -116,6 +126,9 @@ export default function PlanoDeContas() {
           <p className="text-muted-foreground text-sm">Estrutura contábil hierárquica</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowInactive(!showInactive)}>
+            {showInactive ? "Ocultar Inativos" : "Mostrar Inativos"}
+          </Button>
           <Button variant="outline" onClick={handleExportJSON}><Download className="h-4 w-4 mr-1" /> Exportar</Button>
           <Button onClick={() => { setEditing(null); setForm({ codigo: (raizes.length + 1).toString(), nome: "", tipo: "receita", paiId: "none" }); setModalOpen(true); }}>
             <FolderTree className="h-4 w-4 mr-1" /> Nova Conta Mãe
