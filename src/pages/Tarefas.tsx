@@ -187,7 +187,7 @@ export default function Tarefas() {
 
 
   return (
-    <div className="flex flex-col h-full gap-4 p-1">
+    <div className="flex flex-col min-h-full gap-4 p-1">
       <PageHeader
         icon={ClipboardList}
         iconClassName="text-primary"
