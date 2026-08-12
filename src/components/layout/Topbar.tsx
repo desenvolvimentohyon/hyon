@@ -383,11 +383,11 @@ export function Topbar() {
         <div className="flex flex-col items-center gap-1">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span>Validar a visualização do Kanban em diferentes tamanhos de tela (mobile e tablet).</span>
+            <span>Realizar testes práticos no Kanban usando ferramentas de desenvolvedor para simular tablets e smartphones.</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-            <span>Verificar se a altura flexível impacta o scroll infinito ou o carregamento de mais tarefas.</span>
+            <span>Monitorar o comportamento de carregamento de tarefas (lazy loading) ao rolar a página para garantir que não houve regressão.</span>
           </div>
         </div>
       </div>
