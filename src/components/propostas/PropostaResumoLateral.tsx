@@ -8,6 +8,9 @@ interface ResumoData {
   sistemaNome: string;
   sistemaValor: number;
   modulosSelecionados: { nome: string; valor: number }[];
+  modulosFilialSelecionados: { nome: string; valor: number }[];
+  hasFilial: boolean;
+  sistemaFilialNome: string;
   planoNome: string;
   descontoPercent: number;
   descontoValor: number;
@@ -78,6 +81,21 @@ export function PropostaResumoLateral({ data, onGerarProposta, gerando }: Props)
               {data.modulosSelecionados.map((m, i) => (
                 <div key={i} className="flex justify-between text-xs pl-4">
                   <span>{m.nome}</span>
+                  <span>{fmt(m.valor)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Módulos Filial */}
+          {data.hasFilial && data.modulosFilialSelecionados.length > 0 && (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium uppercase tracking-wider">
+                <Puzzle className="h-3 w-3" /> Módulos Filial ({data.modulosFilialSelecionados.length})
+              </div>
+              {data.modulosFilialSelecionados.map((m, i) => (
+                <div key={i} className="flex justify-between text-xs pl-4">
+                  <span>{m.nome.replace('Filial: ', '')}</span>
                   <span>{fmt(m.valor)}</span>
                 </div>
               ))}
