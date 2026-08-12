@@ -22,20 +22,18 @@ const tipoColors: Record<TipoPlanoContas, string> = {
   investimento: "bg-success/10 text-success border-success/20",
 };
 
-function TreeNode({ item, onEdit, onDelete, onAddChild, level = 0 }: {
-  item: PlanoContas; onEdit: (p: PlanoContas) => void; onDelete: (id: string) => void; onAddChild: (p: PlanoContas) => void; level?: number;
+function TreeNode({ item, onEdit, onDelete, onAddChild, showInactive, level = 0 }: {
+  item: PlanoContas; onEdit: (p: PlanoContas) => void; onDelete: (id: string) => void; onAddChild: (p: PlanoContas) => void; showInactive: boolean; level?: number;
 }) {
   const [expanded, setExpanded] = useState(true);
-  const [showInactive, setShowInactive] = useState(false);
   const { getFilhosPlanoContas, updatePlanoContas } = useFinanceiro();
   const childItems = getFilhosPlanoContas(item.id);
-
-  const visibleChildren = expanded ? childItems.filter(c => showInactive || c.ativo) : [];
+  const visibleChildren = childItems.filter(c => showInactive || c.ativo);
 
   return (
     <div>
       <div className={`flex items-center gap-2 py-1.5 px-2 hover:bg-accent/50 rounded-md group`} style={{ paddingLeft: `${level * 20 + 8}px` }}>
-        {childItems.length > 0 ? (
+        {visibleChildren.length > 0 ? (
           <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground">
             {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
@@ -58,8 +56,8 @@ function TreeNode({ item, onEdit, onDelete, onAddChild, level = 0 }: {
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDelete(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
         </div>
       </div>
-      {expanded && childItems.map(child => (
-        <TreeNode key={child.id} item={child} onEdit={onEdit} onDelete={onDelete} onAddChild={onAddChild} level={level + 1} />
+      {expanded && visibleChildren.map(child => (
+        <TreeNode key={child.id} item={child} onEdit={onEdit} onDelete={onDelete} onAddChild={onAddChild} showInactive={showInactive} level={level + 1} />
       ))}
     </div>
   );
@@ -143,7 +141,7 @@ export default function PlanoDeContas() {
         </CardHeader>
         <CardContent>
           {raizes.map(r => (
-            <TreeNode key={r.id} item={r} onEdit={handleEdit} onDelete={handleDelete} onAddChild={handleAddChild} />
+            <TreeNode key={r.id} item={r} onEdit={handleEdit} onDelete={handleDelete} onAddChild={handleAddChild} showInactive={showInactive} />
           ))}
         </CardContent>
       </Card>
