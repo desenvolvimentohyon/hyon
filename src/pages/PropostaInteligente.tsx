@@ -65,7 +65,10 @@ export default function PropostaInteligente() {
   // Form state
   const [clienteId, setClienteId] = useState("");
   const [sistemaId, setSistemaId] = useState("");
+  const [sistemaFilialId, setSistemaFilialId] = useState("");
+  const [hasFilial, setHasFilial] = useState(false);
   const [moduloIds, setModuloIds] = useState<string[]>([]);
+  const [moduloFilialIds, setModuloFilialIds] = useState<string[]>([]);
   const [planoId, setPlanoId] = useState("");
   const [regiaoId, setRegiaoId] = useState("");
   const [distanciaKm, setDistanciaKm] = useState(0);
@@ -120,8 +123,13 @@ export default function PropostaInteligente() {
     setModuloIds([]);
   }, [sistemaId]);
 
+  useEffect(() => {
+    setModuloFilialIds([]);
+  }, [sistemaFilialId]);
+
   // Derived calculations
   const sistema = useMemo(() => sistemas.find(s => s.id === sistemaId), [sistemas, sistemaId]);
+  const sistemaFilial = useMemo(() => sistemas.find(s => s.id === sistemaFilialId), [sistemas, sistemaFilialId]);
   const plano = useMemo(() => planos.find(p => p.id === planoId), [planos, planoId]);
   const regiao = useMemo(() => regions.find(r => r.id === regiaoId), [regions, regiaoId]);
   const parceiro = useMemo(() => partners.find(p => p.id === parceiroId), [partners, parceiroId]);
@@ -134,6 +142,11 @@ export default function PropostaInteligente() {
   const modulosSelecionados = useMemo(() =>
     modulos.filter(m => moduloIds.includes(m.id)),
     [modulos, moduloIds]
+  );
+
+  const modulosFilialSelecionados = useMemo(() =>
+    modulos.filter(m => moduloFilialIds.includes(m.id)),
+    [modulos, moduloFilialIds]
   );
 
   const systemSetup = useMemo<SystemSetupPricing | null>(
@@ -150,7 +163,8 @@ export default function PropostaInteligente() {
   const calc = useMemo(() => {
     const sistemaValor = 0;
     const modulosValor = modulosSelecionados.reduce((sum, m) => sum + m.valorVenda, 0);
-    const mensalidadeBase = modulosValor;
+    const modulosFilialValor = hasFilial ? modulosFilialSelecionados.reduce((sum, m) => sum + m.valorVenda, 0) : 0;
+    const mensalidadeBase = modulosValor + modulosFilialValor;
     const descontoPercent = plano?.descontoPercentual || 0;
     const descontoValor = mensalidadeBase * (descontoPercent / 100);
     const valorAposPlano = mensalidadeBase - descontoValor;
@@ -195,6 +209,9 @@ export default function PropostaInteligente() {
     sistemaNome: sistema?.nome || "",
     sistemaValor: calc.sistemaValor,
     modulosSelecionados: modulosSelecionados.map(m => ({ nome: m.nome, valor: m.valorVenda })),
+    modulosFilialSelecionados: modulosFilialSelecionados.map(m => ({ nome: `Filial: ${m.nome}`, valor: m.valorVenda })),
+    hasFilial,
+    sistemaFilialNome: sistemaFilial?.nome || "",
     planoNome: plano?.nomePlano || "",
     descontoPercent: calc.descontoPercent,
     descontoValor: calc.descontoValor,
@@ -225,6 +242,10 @@ export default function PropostaInteligente() {
 
   const handleToggleModulo = useCallback((id: string) => {
     setModuloIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }, []);
+
+  const handleToggleModuloFilial = useCallback((id: string) => {
+    setModuloFilialIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }, []);
 
   const handleGerarProposta = useCallback(async () => {
@@ -261,7 +282,7 @@ export default function PropostaInteligente() {
       addProposta({
         clienteId: finalClienteId || null,
         clienteNomeSnapshot: finalClienteNome,
-        sistema: (sistema?.nome || "OUTRO") as any,
+        sistema: (sistema?.nome || "OUTRO") + (hasFilial ? ` + Filial (${sistemaFilial?.nome || "OUTRO"})` : "") as any,
         planoNome: plano?.nomePlano || "",
         valorMensalidade: calc.mensalidadeFinal,
         valorImplantacao: calc.implantacaoTotal,
@@ -275,8 +296,8 @@ export default function PropostaInteligente() {
         statusAceite: "pendente",
         pdfGeradoEm: null,
         observacoesInternas: observacoes,
-        informacoesAdicionais: resumoData.modulosSelecionados.length > 0 
-          ? `Módulos inclusos: ${resumoData.modulosSelecionados.map(m => m.nome).join(", ")}\n\n${crmConfig.informacoesAdicionaisPadrao || ""}`
+        informacoesAdicionais: resumoData.modulosSelecionados.length > 0 || resumoData.modulosFilialSelecionados.length > 0
+          ? `Módulos inclusos: ${[...resumoData.modulosSelecionados, ...resumoData.modulosFilialSelecionados].map(m => m.nome).join(", ")}\n\n${crmConfig.informacoesAdicionaisPadrao || ""}`
           : crmConfig.informacoesAdicionaisPadrao || "",
         itens,
         partnerId: parceiroId || null,
@@ -305,6 +326,7 @@ export default function PropostaInteligente() {
 
   const sistemasAtivos = useMemo(() => sistemas.filter(s => s.ativo), [sistemas]);
   const modulosDoSistema = useMemo(() => modulos.filter(m => m.ativo && (m.sistemaIds || []).includes(sistemaId)), [modulos, sistemaId]);
+  const modulosDoSistemaFilial = useMemo(() => modulos.filter(m => m.ativo && (m.sistemaIds || []).includes(sistemaFilialId)), [modulos, sistemaFilialId]);
   const planosAtivos = useMemo(() => planos.filter(p => p.ativo), [planos]);
   const formasAtivas = useMemo(() => formasPagamento.filter(f => f.ativo), [formasPagamento]);
 
@@ -408,6 +430,72 @@ export default function PropostaInteligente() {
                 </SelectContent>
               </Select>
           </EtapaCard>
+
+          <div className="flex items-center space-x-2 p-2 bg-muted/30 rounded-lg border border-dashed">
+            <Checkbox id="hasFilial" checked={hasFilial} onCheckedChange={(c) => setHasFilial(!!c)} />
+            <Label htmlFor="hasFilial" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+              <Plus className="h-4 w-4 text-primary" /> Adicionar sistema para Filial
+            </Label>
+          </div>
+
+          {hasFilial && (
+            <EtapaCard
+              numero={2.1}
+              icone={Monitor}
+              iconeCor="text-primary/70"
+              titulo="Sistema (Filial)"
+              descricao="Escolha a plataforma principal para a filial."
+              concluido={!!sistemaFilialId}
+            >
+              <Select value={sistemaFilialId} onValueChange={setSistemaFilialId}>
+                <SelectTrigger><SelectValue placeholder="Selecione o sistema da filial" /></SelectTrigger>
+                <SelectContent>
+                  {sistemasAtivos.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.nome} — R$ {s.valorVenda.toFixed(2)}/mês
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </EtapaCard>
+          )}
+
+          {hasFilial && modulosDoSistemaFilial.length > 0 && (
+            <EtapaCard
+              numero={3.1}
+              icone={Puzzle}
+              iconeCor="text-violet-500/70"
+              titulo={`Módulos (Filial)${moduloFilialIds.length > 0 ? ` (${moduloFilialIds.length} selecionado${moduloFilialIds.length > 1 ? "s" : ""})` : ""}`}
+              descricao="Marque os módulos contratados para a filial."
+              concluido={moduloFilialIds.length > 0}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {modulosDoSistemaFilial.map(m => {
+                  const selecionado = moduloFilialIds.includes(m.id);
+                  return (
+                    <label
+                      key={m.id}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg border p-2.5 cursor-pointer transition-all",
+                        selecionado
+                          ? "border-violet-500/50 bg-violet-500/5 ring-1 ring-violet-500/20"
+                          : "border-border/60 hover:bg-accent/40 hover:border-violet-500/30"
+                      )}
+                    >
+                      <Checkbox
+                        checked={selecionado}
+                        onCheckedChange={() => handleToggleModuloFilial(m.id)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{m.nome}</p>
+                        <p className="text-xs text-muted-foreground">R$ {m.valorVenda.toFixed(2)}/mês</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </EtapaCard>
+          )}
 
           {/* 3. Módulos */}
           {modulosDoSistema.length > 0 && (
