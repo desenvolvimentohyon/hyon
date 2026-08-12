@@ -382,7 +382,10 @@ export function Topbar() {
       <div className="bg-primary/5 border-b border-primary/10 px-4 py-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-[11px] font-medium text-primary/80 animate-in fade-in slide-in-from-top-2 duration-500 text-center">
         <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <span>Try to fix these 3 Project monitoring findings: 1. Most of the app's pages are gone — sidebar links silently redirect to the Dashboard. 2. Bank balances become wrong once history exceeds 500 movements. 3. Inactive Chart of Accounts entries disappear and can't be reactivated.</span>
+          <span>Try to fix these 3 Project monitoring findings:
+1. Most of the app's pages are gone — sidebar links silently redirect to the Dashboard
+2. Bank balances become wrong once history exceeds 500 movements
+3. Inactive Chart of Accounts entries disappear and can't be reactivated</span>
         </div>
       </div>
     </>
