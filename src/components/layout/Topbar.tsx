@@ -380,9 +380,15 @@ export function Topbar() {
         </div>
       </header>
       <div className="bg-primary/5 border-b border-primary/10 px-4 py-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-[11px] font-medium text-primary/80 animate-in fade-in slide-in-from-top-2 duration-500 text-center">
-        <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <span>Testar a responsividade do Kanban de tarefas com a nova estrutura de altura flexível.</span>
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span>Validar a visualização do Kanban em diferentes tamanhos de tela (mobile e tablet).</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+            <span>Verificar se a altura flexível impacta o scroll infinito ou o carregamento de mais tarefas.</span>
+          </div>
         </div>
       </div>
     </>
