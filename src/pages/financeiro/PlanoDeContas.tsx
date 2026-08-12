@@ -53,9 +53,6 @@ function TreeNode({ item, onEdit, onDelete, onAddChild, showInactive, level = 0 
               <Trash2 className="h-3 w-3 text-warning" />
             </Button>
           )}
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updatePlanoContas(item.id, { ativo: !item.ativo })} title={item.ativo ? "Desativar" : "Reativar"}>
-            {item.ativo ? <Trash2 className="h-3 w-3 text-warning" /> : <Plus className="h-3 w-3 text-success" />}
-          </Button>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDelete(item.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
         </div>
       </div>
