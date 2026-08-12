@@ -26,8 +26,11 @@ function TreeNode({ item, onEdit, onDelete, onAddChild, level = 0 }: {
   item: PlanoContas; onEdit: (p: PlanoContas) => void; onDelete: (id: string) => void; onAddChild: (p: PlanoContas) => void; level?: number;
 }) {
   const [expanded, setExpanded] = useState(true);
-  const { getFilhosPlanoContas } = useFinanceiro();
+  const [showInactive, setShowInactive] = useState(false);
+  const { getFilhosPlanoContas, updatePlanoContas } = useFinanceiro();
   const childItems = getFilhosPlanoContas(item.id);
+
+  const visibleChildren = expanded ? childItems.filter(c => showInactive || c.ativo) : [];
 
   return (
     <div>

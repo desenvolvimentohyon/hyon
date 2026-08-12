@@ -72,9 +72,9 @@ export function FinanceiroProvider({ children }: { children: React.ReactNode }) 
       // Aqui, como é um sistema de gestão, o estado global é aceitável, mas usamos select(*) moderado.
       const [cbRes, pcRes, tRes, mRes] = await Promise.all([
         supabase.from("company_bank_accounts").select("*").eq("org_id", orgId),
-        supabase.from("plan_accounts").select("*").eq("org_id", orgId).eq("active", true), // Apenas ativos
-        supabase.from("financial_titles").select("*").eq("org_id", orgId).order("due_at", { ascending: false }).limit(1000), // Limite de segurança
-        supabase.from("bank_transactions").select("*").eq("org_id", orgId).order("date", { ascending: false }).limit(500),
+        supabase.from("plan_accounts").select("*").eq("org_id", orgId), // Não filtrar inativos aqui para permitir reativação e histórico
+        supabase.from("financial_titles").select("*").eq("org_id", orgId).order("due_at", { ascending: false }), // Sem limite para manter integridade dos KPIs históricos
+        supabase.from("bank_transactions").select("*").eq("org_id", orgId).order("date", { ascending: false }), // Sem limite para manter o saldo correto
       ]);
       
       if (cbRes.error) throw cbRes.error;
