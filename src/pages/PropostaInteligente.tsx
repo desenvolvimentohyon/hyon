@@ -282,7 +282,9 @@ export default function PropostaInteligente() {
       addProposta({
         clienteId: finalClienteId || null,
         clienteNomeSnapshot: finalClienteNome,
-        sistema: (sistema?.nome || "OUTRO") + (hasFilial ? ` + Filial (${sistemaFilial?.nome || "OUTRO"})` : "") as any,
+        // Mantém apenas o nome do sistema principal para não quebrar agrupamentos
+        // de relatórios nem a busca no catálogo (systems_catalog.name).
+        sistema: (sistema?.nome || "OUTRO") as any,
         planoNome: plano?.nomePlano || "",
         valorMensalidade: calc.mensalidadeFinal,
         valorImplantacao: calc.implantacaoTotal,
