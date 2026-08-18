@@ -282,7 +282,9 @@ export default function PropostaInteligente() {
       addProposta({
         clienteId: finalClienteId || null,
         clienteNomeSnapshot: finalClienteNome,
-        sistema: (sistema?.nome || "OUTRO") + (hasFilial ? ` + Filial (${sistemaFilial?.nome || "OUTRO"})` : "") as any,
+        // Mantém apenas o nome do sistema principal para não quebrar agrupamentos
+        // de relatórios nem a busca no catálogo (systems_catalog.name).
+        sistema: (sistema?.nome || "OUTRO") as any,
         planoNome: plano?.nomePlano || "",
         valorMensalidade: calc.mensalidadeFinal,
         valorImplantacao: calc.implantacaoTotal,
@@ -297,8 +299,8 @@ export default function PropostaInteligente() {
         pdfGeradoEm: null,
         observacoesInternas: observacoes,
         informacoesAdicionais: resumoData.modulosSelecionados.length > 0 || resumoData.modulosFilialSelecionados.length > 0
-          ? `Módulos inclusos: ${[...resumoData.modulosSelecionados, ...resumoData.modulosFilialSelecionados].map(m => m.nome).join(", ")}\n\n${crmConfig.informacoesAdicionaisPadrao || ""}`
-          : crmConfig.informacoesAdicionaisPadrao || "",
+          ? `${hasFilial ? `Sistema adicional para Filial: ${sistemaFilial?.nome || "OUTRO"}\n\n` : ""}Módulos inclusos: ${[...resumoData.modulosSelecionados, ...resumoData.modulosFilialSelecionados].map(m => m.nome).join(", ")}\n\n${crmConfig.informacoesAdicionaisPadrao || ""}`
+          : `${hasFilial ? `Sistema adicional para Filial: ${sistemaFilial?.nome || "OUTRO"}\n\n` : ""}${crmConfig.informacoesAdicionaisPadrao || ""}`,
         itens,
         partnerId: parceiroId || null,
         partnerCommissionPercent: parceiro?.commission_implant_percent || null,

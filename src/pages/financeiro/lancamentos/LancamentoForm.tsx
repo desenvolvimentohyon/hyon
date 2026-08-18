@@ -103,7 +103,7 @@ export function LancamentoForm({ tipo, planoContas, contasBancarias, clientesRec
             <div className="flex gap-2">
               <Select value={catId} onValueChange={setCatId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{planoContas.filter((p: any) => p.paiId).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
+                <SelectContent>{planoContas.filter((p: any) => p.paiId && (p.ativo !== false || p.id === catId)).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
               </Select>
               <Button variant="outline" size="icon" className="shrink-0" onClick={() => navigate("/financeiro/plano-de-contas")} title="Criar nova conta no Plano de Contas">
                 <Plus className="h-4 w-4" />

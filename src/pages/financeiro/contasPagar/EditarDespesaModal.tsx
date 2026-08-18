@@ -49,7 +49,7 @@ export function EditarDespesaModal({ titulo, onClose, onSave }: { titulo: Titulo
             <div><Label>Categoria</Label>
               <Select value={catId} onValueChange={setCatId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{planoContas.filter(p => p.paiId && (p.tipo === "despesa" || p.tipo === "custo" || p.tipo === "repasse" || p.tipo === "imposto")).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
+                <SelectContent>{planoContas.filter(p => p.paiId && (p.ativo !== false || p.id === catId) && (p.tipo === "despesa" || p.tipo === "custo" || p.tipo === "repasse" || p.tipo === "imposto")).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div><Label>Status</Label>

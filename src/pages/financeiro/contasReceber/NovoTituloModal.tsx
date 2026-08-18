@@ -58,7 +58,7 @@ export function NovoTituloModal({ open, onClose, tipo }: { open: boolean; onClos
           <div><Label>Categoria</Label>
             <Select value={catId} onValueChange={setCatId}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{planoContas.filter(p => p.paiId).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
+              <SelectContent>{planoContas.filter(p => p.paiId && (p.ativo !== false || p.id === catId)).map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} - {p.nome}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>
