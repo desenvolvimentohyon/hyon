@@ -37,11 +37,7 @@ export default function ReuniaoPublica() {
         toast.success("Presença confirmada com sucesso!");
         setConfirmed(true);
         // Recarrega os dados da reunião para mostrar o status atualizado
-        const { data: updatedMeeting } = await supabase
-          .from("meetings")
-          .select("*")
-          .filter("public_token" as any, "eq", token)
-          .maybeSingle();
+        const { data: updatedMeeting } = await supabase.rpc("get_public_meeting" as any, { p_token: token });
         if (updatedMeeting) setMeeting(updatedMeeting);
       } else {
         toast.error("Nome não encontrado na lista de convidados.");
@@ -56,12 +52,8 @@ export default function ReuniaoPublica() {
   useEffect(() => {
     async function load() {
       if (!token) return;
-      
-      const { data, error } = await supabase
-        .from("meetings")
-        .select("*")
-        .eq("public_token", token)
-        .maybeSingle();
+
+      const { data, error } = await supabase.rpc("get_public_meeting" as any, { p_token: token });
 
       if (error || !data) {
         toast.error("Reunião não encontrada ou link expirado");
@@ -74,6 +66,7 @@ export default function ReuniaoPublica() {
     }
     load();
   }, [token]);
+
 
   if (loading) {
     return (

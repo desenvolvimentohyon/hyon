@@ -3874,6 +3874,7 @@ export type Database = {
       current_org_id: { Args: never; Returns: string }
       current_role: { Args: never; Returns: string }
       get_ia_analytics_summary: { Args: { p_org_id: string }; Returns: Json }
+      get_public_meeting: { Args: { p_token: string }; Returns: Json }
       get_user_permissions: { Args: { _user_id: string }; Returns: string[] }
       has_permission:
         | { Args: { _permission: string }; Returns: boolean }
