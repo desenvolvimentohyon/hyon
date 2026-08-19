@@ -12,19 +12,28 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Não autenticado." }, 401);
+    const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
+    if (!token) return json({ error: "Não autenticado." }, 401);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "LOVABLE_API_KEY ausente no ambiente." }, 500);
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
+    // Fall back across key names: projects on signing keys may expose only the
+    // publishable key, and createClient with `undefined` breaks getUser().
+    const clientKey =
+      Deno.env.get("SUPABASE_ANON_KEY") ??
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!clientKey) return json({ error: "Ambiente Supabase incompleto." }, 500);
 
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
-    if (userErr || !userData?.user) return json({ error: "Sessão inválida." }, 401);
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, clientKey);
+
+    // Validate the caller's JWT explicitly instead of relying on a forwarded header.
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return json({ error: "Sessão expirada. Faça login novamente." }, 401);
+    }
+
 
     const payload = await req.json().catch(() => ({}));
     const question = payload?.question || "";
