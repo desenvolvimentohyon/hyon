@@ -49,8 +49,9 @@ interface AppContextType extends AppState {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const { profile, user } = useAuth();
+  const { profile, user, loading: authLoading } = useAuth();
   const orgId = profile?.org_id;
+
 
   const [loading, setLoading] = useState(true);
   const initialLoadedRef = useRef(false);
@@ -124,6 +125,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { 
     fetchAll(); 
   }, [fetchAll]);
+
+  // Failsafe: never keep the app stuck on the loading skeleton.
+  // If authentication already resolved and there is no org to fetch for
+  // (no session, or profile without org_id), release the loading state.
+  useEffect(() => {
+    if (!authLoading && !orgId) setLoading(false);
+  }, [authLoading, orgId]);
+
+  // Hard timeout guard for slow/flaky networks (common on tablets/PWA):
+  // after 15s we stop blocking the UI so the user can interact or retry.
+  useEffect(() => {
+    if (!loading) return;
+    const timer = window.setTimeout(() => setLoading(false), 15000);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
+
 
   // ===== Tarefas — Optimistic updates =====
   const addTarefa = useCallback(async (t: any) => {
