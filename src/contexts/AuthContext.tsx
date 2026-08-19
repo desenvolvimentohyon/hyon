@@ -59,7 +59,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
+      // A stored token can be expired/revoked. Validate it before trusting it,
+      // otherwise every request degrades to the `anon` role (HTTP 401 / 42501)
+      // and the app renders an empty screen instead of the login page.
+      if (existingSession?.user) {
+        const { error: validationError } = await supabase.auth.getUser();
+        if (validationError) {
+          await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+      }
+
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
       if (existingSession?.user) {
@@ -67,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(false);
     });
+
 
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
