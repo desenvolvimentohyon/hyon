@@ -49,8 +49,9 @@ interface AppContextType extends AppState {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const { profile, user } = useAuth();
+  const { profile, user, loading: authLoading } = useAuth();
   const orgId = profile?.org_id;
+
 
   const [loading, setLoading] = useState(true);
   const initialLoadedRef = useRef(false);
